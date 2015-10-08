@@ -83,10 +83,7 @@ class MapperExtension(object):
             me_meth = getattr(MapperExtension, meth)
             ls_meth = getattr(listener, meth)
 
-            # TODO: comparing self.methods to cls.method, 
-            # this comparison is probably moot
-
-            if me_meth is not ls_meth:
+            if not util.methods_equivalent(me_meth, ls_meth):
                 if meth == 'reconstruct_instance':
                     def go(ls_meth):
                         def reconstruct(instance, ctx):
@@ -401,16 +398,23 @@ class SessionExtension(object):
 
     @classmethod
     def _adapt_listener(cls, self, listener):
-        event.listen(self, 'before_commit', listener.before_commit)
-        event.listen(self, 'after_commit', listener.after_commit)
-        event.listen(self, 'after_rollback', listener.after_rollback)
-        event.listen(self, 'before_flush', listener.before_flush)
-        event.listen(self, 'after_flush', listener.after_flush)
-        event.listen(self, 'after_flush_postexec', listener.after_flush_postexec)
-        event.listen(self, 'after_begin', listener.after_begin)
-        event.listen(self, 'after_attach', listener.after_attach)
-        event.listen(self, 'after_bulk_update', listener.after_bulk_update)
-        event.listen(self, 'after_bulk_delete', listener.after_bulk_delete)
+        for meth in [
+            'before_commit',
+            'after_commit',
+            'after_rollback',
+            'before_flush',
+            'after_flush',
+            'after_flush_postexec',
+            'after_begin',
+            'after_attach',
+            'after_bulk_update',
+            'after_bulk_delete',
+        ]:
+            me_meth = getattr(SessionExtension, meth)
+            ls_meth = getattr(listener, meth)
+
+            if not util.methods_equivalent(me_meth, ls_meth):
+                event.listen(self, meth, getattr(listener, meth))
 
     def before_commit(self, session):
         """Execute right before commit is called.
@@ -419,13 +423,13 @@ class SessionExtension(object):
         transaction is ongoing."""
 
     def after_commit(self, session):
-        """Execute after a commit has occured.
+        """Execute after a commit has occurred.
 
         Note that this may not be per-flush if a longer running
         transaction is ongoing."""
 
     def after_rollback(self, session):
-        """Execute after a rollback has occured.
+        """Execute after a rollback has occurred.
 
         Note that this may not be per-flush if a longer running
         transaction is ongoing."""
@@ -450,7 +454,7 @@ class SessionExtension(object):
 
         This will be when the 'new', 'dirty', and 'deleted' lists are in
         their final state.  An actual commit() may or may not have
-        occured, depending on whether or not the flush started its own
+        occurred, depending on whether or not the flush started its own
         transaction or participated in a larger transaction. """
 
     def after_begin( self, session, transaction, connection):
@@ -517,7 +521,7 @@ class AttributeExtension(object):
             'bar':relationship(Bar, extension=MyAttrExt())
         })
 
-    Note that the :class:`AttributeExtension` methods
+    Note that the :class:`.AttributeExtension` methods
     :meth:`~.AttributeExtension.append` and
     :meth:`~.AttributeExtension.set` need to return the
     ``value`` parameter. The returned value is used as the

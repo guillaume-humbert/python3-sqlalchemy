@@ -7,7 +7,7 @@
         
         <title>
     Relationship Configuration
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Collection Configuration and Techniques" href="collections.html" />
         <link rel="prev" title="Mapper Configuration" href="mapper_config.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -107,7 +107,7 @@
 </li>
 <li><a class="reference internal" href="#rows-that-point-to-themselves-mutually-dependent-rows">Rows that point to themselves / Mutually Dependent Rows</a></li>
 <li><a class="reference internal" href="#mutable-primary-keys-update-cascades">Mutable Primary Keys / Update Cascades</a></li>
-<li><a class="reference internal" href="#the-relationship-api">The <tt class="docutils literal"><span class="pre">relationship()</span></tt> API</a></li>
+<li><a class="reference internal" href="#relationships-api">Relationships API</a></li>
 </ul>
 </li>
 </ul>
@@ -798,8 +798,8 @@ unit of work searches only through the current identity
 map for objects that may be referencing the one with a
 mutating primary key, not throughout the database.</p>
 </div>
-<div class="section" id="the-relationship-api">
-<h2>The <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> API<a class="headerlink" href="#the-relationship-api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="relationships-api">
+<h2>Relationships API<a class="headerlink" href="#relationships-api" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="sqlalchemy.orm.relationship">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">relationship</tt><big>(</big><em>argument</em>, <em>secondary=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.relationship" title="Permalink to this definition">¶</a></dt>
@@ -810,7 +810,7 @@ mutating primary key, not throughout the database.</p>
 <a class="reference internal" href="#sqlalchemy.orm.relation" title="sqlalchemy.orm.relation"><tt class="xref py py-func docutils literal"><span class="pre">relation()</span></tt></a> prior to version 0.6.</p>
 </div>
 <p>This corresponds to a parent-child or associative table relationship.  The
-constructed class is an instance of <tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty</span></tt>.</p>
+constructed class is an instance of <a class="reference internal" href="internals.html#sqlalchemy.orm.properties.RelationshipProperty" title="sqlalchemy.orm.properties.RelationshipProperty"><tt class="xref py py-class docutils literal"><span class="pre">RelationshipProperty</span></tt></a>.</p>
 <p>A typical <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mapper</span><span class="p">(</span><span class="n">Parent</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
   <span class="s">&#39;children&#39;</span><span class="p">:</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Children</span><span class="p">)</span>
@@ -821,7 +821,7 @@ constructed class is an instance of <tt class="xref py py-class docutils literal
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>argument</strong> &#8211; a class or <tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt> instance, representing the target of
+<li><strong>argument</strong> &#8211; a class or <a class="reference internal" href="mapper_config.html#sqlalchemy.orm.mapper.Mapper" title="sqlalchemy.orm.mapper.Mapper"><tt class="xref py py-class docutils literal"><span class="pre">Mapper</span></tt></a> instance, representing the target of
 the relationship.</li>
 <li><strong>secondary</strong> &#8211; for a many-to-many relationship, specifies the intermediary
 table. The <em>secondary</em> keyword argument should generally only
@@ -1092,16 +1092,40 @@ case, use an alternative method.</li>
 <dl class="function">
 <dt id="sqlalchemy.orm.backref">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">backref</tt><big>(</big><em>name</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.backref" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a back reference with explicit arguments, which are the same
+<dd><p>Create a back reference with explicit keyword arguments, which are the same
 arguments one can send to <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</p>
-<p>Used with the <cite>backref</cite> keyword argument to <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> in
-place of a string argument.</p>
+<p>Used with the <tt class="docutils literal"><span class="pre">backref</span></tt> keyword argument to <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> in
+place of a string argument, e.g.:</p>
+<div class="highlight-python"><pre>'items':relationship(SomeItem, backref=backref('parent', lazy='subquery'))</pre>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="sqlalchemy.orm.relation">
 <tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">relation</tt><big>(</big><em>*arg</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.relation" title="Permalink to this definition">¶</a></dt>
 <dd><p>A synonym for <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sqlalchemy.orm.dynamic_loader">
+<tt class="descclassname">sqlalchemy.orm.</tt><tt class="descname">dynamic_loader</tt><big>(</big><em>argument</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.dynamic_loader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a dynamically-loading mapper property.</p>
+<p>This is essentially the same as 
+using the <tt class="docutils literal"><span class="pre">lazy='dynamic'</span></tt> argument with <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">dynamic_loader</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">)</span>
+
+<span class="c"># vs.</span>
+
+<span class="n">relationship</span><span class="p">(</span><span class="n">SomeClass</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s">&quot;dynamic&quot;</span><span class="p">)</span></pre></div>
+</div>
+<p>A <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> that is &#8220;dynamic&#8221; features the behavior
+that read operations return an active <a class="reference internal" href="query.html#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object which 
+reads from the database when accessed. Items may be appended to the
+attribute via <tt class="docutils literal"><span class="pre">append()</span></tt>, or removed via <tt class="docutils literal"><span class="pre">remove()</span></tt>; changes will be
+persisted to the database during a <tt class="xref py py-meth docutils literal"><span class="pre">Sesion.flush()</span></tt>. However, no other
+Python list or collection mutation operations are available.</p>
+<p>All arguments accepted by <a class="reference internal" href="#sqlalchemy.orm.relationship" title="sqlalchemy.orm.relationship"><tt class="xref py py-func docutils literal"><span class="pre">relationship()</span></tt></a> are
+accepted here, other than <tt class="docutils literal"><span class="pre">lazy</span></tt> which is fixed at <tt class="docutils literal"><span class="pre">dynamic</span></tt>.</p>
 </dd></dl>
 
 </div>

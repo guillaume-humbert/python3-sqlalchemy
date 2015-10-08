@@ -101,9 +101,9 @@ class CachingQuery(Query):
         cache, cache_key = _get_cache_parameters(self)
         cache.put(cache_key, value)
 
-def query_callable(manager):
+def query_callable(manager, query_cls=CachingQuery):
     def query(*arg, **kw):
-        return CachingQuery(manager, *arg, **kw)
+        return query_cls(manager, *arg, **kw)
     return query
 
 def _get_cache_parameters(query):
@@ -121,8 +121,9 @@ def _get_cache_parameters(query):
 
     if cache_key is None:
         # cache key - the value arguments from this query's parameters.
-        args = _params_from_query(query)
-        cache_key = " ".join([str(x) for x in args])
+        args = [str(x) for x in _params_from_query(query)]
+        args.extend([str(query._limit), str(query._offset)])
+        cache_key = " ".join(args)
 
     assert cache_key is not None, "Cache key was None !"
 
@@ -269,4 +270,6 @@ def _params_from_query(query):
         v.append(value)
     if query._criterion is not None:
         visitors.traverse(query._criterion, {}, {'bindparam':visit_bindparam})
+    for f in query._from_obj:
+        visitors.traverse(f, {}, {'bindparam':visit_bindparam})
     return v

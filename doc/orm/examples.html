@@ -7,7 +7,7 @@
         
         <title>
     Examples
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Deprecated ORM Event Interfaces" href="interfaces.html" />
         <link rel="prev" title="SqlSoup" href="extensions/sqlsoup.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -134,23 +134,21 @@ an adjacency list model.</p>
 <h2>Associations<a class="headerlink" href="#associations" title="Permalink to this headline">¶</a></h2>
 <p>Location: /examples/association/</p>
 <span class="target" id="module-association"></span><p>Examples illustrating the usage of the &#8220;association object&#8221; pattern,
-where an intermediary object associates two endpoint objects together.</p>
-<p>The first example illustrates a basic association from a User object
-to a collection or Order objects, each which references a collection of Item objects.</p>
-<p>The second example builds upon the first to add the Association Proxy extension.</p>
-<p>E.g.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># create an order</span>
-<span class="n">order</span> <span class="o">=</span> <span class="n">Order</span><span class="p">(</span><span class="s">&#39;john smith&#39;</span><span class="p">)</span>
-
-<span class="c"># append an OrderItem association via the &quot;itemassociations&quot;</span>
-<span class="c"># collection with a custom price.</span>
-<span class="n">order</span><span class="o">.</span><span class="n">itemassociations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OrderItem</span><span class="p">(</span><span class="n">item</span><span class="p">(</span><span class="s">&#39;MySQL Crowbar&#39;</span><span class="p">),</span> <span class="mf">10.99</span><span class="p">))</span>
-
-<span class="c"># append two more Items via the transparent &quot;items&quot; proxy, which</span>
-<span class="c"># will create OrderItems automatically using the default price.</span>
-<span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">(</span><span class="s">&#39;SA Mug&#39;</span><span class="p">))</span>
-<span class="n">order</span><span class="o">.</span><span class="n">items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">(</span><span class="s">&#39;SA Hat&#39;</span><span class="p">))</span></pre></div>
-</div>
+where an intermediary class mediates the relationship between two
+classes that are associated in a many-to-many pattern.</p>
+<p>This directory includes the following examples:</p>
+<ul class="simple">
+<li>basic_association.py - illustrate a many-to-many relationship between an 
+&#8220;Order&#8221; and a collection of &#8220;Item&#8221; objects, associating a purchase price
+with each via an association object called &#8220;OrderItem&#8221;</li>
+<li>proxied_association.py - same example as basic_association, adding in
+usage of <a class="reference internal" href="extensions/associationproxy.html#module-sqlalchemy.ext.associationproxy"><tt class="xref py py-mod docutils literal"><span class="pre">sqlalchemy.ext.associationproxy</span></tt></a> to make explicit references
+to &#8220;OrderItem&#8221; optional.</li>
+<li>dict_of_sets_with_default.py - an advanced association proxy example which
+illustrates nesting of association proxies to produce multi-level Python
+collections, in this case a dictionary with string keys and sets of integers
+as values, which conceal the underlying mapped classes.</li>
+</ul>
 </div>
 <div class="section" id="attribute-instrumentation">
 <span id="examples-instrumentation"></span><h2>Attribute Instrumentation<a class="headerlink" href="#attribute-instrumentation" title="Permalink to this headline">¶</a></h2>

@@ -3,6 +3,175 @@
 =======
 CHANGES
 =======
+0.7.0b3
+=======
+- general
+  - Lots of fixes to unit tests when run under Pypy.
+
+- orm
+  - Changed the underlying approach to query.count().
+    query.count() is now in all cases exactly:
+
+        query.
+            from_self(func.count(literal_column('1'))).
+            scalar()
+
+    That is, "select count(1) from (<full query>)".
+    This produces a subquery in all cases, but 
+    vastly simplifies all the guessing count()
+    tried to do previously, which would still
+    fail in many scenarios particularly when
+    joined table inheritance and other joins
+    were involved.  If the subquery produced
+    for an otherwise very simple count is really 
+    an issue, use query(func.count()) as an 
+    optimization.  [ticket:2093]
+
+  - some changes to the identity map regarding
+    rare weakref callbacks during iterations.
+    The mutex has been removed as it apparently 
+    can cause a reentrant (i.e. in one thread) deadlock,
+    perhaps when gc collects objects at the point of 
+    iteration in order to gain more memory.  It is hoped
+    that "dictionary changed during iteration" will
+    be exceedingly rare as iteration methods internally
+    acquire the full list of objects in a single values() 
+    call. [ticket:2087]
+
+  - A tweak to the unit of work causes it to order
+    the flush along relationship() dependencies even if 
+    the given objects don't have any inter-attribute 
+    references in memory, which was the behavior in 
+    0.5 and earlier, so a flush of Parent/Child with
+    only foreign key/primary key set will succeed.  
+    This while still maintaining 0.6 and above's not 
+    generating a ton of useless internal dependency 
+    structures within the flush that don't correspond 
+    to state actually within the current flush.
+    [ticket:2082]
+
+  - Improvements to the error messages emitted when
+    querying against column-only entities in conjunction
+    with (typically incorrectly) using loader options, 
+    where the parent entity is not fully present.  
+    [ticket:2069]
+
+  - Fixed bug in query.options() whereby a path 
+    applied to a lazyload using string keys could 
+    overlap a same named attribute on the wrong 
+    entity.  Note 0.6 has a more conservative fix 
+    to this.  [ticket:2098]
+
+- sql
+  - Added a fully descriptive error message for the
+    case where Column is subclassed and _make_proxy()
+    fails to make a copy due to TypeError on the
+    constructor.   The method _constructor should
+    be implemented in this case.
+
+  - Added new event "column_reflect" for Table objects.
+    Receives the info dictionary about a Column before
+    the object is generated within reflection, and allows
+    modification to the dictionary for control over
+    most aspects of the resulting Column including 
+    key, name, type, info dictionary.  [ticket:2095]
+
+  - To help with the "column_reflect" event being used
+    with specific Table objects instead of all instances
+    of Table, listeners can be added to a Table object 
+    inline with its construction using a new argument 
+    "listeners", a list of tuples of the form 
+    (<eventname>, <fn>), which are applied to the Table 
+    before the reflection process begins.
+
+  - Added new generic function "next_value()", accepts
+    a Sequence object as its argument and renders the
+    appropriate "next value" generation string on the
+    target platform, if supported.  Also provides
+    ".next_value()" method on Sequence itself.   
+    [ticket:2085]
+
+  - func.next_value() or other SQL expression can
+    be embedded directly into an insert() construct,
+    and if implicit or explicit "returning" is used
+    in conjunction with a primary key column, 
+    the newly generated value will be present in
+    result.inserted_primary_key. [ticket:2084]
+
+- engine
+  - Fixed AssertionPool regression bug.  [ticket:2097]
+
+- dialect
+  - Changed exception raised to ArgumentError when an
+    invalid dialect is specified. [ticket:2060]
+
+- examples
+  - Updated the association, association proxy examples
+    to use declarative, added a new example 
+    dict_of_sets_with_default.py, a "pushing the envelope" 
+    example of association proxy.
+
+0.7.0b2
+========
+- orm
+  - Fixed bug whereby Session.merge() would call the
+    load() event with one too few arguments.
+    [ticket:2053]
+
+  - Added logic which prevents the generation of 
+    events from a MapperExtension or SessionExtension 
+    from generating do-nothing events for all the methods 
+    not overridden. [ticket:2052]
+
+- sql
+  - Renamed the EngineEvents event class to 
+    ConnectionEvents.  As these classes are never
+    accessed directly by end-user code, this strictly
+    is a documentation change for end users.  Also
+    simplified how events get linked to engines
+    and connections internally. [ticket:2059]
+
+  - The Sequence() construct, when passed a MetaData() 
+    object via its 'metadata' argument, will be 
+    included in CREATE/DROP statements within
+    metadata.create_all() and metadata.drop_all(), 
+    including "checkfirst" logic.  [ticket:2055]
+
+  - The Column.references() method now returns True
+    if it has a foreign key referencing the
+    given column exactly, not just it's parent
+    table.  [ticket:2064]
+
+- postgresql
+  - Fixed regression from 0.6 where SMALLINT and
+    BIGINT types would both generate SERIAL
+    on an integer PK column, instead of 
+    SMALLINT and BIGSERIAL [ticket:2065]
+
+- ext
+  - Association proxy now has correct behavior for
+    any(), has(), and contains() when proxying
+    a many-to-one scalar attribute to a one-to-many
+    collection (i.e. the reverse of the 'typical'
+    association proxy use case)  [ticket:2054]
+
+- examples
+  - Beaker example now takes into account 'limit'
+    and 'offset', bind params within embedded
+    FROM clauses (like when you use union() or 
+    from_self()) when generating a cache key.
+
+- declarative
+  - Fixed regression whereby composite() with 
+    Column objects placed inline would fail
+    to initialize.  The Column objects can now
+    be inline with the composite() or external
+    and pulled in via name or object ref. 
+    [ticket:2058]
+
+  - the dictionary at the end of the __table_args__
+    tuple is now optional.  [ticket:1468]
+
 0.7.0b1
 =======
 - Detailed descriptions of each change below are 
@@ -281,6 +450,12 @@ CHANGES
 0.6.7
 =====
 - orm
+  - Tightened the iterate vs. remove mutex around the 
+    identity map iteration, attempting to reduce the 
+    chance of an (extremely rare) reentrant gc operation 
+    causing a deadlock.  Might remove the mutex in
+    0.7.  [ticket:2087]
+
   - Added a `name` argument to `Query.subquery()`, to allow
     a fixed name to be assigned to the alias object.
     [ticket:2030]
@@ -308,6 +483,12 @@ CHANGES
     in the session.  This will be an exception in 0.7.
     [ticket:2046]
 
+  - Fixed bug in query.options() whereby a path 
+    applied to a lazyload using string keys could 
+    overlap a same named attribute on the wrong 
+    entity.  Note 0.7 has an updated version of this
+    fix.  [ticket:2098]
+
 - sql
   - Column.copy(), as used in table.tometadata(), copies the 
     'doc' attribute.  [ticket:2028]
@@ -322,6 +503,9 @@ CHANGES
     of an insert()/update() statement will also use the new
     compilation rules. [ticket:2042]
 
+  - Added accessors to ResultProxy "returns_rows", "is_insert"
+    [ticket:2089]
+
 - postgresql
   - When explicit sequence execution derives the name 
     of the auto-generated sequence of a SERIAL column, 
@@ -334,15 +518,52 @@ CHANGES
     exceptions, "could not receive data from server"
     [ticket:2044]
 
+  - Added RESERVED_WORDS for postgresql dialect. [ticket:2092]
+
+  - Fixed the BIT type to allow a "length" parameter, "varying"
+    parameter.  Reflection also fixed.  [ticket:2073]
+
+- informix
+
+  - Added RESERVED_WORDS informix dialect. [ticket:2092]
+
+- mssql
+  - Rewrote the query used to get the definition of a view,
+    typically when using the Inspector interface, to
+    use sys.sql_modules instead of the information schema,
+    thereby allowing views definitions longer than 4000 
+    characters to be fully returned.  [ticket:2071]
+
 - mysql
   - oursql dialect accepts the same "ssl" arguments in 
     create_engine() as that of MySQLdb.  [ticket:2047]
+
+- firebird
+  - The "implicit_returning" flag on create_engine() is
+    honored if set to False.  [ticket:2083]
+
+- ext
+  - The horizontal_shard ShardedSession class accepts the common
+    Session argument "query_cls" as a constructor argument,
+    to enable further subclassing of ShardedQuery.
+    [ticket:2090]
 
 - declarative
   - Added an explicit check for the case that the name
     'metadata' is used for a column attribute on a 
     declarative class. [ticket:2050]
 
+  - Fix error message referencing old @classproperty
+    name to reference @declared_attr [ticket:2061]
+
+  - Arguments in __mapper_args__ that aren't "hashable"
+    aren't mistaken for always-hashable, possibly-column
+    arguments.  [ticket:2091]
+
+- examples
+
+  - The Beaker caching example allows a "query_cls" argument
+    to the query_callable() function.  [ticket:2090]
 
 0.6.6
 =====

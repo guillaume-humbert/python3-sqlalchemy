@@ -697,10 +697,10 @@ class MixedEntitiesTest(QueryTest, AssertsCompiledSQL):
 
         adalias = aliased(Address)
         q2 = q.join(adalias, 'addresses').\
-                filter(User.name.like('%e%')).\
+                filter(User.name.like('%e%')).order_by(adalias.email_address).\
                 values(User.name, adalias.email_address)
-        eq_(list(q2), [(u'ed', u'ed@wood.com'), (u'ed', u'ed@bettyboop.com'), 
-                        (u'ed', u'ed@lala.com'), (u'fred', u'fred@fred.com')])
+        eq_(list(q2), [(u'ed', u'ed@bettyboop.com'), (u'ed', u'ed@lala.com'),
+                       (u'ed', u'ed@wood.com'), (u'fred', u'fred@fred.com')])
 
         q2 = q.values(func.count(User.name))
         assert q2.next() == (4,)
@@ -1677,7 +1677,6 @@ class ExternalColumnsTest(QueryTest):
 class TestOverlyEagerEquivalentCols(_base.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
-        global base, sub1, sub2
         base = Table('base', metadata, 
             Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
             Column('data', String(50))
@@ -1693,6 +1692,7 @@ class TestOverlyEagerEquivalentCols(_base.MappedTest):
             Column('data', String(50))
         )
 
+    @testing.resolve_artifact_names
     def test_equivs(self):
         class Base(_base.ComparableEntity):
             pass

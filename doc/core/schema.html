@@ -7,7 +7,7 @@
         
         <title>
     Schema Definition Language
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Column and Data Types" href="types.html" />
         <link rel="prev" title="Connection Pooling" href="pooling.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -92,7 +92,7 @@
 <li><a class="reference internal" href="#binding-metadata-to-an-engine-or-connection">Binding MetaData to an Engine or Connection</a></li>
 <li><a class="reference internal" href="#specifying-the-schema-name">Specifying the Schema Name</a></li>
 <li><a class="reference internal" href="#backend-specific-options">Backend-Specific Options</a></li>
-<li><a class="reference internal" href="#schema-api-constructs">Schema API Constructs</a></li>
+<li><a class="reference internal" href="#column-table-metadata-api">Column, Table, MetaData API</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#reflecting-database-objects">Reflecting Database Objects</a><ul>
@@ -112,26 +112,25 @@
 <li><a class="reference internal" href="#server-side-defaults">Server Side Defaults</a></li>
 <li><a class="reference internal" href="#triggered-columns">Triggered Columns</a></li>
 <li><a class="reference internal" href="#defining-sequences">Defining Sequences</a></li>
-<li><a class="reference internal" href="#default-geneation-api-constructs">Default Geneation API Constructs</a></li>
+<li><a class="reference internal" href="#default-objects-api">Default Objects API</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#defining-constraints-and-indexes">Defining Constraints and Indexes</a><ul>
 <li><a class="reference internal" href="#defining-foreign-keys">Defining Foreign Keys</a><ul>
 <li><a class="reference internal" href="#creating-dropping-foreign-key-constraints-via-alter">Creating/Dropping Foreign Key Constraints via ALTER</a></li>
 <li><a class="reference internal" href="#on-update-and-on-delete">ON UPDATE and ON DELETE</a></li>
-<li><a class="reference internal" href="#foreign-key-api-constructs">Foreign Key API Constructs</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#unique-constraint">UNIQUE Constraint</a></li>
 <li><a class="reference internal" href="#check-constraint">CHECK Constraint</a></li>
-<li><a class="reference internal" href="#other-constraint-classes">Other Constraint Classes</a></li>
+<li><a class="reference internal" href="#constraints-api">Constraints API</a></li>
 <li><a class="reference internal" href="#indexes">Indexes</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#customizing-ddl">Customizing DDL</a><ul>
 <li><a class="reference internal" href="#controlling-ddl-sequences">Controlling DDL Sequences</a></li>
 <li><a class="reference internal" href="#custom-ddl">Custom DDL</a></li>
-<li><a class="reference internal" href="#ddl-api">DDL API</a></li>
+<li><a class="reference internal" href="#ddl-expression-constructs-api">DDL Expression Constructs API</a></li>
 </ul>
 </li>
 </ul>
@@ -440,21 +439,34 @@ configured), or using <a class="reference internal" href="../orm/session.html#sq
 </div>
 <div class="section" id="specifying-the-schema-name">
 <h3>Specifying the Schema Name<a class="headerlink" href="#specifying-the-schema-name" title="Permalink to this headline">¶</a></h3>
-<p>Some databases support the concept of multiple schemas.  A <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> can reference this by specifying the <tt class="docutils literal"><span class="pre">schema</span></tt> keyword argument:</p>
+<p>Some databases support the concept of multiple schemas. A
+<a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> can reference this by specifying the
+<tt class="docutils literal"><span class="pre">schema</span></tt> keyword argument:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">financial_info</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;financial_info&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;value&#39;</span><span class="p">,</span> <span class="n">String</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>
     <span class="n">schema</span><span class="o">=</span><span class="s">&#39;remote_banks&#39;</span>
 <span class="p">)</span></pre></div>
 </div>
-<p>Within the <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> collection, this table will be identified by the combination of <tt class="docutils literal"><span class="pre">financial_info</span></tt> and <tt class="docutils literal"><span class="pre">remote_banks</span></tt>.  If another table called <tt class="docutils literal"><span class="pre">financial_info</span></tt> is referenced without the <tt class="docutils literal"><span class="pre">remote_banks</span></tt> schema, it will refer to a different <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>.  <a class="reference internal" href="#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a> objects can specify references to columns in this table using the form <tt class="docutils literal"><span class="pre">remote_banks.financial_info.id</span></tt>.</p>
-<p>The <tt class="docutils literal"><span class="pre">schema</span></tt> argument should be used for any name qualifiers required, including Oracle&#8217;s &#8220;owner&#8221; attribute and similar.  It also can accommodate a dotted name for longer schemes:</p>
+<p>Within the <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> collection, this table will be
+identified by the combination of <tt class="docutils literal"><span class="pre">financial_info</span></tt> and <tt class="docutils literal"><span class="pre">remote_banks</span></tt>. If
+another table called <tt class="docutils literal"><span class="pre">financial_info</span></tt> is referenced without the
+<tt class="docutils literal"><span class="pre">remote_banks</span></tt> schema, it will refer to a different
+<a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>. <a class="reference internal" href="#sqlalchemy.schema.ForeignKey" title="sqlalchemy.schema.ForeignKey"><tt class="xref py py-class docutils literal"><span class="pre">ForeignKey</span></tt></a>
+objects can specify references to columns in this table using the form
+<tt class="docutils literal"><span class="pre">remote_banks.financial_info.id</span></tt>.</p>
+<p>The <tt class="docutils literal"><span class="pre">schema</span></tt> argument should be used for any name qualifiers required,
+including Oracle&#8217;s &#8220;owner&#8221; attribute and similar. It also can accommodate a
+dotted name for longer schemes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">schema</span><span class="o">=</span><span class="s">&quot;dbo.scott&quot;</span></pre></div>
 </div>
 </div>
 <div class="section" id="backend-specific-options">
 <h3>Backend-Specific Options<a class="headerlink" href="#backend-specific-options" title="Permalink to this headline">¶</a></h3>
-<p><a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> supports database-specific options.   For example, MySQL has different table backend types, including &#8220;MyISAM&#8221; and &#8220;InnoDB&#8221;.   This can be expressed with <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> using <tt class="docutils literal"><span class="pre">mysql_engine</span></tt>:</p>
+<p><a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> supports database-specific options. For
+example, MySQL has different table backend types, including &#8220;MyISAM&#8221; and
+&#8220;InnoDB&#8221;. This can be expressed with <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> using
+<tt class="docutils literal"><span class="pre">mysql_engine</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">addresses</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;engine_email_addresses&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;address_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="bp">True</span><span class="p">),</span>
     <span class="n">Column</span><span class="p">(</span><span class="s">&#39;remote_user_id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="n">users</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">user_id</span><span class="p">)),</span>
@@ -462,10 +474,11 @@ configured), or using <a class="reference internal" href="../orm/session.html#sq
     <span class="n">mysql_engine</span><span class="o">=</span><span class="s">&#39;InnoDB&#39;</span>
 <span class="p">)</span></pre></div>
 </div>
-<p>Other backends may support table-level options as well - these would be described in the individual documentation sections for each dialect.</p>
+<p>Other backends may support table-level options as well - these would be
+described in the individual documentation sections for each dialect.</p>
 </div>
-<div class="section" id="schema-api-constructs">
-<h3>Schema API Constructs<a class="headerlink" href="#schema-api-constructs" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="column-table-metadata-api">
+<h3>Column, Table, MetaData API<a class="headerlink" href="#column-table-metadata-api" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sqlalchemy.schema.Column">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Column</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Column" title="Permalink to this definition">¶</a></dt>
@@ -912,6 +925,23 @@ aren&#8217;t present in this list will not be represented on the resulting
 should be reflected.</li>
 <li><strong>info</strong> &#8211; A dictionary which defaults to <tt class="docutils literal"><span class="pre">{}</span></tt>.  A space to store
 application specific data. This must be a dictionary.</li>
+<li><strong>listeners</strong> &#8211; <p>A list of tuples of the form <tt class="docutils literal"><span class="pre">(&lt;eventname&gt;,</span> <span class="pre">&lt;fn&gt;)</span></tt>
+which will be passed to <a class="reference internal" href="event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> upon construction. 
+This alternate hook to <a class="reference internal" href="event.html#sqlalchemy.event.listen" title="sqlalchemy.event.listen"><tt class="xref py py-func docutils literal"><span class="pre">event.listen()</span></tt></a> allows the establishment
+of a listener function specific to this <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> before 
+the &#8220;autoload&#8221; process begins.  Particularly useful for
+the <tt class="xref py py-meth docutils literal"><span class="pre">events.column_reflect()</span></tt> event:</p>
+<div class="highlight-python"><pre>def listen_for_reflect(table, column_info):
+    # ...
+    
+t = Table(
+    'sometable', 
+    autoload=True,
+    listeners=[
+        ('column_reflect', listen_for_reflect)
+    ])</pre>
+</div>
+</li>
 <li><strong>mustexist</strong> &#8211; When <tt class="xref docutils literal"><span class="pre">True</span></tt>, indicates that this Table must already 
 be present in the given <tt class="xref py py-class docutils literal"><span class="pre">MetaData`</span></tt> collection.</li>
 <li><strong>prefixes</strong> &#8211; A list of strings to insert after CREATE in the CREATE TABLE
@@ -1184,7 +1214,7 @@ database is also available. This is known as the &#8220;Inspector&#8221;:</p>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Performs database schema inspection.</p>
 <p>The Inspector acts as a proxy to the reflection methods of the
-<tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt>, providing a
+<a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a>, providing a
 consistent interface as well as caching support for previously
 fetched metadata.</p>
 <p>The preferred method to construct an <a class="reference internal" href="#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> is via the
@@ -1192,7 +1222,7 @@ fetched metadata.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">&#39;...&#39;</span><span class="p">)</span>
 <span class="n">insp</span> <span class="o">=</span> <span class="n">Inspector</span><span class="o">.</span><span class="n">from_engine</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span></pre></div>
 </div>
-<p>Where above, the <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> may opt
+<p>Where above, the <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> may opt
 to return an <a class="reference internal" href="#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> subclass that provides additional
 methods specific to the dialect&#8217;s target database.</p>
 <dl class="method">
@@ -1245,7 +1275,7 @@ which is typically an instance of
 </tbody>
 </table>
 <p>This method differs from direct a direct constructor call of <a class="reference internal" href="#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a>
-in that the <tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt> is given a chance to provide
+in that the <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Dialect" title="sqlalchemy.engine.base.Dialect"><tt class="xref py py-class docutils literal"><span class="pre">Dialect</span></tt></a> is given a chance to provide
 a dialect-specific <a class="reference internal" href="#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a> instance, which may provide additional
 methods.</p>
 <p>See the example at <a class="reference internal" href="#sqlalchemy.engine.reflection.Inspector" title="sqlalchemy.engine.reflection.Inspector"><tt class="xref py py-class docutils literal"><span class="pre">Inspector</span></tt></a>.</p>
@@ -1688,8 +1718,8 @@ executed standalone like a SQL expression, which has the effect of calling its
 <span class="n">nextid</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span></pre></div>
 </div>
 </div>
-<div class="section" id="default-geneation-api-constructs">
-<h3>Default Geneation API Constructs<a class="headerlink" href="#default-geneation-api-constructs" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="default-objects-api">
+<h3>Default Objects API<a class="headerlink" href="#default-objects-api" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sqlalchemy.schema.ColumnDefault">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ColumnDefault</tt><big>(</big><em>arg</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ColumnDefault" title="Permalink to this definition">¶</a></dt>
@@ -1732,14 +1762,14 @@ can be passed positionally as well.</p>
 <dl class="class">
 <dt id="sqlalchemy.schema.DefaultGenerator">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DefaultGenerator</tt><big>(</big><em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DefaultGenerator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema._NotAColumnExpr</span></tt>, <a class="reference internal" href="#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
 <p>Base class for column <em>default</em> values.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sqlalchemy.schema.FetchedValue">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">FetchedValue</tt><big>(</big><em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.FetchedValue" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="events.html#sqlalchemy.events.SchemaEventTarget" title="sqlalchemy.events.SchemaEventTarget"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.events.SchemaEventTarget</span></tt></a></p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema._NotAColumnExpr</span></tt>, <a class="reference internal" href="events.html#sqlalchemy.events.SchemaEventTarget" title="sqlalchemy.events.SchemaEventTarget"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.events.SchemaEventTarget</span></tt></a></p>
 <p>A marker for a transparent database-side default.</p>
 <p>Use <a class="reference internal" href="#sqlalchemy.schema.FetchedValue" title="sqlalchemy.schema.FetchedValue"><tt class="xref py py-class docutils literal"><span class="pre">FetchedValue</span></tt></a> when the database is configured
 to provide some automatic default for a column.</p>
@@ -1766,10 +1796,80 @@ Use <a class="reference internal" href="#sqlalchemy.schema.DefaultClause" title=
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Sequence</tt><big>(</big><em>name</em>, <em>start=None</em>, <em>increment=None</em>, <em>schema=None</em>, <em>optional=False</em>, <em>quote=None</em>, <em>metadata=None</em>, <em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Sequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.DefaultGenerator" title="sqlalchemy.schema.DefaultGenerator"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.DefaultGenerator</span></tt></a></p>
 <p>Represents a named database sequence.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> object represents the name and configurational
+parameters of a database sequence.   It also represents
+a construct that can be &#8220;executed&#8221; by a SQLAlchemy <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine" title="sqlalchemy.engine.base.Engine"><tt class="xref py py-class docutils literal"><span class="pre">Engine</span></tt></a>
+or <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a>, rendering the appropriate &#8220;next value&#8221; function
+for the target database and returning a result.</p>
+<p>The <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> is typically associated with a primary key column:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">some_table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;some_table&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">(</span><span class="s">&#39;some_table_seq&#39;</span><span class="p">),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="p">)</span></pre></div>
+</div>
+<p>When CREATE TABLE is emitted for the above <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, if the
+target platform supports sequences, a CREATE SEQUENCE statement will
+be emitted as well.   For platforms that don&#8217;t support sequences,
+the <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> construct is ignored.</p>
+<p>See also: <a class="reference internal" href="#sqlalchemy.schema.CreateSequence" title="sqlalchemy.schema.CreateSequence"><tt class="xref py py-class docutils literal"><span class="pre">CreateSequence</span></tt></a> <a class="reference internal" href="#sqlalchemy.schema.DropSequence" title="sqlalchemy.schema.DropSequence"><tt class="xref py py-class docutils literal"><span class="pre">DropSequence</span></tt></a></p>
 <dl class="method">
 <dt id="sqlalchemy.schema.Sequence.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>start=None</em>, <em>increment=None</em>, <em>schema=None</em>, <em>optional=False</em>, <em>quote=None</em>, <em>metadata=None</em>, <em>for_update=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Sequence.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Construct a <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> &#8211; The name of the sequence.</li>
+<li><strong>start</strong> &#8211; the starting index of the sequence.  This value is
+used when the CREATE SEQUENCE command is emitted to the database
+as the value of the &#8220;START WITH&#8221; clause.   If <tt class="xref docutils literal"><span class="pre">None</span></tt>, the 
+clause is omitted, which on most platforms indicates a starting
+value of 1.</li>
+<li><strong>increment</strong> &#8211; the increment value of the sequence.  This 
+value is used when the CREATE SEQUENCE command is emitted to
+the database as the value of the &#8220;INCREMENT BY&#8221; clause.  If <tt class="xref docutils literal"><span class="pre">None</span></tt>,
+the clause is omitted, which on most platforms indicates an
+increment of 1.</li>
+<li><strong>schema</strong> &#8211; Optional schema name for the sequence, if located
+in a schema other than the default.</li>
+<li><strong>optional</strong> &#8211; boolean value, when <tt class="xref docutils literal"><span class="pre">True</span></tt>, indicates that this
+<a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> object only needs to be explicitly generated
+on backends that don&#8217;t provide another way to generate primary
+key identifiers.  Currently, it essentially means, &#8220;don&#8217;t create
+this sequence on the Postgresql backend, where the SERIAL keyword
+creates a sequence for us automatically&#8221;.</li>
+<li><strong>quote</strong> &#8211; boolean value, when <tt class="xref docutils literal"><span class="pre">True</span></tt> or <tt class="xref docutils literal"><span class="pre">False</span></tt>, explicitly
+forces quoting of the schema name on or off.  When left at its
+default of <tt class="xref docutils literal"><span class="pre">None</span></tt>, normal quoting rules based on casing and reserved
+words take place.</li>
+<li><strong>metadata</strong> &#8211; <p>optional <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object which will be 
+associated with this <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a>.  A <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a>
+that is associated with a <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> gains access to the 
+<tt class="docutils literal"><span class="pre">bind</span></tt> of that <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>, meaning the <a class="reference internal" href="#sqlalchemy.schema.Sequence.create" title="sqlalchemy.schema.Sequence.create"><tt class="xref py py-meth docutils literal"><span class="pre">Sequence.create()</span></tt></a>
+and <a class="reference internal" href="#sqlalchemy.schema.Sequence.drop" title="sqlalchemy.schema.Sequence.drop"><tt class="xref py py-meth docutils literal"><span class="pre">Sequence.drop()</span></tt></a> methods will make usage of that engine
+automatically.   Additionally, the appropriate CREATE SEQUENCE/
+DROP SEQUENCE DDL commands will be emitted corresponding to this
+<a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> when <a class="reference internal" href="#sqlalchemy.schema.MetaData.create_all" title="sqlalchemy.schema.MetaData.create_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.create_all()</span></tt></a> and 
+<a class="reference internal" href="#sqlalchemy.schema.MetaData.drop_all" title="sqlalchemy.schema.MetaData.drop_all"><tt class="xref py py-meth docutils literal"><span class="pre">MetaData.drop_all()</span></tt></a> are invoked (new in 0.7).</p>
+<p>Note that when a <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> is applied to a <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, 
+the <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> is automatically associated with the 
+<a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object of that column&#8217;s parent <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, 
+when that association is made.   The <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> will then
+be subject to automatic CREATE SEQUENCE/DROP SEQUENCE corresponding 
+to when the <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> object itself is created or dropped,
+rather than that of the <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object overall.</p>
+</li>
+<li><strong>for_update</strong> &#8211; Indicates this <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a>, when associated
+with a <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>, should be invoked for UPDATE statements
+on that column&#8217;s table, rather than for INSERT statements, when
+no value is otherwise present for that column in the statement.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="sqlalchemy.schema.Sequence.create">
@@ -1781,6 +1881,14 @@ Use <a class="reference internal" href="#sqlalchemy.schema.DefaultClause" title=
 <dt id="sqlalchemy.schema.Sequence.drop">
 <tt class="descname">drop</tt><big>(</big><em>bind=None</em>, <em>checkfirst=True</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Sequence.drop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Drops this sequence from the database.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sqlalchemy.schema.Sequence.next_value">
+<tt class="descname">next_value</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Sequence.next_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <a class="reference internal" href="#sqlalchemy.schema.Sequence.next_value" title="sqlalchemy.schema.Sequence.next_value"><tt class="xref py py-class docutils literal"><span class="pre">next_value</span></tt></a> function element
+which will render the appropriate increment function
+for this <a class="reference internal" href="#sqlalchemy.schema.Sequence" title="sqlalchemy.schema.Sequence"><tt class="xref py py-class docutils literal"><span class="pre">Sequence</span></tt></a> within any SQL expression.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1930,8 +2038,83 @@ arguments. The value is any string which will be output after the appropriate
 tables when used with MySQL. They may also not be supported on other
 databases.</p>
 </div>
-<div class="section" id="foreign-key-api-constructs">
-<h4>Foreign Key API Constructs<a class="headerlink" href="#foreign-key-api-constructs" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="unique-constraint">
+<h3>UNIQUE Constraint<a class="headerlink" href="#unique-constraint" title="Permalink to this headline">¶</a></h3>
+<p>Unique constraints can be created anonymously on a single column using the
+<tt class="docutils literal"><span class="pre">unique</span></tt> keyword on <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>. Explicitly named
+unique constraints and/or those with multiple columns are created via the
+<a class="reference internal" href="#sqlalchemy.schema.UniqueConstraint" title="sqlalchemy.schema.UniqueConstraint"><tt class="xref py py-class docutils literal"><span class="pre">UniqueConstraint</span></tt></a> table-level construct.</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+<span class="n">mytable</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
+
+    <span class="c"># per-column anonymous unique constraint</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col1&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col2&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col3&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+
+    <span class="c"># explicit/composite unique constraint.  &#39;name&#39; is optional.</span>
+    <span class="n">UniqueConstraint</span><span class="p">(</span><span class="s">&#39;col2&#39;</span><span class="p">,</span> <span class="s">&#39;col3&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;uix_1&#39;</span><span class="p">)</span>
+    <span class="p">)</span></pre></div>
+</div>
+</div>
+<div class="section" id="check-constraint">
+<h3>CHECK Constraint<a class="headerlink" href="#check-constraint" title="Permalink to this headline">¶</a></h3>
+<p>Check constraints can be named or unnamed and can be created at the Column or
+Table level, using the <a class="reference internal" href="#sqlalchemy.schema.CheckConstraint" title="sqlalchemy.schema.CheckConstraint"><tt class="xref py py-class docutils literal"><span class="pre">CheckConstraint</span></tt></a> construct.
+The text of the check constraint is passed directly through to the database,
+so there is limited &#8220;database independent&#8221; behavior. Column level check
+constraints generally should only refer to the column to which they are
+placed, while table level constraints can refer to any columns in the table.</p>
+<p>Note that some databases do not actively support check constraints such as
+MySQL.</p>
+<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
+<span class="n">mytable</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
+
+    <span class="c"># per-column CHECK constraint</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col1&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">CheckConstraint</span><span class="p">(</span><span class="s">&#39;col1&gt;5&#39;</span><span class="p">)),</span>
+
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col2&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col3&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
+
+    <span class="c"># table level CHECK constraint.  &#39;name&#39; is optional.</span>
+    <span class="n">CheckConstraint</span><span class="p">(</span><span class="s">&#39;col2 &gt; col3 + 5&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;check1&#39;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+<a href='#' class='sql_link'>sql</a><span class="n">mytable</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+<div class='popup_sql'>CREATE TABLE mytable (
+    col1 INTEGER  CHECK (col1>5),
+    col2 INTEGER,
+    col3 INTEGER,
+    CONSTRAINT check1  CHECK (col2 > col3 + 5)
+)</div></pre></div>
+</div>
+</div>
+<div class="section" id="constraints-api">
+<h3>Constraints API<a class="headerlink" href="#constraints-api" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sqlalchemy.schema.Constraint">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Constraint</tt><big>(</big><em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>_create_rule=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
+<p>A table-level SQL constraint.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.schema.CheckConstraint">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">CheckConstraint</tt><big>(</big><em>sqltext</em>, <em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>table=None</em>, <em>_create_rule=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CheckConstraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.Constraint" title="sqlalchemy.schema.Constraint"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.Constraint</span></tt></a></p>
+<p>A table- or column-level CHECK constraint.</p>
+<p>Can be included in the definition of a Table or Column.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.schema.ColumnCollectionConstraint">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ColumnCollectionConstraint</tt><big>(</big><em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ColumnCollectionConstraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionMixin</span></tt>, <a class="reference internal" href="#sqlalchemy.schema.Constraint" title="sqlalchemy.schema.Constraint"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.Constraint</span></tt></a></p>
+<p>A constraint that proxies a ColumnCollection.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="sqlalchemy.schema.ForeignKey">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ForeignKey</tt><big>(</big><em>column</em>, <em>_constraint=None</em>, <em>use_alter=False</em>, <em>name=None</em>, <em>onupdate=None</em>, <em>ondelete=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>link_to_name=False</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ForeignKey" title="Permalink to this definition">¶</a></dt>
@@ -2128,95 +2311,6 @@ are mutually dependent on each other.</li>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="unique-constraint">
-<h3>UNIQUE Constraint<a class="headerlink" href="#unique-constraint" title="Permalink to this headline">¶</a></h3>
-<p>Unique constraints can be created anonymously on a single column using the
-<tt class="docutils literal"><span class="pre">unique</span></tt> keyword on <a class="reference internal" href="#sqlalchemy.schema.Column" title="sqlalchemy.schema.Column"><tt class="xref py py-class docutils literal"><span class="pre">Column</span></tt></a>. Explicitly named
-unique constraints and/or those with multiple columns are created via the
-<a class="reference internal" href="#sqlalchemy.schema.UniqueConstraint" title="sqlalchemy.schema.UniqueConstraint"><tt class="xref py py-class docutils literal"><span class="pre">UniqueConstraint</span></tt></a> table-level construct.</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
-<span class="n">mytable</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
-
-    <span class="c"># per-column anonymous unique constraint</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col1&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
-
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col2&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col3&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
-
-    <span class="c"># explicit/composite unique constraint.  &#39;name&#39; is optional.</span>
-    <span class="n">UniqueConstraint</span><span class="p">(</span><span class="s">&#39;col2&#39;</span><span class="p">,</span> <span class="s">&#39;col3&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;uix_1&#39;</span><span class="p">)</span>
-    <span class="p">)</span></pre></div>
-</div>
-<dl class="class">
-<dt id="sqlalchemy.schema.UniqueConstraint">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">UniqueConstraint</tt><big>(</big><em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.UniqueConstraint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.ColumnCollectionConstraint" title="sqlalchemy.schema.ColumnCollectionConstraint"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionConstraint</span></tt></a></p>
-<p>A table-level UNIQUE constraint.</p>
-<p>Defines a single column or composite UNIQUE constraint. For a no-frills,
-single column constraint, adding <tt class="docutils literal"><span class="pre">unique=True</span></tt> to the <tt class="docutils literal"><span class="pre">Column</span></tt>
-definition is a shorthand equivalent for an unnamed, single column
-UniqueConstraint.</p>
-</dd></dl>
-
-</div>
-<div class="section" id="check-constraint">
-<h3>CHECK Constraint<a class="headerlink" href="#check-constraint" title="Permalink to this headline">¶</a></h3>
-<p>Check constraints can be named or unnamed and can be created at the Column or
-Table level, using the <a class="reference internal" href="#sqlalchemy.schema.CheckConstraint" title="sqlalchemy.schema.CheckConstraint"><tt class="xref py py-class docutils literal"><span class="pre">CheckConstraint</span></tt></a> construct.
-The text of the check constraint is passed directly through to the database,
-so there is limited &#8220;database independent&#8221; behavior. Column level check
-constraints generally should only refer to the column to which they are
-placed, while table level constraints can refer to any columns in the table.</p>
-<p>Note that some databases do not actively support check constraints such as
-MySQL.</p>
-<div class="highlight-python+sql"><div class="highlight"><pre><span class="n">meta</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
-<span class="n">mytable</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="s">&#39;mytable&#39;</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span>
-
-    <span class="c"># per-column CHECK constraint</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col1&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">CheckConstraint</span><span class="p">(</span><span class="s">&#39;col1&gt;5&#39;</span><span class="p">)),</span>
-
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col2&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
-    <span class="n">Column</span><span class="p">(</span><span class="s">&#39;col3&#39;</span><span class="p">,</span> <span class="n">Integer</span><span class="p">),</span>
-
-    <span class="c"># table level CHECK constraint.  &#39;name&#39; is optional.</span>
-    <span class="n">CheckConstraint</span><span class="p">(</span><span class="s">&#39;col2 &gt; col3 + 5&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;check1&#39;</span><span class="p">)</span>
-    <span class="p">)</span>
-
-<a href='#' class='sql_link'>sql</a><span class="n">mytable</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
-<div class='popup_sql'>CREATE TABLE mytable (
-    col1 INTEGER  CHECK (col1>5),
-    col2 INTEGER,
-    col3 INTEGER,
-    CONSTRAINT check1  CHECK (col2 > col3 + 5)
-)</div></pre></div>
-</div>
-<dl class="class">
-<dt id="sqlalchemy.schema.CheckConstraint">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">CheckConstraint</tt><big>(</big><em>sqltext</em>, <em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>table=None</em>, <em>_create_rule=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.CheckConstraint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.Constraint" title="sqlalchemy.schema.Constraint"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.Constraint</span></tt></a></p>
-<p>A table- or column-level CHECK constraint.</p>
-<p>Can be included in the definition of a Table or Column.</p>
-</dd></dl>
-
-</div>
-<div class="section" id="other-constraint-classes">
-<h3>Other Constraint Classes<a class="headerlink" href="#other-constraint-classes" title="Permalink to this headline">¶</a></h3>
-<dl class="class">
-<dt id="sqlalchemy.schema.Constraint">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">Constraint</tt><big>(</big><em>name=None</em>, <em>deferrable=None</em>, <em>initially=None</em>, <em>_create_rule=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.Constraint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.SchemaItem" title="sqlalchemy.schema.SchemaItem"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.SchemaItem</span></tt></a></p>
-<p>A table-level SQL constraint.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="sqlalchemy.schema.ColumnCollectionConstraint">
-<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">ColumnCollectionConstraint</tt><big>(</big><em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.ColumnCollectionConstraint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionMixin</span></tt>, <a class="reference internal" href="#sqlalchemy.schema.Constraint" title="sqlalchemy.schema.Constraint"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.Constraint</span></tt></a></p>
-<p>A constraint that proxies a ColumnCollection.</p>
-</dd></dl>
-
 <dl class="class">
 <dt id="sqlalchemy.schema.PrimaryKeyConstraint">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">PrimaryKeyConstraint</tt><big>(</big><em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.PrimaryKeyConstraint" title="Permalink to this definition">¶</a></dt>
@@ -2226,6 +2320,17 @@ MySQL.</p>
 no-frills primary key, adding <tt class="docutils literal"><span class="pre">primary_key=True</span></tt> to one or more
 <tt class="docutils literal"><span class="pre">Column</span></tt> definitions is a shorthand equivalent for an unnamed single- or
 multiple-column PrimaryKeyConstraint.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="sqlalchemy.schema.UniqueConstraint">
+<em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">UniqueConstraint</tt><big>(</big><em>*columns</em>, <em>**kw</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.UniqueConstraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#sqlalchemy.schema.ColumnCollectionConstraint" title="sqlalchemy.schema.ColumnCollectionConstraint"><tt class="xref py py-class docutils literal"><span class="pre">sqlalchemy.schema.ColumnCollectionConstraint</span></tt></a></p>
+<p>A table-level UNIQUE constraint.</p>
+<p>Defines a single column or composite UNIQUE constraint. For a no-frills,
+single column constraint, adding <tt class="docutils literal"><span class="pre">unique=True</span></tt> to the <tt class="docutils literal"><span class="pre">Column</span></tt>
+definition is a shorthand equivalent for an unnamed, single column
+UniqueConstraint.</p>
 </dd></dl>
 
 </div>
@@ -2347,7 +2452,7 @@ provide DDL expressions. For example, to produce a <tt class="docutils literal">
 </div>
 <p>Above, the <a class="reference internal" href="#sqlalchemy.schema.CreateTable" title="sqlalchemy.schema.CreateTable"><tt class="xref py py-class docutils literal"><span class="pre">CreateTable</span></tt></a> construct works like any
 other expression construct (such as <tt class="docutils literal"><span class="pre">select()</span></tt>, <tt class="docutils literal"><span class="pre">table.insert()</span></tt>, etc.). A
-full reference of available constructs is in <a class="reference internal" href="#schema-api-ddl"><em>DDL API</em></a>.</p>
+full reference of available constructs is in <a class="reference internal" href="#schema-api-ddl"><em>DDL Expression Constructs API</em></a>.</p>
 <p>The DDL constructs all extend a common base class which provides the
 capability to be associated with an individual
 <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> or <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>
@@ -2444,7 +2549,7 @@ Postgresql and not other databases, we could limit its usage to just that dialec
 <p>When using a callable, the callable is passed the ddl element, the
 <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> or <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a>
 object whose &#8220;create&#8221; or &#8220;drop&#8221; event is in progress, and the
-<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object being used for the
+<a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> object being used for the
 operation, as well as additional information as keyword arguments. The
 callable can perform checks, such as whether or not a given item already
 exists. Below we define <tt class="docutils literal"><span class="pre">should_create()</span></tt> and <tt class="docutils literal"><span class="pre">should_drop()</span></tt> callables
@@ -2499,8 +2604,8 @@ other DDL elements except it accepts a string which is the text to be emitted:</
 custom compilation - see <a class="reference internal" href="compiler.html"><em>Custom SQL Constructs and Compilation Extension</em></a> for
 details.</p>
 </div>
-<div class="section" id="ddl-api">
-<span id="schema-api-ddl"></span><h3>DDL API<a class="headerlink" href="#ddl-api" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="ddl-expression-constructs-api">
+<span id="schema-api-ddl"></span><h3>DDL Expression Constructs API<a class="headerlink" href="#ddl-expression-constructs-api" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sqlalchemy.schema.DDLElement">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.schema.</tt><tt class="descname">DDLElement</tt><a class="headerlink" href="#sqlalchemy.schema.DDLElement" title="Permalink to this definition">¶</a></dt>
@@ -2600,7 +2705,7 @@ in a future release.</p>
 
 <dl class="method">
 <dt id="sqlalchemy.schema.DDLElement.execute_if">
-<tt class="descname">execute_if</tt><big>(</big><em>dialect=None</em>, <em>callable_=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DDLElement.execute_if" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">execute_if</tt><big>(</big><em>dialect=None</em>, <em>callable_=None</em>, <em>state=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.schema.DDLElement.execute_if" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a callable that will execute this 
 DDLElement conditionally.</p>
 <p>Used to provide a wrapper for event listening:</p>
@@ -2637,11 +2742,18 @@ arguments:</p>
 <tr class="field"><th class="field-name">target:</th><td class="field-body">The <a class="reference internal" href="#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a> or <a class="reference internal" href="#sqlalchemy.schema.MetaData" title="sqlalchemy.schema.MetaData"><tt class="xref py py-class docutils literal"><span class="pre">MetaData</span></tt></a> object which is the target of 
 this event. May be None if the DDL is executed explicitly.</td>
 </tr>
-<tr class="field"><th class="field-name">bind:</th><td class="field-body">The <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Engine.Connection" title="sqlalchemy.engine.base.Engine.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used for DDL execution</td>
+<tr class="field"><th class="field-name">bind:</th><td class="field-body">The <a class="reference internal" href="connections.html#sqlalchemy.engine.base.Connection" title="sqlalchemy.engine.base.Connection"><tt class="xref py py-class docutils literal"><span class="pre">Connection</span></tt></a> being used for DDL execution</td>
 </tr>
 <tr class="field"><th class="field-name">tables:</th><td class="field-body">Optional keyword argument - a list of Table objects which are to
 be created/ dropped within a MetaData.create_all() or drop_all()
 method call.</td>
+</tr>
+<tr class="field"><th class="field-name">state:</th><td class="field-body">Optional keyword argument - will be the <tt class="docutils literal"><span class="pre">state</span></tt> argument
+passed to this function.</td>
+</tr>
+<tr class="field"><th class="field-name">checkfirst:</th><td class="field-body">Keyword argument, will be True if the &#8216;checkfirst&#8217; flag was
+set during the call to <tt class="docutils literal"><span class="pre">create()</span></tt>, <tt class="docutils literal"><span class="pre">create_all()</span></tt>, 
+<tt class="docutils literal"><span class="pre">drop()</span></tt>, <tt class="docutils literal"><span class="pre">drop_all()</span></tt>.</td>
 </tr>
 </tbody>
 </table>
@@ -2649,6 +2761,8 @@ method call.</td>
 <p>If the callable returns a true value, the DDL statement will be
 executed.</p>
 </li>
+<li><strong>state</strong> &#8211; any value which will be passed to the <a href="#id1"><span class="problematic" id="id2">callable_</span></a> 
+as the <tt class="docutils literal"><span class="pre">state</span></tt> keyword argument.</li>
 </ul>
 </td>
 </tr>

@@ -181,7 +181,9 @@ class InstanceEvents(event.Events):
          instead be the :class:`.InstanceState` state-management
          object associated with the instance.
         :param context: the :class:`.QueryContext` corresponding to the
-         current :class:`.Query` in progress.
+         current :class:`.Query` in progress.  This argument may be
+         ``None`` if the load does not correspond to a :class:`.Query`,
+         such as during :meth:`.Session.merge`.
 
         """
 
@@ -798,7 +800,7 @@ class SessionEvents(event.Events):
                 not issubclass(target.session_factory, Session):
                 raise exc.ArgumentError(
                             "Session event listen on a ScopedSession "
-                            "requries that its creation callable "
+                            "requires that its creation callable "
                             "is a Session subclass.")
             return target.session_factory
         elif isinstance(target, type):
@@ -822,13 +824,13 @@ class SessionEvents(event.Events):
         transaction is ongoing."""
 
     def after_commit(self, session):
-        """Execute after a commit has occured.
+        """Execute after a commit has occurred.
 
         Note that this may not be per-flush if a longer running
         transaction is ongoing."""
 
     def after_rollback(self, session):
-        """Execute after a rollback has occured.
+        """Execute after a rollback has occurred.
 
         Note that this may not be per-flush if a longer running
         transaction is ongoing."""
@@ -853,7 +855,7 @@ class SessionEvents(event.Events):
 
         This will be when the 'new', 'dirty', and 'deleted' lists are in
         their final state.  An actual commit() may or may not have
-        occured, depending on whether or not the flush started its own
+        occurred, depending on whether or not the flush started its own
         transaction or participated in a larger transaction. """
 
     def after_begin( self, session, transaction, connection):
@@ -917,7 +919,7 @@ class AttributeEvents(event.Events):
         listen(UserContact.phone, 'set', validate_phone, retval=True)
 
     A validation function like the above can also raise an exception
-    such as :class:`ValueError` to halt the operation.
+    such as :class:`.ValueError` to halt the operation.
 
     Several modifiers are available to the :func:`~.event.listen` function.
 

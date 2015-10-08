@@ -1,7 +1,7 @@
 .. _expression_api_toplevel:
 
-SQL Statements and Expressions
-==============================
+SQL Statements and Expressions API
+==================================
 
 .. module:: sqlalchemy.sql.expression
 
@@ -183,6 +183,10 @@ Classes
 .. autoclass:: Update
   :members: where, values
   :show-inheritance:
+
+.. autoclass:: ValuesBase
+    :members:
+    :show-inheritance:
 
 .. _generic_functions:
 

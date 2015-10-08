@@ -7,7 +7,7 @@
         
         <title>
     SQLite
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="Dialects" href="index.html" />
         <link rel="next" title="Sybase" href="sybase.html" />
         <link rel="prev" title="PostgreSQL" href="postgresql.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -119,7 +119,7 @@ section regarding that driver.</p>
 out of the box functionality for translating values between Python <cite>datetime</cite> objects
 and a SQLite-supported format.  SQLAlchemy&#8217;s own <a class="reference internal" href="../core/types.html#sqlalchemy.types.DateTime" title="sqlalchemy.types.DateTime"><tt class="xref py py-class docutils literal"><span class="pre">DateTime</span></tt></a>
 and related types provide date formatting and parsing functionality when SQlite is used.
-The implementation classes are <tt class="xref py py-class docutils literal"><span class="pre">DATETIME</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">DATE</span></tt> and <tt class="xref py py-class docutils literal"><span class="pre">TIME</span></tt>.
+The implementation classes are <a class="reference internal" href="../core/types.html#sqlalchemy.types.DATETIME" title="sqlalchemy.types.DATETIME"><tt class="xref py py-class docutils literal"><span class="pre">DATETIME</span></tt></a>, <a class="reference internal" href="mysql.html#sqlalchemy.dialects.mysql.base.DATE" title="sqlalchemy.dialects.mysql.base.DATE"><tt class="xref py py-class docutils literal"><span class="pre">DATE</span></tt></a> and <a class="reference internal" href="../core/types.html#sqlalchemy.types.TIME" title="sqlalchemy.types.TIME"><tt class="xref py py-class docutils literal"><span class="pre">TIME</span></tt></a>.
 These types represent dates and times as ISO formatted strings, which also nicely
 support ordering.   There&#8217;s no reliance on typical &#8220;libc&#8221; internals for these functions
 so historical dates are fully supported.</p>

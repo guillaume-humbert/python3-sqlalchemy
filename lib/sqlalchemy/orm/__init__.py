@@ -114,7 +114,7 @@ def scoped_session(session_factory, scopefunc=None):
     :class:`.ScopedSession`.
 
     :param session_factory: a callable function that produces
-      :class:`Session` instances, such as :func:`sessionmaker`.
+      :class:`.Session` instances, such as :func:`sessionmaker`.
 
     :param scopefunc: Optional "scope" function which would be
       passed to the :class:`.ScopedRegistry`.  If None, the
@@ -153,7 +153,7 @@ def create_session(bind=None, **kwargs):
       :class:`~sqlalchemy.orm.session.Session`.
 
     :param \*\*kwargs: optional, passed through to the
-      :class:`Session` constructor.
+      :class:`.Session` constructor.
 
     :returns: an :class:`~sqlalchemy.orm.session.Session` instance
 
@@ -183,7 +183,7 @@ def relationship(argument, secondary=None, **kwargs):
        :func:`relation` prior to version 0.6.
 
     This corresponds to a parent-child or associative table relationship.  The
-    constructed class is an instance of :class:`RelationshipProperty`.
+    constructed class is an instance of :class:`.RelationshipProperty`.
 
     A typical :func:`relationship`::
 
@@ -192,7 +192,7 @@ def relationship(argument, secondary=None, **kwargs):
        })
 
     :param argument:
-      a class or :class:`Mapper` instance, representing the target of
+      a class or :class:`.Mapper` instance, representing the target of
       the relationship.
 
     :param secondary:
@@ -283,7 +283,7 @@ def relationship(argument, secondary=None, **kwargs):
       :ref:`custom_collections`.
 
     :param comparator_factory:
-      a class which extends :class:`RelationshipProperty.Comparator` which
+      a class which extends :class:`.RelationshipProperty.Comparator` which
       provides custom SQL clause generation for comparison operations.
 
     :param doc:
@@ -531,51 +531,31 @@ def relation(*arg, **kw):
 
     return relationship(*arg, **kw)
 
-def dynamic_loader(argument, secondary=None, primaryjoin=None,
-                   secondaryjoin=None, foreign_keys=None, backref=None,
-                   post_update=False, cascade=False, remote_side=None,
-                   enable_typechecks=True, passive_deletes=False, doc=None,
-                   order_by=None, comparator_factory=None, query_class=None):
+def dynamic_loader(argument, **kw):
     """Construct a dynamically-loading mapper property.
 
-    This property is similar to :func:`relationship`, except read
-    operations return an active :class:`Query` object which reads from
-    the database when accessed.  Items may be appended to the
-    attribute via ``append()``, or removed via ``remove()``; changes
-    will be persisted to the database during a :meth:`Sesion.flush`.
-    However, no other Python list or collection mutation operations
-    are available.
+    This is essentially the same as 
+    using the ``lazy='dynamic'`` argument with :func:`relationship`::
 
-    A subset of arguments available to :func:`relationship` are available
-    here.
+        dynamic_loader(SomeClass)
+        
+        # vs.
+        
+        relationship(SomeClass, lazy="dynamic")
 
-    :param argument:
-      a class or :class:`Mapper` instance, representing the target of
-      the relationship.
+    A :func:`relationship` that is "dynamic" features the behavior
+    that read operations return an active :class:`.Query` object which 
+    reads from the database when accessed. Items may be appended to the
+    attribute via ``append()``, or removed via ``remove()``; changes will be
+    persisted to the database during a :meth:`Sesion.flush`. However, no other
+    Python list or collection mutation operations are available.
 
-    :param secondary:
-      for a many-to-many relationship, specifies the intermediary
-      table. The *secondary* keyword argument should generally only
-      be used for a table that is not otherwise expressed in any class
-      mapping. In particular, using the Association Object Pattern is
-      generally mutually exclusive with the use of the *secondary*
-      keyword argument.
-
-    :param query_class:
-      Optional, a custom Query subclass to be used as the basis for
-      dynamic collection.
+    All arguments accepted by :func:`relationship` are
+    accepted here, other than ``lazy`` which is fixed at ``dynamic``.
 
     """
-    from sqlalchemy.orm.dynamic import DynaLoader
-
-    return RelationshipProperty(
-        argument, secondary=secondary, primaryjoin=primaryjoin,
-        secondaryjoin=secondaryjoin, foreign_keys=foreign_keys,
-        backref=backref,
-        post_update=post_update, cascade=cascade, remote_side=remote_side,
-        enable_typechecks=enable_typechecks, passive_deletes=passive_deletes,
-        order_by=order_by, comparator_factory=comparator_factory,doc=doc,
-        strategy_class=DynaLoader, query_class=query_class)
+    kw['lazy'] = 'dynamic'
+    return relationship(argument, **kw)
 
 def column_property(*args, **kwargs):
     """Provide a column-level property for use with a Mapper.
@@ -678,17 +658,19 @@ def composite(class_, *cols, **kwargs):
 
 
 def backref(name, **kwargs):
-    """Create a back reference with explicit arguments, which are the same
+    """Create a back reference with explicit keyword arguments, which are the same
     arguments one can send to :func:`relationship`.
 
-    Used with the `backref` keyword argument to :func:`relationship` in
-    place of a string argument.
+    Used with the ``backref`` keyword argument to :func:`relationship` in
+    place of a string argument, e.g.::
+    
+        'items':relationship(SomeItem, backref=backref('parent', lazy='subquery'))
 
     """
     return (name, kwargs)
 
 def deferred(*columns, **kwargs):
-    """Return a :class:`DeferredColumnProperty`, which indicates this
+    """Return a :class:`.DeferredColumnProperty`, which indicates this
     object attributes should only be loaded from its corresponding
     table column when first accessed.
 
@@ -777,7 +759,7 @@ def mapper(class_, local_table=None, *args, **params):
            condition contains no ForeignKey columns, specify the "foreign"
            columns of the join condition in this list. else leave as None.
 
-        :param non_primary: Construct a :class:`Mapper` that will define only
+        :param non_primary: Construct a :class:`.Mapper` that will define only
            the selection of instances, not their persistence. Any number of
            non_primary mappers may be created for a particular class.
 
@@ -845,7 +827,7 @@ def mapper(class_, local_table=None, *args, **params):
            that will be used to keep a running version id of mapped entities
            in the database. this is used during save operations to ensure that
            no other thread or process has updated the instance during the
-           lifetime of the entity, else a :class:`StaleDataError` exception is
+           lifetime of the entity, else a :class:`.StaleDataError` exception is
            thrown.
 
         :param version_id_generator: A callable which defines the algorithm
@@ -886,7 +868,7 @@ def synonym(name, map_column=False, descriptor=None,
                         comparator_factory=None, doc=None):
     """Denote an attribute name as a synonym to a mapped property.
 
-    .. note:: :func:`.synonym` is superceded as of 0.7 by 
+    .. note:: :func:`.synonym` is superseded as of 0.7 by 
        the :mod:`~sqlalchemy.ext.hybrid` extension.  See 
        the documentation for hybrids at :ref:`hybrids_toplevel`.
 
@@ -928,7 +910,7 @@ def comparable_property(comparator_factory, descriptor=None):
     """Provides a method of applying a :class:`.PropComparator` 
     to any Python descriptor attribute.
 
-    .. note:: :func:`.comparable_property` is superceded as of 0.7 by 
+    .. note:: :func:`.comparable_property` is superseded as of 0.7 by 
        the :mod:`~sqlalchemy.ext.hybrid` extension.  See the example 
        at :ref:`hybrid_custom_comparators`.
        

@@ -31,6 +31,7 @@ doc/_sources/core/exceptions.txt
 doc/_sources/core/expression_api.txt
 doc/_sources/core/index.txt
 doc/_sources/core/interfaces.txt
+doc/_sources/core/internals.txt
 doc/_sources/core/pooling.txt
 doc/_sources/core/schema.txt
 doc/_sources/core/serializer.txt
@@ -56,6 +57,7 @@ doc/_sources/orm/exceptions.txt
 doc/_sources/orm/index.txt
 doc/_sources/orm/inheritance.txt
 doc/_sources/orm/interfaces.txt
+doc/_sources/orm/internals.txt
 doc/_sources/orm/loading.txt
 doc/_sources/orm/mapper_config.txt
 doc/_sources/orm/query.txt
@@ -88,6 +90,7 @@ doc/build/conf.py
 doc/build/copyright.rst
 doc/build/index.rst
 doc/build/intro.rst
+doc/build/requirements.txt
 doc/build/sqla_arch_small.png
 doc/build/testdocs.py
 doc/build/builder/__init__.py
@@ -102,6 +105,7 @@ doc/build/core/exceptions.rst
 doc/build/core/expression_api.rst
 doc/build/core/index.rst
 doc/build/core/interfaces.rst
+doc/build/core/internals.rst
 doc/build/core/pooling.rst
 doc/build/core/schema.rst
 doc/build/core/serializer.rst
@@ -128,6 +132,7 @@ doc/build/orm/exceptions.rst
 doc/build/orm/index.rst
 doc/build/orm/inheritance.rst
 doc/build/orm/interfaces.rst
+doc/build/orm/internals.rst
 doc/build/orm/loading.rst
 doc/build/orm/mapper_config.rst
 doc/build/orm/query.rst
@@ -160,6 +165,7 @@ doc/core/exceptions.html
 doc/core/expression_api.html
 doc/core/index.html
 doc/core/interfaces.html
+doc/core/internals.html
 doc/core/pooling.html
 doc/core/schema.html
 doc/core/serializer.html
@@ -185,6 +191,7 @@ doc/orm/exceptions.html
 doc/orm/index.html
 doc/orm/inheritance.html
 doc/orm/interfaces.html
+doc/orm/internals.html
 doc/orm/loading.html
 doc/orm/mapper_config.html
 doc/orm/query.html
@@ -204,6 +211,7 @@ examples/adjacency_list/__init__.py
 examples/adjacency_list/adjacency_list.py
 examples/association/__init__.py
 examples/association/basic_association.py
+examples/association/dict_of_sets_with_default.py
 examples/association/proxied_association.py
 examples/beaker_caching/__init__.py
 examples/beaker_caching/advanced.py

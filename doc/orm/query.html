@@ -7,7 +7,7 @@
         
         <title>
     Querying
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy ORM" href="index.html" />
         <link rel="next" title="Relationship Loading Techniques" href="loading.html" />
         <link rel="prev" title="Using the Session" href="session.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -107,7 +107,7 @@
 <p><a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> is produced in terms of a given <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>, using the <tt class="xref py py-func docutils literal"><span class="pre">query()</span></tt> function:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">q</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">SomeMappedClass</span><span class="p">)</span></pre></div>
 </div>
-<p>Following is the full interface for the <tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt> object.</p>
+<p>Following is the full interface for the <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> object.</p>
 <dl class="class">
 <dt id="sqlalchemy.orm.query.Query">
 <em class="property">class </em><tt class="descclassname">sqlalchemy.orm.query.</tt><tt class="descname">Query</tt><big>(</big><em>entities</em>, <em>session=None</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query" title="Permalink to this definition">¶</a></dt>
@@ -130,7 +130,7 @@ of <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlal
 <dt id="sqlalchemy.orm.query.Query.add_column">
 <tt class="descname">add_column</tt><big>(</big><em>column</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.add_column" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a column expression to the list of result columns to be returned.</p>
-<p>Pending deprecation: <a class="reference internal" href="#sqlalchemy.orm.query.Query.add_column" title="sqlalchemy.orm.query.Query.add_column"><tt class="xref py py-meth docutils literal"><span class="pre">add_column()</span></tt></a> will be superceded by 
+<p>Pending deprecation: <a class="reference internal" href="#sqlalchemy.orm.query.Query.add_column" title="sqlalchemy.orm.query.Query.add_column"><tt class="xref py py-meth docutils literal"><span class="pre">add_column()</span></tt></a> will be superseded by 
 <a class="reference internal" href="#sqlalchemy.orm.query.Query.add_columns" title="sqlalchemy.orm.query.Query.add_columns"><tt class="xref py py-meth docutils literal"><span class="pre">add_columns()</span></tt></a>.</p>
 </dd></dl>
 
@@ -160,7 +160,7 @@ to be returned.</p>
 <tt class="descname">as_scalar</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.as_scalar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the full SELECT statement represented by this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>, converted 
 to a scalar subquery.</p>
-<p>Analagous to <tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql._SelectBaseMixin.as_scalar()</span></tt>.</p>
+<p>Analogous to <tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql._SelectBaseMixin.as_scalar()</span></tt>.</p>
 <p>New in 0.6.5.</p>
 </dd></dl>
 
@@ -178,7 +178,7 @@ to disable autoflush for a specific Query.</p>
 <dt id="sqlalchemy.orm.query.Query.column_descriptions">
 <tt class="descname">column_descriptions</tt><a class="headerlink" href="#sqlalchemy.orm.query.Query.column_descriptions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return metadata about the columns which would be 
-returned by this <tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt>.</p>
+returned by this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.</p>
 <p>Format is a list of dictionaries:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">user_alias</span> <span class="o">=</span> <span class="n">aliased</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;user2&#39;</span><span class="p">)</span>
 <span class="n">q</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">user_alias</span><span class="p">)</span>
@@ -232,21 +232,35 @@ embedded in another <a class="reference internal" href="../core/expression_api.h
 <dt id="sqlalchemy.orm.query.Query.count">
 <tt class="descname">count</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.count" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a count of rows this Query would return.</p>
-<p>For simple entity queries, count() issues
-a SELECT COUNT, and will specifically count the primary
-key column of the first entity only.  If the query uses 
-LIMIT, OFFSET, or DISTINCT, count() will wrap the statement 
-generated by this Query in a subquery, from which a SELECT COUNT
-is issued, so that the contract of &#8220;how many rows
-would be returned?&#8221; is honored.</p>
-<p>For queries that request specific columns or expressions, 
-count() again makes no assumptions about those expressions
-and will wrap everything in a subquery.  Therefore,
-<tt class="docutils literal"><span class="pre">Query.count()</span></tt> is usually not what you want in this case.
-To count specific columns, often in conjunction with 
-GROUP BY, use <tt class="docutils literal"><span class="pre">func.count()</span></tt> as an individual column expression
-instead of <tt class="docutils literal"><span class="pre">Query.count()</span></tt>.  See the ORM tutorial
-for an example.</p>
+<p>This generates the SQL for this Query as follows:</p>
+<div class="highlight-python"><pre>SELECT count(1) AS count_1 FROM (
+    SELECT &lt;rest of query follows...&gt;
+) AS anon_1</pre>
+</div>
+<p>Note the above scheme is newly refined in 0.7 
+(as of 0.7b3).</p>
+<p>For fine grained control over specific columns 
+to count, to skip the usage of a subquery or
+otherwise control of the FROM clause,
+or to use other aggregate functions,
+use <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.func" title="sqlalchemy.sql.expression.func"><tt class="xref py py-attr docutils literal"><span class="pre">func</span></tt></a> expressions in conjunction
+with <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session.query" title="sqlalchemy.orm.session.Session.query"><tt class="xref py py-meth docutils literal"><span class="pre">query()</span></tt></a>, i.e.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">func</span>
+
+<span class="c"># count User records, without</span>
+<span class="c"># using a subquery.</span>
+<span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+            
+<span class="c"># return count of user &quot;id&quot; grouped</span>
+<span class="c"># by &quot;name&quot;</span>
+<span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">))</span><span class="o">.</span>\
+        <span class="n">group_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">distinct</span>
+
+<span class="c"># count distinct &quot;name&quot; values</span>
+<span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">distinct</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">name</span><span class="p">)))</span></pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -497,7 +511,7 @@ join from &#8220;Houses&#8221; table to that of the &#8220;rooms&#8221; relation
 <p>A two-element form of *props may also be passed.   In this form,
 the first element is a target class or selectable, the second
 is a string property name, class-mapped attribute, or clause
-construct representing an &#8220;ON&#8221; clause.   This supercedes the
+construct representing an &#8220;ON&#8221; clause.   This supersedes the
 previous &#8220;tuple&#8221; calling form - multiple join() calls should
 be used for multiple (target, onclause) pairs.</p>
 <p>e.g.:</p>
@@ -557,7 +571,7 @@ of joins, such as:</p>
 <tt class="descname">label</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.label" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the full SELECT statement represented by this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>, converted 
 to a scalar subquery with a label of the given name.</p>
-<p>Analagous to <tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql._SelectBaseMixin.label()</span></tt>.</p>
+<p>Analogous to <tt class="xref py py-meth docutils literal"><span class="pre">sqlalchemy.sql._SelectBaseMixin.label()</span></tt>.</p>
 <p>New in 0.6.5.</p>
 </dd></dl>
 
@@ -639,7 +653,7 @@ an ORDER BY is invalid.</p>
 <dt id="sqlalchemy.orm.query.Query.outerjoin">
 <tt class="descname">outerjoin</tt><big>(</big><em>*props</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.outerjoin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a left outer join against this <tt class="docutils literal"><span class="pre">Query</span></tt> object&#8217;s criterion
-and apply generatively, retunring the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+and apply generatively, returning the newly resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 <p>Usage is the same as the <tt class="docutils literal"><span class="pre">join()</span></tt> method.</p>
 </dd></dl>
 
@@ -657,7 +671,7 @@ contain unicode keys in which case **kwargs cannot be used.</p>
 <dl class="method">
 <dt id="sqlalchemy.orm.query.Query.populate_existing">
 <tt class="descname">populate_existing</tt><big>(</big><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.populate_existing" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt> that will expire and refresh all instances 
+<dd><p>Return a <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a> that will expire and refresh all instances 
 as they are loaded, or reused from the current <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a>.</p>
 <p><a class="reference internal" href="#sqlalchemy.orm.query.Query.populate_existing" title="sqlalchemy.orm.query.Query.populate_existing"><tt class="xref py py-meth docutils literal"><span class="pre">populate_existing()</span></tt></a> does not improve behavior when 
 the ORM is used normally - the <a class="reference internal" href="session.html#sqlalchemy.orm.session.Session" title="sqlalchemy.orm.session.Session"><tt class="xref py py-class docutils literal"><span class="pre">Session</span></tt></a> object&#8217;s usual 
@@ -890,11 +904,11 @@ entities.</p>
 <dt id="sqlalchemy.orm.query.Query.with_hint">
 <tt class="descname">with_hint</tt><big>(</big><em>selectable</em>, <em>text</em>, <em>dialect_name='*'</em><big>)</big><a class="headerlink" href="#sqlalchemy.orm.query.Query.with_hint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add an indexing hint for the given entity or selectable to 
-this <tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt>.</p>
+this <a class="reference internal" href="#sqlalchemy.orm.query.Query" title="sqlalchemy.orm.query.Query"><tt class="xref py py-class docutils literal"><span class="pre">Query</span></tt></a>.</p>
 <p>Functionality is passed straight through to 
 <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Select.with_hint" title="sqlalchemy.sql.expression.Select.with_hint"><tt class="xref py py-meth docutils literal"><span class="pre">with_hint()</span></tt></a>, 
 with the addition that <tt class="docutils literal"><span class="pre">selectable</span></tt> can be a 
-<tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt>, <tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt>, or ORM entity / mapped class 
+<a class="reference internal" href="../core/schema.html#sqlalchemy.schema.Table" title="sqlalchemy.schema.Table"><tt class="xref py py-class docutils literal"><span class="pre">Table</span></tt></a>, <a class="reference internal" href="../core/expression_api.html#sqlalchemy.sql.expression.Alias" title="sqlalchemy.sql.expression.Alias"><tt class="xref py py-class docutils literal"><span class="pre">Alias</span></tt></a>, or ORM entity / mapped class 
 /etc.</p>
 </dd></dl>
 

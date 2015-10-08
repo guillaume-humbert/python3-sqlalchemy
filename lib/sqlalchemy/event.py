@@ -78,20 +78,17 @@ class _Dispatch(object):
         self._parent_cls = _parent_cls
 
     def __reduce__(self):
-
         return _UnpickleDispatch(), (self._parent_cls, )
-
-    @property
-    def _descriptors(self):
-        return (getattr(self, k) for k in dir(self) if _is_event_name(k))
 
     def _update(self, other, only_propagate=True):
         """Populate from the listeners in another :class:`_Dispatch`
             object."""
 
-        for ls in other._descriptors:
+        for ls in _event_descriptors(other):
             getattr(self, ls.name)._update(ls, only_propagate=only_propagate)
 
+def _event_descriptors(target):
+    return [getattr(target, k) for k in dir(target) if _is_event_name(k)]
 
 class _EventMeta(type):
     """Intercept new Event subclasses and create 
@@ -146,8 +143,11 @@ class Events(object):
             return None
 
     @classmethod
-    def _listen(cls, target, identifier, fn, propagate=False):
-        getattr(target.dispatch, identifier).append(fn, target, propagate)
+    def _listen(cls, target, identifier, fn, propagate=False, insert=False):
+        if insert:
+            getattr(target.dispatch, identifier).insert(fn, target, propagate)
+        else:
+            getattr(target.dispatch, identifier).append(fn, target, propagate)
 
     @classmethod
     def _remove(cls, target, identifier, fn):
@@ -166,6 +166,16 @@ class _DispatchDescriptor(object):
         self.__name__ = fn.__name__
         self.__doc__ = fn.__doc__
         self._clslevel = util.defaultdict(list)
+
+    def insert(self, obj, target, propagate):
+        assert isinstance(target, type), \
+                "Class-level Event targets must be classes."
+
+        stack = [target]
+        while stack:
+            cls = stack.pop(0)
+            stack.extend(cls.__subclasses__())
+            self._clslevel[cls].insert(0, obj)
 
     def append(self, obj, target, propagate):
         assert isinstance(target, type), \
@@ -262,6 +272,12 @@ class _ListenerCollection(object):
                                 if l not in existing_listener_set
                                 and not only_propagate or l in self.propagate
                                 ])
+
+    def insert(self, obj, target, propagate):
+        if obj not in self.listeners:
+            self.listeners.insert(0, obj)
+            if propagate:
+                self.propagate.add(obj)
 
     def append(self, obj, target, propagate):
         if obj not in self.listeners:

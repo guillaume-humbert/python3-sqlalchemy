@@ -7,7 +7,7 @@
         
         <title>
     Custom SQL Constructs and Compilation Extension
- &mdash; SQLAlchemy 0.7b1 Documentation</title>
+ &mdash; SQLAlchemy 0.7b3 Documentation</title>
         
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/docs.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
           URL_ROOT:    '../',
-          VERSION:     '0.7b1',
+          VERSION:     '0.7b3',
           COLLAPSE_MODINDEX: false,
           FILE_SUFFIX: '.html'
       };
@@ -27,7 +27,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
         <link rel="copyright" title="Copyright" href="../copyright.html" />
-    <link rel="top" title="SQLAlchemy 0.7b1 Documentation" href="../index.html" />
+    <link rel="top" title="SQLAlchemy 0.7b3 Documentation" href="../index.html" />
         <link rel="up" title="SQLAlchemy Core" href="index.html" />
         <link rel="next" title="Expression Serializer Extension" href="serializer.html" />
         <link rel="prev" title="Core Events" href="events.html" />
@@ -40,7 +40,7 @@
 
 
 
-        <h1>SQLAlchemy 0.7b1 Documentation</h1>
+        <h1>SQLAlchemy 0.7b3 Documentation</h1>
 
         <div id="search">
         Search:
@@ -52,7 +52,7 @@
         </div>
 
         <div class="versionheader">
-            Version: <span class="versionnum">0.7b1</span> Last Updated: 02/12/2011 18:23:47
+            Version: <span class="versionnum">0.7b3</span> Last Updated: 03/20/2011 15:14:52
         </div>
         <div class="clearboth"></div>
 
@@ -159,11 +159,11 @@ invoked for the dialect in use:</p>
 </div>
 <div class="section" id="compiling-sub-elements-of-a-custom-expression-construct">
 <h2>Compiling sub-elements of a custom expression construct<a class="headerlink" href="#compiling-sub-elements-of-a-custom-expression-construct" title="Permalink to this headline">¶</a></h2>
-<p>The <tt class="docutils literal"><span class="pre">compiler</span></tt> argument is the <tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt>
+<p>The <tt class="docutils literal"><span class="pre">compiler</span></tt> argument is the <a class="reference internal" href="internals.html#sqlalchemy.engine.base.Compiled" title="sqlalchemy.engine.base.Compiled"><tt class="xref py py-class docutils literal"><span class="pre">Compiled</span></tt></a>
 object in use. This object can be inspected for any information about the
 in-progress compilation, including <tt class="docutils literal"><span class="pre">compiler.dialect</span></tt>,
-<tt class="docutils literal"><span class="pre">compiler.statement</span></tt> etc. The <tt class="xref py py-class docutils literal"><span class="pre">SQLCompiler</span></tt>
-and <tt class="xref py py-class docutils literal"><span class="pre">DDLCompiler</span></tt> both include a <tt class="docutils literal"><span class="pre">process()</span></tt>
+<tt class="docutils literal"><span class="pre">compiler.statement</span></tt> etc. The <a class="reference internal" href="internals.html#sqlalchemy.sql.compiler.SQLCompiler" title="sqlalchemy.sql.compiler.SQLCompiler"><tt class="xref py py-class docutils literal"><span class="pre">SQLCompiler</span></tt></a>
+and <a class="reference internal" href="internals.html#sqlalchemy.sql.compiler.DDLCompiler" title="sqlalchemy.sql.compiler.DDLCompiler"><tt class="xref py py-class docutils literal"><span class="pre">DDLCompiler</span></tt></a> both include a <tt class="docutils literal"><span class="pre">process()</span></tt>
 method which can be used for compilation of embedded attributes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy.sql.expression</span> <span class="kn">import</span> <span class="n">Executable</span><span class="p">,</span> <span class="n">ClauseElement</span>
 

@@ -782,13 +782,15 @@ unit of work searches only through the current identity
 map for objects that may be referencing the one with a
 mutating primary key, not throughout the database.
 
-The :func:`relationship` API
-----------------------------
+Relationships API
+-----------------
 
 .. autofunction:: relationship
 
 .. autofunction:: backref
 
 .. autofunction:: relation
+
+.. autofunction:: dynamic_loader
 
 

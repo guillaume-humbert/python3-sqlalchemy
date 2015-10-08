@@ -92,7 +92,7 @@ class TypeEngine(AbstractType):
         are serialized into strings are examples of "mutable" 
         column structures.
 
-        .. note:: This functionality is now superceded by the
+        .. note:: This functionality is now superseded by the
           ``sqlalchemy.ext.mutable`` extension described in 
           :ref:`mutable_toplevel`.
 
@@ -257,7 +257,7 @@ class UserDefinedType(TypeEngine):
     """Base for user defined types.
 
     This should be the base of new types.  Note that
-    for most cases, :class:`TypeDecorator` is probably
+    for most cases, :class:`.TypeDecorator` is probably
     more appropriate::
 
       import sqlalchemy.types as types
@@ -534,7 +534,7 @@ class TypeDecorator(TypeEngine):
         are serialized into strings are examples of "mutable" 
         column structures.
 
-        .. note:: This functionality is now superceded by the
+        .. note:: This functionality is now superseded by the
           ``sqlalchemy.ext.mutable`` extension described in 
           :ref:`mutable_toplevel`.
 
@@ -549,11 +549,11 @@ class TypeDecorator(TypeEngine):
             return op, typ
 
 class MutableType(object):
-    """A mixin that marks a :class:`TypeEngine` as representing
+    """A mixin that marks a :class:`.TypeEngine` as representing
     a mutable Python object type.   This functionality is used
     only by the ORM.
 
-    .. note:: :class:`.MutableType` is superceded as of SQLAlchemy 0.7
+    .. note:: :class:`.MutableType` is superseded as of SQLAlchemy 0.7
        by the ``sqlalchemy.ext.mutable`` extension described in
        :ref:`mutable_toplevel`.   This extension provides an event
        driven approach to in-place mutation detection that does not
@@ -568,10 +568,10 @@ class MutableType(object):
     that changes are detected.  These rules may have a significant 
     performance impact, described below.
 
-    A :class:`MutableType` usually allows a flag called
+    A :class:`.MutableType` usually allows a flag called
     ``mutable=False`` to enable/disable the "mutability" flag,
     represented on this class by :meth:`is_mutable`.  Examples 
-    include :class:`PickleType` and 
+    include :class:`.PickleType` and 
     :class:`~sqlalchemy.dialects.postgresql.base.ARRAY`.  Setting
     this flag to ``True`` enables mutability-specific behavior
     by the ORM.
@@ -592,7 +592,7 @@ class MutableType(object):
         one to its "clean"
         value. So for example, if the Session contains 6000 objects (a
         fairly large amount) and autoflush is enabled, every individual
-        execution of :class:`Query` will require a full scan of that subset of
+        execution of :class:`.Query` will require a full scan of that subset of
         the 6000 objects that have mutable attributes, possibly resulting
         in tens of thousands of additional method calls for every query.
 
@@ -875,7 +875,7 @@ class Text(String):
 class Unicode(String):
     """A variable length Unicode string.
 
-    The ``Unicode`` type is a :class:`String` which converts Python
+    The ``Unicode`` type is a :class:`.String` which converts Python
     ``unicode`` objects (i.e., strings that are defined as
     ``u'somevalue'``) into encoded bytestrings when passing the value
     to the database driver, and similarly decodes values from the
@@ -931,7 +931,7 @@ class Unicode(String):
 class UnicodeText(Text):
     """An unbounded-length Unicode string.
 
-    See :class:`Unicode` for details on the unicode
+    See :class:`.Unicode` for details on the unicode
     behavior of this object.
 
     Like ``Unicode``, usage the ``UnicodeText`` type implies a 
@@ -1001,21 +1001,23 @@ class SmallInteger(Integer):
     """A type for smaller ``int`` integers.
 
     Typically generates a ``SMALLINT`` in DDL, and otherwise acts like
-    a normal :class:`Integer` on the Python side.
+    a normal :class:`.Integer` on the Python side.
 
     """
 
     __visit_name__ = 'small_integer'
 
+
 class BigInteger(Integer):
     """A type for bigger ``int`` integers.
 
     Typically generates a ``BIGINT`` in DDL, and otherwise acts like
-    a normal :class:`Integer` on the Python side.
+    a normal :class:`.Integer` on the Python side.
 
     """
 
     __visit_name__ = 'big_integer'
+
 
 class Numeric(_DateAffinity, TypeEngine):
     """A type for fixed precision numbers.
@@ -1179,7 +1181,7 @@ class Float(Numeric):
         :param precision: the numeric precision for use in DDL ``CREATE
            TABLE``.
 
-        :param asdecimal: the same flag as that of :class:`Numeric`, but
+        :param asdecimal: the same flag as that of :class:`.Numeric`, but
           defaults to ``False``.   Note that setting this flag to ``True``
           results in floating point conversion.
 
@@ -1612,7 +1614,7 @@ class PickleType(MutableType, TypeDecorator):
           behavior. (default changed from ``True`` in 
           0.7.0).
 
-          .. note:: This functionality is now superceded by the
+          .. note:: This functionality is now superseded by the
              ``sqlalchemy.ext.mutable`` extension described in 
              :ref:`mutable_toplevel`.
 
