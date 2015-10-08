@@ -1270,9 +1270,6 @@ class SQLCompiler(Compiled):
         return " AS " + alias_name_text
 
     def _add_to_result_map(self, keyname, name, objects, type_):
-        if not self.dialect.case_sensitive:
-            keyname = keyname.lower()
-
         self._result_columns.append((keyname, name, objects, type_))
 
     def _label_select_column(self, select, column,
@@ -2299,6 +2296,16 @@ class DDLCompiler(Compiled):
             text += " INCREMENT BY %d" % create.element.increment
         if create.element.start is not None:
             text += " START WITH %d" % create.element.start
+        if create.element.minvalue is not None:
+            text += " MINVALUE %d" % create.element.minvalue
+        if create.element.maxvalue is not None:
+            text += " MAXVALUE %d" % create.element.maxvalue
+        if create.element.nominvalue is not None:
+            text += " NO MINVALUE"
+        if create.element.nomaxvalue is not None:
+            text += " NO MAXVALUE"
+        if create.element.cycle is not None:
+            text += " CYCLE"
         return text
 
     def visit_drop_sequence(self, drop):

@@ -16,6 +16,120 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.0.7
+    :released: July 20, 2015
+
+    .. change::
+        :tags: feature, sql
+        :tickets: 3459
+        :pullreq: bitbucket:56
+
+        Added a :meth:`.ColumnElement.cast` method which performs the same
+        purpose as the standalone :func:`.cast` function.  Pull request
+        courtesy Sebastian Bank.
+
+    .. change::
+        :tags: bug, engine
+        :tickets: 3481
+
+        Fixed regression where new methods on :class:`.ResultProxy` used
+        by the ORM :class:`.Query` object (part of the performance
+        enhancements of :ticket:`3175`) would not raise the "this result
+        does not return rows" exception in the case where the driver
+        (typically MySQL) fails to generate cursor.description correctly;
+        an AttributeError against NoneType would be raised instead.
+
+    .. change::
+        :tags: bug, engine
+        :tickets: 3483
+
+        Fixed regression where :meth:`.ResultProxy.keys` would return
+        un-adjusted internal symbol names for "anonymous" labels, which
+        are the "foo_1" types of labels we see generated for SQL functions
+        without labels and similar.  This was a side effect of the
+        performance enhancements implemented as part of #918.
+
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3490
+
+        Fixed bug where coersion of literal ``True`` or ``False`` constant
+        in conjunction with :func:`.and_` or :func:`.or_` would fail
+        with an AttributeError.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3485
+
+        Fixed potential issue where a custom subclass
+        of :class:`.FunctionElement` or other column element that incorrectly
+        states 'None' or any other invalid object as the ``.type``
+        attribute will report this exception instead of recursion overflow.
+
+    .. change::
+        :tags: bug, sql
+        :pullreq: github:188
+
+        Fixed bug where the modulus SQL operator wouldn't work in reverse
+        due to a missing ``__rmod__`` method.  Pull request courtesy
+        dan-gittik.
+
+    .. change::
+        :tags: feature, schema
+        :pullreq: github:186
+
+        Added support for the MINVALUE, MAXVALUE, NO MINVALUE, NO MAXVALUE,
+        and CYCLE arguments for CREATE SEQUENCE as supported by Postgresql
+        and Oracle.  Pull request courtesy jakeogh.
+
+    .. change::
+        :tags: bug, orm, declarative
+        :tickets: 3480
+
+        Fixed bug in :class:`.AbstractConcreteBase` extension where
+        a column setup on the ABC base which had a different attribute
+        name vs. column name would not be correctly mapped on the final
+        base class.   The failure on 0.9 would be silent whereas on
+        1.0 it raised an ArgumentError, so may not have been noticed
+        prior to 1.0.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3469
+
+        Fixed 1.0 regression where value objects that override
+        ``__eq__()`` to return a non-boolean-capable object, such as
+        some geoalchemy types as well as numpy types, were being tested
+        for ``bool()`` during a unit of work update operation, where in
+        0.9 the return value of ``__eq__()`` was tested against "is True"
+        to guard against this.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3468
+
+        Fixed 1.0 regression where a "deferred" attribute would not populate
+        correctly if it were loaded within the "optimized inheritance load",
+        which is a special SELECT emitted in the case of joined table
+        inheritance used to populate expired or unloaded attributes against
+        a joined table without loading the base table.  This is related to
+        the fact that SQLA 1.0 no longer guesses about loading deferred
+        columns and must be directed explicitly.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3466
+
+        Fixed 1.0 regression where the "parent entity" of a synonym-
+        mapped attribute on top of an :func:`.aliased` object would
+        resolve to the original mapper, not the :func:`.aliased`
+        version of it, thereby causing problems for a :class:`.Query`
+        that relies on this attribute (e.g. it's the only representative
+        attribute given in the constructor) to figure out the correct FROM
+        clause for the query.
+
+.. changelog::
     :version: 1.0.6
     :released: June 25, 2015
 

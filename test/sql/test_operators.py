@@ -825,6 +825,64 @@ class ConjunctionTest(fixtures.TestBase, testing.AssertsCompiledSQL):
             "SELECT false AS anon_1, false AS anon_2"
         )
 
+    def test_is_true_literal(self):
+        c = column('x', Boolean)
+        self.assert_compile(
+            c.is_(True),
+            "x IS true"
+        )
+
+    def test_is_false_literal(self):
+        c = column('x', Boolean)
+        self.assert_compile(
+            c.is_(False),
+            "x IS false"
+        )
+
+    def test_and_false_literal_leading(self):
+        self.assert_compile(
+            and_(False, True),
+            "false"
+        )
+
+        self.assert_compile(
+            and_(False, False),
+            "false"
+        )
+
+    def test_and_true_literal_leading(self):
+        self.assert_compile(
+            and_(True, True),
+            "true"
+        )
+
+        self.assert_compile(
+            and_(True, False),
+            "false"
+        )
+
+    def test_or_false_literal_leading(self):
+        self.assert_compile(
+            or_(False, True),
+            "true"
+        )
+
+        self.assert_compile(
+            or_(False, False),
+            "false"
+        )
+
+    def test_or_true_literal_leading(self):
+        self.assert_compile(
+            or_(True, True),
+            "true"
+        )
+
+        self.assert_compile(
+            or_(True, False),
+            "true"
+        )
+
 
 class OperatorPrecedenceTest(fixtures.TestBase, testing.AssertsCompiledSQL):
     __dialect__ = 'default'
@@ -1326,6 +1384,9 @@ class MathOperatorTest(fixtures.TestBase, testing.AssertsCompiledSQL):
             self._test_math_op(operator.truediv, '/')
         else:
             self._test_math_op(operator.div, '/')
+
+    def test_math_op_mod(self):
+        self._test_math_op(operator.mod, '%')
 
 
 class ComparisonOperatorTest(fixtures.TestBase, testing.AssertsCompiledSQL):
