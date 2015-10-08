@@ -27,7 +27,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
+<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
 
 
 
@@ -533,7 +533,9 @@
 </p>
 <p>Yeee...no.  It's somewhat used as a cache, in that it implements the identity map pattern, and stores objects keyed to their primary key.  However, it doesn't do any kind of query caching.  This means, if you say <code>session.query(Foo).filter_by(name='bar')</code>, even if <code>Foo(name='bar')</code> is right there, in the identity map, the session has no idea about that.  It has to issue SQL to the database, get the rows back, and then when it sees the primary key in the row, <em>then</em> it can look in the local identity map and see that the object is already there.  It's only when you say <code>query.get({some primary key})</code> that the <code>Session</code> doesn't have to issue a query.
 </p>
-<p>Also, the <code>Session</code> is not designed to be a global object from which everyone consults as a "registry" of objects.  That is the job of a <strong>second level cache</strong>.  A good library for implementing second level caching is <a href='http://www.danga.com/memcached/'>Memcached</a>.  It <em>is</em> possible to "sort of" use the <code>Session</code> in this manner, if you set it to be non-transactional and it never flushes any SQL, but it's not a terrific solution,  since if concurrent threads load the same objects at the same time, you may have multiple copies of the same objects present in collections.
+<p>Additionally, the Session stores object instances using a weak reference by default.  This also defeats the purpose of using the Session as a cache, unless the <code>weak_identity_map</code> flag is set to <code>False</code>.
+</p>
+<p>The <code>Session</code> is not designed to be a global object from which everyone consults as a "registry" of objects.  That is the job of a <strong>second level cache</strong>.  A good library for implementing second level caching is <a href='http://www.danga.com/memcached/'>Memcached</a>.  It <em>is</em> possible to "sort of" use the <code>Session</code> in this manner, if you set it to be non-transactional and it never flushes any SQL, but it's not a terrific solution,  since if concurrent threads load the same objects at the same time, you may have multiple copies of the same objects present in collections.
 </p>
 
  </li>
@@ -599,7 +601,9 @@
 </span><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">__main__</span><span class="python_operator">.</span><span class="python_name">User object at </span><span class="python_number">0x712630</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">__main__</span><span class="python_operator">.</span><span class="python_name">Address object at </span><span class="python_number">0x712a70</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The identity map is a <code>dict</code> by default.  This means that objects stay in the session until they are explicitly removed, or the session is cleared.  Some people prefer objects to be automatically garbage collected instead.  For this,  you can specify the flag <code>weak_identity_map=True</code> to the <code>create_session</code> or <code>sessionmaker</code> functions so that the <code>Session</code> will use a <code>weakref.WeakValueDictionary</code>.  But note that an object that has changes marked on it (i.e. "dirty"), and is then discarded, will not have its changes saved to the database.  It's because of this misleading behavior that SQLAlchemy's identity map is by default strong-referencing.
+<p>The identity map is a weak-referencing dictionary by default.  This means that objects which are dereferenced on the outside will be removed from the session automatically.  Note that objects which are marked as "dirty" will not fall out of scope until after changes on them have been flushed; special logic kicks in at the point of auto-removal which ensures that no pending changes remain on the object, else a temporary strong reference is created to the object.
+</p>
+<p>Some people prefer objects to stay in the session until explicitly removed in all cases; for this,  you can specify the flag <code>weak_identity_map=False</code> to the <code>create_session</code> or <code>sessionmaker</code> functions so that the <code>Session</code> will use a regular dictionary.
 </p>
 <p>While the <code>identity_map</code> accessor is currently the actual dictionary used by the <code>Session</code> to store instances, you should not add or remove items from this dictionary.  Use the session methods <code>save_or_update()</code> and <code>expunge()</code> to add or remove items.
 </p>

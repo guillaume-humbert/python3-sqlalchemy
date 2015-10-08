@@ -964,18 +964,17 @@ class ClauseElement(object):
     def execute(self, *multiparams, **params):
         """Compile and execute this ``ClauseElement``."""
 
-        if multiparams:
-            compile_params = multiparams[0]
-        else:
-            compile_params = params
-        return self.compile(bind=self.bind, parameters=compile_params, inline=(len(multiparams) > 1)).execute(*multiparams, **params)
+        e = self.bind
+        if e is None:
+            raise exceptions.InvalidRequestError("This Compiled object is not bound to any Engine or Connection.")
+        return e._execute_clauseelement(self, multiparams, params)
 
     def scalar(self, *multiparams, **params):
         """Compile and execute this ``ClauseElement``, returning the result's scalar representation."""
 
         return self.execute(*multiparams, **params).scalar()
 
-    def compile(self, bind=None, parameters=None, compiler=None, dialect=None, inline=False):
+    def compile(self, bind=None, column_keys=None, compiler=None, dialect=None, inline=False):
         """Compile this SQL expression.
 
         Uses the given ``Compiler``, or the given ``AbstractDialect``
@@ -999,21 +998,18 @@ class ClauseElement(object):
         ``SET`` and ``VALUES`` clause of those statements.
         """
 
-        if isinstance(parameters, (list, tuple)):
-            parameters = parameters[0]
-
         if compiler is None:
             if dialect is not None:
-                compiler = dialect.statement_compiler(dialect, self, parameters, inline=inline)
+                compiler = dialect.statement_compiler(dialect, self, column_keys=column_keys, inline=inline)
             elif bind is not None:
-                compiler = bind.statement_compiler(self, parameters, inline=inline)
+                compiler = bind.statement_compiler(self, column_keys=column_keys, inline=inline)
             elif self.bind is not None:
-                compiler = self.bind.statement_compiler(self, parameters, inline=inline)
+                compiler = self.bind.statement_compiler(self, column_keys=column_keys, inline=inline)
 
         if compiler is None:
             from sqlalchemy.engine.default import DefaultDialect
             dialect = DefaultDialect()
-            compiler = dialect.statement_compiler(dialect, self, parameters=parameters, inline=inline)
+            compiler = dialect.statement_compiler(dialect, self, column_keys=column_keys, inline=inline)
         compiler.compile()
         return compiler
     
@@ -1163,7 +1159,7 @@ PRECEDENCE = {
     operators.le:5,
     operators.between_op:5,
     operators.distinct_op:5,
-    operators.inv:4,
+    operators.inv:5,
     operators.and_:3,
     operators.or_:2,
     operators.comma_op:-1,
@@ -1514,7 +1510,8 @@ class FromClause(Selectable):
 
     def __init__(self, name=None):
         self.name = name
-
+        self.oid_column = None
+        
     def _get_from_objects(self, **modifiers):
         # this could also be [self], at the moment it doesnt matter to the Select object
         return []
@@ -1544,16 +1541,6 @@ class FromClause(Selectable):
         """
 
         return False
-
-    def _locate_oid_column(self):
-        """Subclasses should override this to return an appropriate OID column."""
-
-        return None
-
-    def _get_oid_column(self):
-        if not hasattr(self, '_oid_column'):
-            self._oid_column = self._locate_oid_column()
-        return self._oid_column
 
     def _get_all_embedded_columns(self):
         ret = []
@@ -1654,7 +1641,6 @@ class FromClause(Selectable):
         """A dictionary mapping an original Table-bound 
         column to a proxied column in this FromClause.
         """)
-    oid_column = property(_get_oid_column)
 
     def _export_columns(self, columns=None):
         """Initialize column collections.
@@ -1772,9 +1758,11 @@ class _BindParamClause(ClauseElement, _CompareMixin):
             self.type = type_
 
     # TODO: move to types module, obviously
+    # using VARCHAR/NCHAR so that we dont get the genericized "String"
+    # type which usually resolves to TEXT/CLOB
     type_map = {
-        str : sqltypes.String,
-        unicode : sqltypes.Unicode,
+        str : sqltypes.VARCHAR,
+        unicode : sqltypes.NCHAR,
         int : sqltypes.Integer,
         float : sqltypes.Numeric,
         type(None):sqltypes.NullType
@@ -2010,6 +1998,7 @@ class _Function(_CalculatedClause, FromClause):
 
     def __init__(self, name, *clauses, **kwargs):
         self.packagenames = kwargs.get('packagenames', None) or []
+        self.oid_column = None
         kwargs['operator'] = operators.comma_op
         _CalculatedClause.__init__(self, name, **kwargs)
         for c in clauses:
@@ -2188,6 +2177,7 @@ class Join(FromClause):
     def __init__(self, left, right, onclause=None, isouter = False):
         self.left = _selectable(left)
         self.right = _selectable(right).self_group()
+        self.oid_column = self.left.oid_column
         if onclause is None:
             self.onclause = self._match_primaries(self.left, self.right)
         else:
@@ -2200,6 +2190,7 @@ class Join(FromClause):
     encodedname = property(lambda s: s.name.encode('ascii', 'backslashreplace'))
 
     def _init_primary_key(self):
+        from sqlalchemy import schema
         pkcol = util.Set([c for c in self._flatten_exportable_columns() if c.primary_key])
 
         equivs = {}
@@ -2212,7 +2203,7 @@ class Join(FromClause):
 
         class BinaryVisitor(visitors.ClauseVisitor):
             def visit_binary(self, binary):
-                if binary.operator == operators.eq:
+                if binary.operator == operators.eq and isinstance(binary.left, schema.Column) and isinstance(binary.right, schema.Column):
                     add_equiv(binary.left, binary.right)
         BinaryVisitor().traverse(self.onclause)
 
@@ -2236,8 +2227,6 @@ class Join(FromClause):
     def self_group(self, against=None):
         return _FromGrouping(self)
 
-    def _locate_oid_column(self):
-        return self.left.oid_column
 
     def _exportable_columns(self):
         return [c for c in self.left.columns] + [c for c in self.right.columns]
@@ -2391,6 +2380,10 @@ class Alias(FromClause):
             alias = '{ANON %d %s}' % (id(self), alias or 'anon')
         self.name = alias
         self.encodedname = alias.encode('ascii', 'backslashreplace')
+        if self.selectable.oid_column is not None:
+            self.oid_column = self.selectable.oid_column._make_proxy(self)
+        else:
+            self.oid_column = None
 
     def is_derived_from(self, fromclause):
         x = self.selectable
@@ -2408,12 +2401,6 @@ class Alias(FromClause):
 
     def _table_iterator(self):
         return self.original._table_iterator()
-
-    def _locate_oid_column(self):
-        if self.selectable.oid_column is not None:
-            return self.selectable.oid_column._make_proxy(self)
-        else:
-            return None
 
     def named_with_column(self):
         return True
@@ -2653,7 +2640,7 @@ class TableClause(FromClause):
         super(TableClause, self).__init__(name)
         self.name = self.fullname = name
         self.encodedname = self.name.encode('ascii', 'backslashreplace')
-        self._oid_column = _ColumnClause('oid', self, _is_oid=True)
+        self.oid_column = _ColumnClause('oid', self, _is_oid=True)
         self._export_columns(columns)
 
     def _clone(self):
@@ -2666,9 +2653,6 @@ class TableClause(FromClause):
     def append_column(self, c):
         self._columns[c.name] = c
         c.table = self
-
-    def _locate_oid_column(self):
-        return self._oid_column
 
     def _proxy_column(self, c):
         self.append_column(c)
@@ -2842,16 +2826,14 @@ class CompoundSelect(_SelectBaseMixin, FromClause):
                 self.selects.append(s)
 
         self._col_map = {}
-
+        self.oid_column = self.selects[0].oid_column
+        
         _SelectBaseMixin.__init__(self, **kwargs)
 
     name = property(lambda s:s.keyword + " statement")
 
     def self_group(self, against=None):
         return _FromGrouping(self)
-
-    def _locate_oid_column(self):
-        return self.selects[0].oid_column
 
     def _exportable_columns(self):
         for s in self.selects:
@@ -3049,31 +3031,47 @@ class Select(_SelectBaseMixin, FromClause):
         self._froms = [f for f in oldfroms.union(newfroms)]
 
     def column(self, column):
+        """return a new select() construct with the given column expression added to its columns clause."""
+        
         s = self._generate()
         s.append_column(column)
         return s
 
     def where(self, whereclause):
+        """return a new select() construct with the given expression added to its WHERE clause, joined
+        to the existing clause via AND, if any."""
+        
         s = self._generate()
         s.append_whereclause(whereclause)
         return s
 
     def having(self, having):
+        """return a new select() construct with the given expression added to its HAVING clause, joined
+        to the existing clause via AND, if any."""
+        
         s = self._generate()
         s.append_having(having)
         return s
 
     def distinct(self):
+        """return a new select() construct which will apply DISTINCT to its columns clause."""
+        
         s = self._generate()
         s._distinct = True
         return s
 
     def prefix_with(self, clause):
+        """return a new select() construct which will apply the given expression to the start of its
+        columns clause, not using any commas."""
+        
         s = self._generate()
         s.append_prefix(clause)
         return s
 
     def select_from(self, fromclause):
+        """return a new select() construct with the given FROM expression applied to its list of 
+        FROM objects."""
+        
         s = self._generate()
         s.append_from(fromclause)
         return s
@@ -3084,6 +3082,19 @@ class Select(_SelectBaseMixin, FromClause):
         return s
 
     def correlate(self, fromclause):
+        """return a new select() construct which will correlate the given FROM clause to that
+        of an enclosing select(), if a match is found.  
+        
+        By "match", the given fromclause must be present in this select's list of FROM objects
+        and also present in an enclosing select's list of FROM objects.
+        
+        Calling this method turns off the select's default behavior of "auto-correlation".  Normally,
+        select() auto-correlates all of its FROM clauses to those of an embedded select when 
+        compiled.
+        
+        If the fromclause is None, the select() will not correlate to anything. 
+        """
+        
         s = self._generate()
         s._should_correlate=False
         if fromclause is None:
@@ -3093,12 +3104,16 @@ class Select(_SelectBaseMixin, FromClause):
         return s
 
     def append_correlation(self, fromclause, copy_collection=True):
+        """append the given correlation expression to this select() construct."""
+        
         if not copy_collection:
             self.__correlate.add(fromclause)
         else:
             self.__correlate = util.Set(list(self.__correlate) + [fromclause])
 
     def append_column(self, column, copy_collection=True):
+        """append the given column expression to the columns clause of this select() construct."""
+        
         column = _literal_as_column(column)
 
         if isinstance(column, _ScalarSelect):
@@ -3110,6 +3125,8 @@ class Select(_SelectBaseMixin, FromClause):
             self._raw_columns = self._raw_columns + [column]
 
     def append_prefix(self, clause, copy_collection=True):
+        """append the given columns clause prefix expression to this select() construct."""
+        
         clause = _literal_as_text(clause)
         if not copy_collection:
             self._prefixes.append(clause)
@@ -3117,12 +3134,22 @@ class Select(_SelectBaseMixin, FromClause):
             self._prefixes = self._prefixes + [clause]
 
     def append_whereclause(self, whereclause):
+        """append the given expression to this select() construct's WHERE criterion.
+        
+        The expression will be joined to existing WHERE criterion via AND.
+        """
+        
         if self._whereclause  is not None:
             self._whereclause = and_(self._whereclause, _literal_as_text(whereclause))
         else:
             self._whereclause = _literal_as_text(whereclause)
 
     def append_having(self, having):
+        """append the given expression to this select() construct's HAVING criterion.
+        
+        The expression will be joined to existing HAVING criterion via AND.
+        """
+        
         if self._having is not None:
             self._having = and_(self._having, _literal_as_text(having))
         else:
@@ -3163,6 +3190,7 @@ class Select(_SelectBaseMixin, FromClause):
                 return oid
         else:
             return None
+    oid_column = property(_locate_oid_column)
 
     def union(self, other, **kwargs):
         return union(self, other, **kwargs)

@@ -9,11 +9,11 @@ class ShardedSession(Session):
         """construct a ShardedSession.
         
             shard_chooser
-                a callable which, passed a Mapper and a mapped instance, returns a
-                shard ID.  this id may be based off of the attributes present within the
-                object, or on some round-robin scheme.  If the scheme is based on a
-                selection, it should set whatever state on the instance to mark it in
-                the future as participating in that shard.
+                a callable which, passed a Mapper, a mapped instance, and possibly a
+                SQL clause, returns a shard ID. this id may be based off of the
+                attributes present within the object, or on some round-robin scheme. If
+                the scheme is based on a selection, it should set whatever state on the
+                instance to mark it in the future as participating in that shard.
             
             id_chooser
                 a callable, passed a query and a tuple of identity values,
@@ -47,9 +47,9 @@ class ShardedSession(Session):
         else:
             return self.get_bind(mapper, shard_id=shard_id, instance=instance).contextual_connect(**kwargs)
     
-    def get_bind(self, mapper, shard_id=None, instance=None):
+    def get_bind(self, mapper, shard_id=None, instance=None, clause=None):
         if shard_id is None:
-            shard_id = self.shard_chooser(mapper, instance)
+            shard_id = self.shard_chooser(mapper, instance, clause=clause)
         return self.__binds[shard_id]
 
     def bind_shard(self, shard_id, bind):
@@ -78,19 +78,19 @@ class ShardedQuery(Query):
         q._shard_id = shard_id
         return q
         
-    def _execute_and_instances(self, statement):
+    def _execute_and_instances(self, context):
         if self._shard_id is not None:
-            result = self.session.connection(mapper=self.mapper, shard_id=self._shard_id).execute(statement, **self._params)
+            result = self.session.connection(mapper=self.mapper, shard_id=self._shard_id).execute(context.statement, **self._params)
             try:
-                return iter(self.instances(result))
+                return iter(self.instances(result, querycontext=context))
             finally:
                 result.close()
         else:
             partial = []
             for shard_id in self.query_chooser(self):
-                result = self.session.connection(mapper=self.mapper, shard_id=shard_id).execute(statement, **self._params)
+                result = self.session.connection(mapper=self.mapper, shard_id=shard_id).execute(context.statement, **self._params)
                 try:
-                    partial = partial + list(self.instances(result))
+                    partial = partial + list(self.instances(result, querycontext=context))
                 finally:
                     result.close()
             # if some kind of in memory 'sorting' were done, this is where it would happen

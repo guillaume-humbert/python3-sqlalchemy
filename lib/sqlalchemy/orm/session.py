@@ -83,7 +83,6 @@ def sessionmaker(bind=None, class_=None, autoflush=True, transactional=True, **k
         
     return Sess
 
-# TODO: add unit test coverage for SessionExtension in test/orm/session.py
 class SessionExtension(object):
     """an extension hook object for Sessions.  Subclasses may be installed into a Session
     (or sessionmaker) using the ``extension`` keyword argument.
@@ -205,7 +204,7 @@ class SessionTransaction(object):
             return self.__parent
 
         if self.session.extension is not None:
-            self.session.before_commit(self.session)
+            self.session.extension.before_commit(self.session)
             
         if self.autoflush:
             self.session.flush()
@@ -218,7 +217,7 @@ class SessionTransaction(object):
             t[1].commit()
 
         if self.session.extension is not None:
-            self.session.after_commit(self.session)
+            self.session.extension.after_commit(self.session)
 
         self.close()
         return self.__parent
@@ -318,7 +317,7 @@ class Session(object):
     a thread-managed Session adapter, provided by the [sqlalchemy.orm#scoped_session()] function.
     """
 
-    def __init__(self, bind=None, autoflush=True, transactional=False, twophase=False, echo_uow=False, weak_identity_map=False, binds=None, extension=None):
+    def __init__(self, bind=None, autoflush=True, transactional=False, twophase=False, echo_uow=False, weak_identity_map=True, binds=None, extension=None):
         """Construct a new Session.
 
             autoflush
@@ -383,20 +382,23 @@ class Session(object):
                 committed.
 
             weak_identity_map
-                when ``True``, use a ``WeakValueDictionary`` instead of a regular ``dict``
-                for this ``Session`` object's identity map. This will allow objects which
-                fall out of scope to be automatically removed from the ``Session``. However,
-                objects who have been marked as "dirty" will also be garbage collected, and
-                those changes will not be persisted.
-            
+                When set to the default value of ``False``, a weak-referencing map is used;
+                instances which are not externally referenced will be garbage collected
+                immediately. For dereferenced instances which have pending changes present,
+                the attribute management system will create a temporary strong-reference to
+                the object which lasts until the changes are flushed to the database, at which
+                point it's again dereferenced. Alternatively, when using the value ``True``,
+                the identity map uses a regular Python dictionary to store instances. The
+                session will maintain all instances present until they are removed using
+                expunge(), clear(), or purge().
         """
         self.echo_uow = echo_uow
-        self.uow = unitofwork.UnitOfWork(self, weak_identity_map=weak_identity_map)
+        self.weak_identity_map = weak_identity_map
+        self.uow = unitofwork.UnitOfWork(self)
         self.identity_map = self.uow.identity_map
 
         self.bind = bind
         self.__binds = {}
-        self.weak_identity_map = weak_identity_map
         self.transaction = None
         self.hash_key = id(self)
         self.autoflush = autoflush
@@ -488,20 +490,19 @@ class Session(object):
 
         If this ``Session`` is transactional, the connection will be in
         the context of this session's transaction.  Otherwise, the
-        connection is returned by the ``contextual_connect()`` method, which
-        some Engines override to return a thread-local connection, and
-        will have `close_with_result` set to `True`.
-
-        The given `**kwargs` will be sent to the engine's
-        ``contextual_connect()`` method, if no transaction is in
-        progress.
+        connection is returned by the ``contextual_connect()`` method
+        on the engine.
         
         the "mapper" argument is a class or mapper to which a bound engine
         will be located; use this when the Session itself is either bound
         to multiple engines or connections, or is not bound to any connectable.
+        
+        \**kwargs are additional arguments which will be passed to get_bind().
+        See the get_bind() method for details.  Note that the "ShardedSession"
+        subclass takes a different get_bind() argument signature.
         """
 
-        return self.__connection(self.get_bind(mapper))
+        return self.__connection(self.get_bind(mapper, **kwargs))
 
     def __connection(self, engine, **kwargs):
         if self.transaction is not None:
@@ -566,7 +567,7 @@ class Session(object):
 
         for instance in self:
             self._unattach(instance)
-        self.uow = unitofwork.UnitOfWork(self, weak_identity_map=self.weak_identity_map)
+        self.uow = unitofwork.UnitOfWork(self)
         self.identity_map = self.uow.identity_map
 
     def bind_mapper(self, mapper, bind, entity_name=None):
@@ -592,8 +593,23 @@ class Session(object):
 
         self.__binds[table] = bind
 
-    def get_bind(self, mapper, clause=None):
-
+    def get_bind(self, mapper, clause=None, **kwargs):
+        """return an engine corresponding to the given arguments.
+        
+            mapper
+                mapper relative to the desired operation
+            
+            clause
+                a ClauseElement which is to be executed.  if
+                mapper is not present, this may be used to locate
+                Table objects, which are then associated with mappers
+                which have associated binds.
+                
+            \**kwargs
+                Subclasses (i.e. ShardedSession) may add additional arguments 
+                to get_bind() which are passed through here.
+        """
+        
         if mapper is None and clause is None:
             if self.bind is not None:
                 return self.bind
@@ -722,11 +738,14 @@ class Session(object):
     def prune(self):
         """Removes unreferenced instances cached in the identity map.
 
-        Removes any object in this Session'sidentity map that is not
+        Note that this method is only meaningful if "weak_identity_map"
+        is set to False.
+        
+        Removes any object in this Session's identity map that is not
         referenced in user code, modified, new or scheduled for deletion.
         Returns the number of objects pruned.
         """
-        
+
         return self.uow.prune_identity_map()
 
     def _expire_impl(self, obj):
@@ -847,7 +866,7 @@ class Session(object):
         try:
             key = getattr(object, '_instance_key', None)
             if key is None:
-                merged = mapper.class_.__new__(mapper.class_)
+                merged = attribute_manager.new_instance(mapper.class_)
             else:
                 if key in self.identity_map:
                     merged = self.identity_map[key]
@@ -933,47 +952,32 @@ class Session(object):
         return object_session(obj)
     object_session = classmethod(object_session)
     
-    def _save_impl(self, object, **kwargs):
-        if hasattr(object, '_instance_key'):
-            if object._instance_key not in self.identity_map:
+    def _save_impl(self, obj, **kwargs):
+        if hasattr(obj, '_instance_key'):
+            if obj._instance_key not in self.identity_map:
                 raise exceptions.InvalidRequestError("Instance '%s' is a detached instance "
                                                      "or is already persistent in a "
-                                                     "different Session" % repr(object))
+                                                     "different Session" % repr(obj))
         else:
-            m = _class_mapper(object.__class__, entity_name=kwargs.get('entity_name', None))
+            # TODO: consolidate the steps here
+            attribute_manager.manage(obj)
+            obj._entity_name = kwargs.get('entity_name', None)
+            self._attach(obj)
+            self.uow.register_new(obj)
 
-            # this would be a nice exception to raise...however this is incompatible with a contextual
-            # session which puts all objects into the session upon construction.
-            #if m._is_orphan(object):
-            #    raise exceptions.InvalidRequestError("Instance '%s' is an orphan, "
-            #                                         "and must be attached to a parent "
-            #                                         "object to be saved" % (repr(object)))
-
-            m._assign_entity_name(object)
-            self._register_pending(object)
-
-    def _update_impl(self, object, **kwargs):
-        if self._is_attached(object) and object not in self.deleted:
+    def _update_impl(self, obj, **kwargs):
+        if self._is_attached(obj) and obj not in self.deleted:
             return
-        if not hasattr(object, '_instance_key'):
-            raise exceptions.InvalidRequestError("Instance '%s' is not persisted" % repr(object))
-        self._attach(object)
-
-    def _register_pending(self, obj):
+        if not hasattr(obj, '_instance_key'):
+            raise exceptions.InvalidRequestError("Instance '%s' is not persisted" % repr(obj))
         self._attach(obj)
-        self.uow.register_new(obj)
 
     def _register_persistent(self, obj):
-        self._attach(obj)
-        self.uow.register_clean(obj)
-
-    def _register_deleted(self, obj):
-        self._attach(obj)
-        self.uow.register_deleted(obj)
+        obj._sa_session_id = self.hash_key
+        self.identity_map[obj._instance_key] = obj
+        attribute_manager.commit(obj)
 
     def _attach(self, obj):
-        """Attach the given object to this ``Session``."""
-
         old_id = getattr(obj, '_sa_session_id', None)
         if old_id != self.hash_key:
             if old_id is not None and old_id in _sessions:
@@ -1024,11 +1028,43 @@ class Session(object):
         
         return iter(list(self.uow.new) + self.uow.identity_map.values())
 
-    def _get(self, key):
-        return self.identity_map[key]
+    def is_modified(self, obj, include_collections=True, passive=False):
+        """return True if the given object has modified attributes.
+        
+        This method retrieves a history instance for each instrumented attribute
+        on the instance and performs a comparison of the current value to its
+        previously committed value.  Note that instances present in the 'dirty'
+        collection may result in a value of ``False`` when tested with this method.
+        
+        'include_collections' indicates if multivalued collections should be included
+        in the operation.  Setting this to False is a way to detect only local-column
+        based properties (i.e. scalar columns or many-to-one foreign keys) that would
+        result in an UPDATE for this instance upon flush.
+        
+        the 'passive' flag indicates if unloaded attributes and collections should
+        not be loaded in the course of performing this test.
+        """
 
+        for attr in attribute_manager.managed_attributes(obj.__class__):
+            if not include_collections and hasattr(attr.impl, 'get_collection'):
+                continue
+            if attr.get_history(obj).is_modified():
+                return True
+        return False
+        
     dirty = property(lambda s:s.uow.locate_dirty(),
-                     doc="A ``Set`` of all objects marked as 'dirty' within this ``Session``")
+                     doc="""A ``Set`` of all objects marked as 'dirty' within this ``Session``.  
+                     
+                     Note that the 'dirty' state here is 'optimistic'; most attribute-setting or collection
+                     modification operations will mark an instance as 'dirty' and place it in this set,
+                     even if there is no net change to the attribute's value.  At flush time, the value 
+                     of each attribute is compared to its previously saved value,
+                     and if there's no net change, no SQL operation will occur (this is a more expensive
+                     operation so it's only done at flush time).
+                     
+                     To check if an instance has actionable net changes to its attributes, use the
+                     is_modified() method.
+                     """)
 
     deleted = property(lambda s:s.uow.deleted,
                        doc="A ``Set`` of all objects marked as 'deleted' within this ``Session``")
@@ -1036,11 +1072,6 @@ class Session(object):
     new = property(lambda s:s.uow.new,
                    doc="A ``Set`` of all objects marked as 'new' within this ``Session``.")
 
-    def import_instance(self, *args, **kwargs):
-        """A synynom for ``merge()``."""
-
-        return self.merge(*args, **kwargs)
-    import_instance = util.deprecated(import_instance)
 
 # this is the AttributeManager instance used to provide attribute behavior on objects.
 # to all the "global variable police" out there:  its a stateless object.

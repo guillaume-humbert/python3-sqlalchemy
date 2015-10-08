@@ -161,6 +161,7 @@ class TypesTest(AssertMixin):
             index = int(col.name[1:])
             self.assert_eq(gen.get_column_specification(col),
                            "%s %s" % (col.name, columns[index][3]))
+            self.assert_(repr(col))
 
         try:
             numeric_table.create(checkfirst=True)
@@ -245,6 +246,7 @@ class TypesTest(AssertMixin):
             index = int(col.name[1:])
             self.assert_eq(gen.get_column_specification(col),
                            "%s %s" % (col.name, columns[index][3]))
+            self.assert_(repr(col))
 
         try:
             charset_table.create(checkfirst=True)
@@ -278,6 +280,8 @@ class TypesTest(AssertMixin):
         self.assert_eq(colspec(bit_table.c.b7), 'b7 BIT(63)')
         self.assert_eq(colspec(bit_table.c.b8), 'b8 BIT(64)')
 
+        for col in bit_table.c:
+            self.assert_(repr(col))
         try:
             meta.create_all()
 
@@ -331,6 +335,8 @@ class TypesTest(AssertMixin):
         self.assert_eq(colspec(bool_table.c.b3), 'b3 TINYINT(1)')
         self.assert_eq(colspec(bool_table.c.b4), 'b4 TINYINT')
 
+        for col in bool_table.c:
+            self.assert_(repr(col))
         try:
             meta.create_all()
 
@@ -406,6 +412,7 @@ class TypesTest(AssertMixin):
                           Column('id', Integer, primary_key=True),
                           Column('t', *spec))
                 self.assert_eq(colspec(t.c.t), "t %s" % expected)
+                self.assert_(repr(t.c.t))
                 t.create()
                 r = Table('mysql_ts%s' % idx, MetaData(testbase.db),
                           autoload=True)
@@ -426,6 +433,8 @@ class TypesTest(AssertMixin):
                            Column('y4', mysql.MSYear(2)),
                            Column('y5', mysql.MSYear(4)))
 
+        for col in year_table.c:
+            self.assert_(repr(col))
         try:
             year_table.create()
             reflected = Table('mysql_year', MetaData(testbase.db),
@@ -457,6 +466,8 @@ class TypesTest(AssertMixin):
         self.assert_eq(colspec(set_table.c.s2), "s2 SET('a')")
         self.assert_eq(colspec(set_table.c.s3), "s3 SET('5','7','9')")
 
+        for col in set_table.c:
+            self.assert_(repr(col))
         try:
             set_table.create()
             reflected = Table('mysql_set', MetaData(testbase.db),
@@ -558,6 +569,36 @@ class TypesTest(AssertMixin):
         enum_table.drop()
 
     @testing.supported('mysql')
+    @testing.exclude('mysql', '>', (3))
+    def test_enum_parse(self):
+        """More exercises for the ENUM type."""
+
+        # MySQL 3.23 can't handle an ENUM of ''....
+
+        db = testbase.db
+        enum_table = Table('mysql_enum', MetaData(testbase.db),
+            Column('e1', mysql.MSEnum("'a'")),
+            Column('e2', mysql.MSEnum("''")),
+            Column('e3', mysql.MSEnum("'a'", "''")),
+            Column('e4', mysql.MSEnum("''", "'a'")),
+            Column('e5', mysql.MSEnum("''", "'''a'''", "'b''b'", "''''")))
+
+        for col in enum_table.c:
+            self.assert_(repr(col))
+        try:
+            enum_table.create()
+            reflected = Table('mysql_enum', MetaData(testbase.db),
+                              autoload=True)
+            for t in enum_table, reflected:
+                assert t.c.e1.type.enums == ["a"]
+                assert t.c.e2.type.enums == [""]
+                assert t.c.e3.type.enums == ["a", ""]
+                assert t.c.e4.type.enums == ["", "a"]
+                assert t.c.e5.type.enums == ["", "'a'", "b'b", "'"]
+        finally:
+            enum_table.drop()
+
+    @testing.supported('mysql')
     @testing.exclude('mysql', '<', (5, 0, 0))
     def test_type_reflection(self):
         # (ask_for, roundtripped_as_if_different)
@@ -583,6 +624,7 @@ class TypesTest(AssertMixin):
                  ( mysql.MSBlob(1234), mysql.MSBlob()),
                  ( mysql.MSMediumBlob(),),
                  ( mysql.MSLongBlob(),),
+                 ( mysql.MSEnum("''","'fleem'"), ),
                  ]
 
         columns = [Column('c%i' % (i + 1), t[0]) for i, t in enumerate(specs)]
@@ -688,8 +730,9 @@ class TypesTest(AssertMixin):
         self.assertEqual(got, wanted)
 
 
-class SQLTest(AssertMixin):
+class SQLTest(SQLCompileTest):
     """Tests MySQL-dialect specific compilation."""
+    __dialect__ = testbase.db.dialect
 
     @testing.supported('mysql')
     def test_precolumns(self):
@@ -723,6 +766,22 @@ class SQLTest(AssertMixin):
         self.assertEqual(
             gen(True, ['high_priority', sql.text('sql_cache')]),
             'SELECT high_priority sql_cache DISTINCT q')
+
+    @testing.supported('mysql')
+    def test_limit(self):
+        t = sql.table('t', sql.column('col1'), sql.column('col2'))
+        
+        self.assert_compile(
+            select([t]).limit(10).offset(20),
+            "SELECT t.col1, t.col2 FROM t  LIMIT 20, 10"
+            )
+        self.assert_compile(
+            select([t]).limit(10),
+            "SELECT t.col1, t.col2 FROM t  LIMIT 10")
+        self.assert_compile(
+            select([t]).offset(10),
+            "SELECT t.col1, t.col2 FROM t  LIMIT 10, 18446744073709551615"
+            )
 
 
 def colspec(c):

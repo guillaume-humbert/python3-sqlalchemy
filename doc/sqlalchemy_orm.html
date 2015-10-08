@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
+<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
 
 
 
@@ -229,8 +229,8 @@ place of a string argument.</p>
     <b>def clear_mappers()</b>
     <div class="docstring">
     <p>Remove all mappers that have been created thus far.</p>
-<p>When new mappers are created, they will be assigned to their
-classes as their primary mapper.</p>
+<p>The mapped classes will return to their initial &quot;unmapped&quot;
+state and can be re-mapped with new mappers.</p>
 
     </div>
     </div>
@@ -759,14 +759,21 @@ database.</dd>
 <dt>order_by</dt>
 <dd>indicates the ordering that should be applied when loading these items.</dd>
 <dt>passive_deletes=False</dt>
-<dd>Indicates if lazy-loaders should not be executed during the <tt class="docutils literal"><span class="pre">flush()</span></tt>
-process, which normally occurs in order to locate all existing child
-items when a parent item is to be deleted. Setting this flag to True is
-appropriate when <tt class="docutils literal"><span class="pre">ON</span> <span class="pre">DELETE</span> <span class="pre">CASCADE</span></tt> rules have been set up on the
-actual tables so that the database may handle cascading deletes
-automatically. This strategy is useful particularly for handling the
-deletion of objects that have very large (and/or deep) child-object
-collections.</dd>
+<dd><p class="first">Indicates the behavior of delete operations.
+A value of True indicates that unloaded child items should not be loaded
+during a delete operation on the parent.  Normally, when a parent
+item is deleted, all child items are loaded so that they can either be
+marked as deleted, or have their foreign key to the parent set to NULL.
+Marking this flag as True usually implies an ON DELETE &lt;CASCADE|SET NULL&gt;
+rule is in place which will handle updating/deleting child rows on the
+database side.</p>
+<p class="last">Additionally, setting the flag to the string value 'all' will disable
+the &quot;nulling out&quot; of the child foreign keys, when there is no delete or
+delete-orphan cascade enabled.  This is typically used when a triggering
+or error raise scenario is in place on the database side.  Note that
+the foreign key attributes on in-session child objects will not be changed
+after a flush occurs so this is a very special use-case setting.</p>
+</dd>
 <dt>post_update</dt>
 <dd>this indicates that the relationship should be handled by a second
 UPDATE statement after an INSERT or before a DELETE. Currently, it also

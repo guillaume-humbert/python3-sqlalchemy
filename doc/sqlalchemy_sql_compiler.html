@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
+<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
 
 
 
@@ -155,7 +155,7 @@
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>dialect</i>, <i>statement</i>, <i>parameters=None</i>, <i>inline=False</i>, <i>**kwargs</i>)</b>
+    <b>def __init__(<i>self</i>, <i>dialect</i>, <i>statement</i>, <i>column_keys=None</i>, <i>inline=False</i>, <i>**kwargs</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">DefaultCompiler</span></tt> object.</p>
 <dl class="docutils">
@@ -163,13 +163,9 @@
 <dd>Dialect to be used</dd>
 <dt>statement</dt>
 <dd>ClauseElement to be compiled</dd>
-<dt>parameters</dt>
-<dd>optional dictionary indicating a set of bind parameters
-specified with this Compiled object.  These parameters are
-the <em>default</em> key/value pairs when the Compiled is executed,
-and also may affect the actual compilation, as in the case
-of an INSERT where the actual columns inserted will
-correspond to the keys present in the parameters.</dd>
+<dt>column_keys</dt>
+<dd>a list of column names to be compiled into an INSERT or UPDATE
+statement.</dd>
 </dl>
 
     </div>
@@ -744,7 +740,7 @@ not support schemae.</dd>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def format_sequence(<i>self</i>, <i>sequence</i>)</b>
+    <b>def format_sequence(<i>self</i>, <i>sequence</i>, <i>use_schema=True</i>)</b>
     <div class="docstring">
     
     </div>

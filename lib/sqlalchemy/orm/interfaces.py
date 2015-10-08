@@ -244,36 +244,41 @@ class MapperProperty(object):
         pass
 
     def create_row_processor(self, selectcontext, mapper, row):
-        """return a 2-tuple consiting of a row processing function and an instance post-processing function.
+        """return a 3-tuple consiting of a two row processing functions and an instance post-processing function.
         
         Input arguments are the query.SelectionContext and the *first*
         applicable row of a result set obtained within query.Query.instances(), called
-        only the first time a particular mapper.populate_instance() is invoked for the 
-        overal result.
+        only the first time a particular mapper's populate_instance() method is invoked for the 
+        overall result.
 
         The settings contained within the SelectionContext as well as the columns present
         in the row (which will be the same columns present in all rows) are used to determine
-        the behavior of the returned callables.  The callables will then be used to process
+        the presence and behavior of the returned callables.  The callables will then be used to process
         all rows and to post-process all instances, respectively.
         
         callables are of the following form::
         
-            def execute(instance, row, **flags):
-                # process incoming instance and given row.
+            def new_execute(instance, row, **flags):
+                # process incoming instance and given row.  the instance is "new" and
+                # was just created upon receipt of this row.
                 # flags is a dictionary containing at least the following attributes:
                 #   isnew - indicates if the instance was newly created as a result of reading this row
                 #   instancekey - identity key of the instance
                 # optional attribute:
                 #   ispostselect - indicates if this row resulted from a 'post' select of additional tables/columns
+
+            def existing_execute(instance, row, **flags):
+                # process incoming instance and given row.  the instance is "existing" and
+                # was created based on a previous row.
                 
             def post_execute(instance, **flags):
                 # process instance after all result rows have been processed.  this
                 # function should be used to issue additional selections in order to
                 # eagerly load additional properties.
                 
-            return (execute, post_execute)
+            return (new_execute, existing_execute, post_execute)
             
-        either tuple value can also be ``None`` in which case no function is called.
+        either of the three tuples can be ``None`` in which case no function is called.
         
         """
         
@@ -461,9 +466,11 @@ class LoaderStack(object):
         
     def push_property(self, key):
         self.__stack.append(key)
+        return tuple(self.__stack)
         
     def push_mapper(self, mapper):
         self.__stack.append(mapper.base_mapper)
+        return tuple(self.__stack)
         
     def pop(self):
         self.__stack.pop()
@@ -486,10 +493,10 @@ class OperationContext(object):
     Accept ``MapperOption`` objects which may modify its state before proceeding.
     """
 
-    def __init__(self, mapper, options):
+    def __init__(self, mapper, options, attributes=None):
         self.mapper = mapper
         self.options = options
-        self.attributes = {}
+        self.attributes = attributes or {}
         self.recursion_stack = util.Set()
         for opt in util.flatten_iterator(options):
             self.accept_option(opt)
@@ -528,7 +535,7 @@ class SynonymProperty(MapperProperty):
         pass
 
     def create_row_processor(self, selectcontext, mapper, row):
-        return (None, None)
+        return (None, None, None)
 
     def do_init(self):
         if not self.proxy:

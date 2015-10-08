@@ -119,6 +119,38 @@ myothertable.othername != :myothertable_othername OR EXISTS (select yay from foo
             "addresses.address_type_id, addresses.email_address FROM addresses LEFT OUTER JOIN address_types address_types_1 "
             "ON addresses.address_type_id = address_types_1.id WHERE addresses.user_id = :addresses_user_id ORDER BY addresses.rowid, "
             "address_types.rowid")
+
+class TypesTest(SQLCompileTest):
+    def test_no_clobs_for_string_params(self):
+        """test that simple string params get a DBAPI type of VARCHAR, not CLOB.
+        this is to prevent setinputsizes from setting up cx_oracle.CLOBs on 
+        string-based bind params [ticket:793]."""
         
+        class FakeDBAPI(object):
+            def __getattr__(self, attr):
+                return attr
+
+        dialect = oracle.OracleDialect()
+        dbapi = FakeDBAPI()
+                
+        b = bindparam("foo", "hello world!")
+        assert b.type.dialect_impl(dialect).get_dbapi_type(dbapi) == 'STRING'
+
+        b = bindparam("foo", u"hello world!")
+        assert b.type.dialect_impl(dialect).get_dbapi_type(dbapi) == 'STRING'
+        
+class SequenceTest(SQLCompileTest):
+    def test_basic(self):
+        seq = Sequence("my_seq_no_schema")
+        dialect = oracle.OracleDialect()
+        assert dialect.identifier_preparer.format_sequence(seq) == "my_seq_no_schema"
+
+        seq = Sequence("my_seq", schema="some_schema")
+        assert dialect.identifier_preparer.format_sequence(seq) == "some_schema.my_seq"
+
+        seq = Sequence("My_Seq", schema="Some_Schema")
+        assert dialect.identifier_preparer.format_sequence(seq) == '"Some_Schema"."My_Seq"'
+        
+    
 if __name__ == '__main__':
     testbase.main()

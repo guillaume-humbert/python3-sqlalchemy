@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
+<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
 
 
 
@@ -830,33 +830,38 @@ under the attribute name &quot;comparator&quot;.</p>
     <A name=""></a>
     <b>def create_row_processor(<i>self</i>, <i>selectcontext</i>, <i>mapper</i>, <i>row</i>)</b>
     <div class="docstring">
-    <p>return a 2-tuple consiting of a row processing function and an instance post-processing function.</p>
+    <p>return a 3-tuple consiting of a two row processing functions and an instance post-processing function.</p>
 <p>Input arguments are the query.SelectionContext and the <em>first</em>
 applicable row of a result set obtained within query.Query.instances(), called
-only the first time a particular mapper.populate_instance() is invoked for the
-overal result.</p>
+only the first time a particular mapper's populate_instance() method is invoked for the
+overall result.</p>
 <p>The settings contained within the SelectionContext as well as the columns present
 in the row (which will be the same columns present in all rows) are used to determine
-the behavior of the returned callables.  The callables will then be used to process
+the presence and behavior of the returned callables.  The callables will then be used to process
 all rows and to post-process all instances, respectively.</p>
 <p>callables are of the following form:</p>
 <pre class="literal-block">
-def execute(instance, row, **flags):
-    # process incoming instance and given row.
+def new_execute(instance, row, **flags):
+    # process incoming instance and given row.  the instance is &quot;new&quot; and
+    # was just created upon receipt of this row.
     # flags is a dictionary containing at least the following attributes:
     #   isnew - indicates if the instance was newly created as a result of reading this row
     #   instancekey - identity key of the instance
     # optional attribute:
     #   ispostselect - indicates if this row resulted from a 'post' select of additional tables/columns
 
+def existing_execute(instance, row, **flags):
+    # process incoming instance and given row.  the instance is &quot;existing&quot; and
+    # was created based on a previous row.
+
 def post_execute(instance, **flags):
     # process instance after all result rows have been processed.  this
     # function should be used to issue additional selections in order to
     # eagerly load additional properties.
 
-return (execute, post_execute)
+return (new_execute, existing_execute, post_execute)
 </pre>
-<p>either tuple value can also be <tt class="docutils literal"><span class="pre">None</span></tt> in which case no function is called.</p>
+<p>either of the three tuples can be <tt class="docutils literal"><span class="pre">None</span></tt> in which case no function is called.</p>
 
     </div>
     </div>
@@ -1001,7 +1006,7 @@ loading operation.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def __init__(<i>self</i>, <i>mapper</i>, <i>options</i>)</b>
+    <b>def __init__(<i>self</i>, <i>mapper</i>, <i>options</i>, <i>attributes=None</i>)</b>
     <div class="docstring">
     <p>Construct a new <tt class="docutils literal"><span class="pre">OperationContext</span></tt>.</p>
 

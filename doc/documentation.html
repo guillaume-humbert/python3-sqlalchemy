@@ -29,7 +29,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: svn   Last Updated: 09/01/07 20:31:55</div>
+<div class="versionheader">Version: 0.4beta6   Last Updated: 09/26/07 20:38:24</div>
 
 
 
@@ -3023,7 +3023,7 @@ CREATE TABLE users (<br/>
     password VARCHAR(15), <br/>
     PRIMARY KEY (id)<br/>
 )<br/>
-None<br/>
+{}<br/>
 COMMIT</div><pre><span class="python_operator"></span></pre>
     </div>
 <p>So now our database is created, our initial schema is present, and our SQLAlchemy application knows all about the tables and columns in the database; this information is to be re-used by the Object Relational Mapper, as we'll see now.
@@ -3059,7 +3059,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 ...         </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">password </span><span class="python_operator">= </span><span class="python_name">password</span><span class="python_operator">
 ...
 ...     </span><span class="python_keyword">def </span><span class="python_name">__repr__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
-...        </span><span class="python_keyword">return </span><span class="python_literal">"&lt;User(%r,%r, %r)&gt;" </span><span class="python_operator">% </span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">, </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_operator">, </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">password</span><span class="python_enclosure">)</span><span class="python_operator">
+...        </span><span class="python_keyword">return </span><span class="python_literal">"&lt;User('%s','%s', '%s')&gt;" </span><span class="python_operator">% </span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">, </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">fullname</span><span class="python_operator">, </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">password</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
 
@@ -3196,7 +3196,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">save</span><span class="python_enclosure">(</span><span class="python_name">ed_user</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>But you'll notice nothing has happened yet.  Well, lets pretend something did, and try to query for our user.  This is done using the <code>query()</code> method on <code>Session</code>.  We create a new query representing the set of all <code>User</code> objects first.  Then we narrow the results by "filtering" down to the user we want; that is, the user whose <code>name</code> attribute is <code>&quot;ed&quot;</code>.  Finally we call <code>first()</code> which tells <code>Query</code>, "we'd like the first result in this list".
+<p>But yo'll notice nothing has happened yet.  Well, lets pretend something did, and try to query for our user.  This is done using the <code>query()</code> method on <code>Session</code>.  We create a new query representing the set of all <code>User</code> objects first.  Then we narrow the results by "filtering" down to the user we want; that is, the user whose <code>name</code> attribute is <code>&quot;ed&quot;</code>.  Finally we call <code>first()</code> which tells <code>Query</code>, "we'd like the first result in this list".
 </p>
 
     
@@ -3213,7 +3213,7 @@ WHERE users.name = ? ORDER BY users.oid <br/>
 ['ed']</div><pre><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'ed'</span><span class="python_operator">,</span><span class="python_literal">'Ed Jones'</span><span class="python_operator">, </span><span class="python_literal">'edspassword'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;
 </span></pre>
     </div>
-<p>And we get back our new user.  If you view the generated SQL, you'll see that the <code>Session</code> issued an <code>INSERT</code> statement before querying.  The <code>Session</code> stores whatever you put into it in memory, and at certain points it issues a <strong>flush</strong>, which issues SQL to the database to store all pending new objects and changes to existing objects.  You can manually invoke the flush operation using <code>flush()</code>; however when the <code>Session</code> is configured to <code>autoflush</code>, its usually not needed.
+<p>And we get back our new user.  If you view the generated SQL, yo'll see that the <code>Session</code> issued an <code>INSERT</code> statement before querying.  The <code>Session</code> stores whatever you put into it in memory, and at certain points it issues a <strong>flush</strong>, which issues SQL to the database to store all pending new objects and changes to existing objects.  You can manually invoke the flush operation using <code>flush()</code>; however when the <code>Session</code> is configured to <code>autoflush</code>, its usually not needed.
 </p>
 <p>OK, let's do some more operations.  We'll create and save three more users:
 </p>
@@ -3623,7 +3623,7 @@ CREATE TABLE addresses (<br/>
     PRIMARY KEY (id), <br/>
      FOREIGN KEY(user_id) REFERENCES users (id)<br/>
 )<br/>
-None<br/>
+{}<br/>
 COMMIT</div><pre><span class="python_operator"></span></pre>
     </div>
 <p>For our ORM setup, we're going to start all over again.  We will first close out our <code>Session</code> and clear all <code>Mapper</code> objects:
@@ -3650,7 +3650,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 ...         </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">email_address </span><span class="python_operator">= </span><span class="python_name">email_address</span><span class="python_operator">
 ...
 ...     </span><span class="python_keyword">def </span><span class="python_name">__repr__</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
-...         </span><span class="python_keyword">return </span><span class="python_literal">"&lt;Address(%r)&gt;" </span><span class="python_operator">% </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">
+...         </span><span class="python_keyword">return </span><span class="python_literal">"&lt;Address('%s')&gt;" </span><span class="python_operator">% </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Now comes the fun part.  We define a mapper for each class, and associate them using a function called <code>relation()</code>.  We can define each mapper in any order we want:
@@ -3758,7 +3758,7 @@ FROM users <br/>
 WHERE users.name = ? ORDER BY users.oid <br/>
  LIMIT 2 OFFSET 0<br/>
 ['jack']</div><pre><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">jack</span><span class="python_operator">
-&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'jack'</span><span class="python_operator">,</span><span class="python_literal">u'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">u'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;
+&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;
 </span></pre>
     </div>
 <p>Let's look at the <code>addresses</code> collection.  Watch the SQL:
@@ -3771,7 +3771,7 @@ WHERE users.name = ? ORDER BY users.oid <br/>
 <span class="python_literal"><a href="javascript:togglePopbox('popbox_24', 'show', 'hide')" class="codepoplink">sql</a>&gt;&gt;&gt; </span><span class="python_name">jack</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator"></span></pre><div id="popbox_24_div" class="codepop" style="display:none;">SELECT addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
 FROM addresses <br/>
 WHERE ? = addresses.user_id ORDER BY addresses.oid<br/>
-[5]</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">u'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">u'j25@yahoo.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+[5]</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
 <p>When we accessed the <code>addresses</code> collection, SQL was suddenly issued.  This is an example of a <strong>lazy loading relation</strong>.
@@ -3804,10 +3804,10 @@ WHERE users.name = ? ORDER BY users.oid LIMIT 2 OFFSET 0) AS tbl_row_count, <br/
  users LEFT OUTER JOIN addresses AS addresses_1 ON users.id = addresses_1.user_id <br/>
 WHERE users.id = tbl_row_count.users_id ORDER BY tbl_row_count.oid, addresses_1.oid<br/>
 ['jack']</div><pre><span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">jack</span><span class="python_operator">
-&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'jack'</span><span class="python_operator">,</span><span class="python_literal">u'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">u'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;
+&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;
 </span>
 <span class="python_literal">&gt;&gt;&gt; </span><span class="python_name">jack</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">
-</span><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">u'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">u'j25@yahoo.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+</span><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
 <p>If you think that query is elaborate, it is !  But SQLAlchemy is just getting started.  Note that when using eager loading, <em>nothing</em> changes as far as the ultimate results returned.  The "loading strategy", as its called, is designed to be completely transparent in all cases, and is for optimization purposes only.  Any query criterion you use to load objects, including ordering, limiting, other joins, etc., should return identical results regardless of the combination of lazily- and eagerly- loaded relationships present.
@@ -3842,7 +3842,7 @@ WHERE users.id = tbl_row_count.users_id ORDER BY tbl_row_count.oid, addresses_1.
 ...         </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_26_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users, addresses <br/>
 WHERE users.id = addresses.user_id AND addresses.email_address = ? ORDER BY users.oid<br/>
-['jack@google.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'jack'</span><span class="python_operator">,</span><span class="python_literal">u'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">u'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+['jack@google.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Or we can make a real JOIN construct; below we use the <code>join()</code> function available on <code>Table</code> to create a <code>Join</code> object, then tell the <code>Query</code> to use it as our FROM clause:
@@ -3856,7 +3856,7 @@ WHERE users.id = addresses.user_id AND addresses.email_address = ? ORDER BY user
 ...         </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_27_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users JOIN addresses ON users.id = addresses.user_id <br/>
 WHERE addresses.email_address = ? ORDER BY users.oid<br/>
-['jack@google.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'jack'</span><span class="python_operator">,</span><span class="python_literal">u'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">u'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+['jack@google.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Note that the <code>join()</code> construct has no problem figuring out the correct join condition between <code>users_table</code> and <code>addresses_table</code>..the <code>ForeignKey</code> we constructed says it all.
@@ -3872,7 +3872,7 @@ WHERE addresses.email_address = ? ORDER BY users.oid<br/>
 ...     </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_28_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users JOIN addresses ON users.id = addresses.user_id <br/>
 WHERE addresses.email_address = ? ORDER BY users.oid<br/>
-['jack@google.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'jack'</span><span class="python_operator">,</span><span class="python_literal">u'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">u'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+['jack@google.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
 <p>By "A to B", we mean a single relation name or a path of relations.  In our case we only have <code>User-&gt;addresses-&gt;Address</code> configured, but if we had a setup like <code>A-&gt;bars-&gt;B-&gt;bats-&gt;C-&gt;widgets-&gt;D</code>, a join along all four entities would look like:
@@ -3897,7 +3897,7 @@ WHERE addresses.email_address = ? ORDER BY users.oid<br/>
 ...     </span><span class="python_name">reset_joinpoint</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">filter_by</span><span class="python_enclosure">(</span><span class="python_name">name</span><span class="python_operator">=</span><span class="python_literal">'jack'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_29_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users JOIN addresses ON users.id = addresses.user_id <br/>
 WHERE addresses.email_address = ? AND users.name = ? ORDER BY users.oid<br/>
-['jack@google.com', 'jack']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'jack'</span><span class="python_operator">,</span><span class="python_literal">u'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">u'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+['jack@google.com', 'jack']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
 <p>In all cases, we can get the <code>User</code> and the matching <code>Address</code> objects back at the same time, by telling the session we want both.  This returns the results as a list of tuples:
@@ -3911,7 +3911,7 @@ WHERE addresses.email_address = ? AND users.name = ? ORDER BY users.oid<br/>
 ...     </span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_30_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password, addresses.id AS addresses_id, addresses.email_address AS addresses_email_address, addresses.user_id AS addresses_user_id <br/>
 FROM users JOIN addresses ON users.id = addresses.user_id <br/>
 WHERE addresses.email_address = ? ORDER BY users.oid<br/>
-['jack@google.com']</div><pre><span class="python_enclosure">[(</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'jack'</span><span class="python_operator">,</span><span class="python_literal">u'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">u'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">u'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">)]</span><span class="python_operator">
+['jack@google.com']</div><pre><span class="python_enclosure">[(</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'jack@google.com'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">)]</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Another common scenario is the need to join on the same table more than once.  For example, if we want to find a <code>User</code> who has two distinct email addresses, both <code>jack@google.com</code> as well as <code>j25@yahoo.com</code>, we need to join to the <code>Addresses</code> table twice.  SQLAlchemy does provide <code>Alias</code> objects which can accomplish this; but far easier is just to tell <code>join()</code> to alias for you:
@@ -3926,7 +3926,7 @@ WHERE addresses.email_address = ? ORDER BY users.oid<br/>
 ...     </span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">aliased</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">filter</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_operator">==</span><span class="python_literal">'j25@yahoo.com'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">all</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_31_div" class="codepop" style="display:none;">SELECT users.id AS users_id, users.name AS users_name, users.fullname AS users_fullname, users.password AS users_password <br/>
 FROM users JOIN addresses AS addresses_1 ON users.id = addresses_1.user_id JOIN addresses AS addresses_2 ON users.id = addresses_2.user_id <br/>
 WHERE addresses_1.email_address = ? AND addresses_2.email_address = ? ORDER BY users.oid<br/>
-['jack@google.com', 'j25@yahoo.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'jack'</span><span class="python_operator">,</span><span class="python_literal">u'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">u'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
+['jack@google.com', 'j25@yahoo.com']</div><pre><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'jack'</span><span class="python_operator">,</span><span class="python_literal">'Jack Bean'</span><span class="python_operator">, </span><span class="python_literal">'gjffdd'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
 <p>The key thing which occured above is that our SQL criterion were <strong>aliased</strong> as appropriate corresponding to the alias generated in the most recent <code>join()</code> call.  <br></br>
@@ -4132,7 +4132,7 @@ CREATE TABLE posts (<br/>
     PRIMARY KEY (id), <br/>
      FOREIGN KEY(user_id) REFERENCES users (id)<br/>
 )<br/>
-None<br/>
+{}<br/>
 COMMIT<br/>
 CREATE TABLE keywords (<br/>
     id INTEGER NOT NULL, <br/>
@@ -4140,7 +4140,7 @@ CREATE TABLE keywords (<br/>
     PRIMARY KEY (id), <br/>
      UNIQUE (keyword)<br/>
 )<br/>
-None<br/>
+{}<br/>
 COMMIT<br/>
 CREATE TABLE post_keywords (<br/>
     post_id INTEGER, <br/>
@@ -4148,7 +4148,7 @@ CREATE TABLE post_keywords (<br/>
      FOREIGN KEY(post_id) REFERENCES posts (id), <br/>
      FOREIGN KEY(keyword_id) REFERENCES keywords (id)<br/>
 )<br/>
-None<br/>
+{}<br/>
 COMMIT</div><pre><span class="python_operator"></span></pre>
     </div>
 <p>Then some classes:
@@ -4194,7 +4194,7 @@ COMMIT</div><pre><span class="python_operator"></span></pre>
 </p>
 <ul>
  <li>
-     the <code>User</code> relation has a backref, like we've used before, except this time it references a function called <code>backref()</code>.  This function is used when you'd like to specify keyword options for the backwards relationship.
+     the <code>User</code> relation has a backref, like we've used before, except this time it references a function called <code>backref()</code>.  This function is used when yo'd like to specify keyword options for the backwards relationship.
  </li>
 
  <li>
@@ -4251,7 +4251,7 @@ FROM posts <br/>
 WHERE EXISTS (SELECT 1 <br/>
 FROM post_keywords, keywords <br/>
 WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_id AND keywords.keyword = ?) ORDER BY posts.oid<br/>
-['firstpost']</div><pre><span class="python_enclosure">[</span><span class="python_name">BlogPost</span><span class="python_enclosure">(</span><span class="python_literal">"Wendy's Blog Post"</span><span class="python_operator">, </span><span class="python_literal">'This is a test'</span><span class="python_operator">, &lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'wendy'</span><span class="python_operator">,</span><span class="python_literal">u'Wendy Williams'</span><span class="python_operator">, </span><span class="python_literal">u'foobar'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">)]</span><span class="python_operator">
+['firstpost']</div><pre><span class="python_enclosure">[</span><span class="python_name">BlogPost</span><span class="python_enclosure">(</span><span class="python_literal">"Wendy's Blog Post"</span><span class="python_operator">, </span><span class="python_literal">'This is a test'</span><span class="python_operator">, &lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'wendy'</span><span class="python_operator">,</span><span class="python_literal">'Wendy Williams'</span><span class="python_operator">, </span><span class="python_literal">'foobar'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">)]</span><span class="python_operator">
 </span></pre>
     </div>
 <p>If we want to look up just Wendy's posts, we can tell the query to narrow down to her as a parent:
@@ -4267,7 +4267,7 @@ FROM posts <br/>
 WHERE ? = posts.user_id AND (EXISTS (SELECT 1 <br/>
 FROM post_keywords, keywords <br/>
 WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_id AND keywords.keyword = ?)) ORDER BY posts.oid<br/>
-[2, 'firstpost']</div><pre><span class="python_enclosure">[</span><span class="python_name">BlogPost</span><span class="python_enclosure">(</span><span class="python_literal">"Wendy's Blog Post"</span><span class="python_operator">, </span><span class="python_literal">'This is a test'</span><span class="python_operator">, &lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'wendy'</span><span class="python_operator">,</span><span class="python_literal">u'Wendy Williams'</span><span class="python_operator">, </span><span class="python_literal">u'foobar'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">)]</span><span class="python_operator">
+[2, 'firstpost']</div><pre><span class="python_enclosure">[</span><span class="python_name">BlogPost</span><span class="python_enclosure">(</span><span class="python_literal">"Wendy's Blog Post"</span><span class="python_operator">, </span><span class="python_literal">'This is a test'</span><span class="python_operator">, &lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'wendy'</span><span class="python_operator">,</span><span class="python_literal">'Wendy Williams'</span><span class="python_operator">, </span><span class="python_literal">'foobar'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">)]</span><span class="python_operator">
 </span></pre>
     </div>
 <p>Or we can use Wendy's own <code>posts</code> relation, which is a "dynamic" relation, to query straight from there:
@@ -4282,7 +4282,7 @@ FROM posts <br/>
 WHERE ? = posts.user_id AND (EXISTS (SELECT 1 <br/>
 FROM post_keywords, keywords <br/>
 WHERE posts.id = post_keywords.post_id AND keywords.id = post_keywords.keyword_id AND keywords.keyword = ?)) ORDER BY posts.oid<br/>
-[2, 'firstpost']</div><pre><span class="python_enclosure">[</span><span class="python_name">BlogPost</span><span class="python_enclosure">(</span><span class="python_literal">"Wendy's Blog Post"</span><span class="python_operator">, </span><span class="python_literal">'This is a test'</span><span class="python_operator">, &lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'wendy'</span><span class="python_operator">,</span><span class="python_literal">u'Wendy Williams'</span><span class="python_operator">, </span><span class="python_literal">u'foobar'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">)]</span><span class="python_operator">
+[2, 'firstpost']</div><pre><span class="python_enclosure">[</span><span class="python_name">BlogPost</span><span class="python_enclosure">(</span><span class="python_literal">"Wendy's Blog Post"</span><span class="python_operator">, </span><span class="python_literal">'This is a test'</span><span class="python_operator">, &lt;</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">'wendy'</span><span class="python_operator">,</span><span class="python_literal">'Wendy Williams'</span><span class="python_operator">, </span><span class="python_literal">'foobar'</span><span class="python_enclosure">)</span><span class="python_operator">&gt;</span><span class="python_enclosure">)]</span><span class="python_operator">
 </span></pre>
     </div>
 
@@ -4477,7 +4477,7 @@ CREATE TABLE users (<br/>
     fullname VARCHAR(100), <br/>
     PRIMARY KEY (id)<br/>
 )<br/>
-None<br/>
+{}<br/>
 COMMIT<br/>
 CREATE TABLE addresses (<br/>
     id INTEGER NOT NULL, <br/>
@@ -4486,7 +4486,7 @@ CREATE TABLE addresses (<br/>
     PRIMARY KEY (id), <br/>
      FOREIGN KEY(user_id) REFERENCES users (id)<br/>
 )<br/>
-None<br/>
+{}<br/>
 COMMIT</div><pre><span class="python_operator"></span></pre>
     </div>
 
@@ -8819,7 +8819,9 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 </p>
 <p>Yeee...no.  It's somewhat used as a cache, in that it implements the identity map pattern, and stores objects keyed to their primary key.  However, it doesn't do any kind of query caching.  This means, if you say <code>session.query(Foo).filter_by(name='bar')</code>, even if <code>Foo(name='bar')</code> is right there, in the identity map, the session has no idea about that.  It has to issue SQL to the database, get the rows back, and then when it sees the primary key in the row, <em>then</em> it can look in the local identity map and see that the object is already there.  It's only when you say <code>query.get({some primary key})</code> that the <code>Session</code> doesn't have to issue a query.
 </p>
-<p>Also, the <code>Session</code> is not designed to be a global object from which everyone consults as a "registry" of objects.  That is the job of a <strong>second level cache</strong>.  A good library for implementing second level caching is <a href='http://www.danga.com/memcached/'>Memcached</a>.  It <em>is</em> possible to "sort of" use the <code>Session</code> in this manner, if you set it to be non-transactional and it never flushes any SQL, but it's not a terrific solution,  since if concurrent threads load the same objects at the same time, you may have multiple copies of the same objects present in collections.
+<p>Additionally, the Session stores object instances using a weak reference by default.  This also defeats the purpose of using the Session as a cache, unless the <code>weak_identity_map</code> flag is set to <code>False</code>.
+</p>
+<p>The <code>Session</code> is not designed to be a global object from which everyone consults as a "registry" of objects.  That is the job of a <strong>second level cache</strong>.  A good library for implementing second level caching is <a href='http://www.danga.com/memcached/'>Memcached</a>.  It <em>is</em> possible to "sort of" use the <code>Session</code> in this manner, if you set it to be non-transactional and it never flushes any SQL, but it's not a terrific solution,  since if concurrent threads load the same objects at the same time, you may have multiple copies of the same objects present in collections.
 </p>
 
  </li>
@@ -8885,7 +8887,9 @@ FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias
 </span><span class="python_enclosure">[</span><span class="python_operator">&lt;</span><span class="python_name">__main__</span><span class="python_operator">.</span><span class="python_name">User object at </span><span class="python_number">0x712630</span><span class="python_operator">&gt;, &lt;</span><span class="python_name">__main__</span><span class="python_operator">.</span><span class="python_name">Address object at </span><span class="python_number">0x712a70</span><span class="python_operator">&gt;</span><span class="python_enclosure">]</span><span class="python_operator">
 </span></pre>
     </div>
-<p>The identity map is a <code>dict</code> by default.  This means that objects stay in the session until they are explicitly removed, or the session is cleared.  Some people prefer objects to be automatically garbage collected instead.  For this,  you can specify the flag <code>weak_identity_map=True</code> to the <code>create_session</code> or <code>sessionmaker</code> functions so that the <code>Session</code> will use a <code>weakref.WeakValueDictionary</code>.  But note that an object that has changes marked on it (i.e. "dirty"), and is then discarded, will not have its changes saved to the database.  It's because of this misleading behavior that SQLAlchemy's identity map is by default strong-referencing.
+<p>The identity map is a weak-referencing dictionary by default.  This means that objects which are dereferenced on the outside will be removed from the session automatically.  Note that objects which are marked as "dirty" will not fall out of scope until after changes on them have been flushed; special logic kicks in at the point of auto-removal which ensures that no pending changes remain on the object, else a temporary strong reference is created to the object.
+</p>
+<p>Some people prefer objects to stay in the session until explicitly removed in all cases; for this,  you can specify the flag <code>weak_identity_map=False</code> to the <code>create_session</code> or <code>sessionmaker</code> functions so that the <code>Session</code> will use a regular dictionary.
 </p>
 <p>While the <code>identity_map</code> accessor is currently the actual dictionary used by the <code>Session</code> to store instances, you should not add or remove items from this dictionary.  Use the session methods <code>save_or_update()</code> and <code>expunge()</code> to add or remove items.
 </p>
@@ -11554,6 +11558,17 @@ CREATE TABLE test (
 </p>
 <p>The flag <code>optional=True</code> on <code>Sequence</code> will produce a sequence that is only used on databases which have no "autoincrementing" capability.  For example, Postgres supports primary key generation using the SERIAL keyword, whereas Oracle has no such capability.  Therefore, a <code>Sequence</code> placed on a primary key column with <code>optional=True</code> will only be used with an Oracle backend but not Postgres.
 </p>
+<p>A sequence can also be executed standalone, using an <code>Engine</code> or <code>Connection</code>, returning its next value in a database-independent fashion:
+</p>
+
+    
+
+    <div class="sliding_code">
+        <pre>
+<span class="python_name">seq </span><span class="python_operator">= </span><span class="python_name">Sequence</span><span class="python_enclosure">(</span><span class="python_literal">'some_sequence'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">nextid </span><span class="python_operator">= </span><span class="python_name">connection</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">seq</span><span class="python_enclosure">)</span><span class="python_operator">
+</span></pre>
+    </div>
 
 
 
