@@ -72,11 +72,6 @@ class MSInteger(sqltypes.Integer):
         else:
             return kw_colspec(self, "INTEGER")
 class MSBigInteger(MSInteger):
-    def __init__(self, length=None, **kw):
-        self.length = length
-        self.unsigned = 'unsigned' in kw
-        self.zerofill = 'zerofill' in kw
-        super(MSBigInteger, self).__init__()
     def get_col_spec(self):
         if self.length is not None:
             return kw_colspec(self, "BIGINT(%(length)s)" % {'length': self.length})
@@ -233,9 +228,6 @@ ischema_names = {
     'enum': MSEnum,
 }
 
-def engine(opts, **params):
-    return MySQLEngine(opts, **params)
-
 def descriptor():
     return {'name':'mysql',
     'description':'MySQL',
@@ -318,7 +310,7 @@ class MySQLDialect(ansisql.ANSIDialect):
 
     def reflecttable(self, connection, table):
         # reference:  http://dev.mysql.com/doc/refman/5.0/en/name-case-sensitivity.html
-        case_sensitive = connection.execute("show variables like 'lower_case_table_names'").fetchone()[1] == 0
+        case_sensitive = int(connection.execute("show variables like 'lower_case_table_names'").fetchone()[1]) == 0
         if not case_sensitive:
             table.name = table.name.lower()
             table.metadata.tables[table.name]= table
@@ -332,7 +324,8 @@ class MySQLDialect(ansisql.ANSIDialect):
             if not found_table:
                 found_table = True
 
-            (name, type, nullable, primary_key, default) = (row[0], row[1], row[2] == 'YES', row[3] == 'PRI', row[4])
+            # these can come back as unicode if use_unicode=1 in the mysql connection
+            (name, type, nullable, primary_key, default) = (str(row[0]), str(row[1]), row[2] == 'YES', row[3] == 'PRI', row[4])
             
             match = re.match(r'(\w+)(\(.*?\))?\s*(\w+)?\s*(\w+)?', type)
             col_type = match.group(1)
@@ -360,7 +353,7 @@ class MySQLDialect(ansisql.ANSIDialect):
             colargs= []
             if default:
                 colargs.append(schema.PassiveDefault(sql.text(default)))
-            table.append_item(schema.Column(name, coltype, *colargs, 
+            table.append_column(schema.Column(name, coltype, *colargs, 
                                             **dict(primary_key=primary_key,
                                                    nullable=nullable,
                                                    )))
@@ -382,7 +375,11 @@ class MySQLDialect(ansisql.ANSIDialect):
         """
         c = connection.execute("SHOW CREATE TABLE " + table.name, {})
         desc_fetched = c.fetchone()[1]
-        if type(desc_fetched) is not str:
+
+        # this can come back as unicode if use_unicode=1 in the mysql connection
+        if type(desc_fetched) is unicode:
+            desc_fetched = str(desc_fetched)
+        elif type(desc_fetched) is not str:
             # may get array.array object here, depending on version (such as mysql 4.1.14 vs. 4.1.11)
             desc_fetched = desc_fetched.tostring()
         desc = desc_fetched.strip()
@@ -400,7 +397,7 @@ class MySQLDialect(ansisql.ANSIDialect):
             refcols = [match.group('reftable') + "." + x for x in re.findall(r'`(.+?)`', match.group('refcols'))]
             schema.Table(match.group('reftable'), table.metadata, autoload=True, autoload_with=connection)
             constraint = schema.ForeignKeyConstraint(columns, refcols, name=match.group('name'))
-            table.append_item(constraint)
+            table.append_constraint(constraint)
 
         return tabletype
         
@@ -415,6 +412,12 @@ class MySQLCompiler(ansisql.ANSICompiler):
             # so just skip the CAST altogether for now.
             # TODO: put whatever MySQL does for CAST here.
             self.strings[cast] = self.strings[cast.clause]
+
+    def for_update_clause(self, select):
+        if select.for_update == 'read':
+             return ' LOCK IN SHARE MODE'
+        else:
+            return super(MySQLCompiler, self).for_update_clause(select)
 
     def limit_clause(self, select):
         text = ""
@@ -438,7 +441,7 @@ class MySQLSchemaGenerator(ansisql.ANSISchemaGenerator):
         if not column.nullable:
             colspec += " NOT NULL"
         if column.primary_key:
-            if not column.foreign_key and first_pk and isinstance(column.type, sqltypes.Integer):
+            if len(column.foreign_keys)==0 and first_pk and column.autoincrement and isinstance(column.type, sqltypes.Integer):
                 colspec += " AUTO_INCREMENT"
         return colspec
 
@@ -452,6 +455,9 @@ class MySQLSchemaGenerator(ansisql.ANSISchemaGenerator):
 class MySQLSchemaDropper(ansisql.ANSISchemaDropper):
     def visit_index(self, index):
         self.append("\nDROP INDEX " + index.name + " ON " + index.table.name)
+        self.execute()
+    def drop_foreignkey(self, constraint):
+        self.append("ALTER TABLE %s DROP FOREIGN KEY %s" % (self.preparer.format_table(constraint.table), constraint.name))
         self.execute()
 
 class MySQLIdentifierPreparer(ansisql.ANSIIdentifierPreparer):

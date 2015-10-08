@@ -1,7 +1,7 @@
 from testbase import PersistTest
 import testbase
 from sqlalchemy import *
-from sqlalchemy.databases import sqlite, postgres, mysql, oracle
+from sqlalchemy.databases import sqlite, postgres, mysql, oracle, firebird
 import unittest, re
 
 # the select test now tests almost completely with TableClause/ColumnClause objects,
@@ -55,7 +55,7 @@ class SQLTest(PersistTest):
         c = clause.compile(parameters=params, dialect=dialect)
         self.echo("\nSQL String:\n" + str(c) + repr(c.get_params()))
         cc = re.sub(r'\n', '', str(c))
-        self.assert_(cc == result, str(c) + "\n does not match \n" + result)
+        self.assert_(cc == result, "\n'" + cc + "'\n does not match \n'" + result + "'")
         if checkparams is not None:
             if isinstance(checkparams, list):
                 self.assert_(c.get_params().values() == checkparams, "params dont match ")
@@ -213,12 +213,12 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
         )
 
     def testunicodestartswith(self):
-	string = u"hi \xf6 \xf5"
-	self.runtest(
-		table1.select(table1.c.name.startswith(string)),
-		"SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.name LIKE :mytable_name",
-		checkparams = {'mytable_name': u'hi \xf6 \xf5%'},
-	)
+        string = u"hi \xf6 \xf5"
+        self.runtest(
+            table1.select(table1.c.name.startswith(string)),
+            "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.name LIKE :mytable_name",
+            checkparams = {'mytable_name': u'hi \xf6 \xf5%'},
+        )
 
     def testmultiparam(self):
         self.runtest(
@@ -249,15 +249,29 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
         )
     
     def testforupdate(self):
-        self.runtest(
-            table1.select(table1.c.myid==7, for_update=True), "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = :mytable_myid FOR UPDATE"
-        )
+        self.runtest(table1.select(table1.c.myid==7, for_update=True), "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = :mytable_myid FOR UPDATE")
+    
+        self.runtest(table1.select(table1.c.myid==7, for_update="nowait"), "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = :mytable_myid FOR UPDATE")
+
+        self.runtest(table1.select(table1.c.myid==7, for_update="nowait"), "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = :mytable_myid FOR UPDATE NOWAIT", dialect=oracle.dialect())
+
+        self.runtest(table1.select(table1.c.myid==7, for_update="read"), "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = %s LOCK IN SHARE MODE", dialect=mysql.dialect())
+
+        self.runtest(table1.select(table1.c.myid==7, for_update=True), "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = %s FOR UPDATE", dialect=mysql.dialect())
+
+        self.runtest(table1.select(table1.c.myid==7, for_update=True), "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = :mytable_myid FOR UPDATE", dialect=oracle.dialect())
+   
     def testalias(self):
         # test the alias for a table1.  column names stay the same, table name "changes" to "foo".
         self.runtest(
-        select([alias(table1, 'foo')])
-        ,"SELECT foo.myid, foo.name, foo.description FROM mytable AS foo")
+            select([alias(table1, 'foo')])
+            ,"SELECT foo.myid, foo.name, foo.description FROM mytable AS foo")
     
+        self.runtest(
+            select([alias(table1, 'foo')])
+            ,"SELECT foo.myid, foo.name, foo.description FROM mytable foo"
+            ,dialect=firebird.dialect())
+
         # create a select for a join of two tables.  use_labels means the column names will have
         # labels tablename_columnname, which become the column keys accessible off the Selectable object.
         # also, only use one column from the second table and all columns from the first table1.
@@ -395,6 +409,12 @@ FROM mytable, myothertable WHERE foo.id = foofoo(lala) AND datetime(foo) = Today
 
         # test a dotted func off the engine itself
         self.runtest(func.lala.hoho(7), "lala.hoho(:hoho)")
+    
+    def testextract(self):
+        """test the EXTRACT function"""
+        self.runtest(select([extract("month", table3.c.otherstuff)]), "SELECT extract(month FROM thirdtable.otherstuff) FROM thirdtable")
+        
+        self.runtest(select([extract("day", func.to_date("03/20/2005", "MM/DD/YYYY"))]), "SELECT extract(day FROM to_date(:to_date, :to_da_1))")
         
     def testjoin(self):
         self.runtest(
@@ -544,6 +564,9 @@ FROM mytable, myothertable WHERE mytable.myid = myothertable.otherid AND mytable
 
         self.runtest(select([table1], table1.c.myid.in_(select([table2.c.otherid]))),
         "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid IN (SELECT myothertable.otherid AS otherid FROM myothertable)")
+
+        self.runtest(select([table1], ~table1.c.myid.in_(select([table2.c.otherid]))),
+        "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid NOT IN (SELECT myothertable.otherid AS otherid FROM myothertable)")
     
     def testlateargs(self):
         """tests that a SELECT clause will have extra "WHERE" clauses added to it at compile time if extra arguments

@@ -1,13 +1,21 @@
-import sqlalchemy.sql as sql
-import sqlalchemy.schema as schema
-import sqlalchemy.util as util
+from sqlalchemy import sql, util, schema, topological
 
 """utility functions that build upon SQL and Schema constructs"""
 
 
 class TableCollection(object):
-    def __init__(self):
-        self.tables = []
+    def __init__(self, tables=None):
+        self.tables = tables or []
+    def __len__(self):
+        return len(self.tables)
+    def __getitem__(self, i):
+        return self.tables[i]
+    def __iter__(self):
+        return iter(self.tables)
+    def __contains__(self, obj):
+        return obj in self.tables
+    def __add__(self, obj):
+        return self.tables + list(obj)
     def add(self, table):
         self.tables.append(table)
         if hasattr(self, '_sorted'):
@@ -26,17 +34,19 @@ class TableCollection(object):
             return sorted
             
     def _do_sort(self):
-        import sqlalchemy.orm.topological
         tuples = []
         class TVisitor(schema.SchemaVisitor):
-            def visit_foreign_key(self, fkey):
+            def visit_foreign_key(_self, fkey):
+                if fkey.use_alter:
+                    return
                 parent_table = fkey.column.table
-                child_table = fkey.parent.table
-                tuples.append( ( parent_table, child_table ) )
+                if parent_table in self:
+                    child_table = fkey.parent.table
+                    tuples.append( ( parent_table, child_table ) )
         vis = TVisitor()        
         for table in self.tables:
             table.accept_schema_visitor(vis)
-        sorter = sqlalchemy.orm.topological.QueueDependencySorter( tuples, self.tables )
+        sorter = topological.QueueDependencySorter( tuples, self.tables )
         head =  sorter.sort()
         sequence = []
         def to_sequence( node, seq=sequence):
@@ -57,16 +67,6 @@ class TableFinder(TableCollection, sql.ClauseVisitor):
             table.accept_visitor(self)
     def visit_table(self, table):
         self.tables.append(table)
-    def __len__(self):
-        return len(self.tables)
-    def __getitem__(self, i):
-        return self.tables[i]
-    def __iter__(self):
-        return iter(self.tables)
-    def __contains__(self, obj):
-        return obj in self.tables
-    def __add__(self, obj):
-        return self.tables + list(obj)
     def visit_column(self, column):
         if self.check_columns:
             column.table.accept_visitor(self)

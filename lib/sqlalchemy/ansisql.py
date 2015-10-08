@@ -7,7 +7,7 @@
 """defines ANSI SQL operations.  Contains default implementations for the abstract objects 
 in the sql module."""
 
-from sqlalchemy import schema, sql, engine, util
+from sqlalchemy import schema, sql, engine, util, sql_util
 import sqlalchemy.engine.default as default
 import string, re, sets, weakref
 
@@ -28,16 +28,13 @@ RESERVED_WORDS = util.Set(['all', 'analyse', 'analyze', 'and', 'any', 'array', '
 LEGAL_CHARACTERS = util.Set(string.ascii_lowercase + string.ascii_uppercase + string.digits + '_$')
 ILLEGAL_INITIAL_CHARACTERS = util.Set(string.digits + '$')
 
-def create_engine():
-    return engine.ComposedSQLEngine(None, ANSIDialect())
-    
 class ANSIDialect(default.DefaultDialect):
     def __init__(self, cache_identifiers=True, **kwargs):
         super(ANSIDialect,self).__init__(**kwargs)
         self.identifier_preparer = self.preparer()
         self.cache_identifiers = cache_identifiers
         
-    def connect_args(self):
+    def create_connect_args(self):
         return ([],{})
 
     def dbapi(self):
@@ -140,14 +137,14 @@ class ANSICompiler(sql.Compiled):
 
         d = sql.ClauseParameters(self.dialect, self.positiontup)
         for b in self.binds.values():
-            d.set_parameter(b.key, b.value, b)
+            d.set_parameter(b, b.value)
 
         for key, value in bindparams.iteritems():
             try:
                 b = self.binds[key]
             except KeyError:
                 continue
-            d.set_parameter(b.key, value, b)
+            d.set_parameter(b, value)
 
         return d
 
@@ -174,14 +171,14 @@ class ANSICompiler(sql.Compiled):
                 if n is not None:
                     self.strings[column] = "%s.%s" % (self.preparer.format_table(column.table, use_schema=False), n)
                 elif len(column.table.primary_key) != 0:
-                    self.strings[column] = self.preparer.format_column_with_table(column.table.primary_key[0])
+                    self.strings[column] = self.preparer.format_column_with_table(list(column.table.primary_key)[0])
                 else:
                     self.strings[column] = None
             else:
                 self.strings[column] = self.preparer.format_column_with_table(column)
 
     def visit_fromclause(self, fromclause):
-        self.froms[fromclause] = fromclause.from_name
+        self.froms[fromclause] = fromclause.name
 
     def visit_index(self, index):
         self.strings[index] = index.name
@@ -239,8 +236,10 @@ class ANSICompiler(sql.Compiled):
             self.typemap.setdefault(func.name, func.type)
         if not self.apply_function_parens(func):
             self.strings[func] = ".".join(func.packagenames + [func.name])
+            self.froms[func] = self.strings[func]
         else:
             self.strings[func] = ".".join(func.packagenames + [func.name]) + "(" + string.join([self.get_str(c) for c in func.clauses], ', ') + ")"
+            self.froms[func] = self.strings[func]
         
     def visit_compound_select(self, cs):
         text = string.join([self.get_str(c) for c in cs.selects], " " + cs.keyword + " ")
@@ -320,7 +319,7 @@ class ANSICompiler(sql.Compiled):
                     inner_columns[co._label] = l
                 # TODO: figure this out, a ColumnClause with a select as a parent
                 # is different from any other kind of parent
-                elif select.issubquery and isinstance(co, sql.ColumnClause) and co.table is not None and not isinstance(co.table, sql.Select):
+                elif select.issubquery and isinstance(co, sql._ColumnClause) and co.table is not None and not isinstance(co.table, sql.Select):
                     # SQLite doesnt like selecting from a subquery where the column
                     # names look like table.colname, so add a label synonomous with
                     # the column name
@@ -394,13 +393,9 @@ class ANSICompiler(sql.Compiled):
             text += " ORDER BY " + order_by
 
         text += self.visit_select_postclauses(select)
- 
-        if select.for_update:
-            text += " FOR UPDATE"
 
-        if select.nowait:
-            text += " NOWAIT"
-            
+        text += self.for_update_clause(select)
+
         if getattr(select, 'parens', False):
             self.strings[select] = "(" + text + ")"
         else:
@@ -414,6 +409,12 @@ class ANSICompiler(sql.Compiled):
     def visit_select_postclauses(self, select):
         """ called when building a SELECT statement, position is after all other SELECT clauses. Most DB syntaxes put LIMIT/OFFSET here """
         return (select.limit or select.offset) and self.limit_clause(select) or ""
+
+    def for_update_clause(self, select):
+        if select.for_update:
+            return " FOR UPDATE"
+        else:
+            return ""
 
     def limit_clause(self, select):
         text = ""
@@ -488,7 +489,7 @@ class ANSICompiler(sql.Compiled):
         colparams = self._get_colparams(insert_stmt, default_params)
 
         def create_param(p):
-            if isinstance(p, sql.BindParamClause):
+            if isinstance(p, sql._BindParamClause):
                 self.binds[p.key] = p
                 if p.shortname is not None:
                     self.binds[p.shortname] = p
@@ -520,7 +521,7 @@ class ANSICompiler(sql.Compiled):
         self.isupdate = True
         colparams = self._get_colparams(update_stmt, default_params)
         def create_param(p):
-            if isinstance(p, sql.BindParamClause):
+            if isinstance(p, sql._BindParamClause):
                 self.binds[p.key] = p
                 self.binds[p.shortname] = p
                 return self.bindparam_string(p.key)
@@ -576,7 +577,7 @@ class ANSICompiler(sql.Compiled):
         # now go thru compiled params, get the Column object for each key
         d = {}
         for key, value in parameters.iteritems():
-            if isinstance(key, sql.ColumnClause):
+            if isinstance(key, sql._ColumnClause):
                 d[key] = value
             else:
                 try:
@@ -605,24 +606,46 @@ class ANSICompiler(sql.Compiled):
     def __str__(self):
         return self.get_str(self.statement)
 
-
-class ANSISchemaGenerator(engine.SchemaIterator):
-    def __init__(self, engine, proxy, connection=None, checkfirst=False, **params):
-        super(ANSISchemaGenerator, self).__init__(engine, proxy, **params)
+class ANSISchemaBase(engine.SchemaIterator):
+    def find_alterables(self, tables):
+        alterables = []
+        class FindAlterables(schema.SchemaVisitor):
+            def visit_foreign_key_constraint(self, constraint):
+                if constraint.use_alter and constraint.table in tables:
+                    alterables.append(constraint)
+        findalterables = FindAlterables()
+        for table in tables:
+            for c in table.constraints:
+                c.accept_schema_visitor(findalterables)
+        return alterables
+        
+class ANSISchemaGenerator(ANSISchemaBase):
+    def __init__(self, engine, proxy, connection, checkfirst=False, tables=None, **kwargs):
+        super(ANSISchemaGenerator, self).__init__(engine, proxy, **kwargs)
         self.checkfirst = checkfirst
+        self.tables = tables and util.Set(tables) or None
         self.connection = connection
         self.preparer = self.engine.dialect.preparer()
-    
+        self.dialect = self.engine.dialect
+        
     def get_column_specification(self, column, first_pk=False):
         raise NotImplementedError()
-        
+    
+    def visit_metadata(self, metadata):
+        collection = [t for t in metadata.table_iterator(reverse=False, tables=self.tables) if (not self.checkfirst or not self.dialect.has_table(self.connection, t.name))]
+        for table in collection:
+            table.accept_schema_visitor(self, traverse=False)
+        if self.supports_alter():
+            for alterable in self.find_alterables(collection):
+                self.add_foreignkey(alterable)
+                
     def visit_table(self, table):
-        # the single whitespace before the "(" is significant
-        # as its MySQL's method of indicating a table name and not a reserved word.
-        # feel free to localize this logic to the mysql module
-        if self.checkfirst and self.engine.dialect.has_table(self.connection, table.name):
-            return
-            
+        for column in table.columns:
+            if column.default is not None:
+                column.default.accept_schema_visitor(self, traverse=False)
+            #if column.onupdate is not None:
+            #    column.onupdate.accept_schema_visitor(visitor, traverse=False)
+        
         self.append("\nCREATE TABLE " + self.preparer.format_table(table) + " (")
         
         separator = "\n"
@@ -635,15 +658,17 @@ class ANSISchemaGenerator(engine.SchemaIterator):
             self.append("\t" + self.get_column_specification(column, first_pk=column.primary_key and not first_pk))
             if column.primary_key:
                 first_pk = True
-
+            for constraint in column.constraints:
+                constraint.accept_schema_visitor(self, traverse=False)
+                
         for constraint in table.constraints:
-            constraint.accept_schema_visitor(self)            
+            constraint.accept_schema_visitor(self, traverse=False)
 
         self.append("\n)%s\n\n" % self.post_create_table(table))
-        self.execute()        
+        self.execute()
         if hasattr(table, 'indexes'):
             for index in table.indexes:
-                self.visit_index(index)
+                index.accept_schema_visitor(self, traverse=False)
         
     def post_create_table(self, table):
         return ''
@@ -658,10 +683,17 @@ class ANSISchemaGenerator(engine.SchemaIterator):
             return None
 
     def _compile(self, tocompile, parameters):
+        """compile the given string/parameters using this SchemaGenerator's dialect."""
         compiler = self.engine.dialect.compiler(tocompile, parameters)
         compiler.compile()
         return compiler
 
+    def visit_check_constraint(self, constraint):
+        self.append(", \n\t")
+        if constraint.name is not None:
+            self.append("CONSTRAINT %s " % constraint.name)
+        self.append(" CHECK (%s)" % constraint.sqltext)
+        
     def visit_primary_key_constraint(self, constraint):
         if len(constraint) == 0:
             return
@@ -669,9 +701,22 @@ class ANSISchemaGenerator(engine.SchemaIterator):
         if constraint.name is not None:
             self.append("%s " % constraint.name)
         self.append("(%s)" % (string.join([self.preparer.format_column(c) for c in constraint],', ')))
-                    
+    
+    def supports_alter(self):
+        return True
+                        
     def visit_foreign_key_constraint(self, constraint):
+        if constraint.use_alter and self.supports_alter():
+            return
         self.append(", \n\t ")
+        self.define_foreign_key(constraint)
+    
+    def add_foreignkey(self, constraint):
+        self.append("ALTER TABLE %s ADD " % self.preparer.format_table(constraint.table))
+        self.define_foreign_key(constraint)
+        self.execute()
+        
+    def define_foreign_key(self, constraint):
         if constraint.name is not None:
             self.append("CONSTRAINT %s " % constraint.name)
         self.append("FOREIGN KEY(%s) REFERENCES %s (%s)" % (
@@ -683,6 +728,13 @@ class ANSISchemaGenerator(engine.SchemaIterator):
             self.append(" ON DELETE %s" % constraint.ondelete)
         if constraint.onupdate is not None:
             self.append(" ON UPDATE %s" % constraint.onupdate)
+
+    def visit_unique_constraint(self, constraint):
+        self.append(", \n\t")
+        if constraint.name is not None:
+            self.append("CONSTRAINT %s " % constraint.name)
+        self.append(" UNIQUE ")
+        self.append("(%s)" % (string.join([self.preparer.format_column(c) for c in constraint],', ')))
 
     def visit_column(self, column):
         pass
@@ -696,22 +748,39 @@ class ANSISchemaGenerator(engine.SchemaIterator):
                        string.join([self.preparer.format_column(c) for c in index.columns], ', ')))
         self.execute()
         
-class ANSISchemaDropper(engine.SchemaIterator):
-    def __init__(self, engine, proxy, connection=None, checkfirst=False, **params):
-        super(ANSISchemaDropper, self).__init__(engine, proxy, **params)
+class ANSISchemaDropper(ANSISchemaBase):
+    def __init__(self, engine, proxy, connection, checkfirst=False, tables=None, **kwargs):
+        super(ANSISchemaDropper, self).__init__(engine, proxy, **kwargs)
         self.checkfirst = checkfirst
+        self.tables = tables
         self.connection = connection
         self.preparer = self.engine.dialect.preparer()
+        self.dialect = self.engine.dialect
+
+    def visit_metadata(self, metadata):
+        collection = [t for t in metadata.table_iterator(reverse=True, tables=self.tables) if (not self.checkfirst or  self.dialect.has_table(self.connection, t.name))]
+        if self.supports_alter():
+            for alterable in self.find_alterables(collection):
+                self.drop_foreignkey(alterable)
+        for table in collection:
+            table.accept_schema_visitor(self, traverse=False)
+
+    def supports_alter(self):
+        return True
 
     def visit_index(self, index):
         self.append("\nDROP INDEX " + index.name)
         self.execute()
+
+    def drop_foreignkey(self, constraint):
+        self.append("ALTER TABLE %s DROP CONSTRAINT %s" % (self.preparer.format_table(constraint.table), constraint.name))
+        self.execute()
         
     def visit_table(self, table):
-        # NOTE: indexes on the table will be automatically dropped, so
-        # no need to drop them individually
-        if self.checkfirst and not self.engine.dialect.has_table(self.connection, table.name):
-            return
+        for column in table.columns:
+            if column.default is not None:
+                column.default.accept_schema_visitor(self, traverse=False)
+
         self.append("\nDROP TABLE " + self.preparer.format_table(table))
         self.execute()
 

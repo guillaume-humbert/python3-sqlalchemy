@@ -51,24 +51,24 @@ class DateTimeMixin(object):
             (value, microsecond) = (value, 0)
         return time.strptime(value, fmt)[0:6] + (microsecond,)
     
-class SLDateTime(sqltypes.DateTime, DateTimeMixin):
+class SLDateTime(DateTimeMixin,sqltypes.DateTime):
     def get_col_spec(self):
         return "TIMESTAMP"
     def convert_result_value(self, value, dialect):
         tup = self._cvt(value, dialect, "%Y-%m-%d %H:%M:%S")
         return tup and datetime.datetime(*tup)
-class SLDate(sqltypes.Date, DateTimeMixin):
+class SLDate(DateTimeMixin, sqltypes.Date):
     def get_col_spec(self):
         return "DATE"
     def convert_result_value(self, value, dialect):
         tup = self._cvt(value, dialect, "%Y-%m-%d")
         return tup and datetime.date(*tup[0:3])
-class SLTime(sqltypes.Time, DateTimeMixin):
+class SLTime(DateTimeMixin, sqltypes.Time):
     def get_col_spec(self):
         return "TIME"
     def convert_result_value(self, value, dialect):
         tup = self._cvt(value, dialect, "%H:%M:%S")
-        return tup and datetime.time(*tup[4:7])
+        return tup and datetime.time(*tup[3:7])
 class SLText(sqltypes.TEXT):
     def get_col_spec(self):
         return "TEXT"
@@ -84,6 +84,8 @@ class SLBinary(sqltypes.Binary):
 class SLBoolean(sqltypes.Boolean):
     def get_col_spec(self):
         return "BOOLEAN"
+    def convert_bind_param(self, value, dialect):
+        return value and 1 or 0
     def convert_result_value(self, value, dialect):
         if value is None:
             return None
@@ -96,6 +98,7 @@ colspecs = {
     sqltypes.Float : SLNumeric,
     sqltypes.DateTime : SLDateTime,
     sqltypes.Date : SLDate,
+    sqltypes.Time : SLTime,
     sqltypes.String : SLString,
     sqltypes.Binary : SLBinary,
     sqltypes.Boolean : SLBoolean,
@@ -144,6 +147,8 @@ class SQLiteDialect(ansisql.ANSIDialect):
         return SQLiteCompiler(self, statement, bindparams, **kwargs)
     def schemagenerator(self, *args, **kwargs):
         return SQLiteSchemaGenerator(*args, **kwargs)
+    def schemadropper(self, *args, **kwargs):
+        return SQLiteSchemaDropper(*args, **kwargs)
     def preparer(self):
         return SQLiteIdentifierPreparer(self)
     def create_connect_args(self, url):
@@ -158,9 +163,6 @@ class SQLiteDialect(ansisql.ANSIDialect):
     
     def oid_column_name(self):
         return "oid"
-
-    def connect_args(self):
-        return ([self.filename], self.opts)
 
     def dbapi(self):
         return sqlite
@@ -184,7 +186,7 @@ class SQLiteDialect(ansisql.ANSIDialect):
             #print "row! " + repr(row)
             found_table = True
             (name, type, nullable, has_default, primary_key) = (row[1], row[2].upper(), not row[3], row[4] is not None, row[5])
-            
+            name = re.sub(r'^\"|\"$', '', name)
             match = re.match(r'(\w+)(\(.*?\))?', type)
             coltype = match.group(1)
             args = match.group(2)
@@ -199,7 +201,7 @@ class SQLiteDialect(ansisql.ANSIDialect):
             colargs= []
             if has_default:
                 colargs.append(PassiveDefault('?'))
-            table.append_item(schema.Column(name, coltype, primary_key = primary_key, nullable = nullable, *colargs))
+            table.append_column(schema.Column(name, coltype, primary_key = primary_key, nullable = nullable, *colargs))
         
         if not found_table:
             raise exceptions.NoSuchTableError(table.name)
@@ -211,6 +213,9 @@ class SQLiteDialect(ansisql.ANSIDialect):
             if row is None:
                 break
             (constraint_name, tablename, localcol, remotecol) = (row[0], row[2], row[3], row[4])
+            tablename = re.sub(r'^\"|\"$', '', tablename)
+            localcol = re.sub(r'^\"|\"$', '', localcol)
+            remotecol = re.sub(r'^\"|\"$', '', remotecol)
             try:
                 fk = fks[constraint_name]
             except KeyError:
@@ -228,7 +233,7 @@ class SQLiteDialect(ansisql.ANSIDialect):
             if refspec not in fk[1]:
                 fk[1].append(refspec)
         for name, value in fks.iteritems():
-            table.append_item(schema.ForeignKeyConstraint(value[0], value[1]))    
+            table.append_constraint(schema.ForeignKeyConstraint(value[0], value[1]))    
         # check for UNIQUE indexes
         c = connection.execute("PRAGMA index_list(" + table.name + ")", {})
         unique_indexes = []
@@ -250,8 +255,7 @@ class SQLiteDialect(ansisql.ANSIDialect):
                 col = table.columns[row[2]]
             # unique index that includes the pk is considered a multiple primary key
             for col in cols:
-                column = table.columns[col]
-                table.columns[col]._set_primary_key()
+                table.primary_key.add(table.columns[col])
                     
 class SQLiteCompiler(ansisql.ANSICompiler):
     def visit_cast(self, cast):
@@ -273,6 +277,10 @@ class SQLiteCompiler(ansisql.ANSICompiler):
         else:
             text += " OFFSET 0"
         return text
+    def for_update_clause(self, select):
+        # sqlite has no "FOR UPDATE" AFAICT
+        return ''
+
     def binary_operator_string(self, binary):
         if isinstance(binary.type, sqltypes.String) and binary.operator == '+':
             return '||'
@@ -280,6 +288,9 @@ class SQLiteCompiler(ansisql.ANSICompiler):
             return ansisql.ANSICompiler.binary_operator_string(self, binary)
 
 class SQLiteSchemaGenerator(ansisql.ANSISchemaGenerator):
+    def supports_alter(self):
+        return False
+        
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column) + " " + column.type.engine_impl(self.engine).get_col_spec()
         default = self.get_column_default_string(column)
@@ -299,6 +310,10 @@ class SQLiteSchemaGenerator(ansisql.ANSISchemaGenerator):
     #        self.append("\tUNIQUE (%s)" % string.join([c.name for c in constraint],', '))
     #    else:
     #        super(SQLiteSchemaGenerator, self).visit_primary_key_constraint(constraint)
+
+class SQLiteSchemaDropper(ansisql.ANSISchemaDropper):
+    def supports_alter(self):
+        return False
 
 class SQLiteIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
     def __init__(self, dialect):

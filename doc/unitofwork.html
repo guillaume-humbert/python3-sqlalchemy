@@ -1,18 +1,15 @@
 <html>
 <head>
 	<title>
-    Session / Unit of Work - SQLAlchemy 0.2 Documentation
+    SQLAlchemy 0.3 Documentation - Session / Unit of Work
 </title>
+    <link href="style.css" rel="stylesheet" type="text/css"></link>
+    <link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
+
+    <link href="docs.css" rel="stylesheet" type="text/css"></link>
+    <script src="scripts.js"></script>
 </head>
 <body>
-
-
-
-<link href="style.css" rel="stylesheet" type="text/css"></link>
-<link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
-
-<link href="docs.css" rel="stylesheet" type="text/css"></link>
-<script src="scripts.js"></script>
 
 
 <div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
@@ -21,24 +18,14 @@
 
 <div class="docheader">
 
-<h1>Session / Unit of Work</h1>
-<div class="">Version: 0.2.8   Last Updated: 09/05/06 12:33:09</div>
+<h1>SQLAlchemy 0.3 Documentation</h1>
+<div class="">Version: 0.3.0   Last Updated: 10/22/06 14:17:49</div>
 </div>
 
 
+<A name="unitofwork"></a>
 
-		<A name="unitofwork"></a>
-		
-	
-<div class="topnav">
-
-
-	
-	<div class="topnavcontrol">
-	View: <b>Paged</b> &nbsp;|&nbsp; <a href="documentation.html">One Page</a>
-	</div>
-
-
+	<div class="topnav">
 
 <div class="topnavsectionlink">
 
@@ -55,62 +42,55 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 </div>
 </div>
 
-
 <div class="topnavmain">
 	<div class="topnavheader">Session / Unit of Work</div>
 	<div class="topnavitems">
 	
 
 <ul class="toc_list">
-
     
-    
-        <li><A style="" href="#unitofwork_overview">Overview</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#unitofwork_states">Object States</a></li>
+        
+        <li><A style="" href="unitofwork.html#unitofwork_overview">Overview</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
-
     
-    
-        <li><A style="" href="#unitofwork_getting">Acquiring a Session</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#unitofwork_identitymap">Introduction to the Identity Map</a></li>
+        
+        <li><A style="" href="unitofwork.html#unitofwork_states">Object States</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
-
     
-    
-        <li><A style="" href="#unitofwork_changed">Whats Changed ?</a></li>
+        
+        <li><A style="" href="unitofwork.html#unitofwork_getting">Acquiring a Session</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
+    
+        
+        <li><A style="" href="unitofwork.html#unitofwork_identitymap">Introduction to the Identity Map</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
 
     
+        
+        <li><A style="" href="unitofwork.html#unitofwork_changed">Whats Changed ?</a></li>
     
-        <li><A style="" href="#unitofwork_api">The Session API</a></li>
+    <ul class="small_toc_list">
+    </ul>
+
+    
+        
+        <li><A style="" href="unitofwork.html#unitofwork_api">The Session API</a></li>
     
     <ul class="small_toc_list">
         
         
-    <li><A href="#unitofwork_api_query">query()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_query">query()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -118,7 +98,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_get">get()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_get">get()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -126,7 +106,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_load">load()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_load">load()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -134,7 +114,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_save">save()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_save">save()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -142,12 +122,12 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_flush">flush()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_flush">flush()</a></li>
 
     <ul class="small_toc_list">
         
         
-    <li><A href="#unitofwork_api_flush_whatis">Notes on Flush</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_flush_whatis">Notes on Flush</a></li>
 
 
 
@@ -156,7 +136,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_close">close()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_close">close()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -164,7 +144,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_delete">delete()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_delete">delete()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -172,7 +152,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_clear">clear()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_clear">clear()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -180,7 +160,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_refreshexpire">refresh() / expire()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_refreshexpire">refresh() / expire()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -188,7 +168,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_expunge">expunge()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_expunge">expunge()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -196,7 +176,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_bind">bind_mapper() / bind_table()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_bind">bind_mapper() / bind_table()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -204,7 +184,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_update">update()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_update">update()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -212,7 +192,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_saveorupdate">save_or_update()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_saveorupdate">save_or_update()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -220,54 +200,50 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
         
         
-    <li><A href="#unitofwork_api_merge">merge()</a></li>
+    <li><A href="unitofwork.html#unitofwork_api_merge">merge()</a></li>
 
     <ul class="small_toc_list">
     </ul>
 
 
     </ul>
-
 
     
-    
-        <li><A style="" href="#unitofwork_cascade">Cascade rules</a></li>
-    
-    <ul class="small_toc_list">
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#unitofwork_transaction">SessionTransaction</a></li>
-    
-    <ul class="small_toc_list">
         
-        
-    <li><A href="#unitofwork_transaction_sql">Using SQL with SessionTransaction</a></li>
-
-    <ul class="small_toc_list">
-    </ul>
-
-
-        
-        
-    <li><A href="#unitofwork_transaction_using">Using Engine-level Transactions with Sessions</a></li>
-
-    <ul class="small_toc_list">
-    </ul>
-
-
-    </ul>
-
-
-    
-    
-        <li><A style="" href="#unitofwork_logging">Analyzing Object Flushes</a></li>
+        <li><A style="" href="unitofwork.html#unitofwork_cascade">Cascade rules</a></li>
     
     <ul class="small_toc_list">
     </ul>
 
+    
+        
+        <li><A style="" href="unitofwork.html#unitofwork_transaction">SessionTransaction</a></li>
+    
+    <ul class="small_toc_list">
+        
+        
+    <li><A href="unitofwork.html#unitofwork_transaction_sql">Using SQL with SessionTransaction</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
+        
+        
+    <li><A href="unitofwork.html#unitofwork_transaction_using">Using Engine-level Transactions with Sessions</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
+    </ul>
+
+    
+        
+        <li><A style="" href="unitofwork.html#unitofwork_logging">Analyzing Object Flushes</a></li>
+    
+    <ul class="small_toc_list">
+    </ul>
 
 </ul>
 
@@ -276,41 +252,20 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 </div>
 
-		<div class="sectioncontent">
-			
+<div class="sectioncontent">
+<html>
 
 
 
+<A name="unitofwork"></a>
 
 <div class="subsection" style="margin-left:10px;">
 
+
+
     <div class="sectiontext">
+    
 
-
-
-
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-    </div>
-
-        
 
 
 
@@ -318,10 +273,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Overview</h3>
+
+<h3>Overview</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The concept behind Unit of Work is to track modifications to a field of objects, and then be able to flush those changes to the database in a single operation.  Theres a lot of advantages to this, including that your application doesn't need to worry about individual save operations on objects, nor about the required order for those operations, nor about excessive repeated calls to save operations that would be more efficiently aggregated into one step.  It also simplifies database transactions, providing a neat package with which to insert into the traditional database begin/commit phase.
 </p>
@@ -353,21 +309,16 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
  </li>
 
  <li>
-     The Session object in SQLAlchemy 0.2 borrows conceptually from that of <a href="http://www.hibernate.org">Hibernate</a>, a leading ORM for Java that is largely based on <a href="http://jcp.org/aboutJava/communityprocess/pfd/jsr220/index.html">JSR-220</a>.  SQLAlchemy, under no obligation to conform to EJB specifications, is in general very different from Hibernate, providing a different paradigm for producing queries, a SQL API that is useable independently of the ORM, and of course Pythonic configuration as opposed to XML; however, JSR-220/Hibernate makes some pretty good suggestions with regards to the mechanisms of persistence.
+     The Session object in SQLAlchemy 0.2 borrows conceptually from that of <a href='http://www.hibernate.org'>Hibernate</a>, a leading ORM for Java that was a great influence on the creation of the <a href='http://jcp.org/aboutJava/communityprocess/pfd/jsr220/index.html'>JSR-220</a> specification.  SQLAlchemy, under no obligation to conform to EJB specifications, is in general very different from Hibernate, providing a different paradigm for producing queries, a SQL API that is useable independently of the ORM, and of course Pythonic configuration as opposed to XML; however, JSR-220/Hibernate makes some pretty good suggestions with regards to the mechanisms of persistence.
  </li>
 </ul>
 
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -375,30 +326,31 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Object States</h3>
+
+<h3>Object States</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>When dealing with mapped instances with regards to Sessions, an instance may be <em>attached</em> or <em>unattached</em> to a particular Session.  An instance also may or may not correspond to an actual row in the database.  The product of these two binary conditions yields us four general states a particular instance can have within the perspective of the Session:
 </p>
 <ul>
- <li><p> <em>Transient</em> - a transient instance exists within memory only and is not associated with any Session.  It also has no database identity and does not have a corresponding record in the database.  When a new instance of a class is constructed, and no default session context exists with which to automatically attach the new instance, it is a transient instance.  The instance can then be saved to a particular session in which case it becomes a <em>pending</em> instance.  If a default session context exists, new instances are added to that Session by default and therefore become <em>pending</em> instances immediately.  <br /> 
+ <li><p><em>Transient</em> - a transient instance exists within memory only and is not associated with any Session.  It also has no database identity and does not have a corresponding record in the database.  When a new instance of a class is constructed, and no default session context exists with which to automatically attach the new instance, it is a transient instance.  The instance can then be saved to a particular session in which case it becomes a <em>pending</em> instance.  If a default session context exists, new instances are added to that Session by default and therefore become <em>pending</em> instances immediately.
 </p>
 
  </li>
 
- <li><p> <em>Pending</em> - a pending instance is a Session-attached object that has not yet been assigned a database identity.  When the Session is flushed (i.e. changes are persisted to the database), a pending instance becomes persistent.
+ <li><p><em>Pending</em> - a pending instance is a Session-attached object that has not yet been assigned a database identity.  When the Session is flushed (i.e. changes are persisted to the database), a pending instance becomes persistent.
 </p>
 
  </li>
 
- <li><p> <em>Persistent</em> - a persistent instance has a database identity and a corresponding record in the database, and is also associated with a particular Session.   By "database identity" we mean the object is associated with a table or relational concept in the database combined with a particular primary key in that table.  Objects that are loaded by SQLAlchemy in the context of a particular session are automatically considered persistent, as are formerly pending instances which have been subject to a session <code>flush()</code>.
+ <li><p><em>Persistent</em> - a persistent instance has a database identity and a corresponding record in the database, and is also associated with a particular Session.   By "database identity" we mean the object is associated with a table or relational concept in the database combined with a particular primary key in that table.  Objects that are loaded by SQLAlchemy in the context of a particular session are automatically considered persistent, as are formerly pending instances which have been subject to a session <code>flush()</code>.
 </p>
 
  </li>
 
- <li><p> <em>Detached</em> - a detached instance is an instance which has a database identity and corresponding row in the database, but is not attached to any Session.  This occurs when an instance has been removed from a Session, either because the session itself was cleared or closed, or the instance was explicitly removed from the Session.  The object can be re-attached with a session again in which case it becomes Persistent again.  Detached instances are useful when an application needs to represent a long-running operation across multiple Sessions, needs to store an object in a serialized state and then restore it later (such as within an HTTP "session" object), or in some cases where code needs to load instances locally which will later be associated with some other Session.
+ <li><p><em>Detached</em> - a detached instance is an instance which has a database identity and corresponding row in the database, but is not attached to any Session.  This occurs when an instance has been removed from a Session, either because the session itself was cleared or closed, or the instance was explicitly removed from the Session.  The object can be re-attached with a session again in which case it becomes Persistent again.  Detached instances are useful when an application needs to represent a long-running operation across multiple Sessions, needs to store an object in a serialized state and then restore it later (such as within an HTTP "session" object), or in some cases where code needs to load instances locally which will later be associated with some other Session.
 </p>
 
  </li>
@@ -407,14 +359,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -422,10 +369,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Acquiring a Session</h3>
+
+<h3>Acquiring a Session</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>A new Session object is constructed via the <code>create_session()</code> function:
 </p>
@@ -456,37 +404,22 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="sliding_code">
 <pre><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">object_session</span><span class="python_enclosure">(</span><span class="python_name">obj</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>It is possible to install a default "threadlocal" session context by importing a <em>mod</em> called <code>sqlalchemy.mods.threadlocal</code>.  This mod creates a familiar SA 0.1 keyword <code>objectstore</code> in the <code>sqlalchemy</code> namespace.  The <code>objectstore</code> may be used directly like a session; all session actions performed on <code>sqlalchemy.objectstore</code> will be <em>proxied</em> to the thread-local Session:
+<p>Session Facts:
 </p>
-
-
-<div class="sliding_code">
-<pre><span class="python_comment"># install 'threadlocal' mod (only need to call this once per application)
-</span><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">mods</span><span class="python_operator">.</span><span class="python_name">threadlocal</span><span class="python_operator">
-</span>
-<span class="python_comment"># then 'objectstore' is available within the 'sqlalchemy' namespace
-</span><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_name">objectstore</span><span class="python_operator">
-</span>
-<span class="python_comment"># flush the current thread-local session using the objectstore directly
-</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator">
-</span>
-<span class="python_comment"># which is the same as this (assuming we are still on the same thread):
-</span><span class="python_name">session </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">session</span><span class="python_operator">
-</span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+<ul>
+ <li>
+     the Session object is <strong>not threadsafe</strong>.  For thread-local management of Sessions, the recommended approch is to use the <a href="plugins.html#plugins_sessioncontext">SessionContext</a> extension module.
+ </li>
+</ul>
 <p>We will now cover some of the key concepts used by Sessions and its underlying Unit of Work.
 </p>
 
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -494,12 +427,15 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Introduction to the Identity Map</h3>
+
+<h3>Introduction to the Identity Map</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>A primary concept of the Session's underlying Unit of Work is that it is keeping track of all persistent instances; recall that a persistent instance has a database identity and is attached to a Session.  In particular, the Unit of Work must insure that only <em>one</em> copy of a particular persistent instance exists within the Session at any given time.   The UOW accomplishes this task using a dictionary known as an <em>Identity Map</em>.  When a <code>Query</code> is used to issue <code>select</code> or <code>get</code> requests to the database, it will in nearly all cases result in an actual SQL execution to the database, and a corresponding traversal of rows received from that execution.  However, when the underlying mapper <em>instantiates</em> objects corresponding to the result set rows it receives, it will check the session's identity map first before instantating a new object, and return the same instance already present in the identity map if it already exists, essentially <em>ignoring</em> the object state represented by that row.  There are several ways to override this behavior and truly refresh an already-loaded instance which are described later, but the main idea is that once your instance is loaded into a particular Session, it will <em>never change</em> its state without your explicit approval, regardless of what the database says about it.  <br /> 
+<p>A primary concept of the Session's underlying Unit of Work is that it is keeps track of all persistent instances; recall that a persistent instance has a database identity and is attached to a Session.  In particular, the Unit of Work must insure that only <em>one</em> copy of a particular persistent instance exists within the Session at any given time.   The UOW accomplishes this task using a dictionary known as an <em>Identity Map</em>.
+</p>
+<p>When a <code>Query</code> is used to issue <code>select</code> or <code>get</code> requests to the database, it will in nearly all cases result in an actual SQL execution to the database, and a corresponding traversal of rows received from that execution.  However, when the underlying mapper actually <em>creates</em> objects corresponding to the result set rows it receives, it will check the session's identity map first before instantating a new object, and return the same instance already present in the identity map if it already exists, essentially <em>ignoring</em> the object state represented by that row.  There are several ways to override this behavior and truly refresh an already-loaded instance which are described later, but the main idea is that once your instance is loaded into a particular Session, it will <em>never change</em> its state without your explicit approval, regardless of what the database says about it.
 </p>
 <p>For example; below, two separate calls to load an instance with database identity "15" are issued, and the results assigned to two separate variables.   However, since the same <code>Session</code> was used, the two instances are the same instance:
 </p>
@@ -514,7 +450,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 </span>
 <span class="python_literal">>>> </span><span class="python_name">obj1 </span><span class="python_keyword">is </span><span class="python_name">obj2</span><span class="python_operator">
 </span><span class="python_name">True</span><span class="python_operator"></span></pre></div>
-<p>The Identity Map is an instance of <code>weakref.WeakValueDictionary</code>, so that when an in-memory object falls out of scope, it will be removed automatically.  However, this may not be instant if there are circular references upon the object.  To guarantee that an instance is removed from the identity map before removing references to it, use the <code>expunge()</code> method, described later, to remove it.  <br /> 
+<p>The Identity Map is an instance of <code>weakref.WeakValueDictionary</code>, so that when an in-memory object falls out of scope, it will be removed automatically.  However, this may not be instant if there are circular references upon the object.  To guarantee that an instance is removed from the identity map before removing references to it, use the <code>expunge()</code> method, described later, to remove it.
 </p>
 <p>The Session supports an iterator interface in order to see all objects in the identity map:
 </p>
@@ -544,7 +480,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 <div class="sliding_code">
 <pre><span class="python_literal">>>> </span><span class="python_name">obj</span><span class="python_operator">.</span><span class="python_name">_instance_key </span><span class="python_operator">
 </span><span class="python_enclosure">(</span><span class="python_operator"><</span><span class="python_keyword">class </span><span class="python_literal">'test.tables.User'</span><span class="python_operator">>, </span><span class="python_enclosure">(</span><span class="python_number">7</span><span class="python_operator">,</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
-<p>At the moment that an object is assigned this key within a <code>flush()</code> operation, it is also added to the session's identity map.  <br /> 
+<p>At the moment that an object is assigned this key within a <code>flush()</code> operation, it is also added to the session's identity map.
 </p>
 <p>The <code>get()</code> method on <code>Query</code>, which retrieves an object based on primary key identity, also checks in the Session's identity map first to save a database round-trip if possible.  In the case of an object lazy-loading a single child object, the <code>get()</code> method is used as well, so scalar-based lazy loads may in some cases not query the database; this is particularly important for backreference relationships as it can save a lot of queries.
 </p>
@@ -552,14 +488,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -567,12 +498,13 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Whats Changed ?</h3>
+
+<h3>Whats Changed ?</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>The next concept is that in addition to the <code>Session</code> storing a record of all objects loaded or saved, it also stores lists of all <em>newly created</em> (i.e. pending) objects,  lists of all persistent objects whose attributes have been <em>modified</em>, and lists of all persistent objects that have been marked as <em>deleted</em>.  These lists are used when a <code>flush()</code> call is issued to save all changes.  After the flush occurs, these lists are all cleared out.
+<p>The next concept is that in addition to the <code>Session</code> storing a record of all objects loaded or saved, it also stores lists of all <em>newly created</em> (i.e. pending) objects and lists of all persistent objects that have been marked as <em>deleted</em>.  These lists are used when a <code>flush()</code> call is issued to save all changes.  During a flush operation, it also scans its list of persistent instances for changes which are marked as dirty.
 </p>
 <p>These records are all tracked by a collection of <code>Set</code> objects (which are a SQLAlchemy-specific instance called a <code>HashSet</code>) that are also viewable off the <code>Session</code>:
 </p>
@@ -582,7 +514,8 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 <pre><span class="python_comment"># pending objects recently added to the Session
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">new</span><span class="python_operator">
 </span>
-<span class="python_comment"># persistent objects with modifications
+<span class="python_comment"># persistent objects which currently have changes detected
+# (this Set is now created on the fly each time the property is called)
 </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">dirty</span><span class="python_operator">
 </span>
 <span class="python_comment"># persistent objects that have been marked as deleted via session.delete(obj)
@@ -593,14 +526,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -608,44 +536,12 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>The Session API</h3>
+
+<h3>The Session API</h3>
+
     <div class="sectiontext">
+    
 
-
-
-
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-			
-
-    </div>
-
-        
 
 
 
@@ -653,12 +549,13 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>query()</h3>
+
+<h3>query()</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>The <code>query()</code> function takes a class or <code>Mapper</code> as an argument, along with an optional <code>entity_name</code> parameter, and returns a new <code>Query</code> object which will issue mapper queries within the context of this Session.  If a Mapper is passed, then the Query uses that mapper.  Otherwise, if a class is sent, it will locate the primary mapper for that class which is used to construct the Query.  <br /> 
+<p>The <code>query()</code> function takes a class or <code>Mapper</code> as an argument, along with an optional <code>entity_name</code> parameter, and returns a new <code>Query</code> object which will issue mapper queries within the context of this Session.  If a Mapper is passed, then the Query uses that mapper.  Otherwise, if a class is sent, it will locate the primary mapper for that class which is used to construct the Query.  <br></br>
 </p>
 
 
@@ -673,7 +570,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 <span class="python_comment"># query from a class mapped with entity name 'alt_users'
 </span><span class="python_name">q </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">entity_name</span><span class="python_operator">=</span><span class="python_literal">'alt_users'</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_name">y </span><span class="python_operator">= </span><span class="python_name">q</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'orders'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
-<p> <code>entity_name</code> is an optional keyword argument sent with a class object, in order to further qualify which primary mapper to be used; this only applies if there was a <code>Mapper</code> created with that particular class/entity name combination, else an exception is raised.  All of the methods on Session which take a class or mapper argument also take the <code>entity_name</code> argument, so that a given class can be properly matched to the desired primary mapper.
+<p><code>entity_name</code> is an optional keyword argument sent with a class object, in order to further qualify which primary mapper to be used; this only applies if there was a <code>Mapper</code> created with that particular class/entity name combination, else an exception is raised.  All of the methods on Session which take a class or mapper argument also take the <code>entity_name</code> argument, so that a given class can be properly matched to the desired primary mapper.
 </p>
 <p>All instances retrieved by the returned <code>Query</code> object will be stored as persistent instances within the originating <code>Session</code>.
 </p>
@@ -681,14 +578,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -696,10 +588,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>get()</h3>
+
+<h3>get()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Given a class or mapper, a scalar or tuple-based identity, and an optional <code>entity_name</code> keyword argument, creates a <code>Query</code> corresponding to the given mapper or class/entity_name combination, and calls the <code>get()</code> method with the given identity value.  If the object already exists within this Session, it is simply returned, else it is queried from the database.  If the instance is not found, the method returns <code>None</code>.
 </p>
@@ -715,14 +608,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -730,10 +618,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>load()</h3>
+
+<h3>load()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>load() is similar to get() except it will raise an exception if the instance does not exist in the database.  It will also load the object's data from the database in all cases, and <strong>overwrite</strong> all changes on the object if it already exists in the session with the latest data from the database.
 </p>
@@ -749,14 +638,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -764,10 +648,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>save()</h3>
+
+<h3>save()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>save() is called with a single transient (unsaved, unattached) instance as an argument, which is then added to the Session and becomes pending.  When the session is next <code>flush</code>ed, the instance will be saved to the database uponwhich it becomes persistent (saved, attached).  If the given instance is not transient, meaning it is either attached to an existing Session or it has a database identity, an exception is raised.
 </p>
@@ -790,14 +675,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -805,10 +685,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>flush()</h3>
+
+<h3>flush()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>This is the main gateway to what the Unit of Work does best, which is save everything !  It should be clear by now what a flush looks like:
 </p>
@@ -827,25 +708,19 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 <p>This second form of flush should be used carefully as it will not necessarily locate other dependent objects within the session, whose database representation may have foreign constraint relationships with the objects being operated upon.
 </p>
 
-			
-
-    </div>
-
-        
-
-
 
 <A name="unitofwork_api_flush_whatis"></a>
 
 <div class="subsection" style="margin-left:40px;">
 
-    <h3>Notes on Flush</h3>
+
+<h3>Notes on Flush</h3>
+
     <div class="sectiontext">
-
-
+    
 <p>A common misconception about the <code>flush()</code> operation is that once performed, the newly persisted instances will automatically have related objects attached to them, based on the values of primary key identities that have been assigned to the instances before they were persisted.  An example would be, you create a new <code>Address</code> object, set <code>address.user_id</code> to 5, and then <code>flush()</code> the session.  The erroneous assumption would be that there is now a <code>User</code> object of identity "5" attached to the <code>Address</code> object, but in fact this is not the case.  If you were to <code>refresh()</code> the <code>Address</code>, invalidating its current state and re-loading, <em>then</em> it would have the appropriate <code>User</code> object present.
 </p>
-<p>This misunderstanding is related to the observed behavior of backreferences (<a href="datamapping.html#datamapping_relations_backreferences" >Backreferences</a>), which automatically associates an instance "A" with another instance "B", in response to the manual association of instance "B" to instance "A" by the user.  The backreference operation occurs completely externally to the <code>flush()</code> operation, and is pretty much the only example of a SQLAlchemy feature that manipulates the relationships of persistent objects.
+<p>This misunderstanding is related to the observed behavior of backreferences (<a href="datamapping.html#datamapping_relations_backreferences">Backreferences</a>), which automatically associates an instance "A" with another instance "B", in response to the manual association of instance "B" to instance "A" by the user.  The backreference operation occurs completely externally to the <code>flush()</code> operation, and is pretty much the only example of a SQLAlchemy feature that manipulates the relationships of persistent objects.
 </p>
 <p>The primary guideline for dealing with <code>flush()</code> is, the developer is responsible for maintaining in-memory objects and their relationships to each other, the unit of work is responsible for maintaining the database representation of the in-memory objects.  The typical pattern is that the manipulation of objects <em>is</em> the way that changes get communicated to the unit of work, so that when the flush occurs, the objects are already in their correct in-memory representation and problems dont arise.  The manipulation of identifier attributes like integer key values as well as deletes in particular are a frequent source of confusion.
 </p>
@@ -853,20 +728,15 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
+</div>
+
+
+
+    </div>
 
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-
-
-
-</div>
-
-
-        
 
 
 
@@ -874,10 +744,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>close()</h3>
+
+<h3>close()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>This method first calls <code>clear()</code>, removing all objects from this <code>Session</code>, and then insures that any transactional resources are closed.
 </p>
@@ -885,14 +756,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -900,10 +766,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>delete()</h3>
+
+<h3>delete()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The <code>delete</code> method places an instance into the Unit of Work's list of objects to be marked as deleted:
 </p>
@@ -924,14 +791,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -939,10 +801,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>clear()</h3>
+
+<h3>clear()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>This method detaches all instances from the Session, sending them to the detached or transient state as applicable, and replaces the underlying UnitOfWork with a new one.
 </p>
@@ -956,14 +819,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -971,10 +829,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>refresh() / expire()</h3>
+
+<h3>refresh() / expire()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>To assist with the Unit of Work's "sticky" behavior, individual objects can have all of their attributes immediately re-loaded from the database, or marked as "expired" which will cause a re-load to occur upon the next access of any of the object's mapped attributes.  This includes all relationships, so lazy-loaders will be re-initialized, eager relationships will be repopulated.  Any changes marked on the object are discarded:
 </p>
@@ -993,14 +852,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1008,10 +862,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>expunge()</h3>
+
+<h3>expunge()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Expunge removes an object from the Session, sending persistent instances to the detached state, and pending instances to the transient state:
 </p>
@@ -1025,14 +880,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1040,10 +890,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>bind_mapper() / bind_table()</h3>
+
+<h3>bind_mapper() / bind_table()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>Both of these methods receive two arguments; in the case of <code>bind_mapper()</code>, it is a <code>Mapper</code> and an <code>Engine</code> or <code>Connection</code> instance; in the case of <code>bind_table()</code>, it is a <code>Table</code> instance or other <code>Selectable</code> (such as an <code>Alias</code>, <code>Select</code>, etc.), and an <code>Engine</code> or <code>Connection</code> instance.
 </p>
@@ -1059,7 +910,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 </span>
 <span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">bind_mapper</span><span class="python_enclosure">(</span><span class="python_name">mymapper</span><span class="python_operator">, </span><span class="python_name">sqlite_connection</span><span class="python_enclosure">)  </span><span class="python_comment"># bind mymapper operations to a single SQLite connection</span><span class="python_operator">
 </span><span class="python_name">sess</span><span class="python_operator">.</span><span class="python_name">bind_table</span><span class="python_enclosure">(</span><span class="python_name">email_addresses_table</span><span class="python_operator">, </span><span class="python_name">engine2</span><span class="python_enclosure">) </span><span class="python_comment"># bind operations with the email_addresses_table to mysql</span><span class="python_operator"></span></pre></div>
-<p>Normally, when a <code>Session</code> is created via <code>create_session()</code> with no arguments, the Session has no awareness of individual <code>Engines</code>, and when mappers use the <code>Session</code> to retrieve connections, the underlying <code>MetaData</code> each <code>Table</code> is associated with is expected to be "bound" to an <code>Engine</code>, else no engine can be located and an exception is raised.  A second form of <code>create_session()</code> takes the argument <code>bind_to=engine_or_connection</code>, where all SQL operations performed by this <code>Session</code> use the single <code>Engine</code> or <code>Connection</code> (collectively known as a <code>Connectable</code>) passed to the constructor.  With <code>bind_mapper()</code> and <code>bind_table()</code>,  the operations of individual mapper and/or tables are bound to distinct engines or connections, thereby overriding not only the engine which may be "bound" to the underlying <code>MetaData</code>, but also the <code>Engine</code> or <code>Connection</code> which may have been passed to the <code>create_session()</code> function.  Configurations which interact with multiple explicit database connections at one time must use either or both of these methods in order to associate <code>Session</code> operations with the appropriate connection resource.  <br /> 
+<p>Normally, when a <code>Session</code> is created via <code>create_session()</code> with no arguments, the Session has no awareness of individual <code>Engines</code>, and when mappers use the <code>Session</code> to retrieve connections, the underlying <code>MetaData</code> each <code>Table</code> is associated with is expected to be "bound" to an <code>Engine</code>, else no engine can be located and an exception is raised.  A second form of <code>create_session()</code> takes the argument <code>bind_to=engine_or_connection</code>, where all SQL operations performed by this <code>Session</code> use the single <code>Engine</code> or <code>Connection</code> (collectively known as a <code>Connectable</code>) passed to the constructor.  With <code>bind_mapper()</code> and <code>bind_table()</code>,  the operations of individual mapper and/or tables are bound to distinct engines or connections, thereby overriding not only the engine which may be "bound" to the underlying <code>MetaData</code>, but also the <code>Engine</code> or <code>Connection</code> which may have been passed to the <code>create_session()</code> function.  Configurations which interact with multiple explicit database connections at one time must use either or both of these methods in order to associate <code>Session</code> operations with the appropriate connection resource.  <br></br>
 </p>
 <p>Binding a <code>Mapper</code> to a resource takes precedence over a <code>Table</code> bind, meaning if mapper A is associated with table B, and the Session binds mapper A to connection X and table B to connection Y, an operation with mapper A will use connection X, not connection Y.
 </p>
@@ -1067,14 +918,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1082,10 +928,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>update()</h3>
+
+<h3>update()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The update() method is used <em>only</em> with detached instances.  A detached instance only exists if its <code>Session</code> was cleared or closed, or the instance was <code>expunge()</code>d from its session.  <code>update()</code> will re-attach the detached instance with this Session, bringing it back to the persistent state, and allowing any changes on the instance to be saved when the <code>Session</code> is next <code>flush</code>ed.  If the instance is already attached to an existing <code>Session</code>, an exception is raised.
 </p>
@@ -1097,14 +944,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1112,10 +954,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>save_or_update()</h3>
+
+<h3>save_or_update()</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>This method is a combination of the <code>save()</code> and <code>update()</code> methods, which will examine the given instance for a database identity (i.e. if it is transient or detached), and will call the implementation of <code>save()</code> or <code>update()</code> as appropriate.  Use <code>save_or_update()</code> to add unattached instances to a session when you're not sure if they were newly created or not.  Like <code>save()</code> and <code>update()</code>, <code>save_or_update()</code> cascades along the <code>save-update</code> cascade indicator, described in the <code>cascade</code> section below.
 </p>
@@ -1123,14 +966,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1138,14 +976,15 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>merge()</h3>
+
+<h3>merge()</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>Feature Status: <a href="javascript:alphaImplementation()">Alpha Implementation</a> 
+<p>Feature Status: <a href='javascript:alphaImplementation()'>Alpha Implementation</a> 
 </p>
-<p> <code>merge()</code> is used to return the persistent version of an instance that is not attached to this Session.  When passed an instance, if an instance with its database identity already exists within this Session, it is returned.  If the instance does not exist in this Session, it is loaded from the database and then returned.  <br /> 
+<p><code>merge()</code> is used to return the persistent version of an instance that is not attached to this Session.  When passed an instance, if an instance with its database identity already exists within this Session, it is returned.  If the instance does not exist in this Session, it is loaded from the database and then returned.  <br></br>
 </p>
 <p>A future version of <code>merge()</code> will also update the Session's instance with the state of the given instance (hence the name "merge").
 </p>
@@ -1166,20 +1005,15 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
+</div>
+
+
+
+    </div>
 
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-
-
-
-</div>
-
-
-        
 
 
 
@@ -1187,12 +1021,13 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Cascade rules</h3>
+
+<h3>Cascade rules</h3>
+
     <div class="sectiontext">
+    
 
-
-
-<p>Feature Status: <a href="javascript:alphaImplementation()">Alpha Implementation</a> 
+<p>Feature Status: <a href='javascript:alphaImplementation()'>Alpha Implementation</a> 
 </p>
 <p>Mappers support the concept of configurable <em>cascade</em> behavior on <code>relation()</code>s.  This behavior controls how the Session should treat the instances that have a parent-child relationship with another instance that is operated upon by the Session.  Cascade is indicated as a comma-separated list of string keywords, with the possible values <code>all</code>, <code>delete</code>, <code>save-update</code>, <code>refresh-expire</code>, <code>merge</code>, <code>expunge</code>, and <code>delete-orphan</code>.
 </p>
@@ -1219,14 +1054,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1234,10 +1064,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>SessionTransaction</h3>
+
+<h3>SessionTransaction</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>SessionTransaction is a multi-engine transaction manager, which aggregates one or more Engine/Connection pairs and keeps track of a Transaction object for each one.  As the Session receives requests to execute SQL statements, it uses the Connection that is referenced by the SessionTransaction.  At commit time, the underyling Session is flushed, and each Transaction is the committed.
 </p>
@@ -1259,19 +1090,17 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 </span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
 <p>The <code>create_transaction()</code> method creates a new SessionTransaction object but does not declare any connection/transaction resources.  At the point of the first <code>get()</code> call, a connection resource is opened off the engine that corresponds to the Item classes' mapper and is stored within the <code>SessionTransaction</code> with an open <code>Transaction</code>.  When <code>trans.commit()</code> is called, the <code>flush()</code> method is called on the <code>Session</code> and the corresponding update statements are issued to the database within the scope of the transaction already opened; afterwards, the underying Transaction is committed, and connection resources are freed.
 </p>
-<p> <code>SessionTransaction</code>, like the <code>Transaction</code> off of <code>Connection</code> also supports "nested" behavior, and is safe to pass to other functions which then issue their own <code>begin()</code>/<code>commit()</code> pair; only the outermost <code>begin()</code>/<code>commit()</code> pair actually affects the transaction, and any call to <code>rollback()</code> within a particular call stack will issue a rollback.
+<p><code>SessionTransaction</code>, like the <code>Transaction</code> off of <code>Connection</code> also supports "nested" behavior, and is safe to pass to other functions which then issue their own <code>begin()</code>/<code>commit()</code> pair; only the outermost <code>begin()</code>/<code>commit()</code> pair actually affects the transaction, and any call to <code>rollback()</code> within a particular call stack will issue a rollback.
 </p>
-<p>Note that while SessionTransaction is capable of tracking multiple transactions across multiple databases, it currently is in no way a fully functioning two-phase commit engine; generally, when dealing with multiple databases simultaneously, there is the distinct possibility that a transaction can succeed on the first database and fail on the second, which for some applications may be an invalid state.  If this is an issue, its best to either refrain from spanning transactions across databases, or to look into some of the available technologies in this area, such as <a href="http://www.zope.org">Zope</a> which offers a two-phase commit engine; some users have already created their own SQLAlchemy/Zope hybrid implementations to deal with scenarios like these.
+<p>Note that while SessionTransaction is capable of tracking multiple transactions across multiple databases, it currently is in no way a fully functioning two-phase commit engine; generally, when dealing with multiple databases simultaneously, there is the distinct possibility that a transaction can succeed on the first database and fail on the second, which for some applications may be an invalid state.  If this is an issue, its best to either refrain from spanning transactions across databases, or to look into some of the available technologies in this area, such as <a href='http://www.zope.org'>Zope</a> which offers a two-phase commit engine; some users have already created their own SQLAlchemy/Zope hybrid implementations to deal with scenarios like these.
 </p>
-
-
-			
-
-			
-
-    </div>
-
-        
+<p>SessionTransaction Facts:
+</p>
+<ul>
+ <li>
+     SessionTransaction, like its parent Session object, is <strong>not threadsafe</strong>.
+ </li>
+</ul>
 
 
 
@@ -1279,10 +1108,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Using SQL with SessionTransaction</h3>
+
+<h3>Using SQL with SessionTransaction</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The SessionTransaction can interact with direct SQL queries in two general ways.  Either specific <code>Connection</code> objects can be associated with the <code>SessionTransaction</code>, which are then useable both for direct SQL as well as within <code>flush()</code> operations performed by the <code>SessionTransaction</code>, or via accessing the <code>Connection</code> object automatically referenced within the <code>SessionTransaction</code>.
 </p>
@@ -1324,14 +1154,9 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
-
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-        
 
 
 
@@ -1339,10 +1164,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:30px;">
 
-    <h3>Using Engine-level Transactions with Sessions</h3>
+
+<h3>Using Engine-level Transactions with Sessions</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The transactions issued by <code>SessionTransaction</code> as well as internally by the <code>Session</code>'s <code>flush()</code> operation use the same <code>Transaction</code> object off of <code>Connection</code> that is publically available.  Recall that this object supports "nestable" behavior, meaning any number of actors can call <code>begin()</code> off a particular <code>Connection</code> object, and they will all be managed within the scope of a single transaction.  Therefore, the <code>flush()</code> operation can similarly take place within the scope of a regular <code>Transaction</code>:
 </p>
@@ -1366,20 +1192,15 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
     </div>
 
+</div>
+
+
+
+    </div>
 
     <a href="#unitofwork" class="toclink">back to section top</a>
-
-
 </div>
 
-
-
-
-
-</div>
-
-
-        
 
 
 
@@ -1387,10 +1208,11 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 
 <div class="subsection" style="margin-left:20px;">
 
-    <h3>Analyzing Object Flushes</h3>
+
+<h3>Analyzing Object Flushes</h3>
+
     <div class="sectiontext">
-
-
+    
 
 <p>The session module can log an extensive display of its "flush plans", which is a graph of its internal representation of objects before they are written to the database.  To turn this logging on:
 </p>
@@ -1423,57 +1245,35 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
 </p>
 
 
+
     </div>
-
-
-    <a href="#unitofwork" class="toclink">back to section top</a>
-
 
 </div>
 
 
 
+    </div>
 
+    <a href="#unitofwork" class="toclink">back to section top</a>
     
 <div class="sectionnavblock">
 <div class="sectionnav">
 
-
-        Previous: <a href="datamapping.html">Data Mapping</a>
+        Previous: <a href="datamapping.html#datamapping">Data Mapping</a>
 
                 |
 
-        Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
+        Next: <a href="adv_datamapping.html#advdatamapping">Advanced Data Mapping</a>
 
 </div>
 </div>
 
-
 </div>
 
 
-		</div>
-
-
-
-
-
+</html></div>
 
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

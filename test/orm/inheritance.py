@@ -1,7 +1,6 @@
 import testbase
 from sqlalchemy import *
 import string
-import sqlalchemy.attributes as attr
 import sys
 
 class Principal( object ):
@@ -96,16 +95,16 @@ class InheritTest2(testbase.AssertMixin):
         foo = Table('foo', metadata,
             Column('id', Integer, Sequence('foo_id_seq'), primary_key=True),
             Column('data', String(20)),
-            ).create()
+            )
 
         bar = Table('bar', metadata,
             Column('bid', Integer, ForeignKey('foo.id'), primary_key=True),
             #Column('fid', Integer, ForeignKey('foo.id'), )
-            ).create()
+            )
 
         foo_bar = Table('foo_bar', metadata,
             Column('foo_id', Integer, ForeignKey('foo.id')),
-            Column('bar_id', Integer, ForeignKey('bar.bid'))).create()
+            Column('bar_id', Integer, ForeignKey('bar.bid')))
         metadata.create_all()
     def tearDownAll(self):
         metadata.drop_all()

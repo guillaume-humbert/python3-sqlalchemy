@@ -72,33 +72,6 @@ class SimpleProperty(object):
         else:
             return getattr(obj, self.key)
 
-class Logger(object):
-    """defines various forms of logging"""
-    def __init__(self, logger=None, usethreads=False, usetimestamp=True, origin=None):
-        self.logger = logger or sys.stdout
-        self.usethreads = usethreads
-        self.usetimestamp = usetimestamp
-        self.origin = origin
-    def write(self, msg):
-        if self.usetimestamp:
-            t = time.time()
-            ms = (t - long(t)) * 1000
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t))
-            timestamp = "[%s,%03d]" % (timestamp, ms)
-        else:
-            timestamp = None
-        if self.origin:
-            origin = "[%s]" % self.origin
-            origin = "%-8s" % origin
-        else:
-            origin = None
-        if self.usethreads:
-            threadname = threading.currentThread().getName()
-            threadname = "[" + threadname + ' '*(8-len(threadname)) + "]"
-        else:
-            threadname = None
-        self.logger.write(string.join([s for s in (timestamp, threadname, origin) if s is not None]) + ": " + msg + "\n")
-    
 class OrderedProperties(object):
     """
     An object that maintains the order in which attributes are set upon it.
@@ -114,6 +87,8 @@ class OrderedProperties(object):
         return len(self.__data)
     def __iter__(self):
         return self.__data.itervalues()
+    def __add__(self, other):
+        return list(self) + list(other)
     def __setitem__(self, key, object):
         self.__data[key] = object
     def __getitem__(self, key):
@@ -129,6 +104,11 @@ class OrderedProperties(object):
             raise AttributeError(key)
     def __contains__(self, key):
         return key in self.__data
+    def get(self, key, default=None):
+        if self.has_key(key):
+            return self[key]
+        else:
+            return default
     def keys(self):
         return self.__data.keys()
     def has_key(self, key):
@@ -137,21 +117,26 @@ class OrderedProperties(object):
         self.__data.clear()
         
 class OrderedDict(dict):
-    """A Dictionary that keeps its own internal ordering"""
-    
-    def __init__(self, values = None):
+    """A Dictionary that returns keys/values/items in the order they were added"""
+    def __init__(self, d=None, **kwargs):
         self._list = []
-        if values is not None:
-            for val in values:
-                self.update(val)
+        self.update(d, **kwargs)
     def keys(self):
         return list(self._list)
     def clear(self):
         self._list = []
         dict.clear(self)
-    def update(self, dict):
-        for key in dict.keys():
-            self.__setitem__(key, dict[key])
+    def update(self, d=None, **kwargs):
+        # d can be a dict or sequence of keys/values
+        if d:
+            if hasattr(d, 'iteritems'):
+                seq = d.iteritems()
+            else:
+                seq = d
+            for key, value in seq:
+                self.__setitem__(key, value)
+        if kwargs:
+            self.update(kwargs)
     def setdefault(self, key, value):
         if not self.has_key(key):
             self.__setitem__(key, value)
@@ -159,7 +144,7 @@ class OrderedDict(dict):
         else:
             return self.__getitem__(key)
     def values(self):
-        return map(lambda key: self[key], self._list)
+        return [self[key] for key in self._list]
     def __iter__(self):
         return iter(self._list)
     def itervalues(self):

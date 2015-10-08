@@ -125,6 +125,15 @@ class QueryTest(PersistTest):
         s = self.users.select(or_(self.users.c.user_name==u, self.users.c.user_name==u))
         r = s.execute(uid='fred').fetchall()
         assert len(r) == 1
+    
+    def test_bindparam_shortname(self):
+        """test the 'shortname' field on BindParamClause."""
+        self.users.insert().execute(user_id = 7, user_name = 'jack')
+        self.users.insert().execute(user_id = 8, user_name = 'fred')
+        u = bindparam('uid', shortname='someshortname')
+        s = self.users.select(self.users.c.user_name==u)
+        r = s.execute(someshortname='fred').fetchall()
+        assert len(r) == 1
         
     def testdelete(self):
         self.users.insert().execute(user_id = 7, user_name = 'jack')
@@ -179,6 +188,26 @@ class QueryTest(PersistTest):
         r = db.execute('select user_name from query_users', {}).fetchone()
         self.assertEqual(len(r), 1)
         r.close()
+    
+    def test_functions(self):
+        x = testbase.db.func.current_date().execute().scalar()
+        y = testbase.db.func.current_date().select().execute().scalar()
+        z = testbase.db.func.current_date().scalar()
+        assert x == y == z
+
+    @testbase.supported('postgres')
+    def test_functions_with_cols(self):
+        x = testbase.db.func.current_date().execute().scalar()
+        y = testbase.db.func.current_date().select().execute().scalar()
+        z = testbase.db.func.current_date().scalar()
+        w = select(['*'], from_obj=[testbase.db.func.current_date()]).scalar()
+        
+        # construct a column-based FROM object out of a function, like in [ticket:172]
+        s = select([column('date', type=DateTime)], from_obj=[testbase.db.func.current_date()])
+        q = s.execute().fetchone()[s.c.date]
+        r = s.alias('datequery').select().scalar()
+        
+        assert x == y == z == w == q == r
         
     def test_column_order_with_simple_query(self):
         # should return values in column definition order

@@ -1,6 +1,6 @@
 from testbase import PersistTest
 import sqlalchemy.util as util
-import sqlalchemy.attributes as attributes
+import sqlalchemy.orm.attributes as attributes
 import unittest, sys, os
 import pickle
 
@@ -294,6 +294,26 @@ class AttributesTest(PersistTest):
         b2.element = None
         assert not manager.get_history(b2, 'element').hasparent(f2)
 
+    def testmutablescalars(self):
+        """test detection of changes on mutable scalar items"""
+        class Foo(object):pass
+        manager = attributes.AttributeManager()
+        manager.register_attribute(Foo, 'element', uselist=False, copy_function=lambda x:[y for y in x], mutable_scalars=True)
+        x = Foo()
+        x.element = ['one', 'two', 'three']    
+        manager.commit(x)
+        x.element[1] = 'five'
+        assert manager.is_modified(x)
+        
+        manager.reset_class_managed(Foo)
+        manager = attributes.AttributeManager()
+        manager.register_attribute(Foo, 'element', uselist=False)
+        x = Foo()
+        x.element = ['one', 'two', 'three']    
+        manager.commit(x)
+        x.element[1] = 'five'
+        assert not manager.is_modified(x)
+        
     def testdescriptorattributes(self):
         """changeset: 1633 broke ability to use ORM to map classes with unusual
         descriptor attributes (for example, classes that inherit from ones
