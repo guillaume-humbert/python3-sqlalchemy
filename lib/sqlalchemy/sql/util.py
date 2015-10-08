@@ -53,24 +53,21 @@ def find_tables(clause, check_columns=False, include_aliases=False, include_join
     tables = []
     _visitors = {}
     
-    def visit_something(elem):
-        tables.append(elem)
-        
     if include_selects:
-        _visitors['select'] = _visitors['compound_select'] = visit_something
+        _visitors['select'] = _visitors['compound_select'] = tables.append
     
     if include_joins:
-        _visitors['join'] = visit_something
+        _visitors['join'] = tables.append
         
     if include_aliases:
-        _visitors['alias']  = visit_something
+        _visitors['alias']  = tables.append
 
     if check_columns:
         def visit_column(column):
             tables.append(column.table)
         _visitors['column'] = visit_column
 
-    _visitors['table'] = visit_something
+    _visitors['table'] = tables.append
 
     visitors.traverse(clause, {'column_collections':False}, _visitors)
     return tables
@@ -301,7 +298,7 @@ def reduce_columns(columns, *clauses, **kw):
 
     omit = util.column_set()
     for col in columns:
-        for fk in col.foreign_keys:
+        for fk in chain(*[c.foreign_keys for c in col.proxy_set]):
             for c in columns:
                 if c is col:
                     continue
@@ -501,11 +498,12 @@ class ColumnAdapter(ClauseAdapter):
     adapted_row() factory.
     
     """
-    def __init__(self, selectable, equivalents=None, chain_to=None, include=None, exclude=None):
+    def __init__(self, selectable, equivalents=None, chain_to=None, include=None, exclude=None, adapt_required=False):
         ClauseAdapter.__init__(self, selectable, equivalents, include, exclude)
         if chain_to:
             self.chain(chain_to)
         self.columns = util.populate_column_dict(self._locate_col)
+        self.adapt_required = adapt_required
 
     def wrap(self, adapter):
         ac = self.__class__.__new__(self.__class__)
@@ -533,6 +531,16 @@ class ColumnAdapter(ClauseAdapter):
             # anonymize labels in case they have a hardcoded name
             if isinstance(c, expression._Label):
                 c = c.label(None)
+                
+        # adapt_required indicates that if we got the same column
+        # back which we put in (i.e. it passed through), 
+        # it's not correct.  this is used by eagerloading which
+        # knows that all columns and expressions need to be adapted
+        # to a result row, and a "passthrough" is definitely targeting
+        # the wrong column.
+        if self.adapt_required and c is col:
+            return None
+            
         return c    
 
     def adapted_row(self, row):

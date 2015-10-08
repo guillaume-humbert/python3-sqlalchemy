@@ -225,6 +225,11 @@ class InvalidGenerationsTest(QueryTest):
 
             assert_raises(sa_exc.InvalidRequestError, q.having, 'foo')
     
+            q.enable_assertions(False).join("addresses")
+            q.enable_assertions(False).filter(User.name=='ed')
+            q.enable_assertions(False).order_by('foo')
+            q.enable_assertions(False).group_by('foo')
+            
     def test_no_from(self):
         s = create_session()
     
@@ -236,6 +241,10 @@ class InvalidGenerationsTest(QueryTest):
         
         q = s.query(User).order_by(User.id)
         assert_raises(sa_exc.InvalidRequestError, q.select_from, users)
+
+        assert_raises(sa_exc.InvalidRequestError, q.select_from, users)
+        
+        q.enable_assertions(False).select_from(users)
         
         # this is fine, however
         q.from_self()
@@ -978,7 +987,7 @@ class CountTest(QueryTest):
         
 class DistinctTest(QueryTest):
     def test_basic(self):
-        assert [User(id=7), User(id=8), User(id=9),User(id=10)] == create_session().query(User).distinct().all()
+        assert [User(id=7), User(id=8), User(id=9),User(id=10)] == create_session().query(User).distinct().order_by(User.id).all()
         assert [User(id=7), User(id=9), User(id=8),User(id=10)] == create_session().query(User).distinct().order_by(desc(User.name)).all()
 
     def test_joined(self):
@@ -1180,6 +1189,12 @@ class JoinTest(QueryTest):
         result = sess.query(ualias).join((oalias1, ualias.orders), (oalias2, ualias.orders)).\
                 filter(or_(oalias1.user_id==9, oalias2.user_id==7)).all()
         eq_(result, [User(id=7,name=u'jack'), User(id=9,name=u'fred')])
+    
+    def test_pure_expression_error(self):
+        sess = create_session()
+        
+        assert_raises_message(sa.exc.InvalidRequestError, "Could not find a FROM clause to join from", sess.query(users).join, addresses)
+        
         
     def test_orderby_arg_bug(self):
         sess = create_session()
@@ -2834,6 +2849,22 @@ class UpdateDeleteTest(_base.MappedTest):
             'user': relation(User, lazy=False, backref=backref('documents', lazy=True))
         })
 
+    @testing.resolve_artifact_names
+    def test_illegal_operations(self):
+        s = create_session()
+        
+        for q, mname in (
+            (s.query(User).limit(2), "limit"),
+            (s.query(User).offset(2), "offset"),
+            (s.query(User).limit(2).offset(2), "limit"),
+            (s.query(User).order_by(User.id), "order_by"),
+            (s.query(User).group_by(User.id), "group_by"),
+            (s.query(User).distinct(), "distinct")
+        ):
+            assert_raises_message(sa_exc.InvalidRequestError, r"Can't call Query.update\(\) when %s\(\) has been called" % mname, q.update, {'name':'ed'})
+            assert_raises_message(sa_exc.InvalidRequestError, r"Can't call Query.delete\(\) when %s\(\) has been called" % mname, q.delete)
+            
+        
     @testing.resolve_artifact_names
     def test_delete(self):
         sess = create_session(bind=testing.db, autocommit=False)

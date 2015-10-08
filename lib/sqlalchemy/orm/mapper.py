@@ -244,7 +244,7 @@ class Mapper(object):
             else:
                 self.mapped_table = self.local_table
 
-            if self.polymorphic_identity and not self.concrete:
+            if self.polymorphic_identity is not None and not self.concrete:
                 self._identity_class = self.inherits._identity_class
             else:
                 self._identity_class = self.class_
@@ -278,7 +278,7 @@ class Mapper(object):
             self._all_tables = set()
             self.base_mapper = self
             self.mapped_table = self.local_table
-            if self.polymorphic_identity:
+            if self.polymorphic_identity is not None:
                 self.polymorphic_map[self.polymorphic_identity] = self
             self._identity_class = self.class_
 
@@ -547,9 +547,16 @@ class Mapper(object):
                 for c in columns:
                     mc = self.mapped_table.corresponding_column(c)
                     if not mc:
-                        raise sa_exc.ArgumentError("Column '%s' is not represented in mapper's table.  "
-                            "Use the `column_property()` function to force this column "
-                            "to be mapped as a read-only attribute." % c)
+                        mc = self.local_table.corresponding_column(c)
+                        if mc:
+                            # if the column is in the local table but not the mapped table,
+                            # this corresponds to adding a column after the fact to the local table.
+                            self.mapped_table._reset_exported()
+                        mc = self.mapped_table.corresponding_column(c)
+                        if not mc:
+                            raise sa_exc.ArgumentError("Column '%s' is not represented in mapper's table.  "
+                                "Use the `column_property()` function to force this column "
+                                "to be mapped as a read-only attribute." % c)
                     mapped_column.append(mc)
                 prop = ColumnProperty(*mapped_column)
             else:
@@ -649,6 +656,9 @@ class Mapper(object):
                         return self
 
                     # initialize properties on all mappers
+                    # note that _mapper_registry is unordered, which 
+                    # may randomly conceal/reveal issues related to 
+                    # the order of mapper compilation
                     for mapper in list(_mapper_registry):
                         if getattr(mapper, '_compile_failed', False):
                             raise sa_exc.InvalidRequestError("One or more mappers failed to compile.  Exception was probably "
@@ -1101,7 +1111,12 @@ class Mapper(object):
         
         """
         props = self._props
-        tables = set(props[key].parent.local_table for key in attribute_names)
+        
+        tables = set(chain(*
+                        (sqlutil.find_tables(props[key].columns[0], check_columns=True) 
+                        for key in attribute_names)
+                    ))
+        
         if self.base_mapper.local_table in tables:
             return None
 
@@ -1138,7 +1153,8 @@ class Mapper(object):
             return None
 
         cond = sql.and_(*allconds)
-        return sql.select(tables, cond, use_labels=True)
+
+        return sql.select([props[key].columns[0] for key in attribute_names], cond, use_labels=True)
 
     def cascade_iterator(self, type_, state, halt_on=None):
         """Iterate each element and its mapper in an object graph,
@@ -1265,8 +1281,8 @@ class Mapper(object):
                             (state_str(state), instance_key, state_str(existing)))
                     if self._should_log_debug:
                         self._log_debug(
-                            "detected row switch for identity %s.  will update %s, remove %s from transaction", 
-                            instance_key, state_str(state), state_str(existing))
+                            "detected row switch for identity %s.  will update %s, remove %s from "
+                            "transaction" % (instance_key, state_str(state), state_str(existing)))
                             
                     # remove the "delete" flag from the existing element
                     uowtransaction.set_row_switch(existing)
@@ -1285,7 +1301,8 @@ class Mapper(object):
                 pks = mapper._pks_by_table[table]
                 
                 if self._should_log_debug:
-                    self._log_debug("_save_obj() table '%s' instance %s identity %s" % (table.name, state_str(state), str(instance_key)))
+                    self._log_debug("_save_obj() table '%s' instance %s identity %s" %
+                                    (table.name, state_str(state), str(instance_key)))
 
                 isinsert = not has_identity and not postupdate and state not in row_switches
                 
@@ -1299,7 +1316,9 @@ class Mapper(object):
                             params[col.key] = 1
                         elif mapper.polymorphic_on and mapper.polymorphic_on.shares_lineage(col):
                             if self._should_log_debug:
-                                self._log_debug("Using polymorphic identity '%s' for insert column '%s'" % (mapper.polymorphic_identity, col.key))
+                                self._log_debug(
+                                    "Using polymorphic identity '%s' for insert column '%s'" %
+                                    (mapper.polymorphic_identity, col.key))
                             value = mapper.polymorphic_identity
                             if ((col.default is None and
                                  col.server_default is None) or
@@ -1328,7 +1347,7 @@ class Mapper(object):
                                 history = attributes.get_state_history(state, prop.key, passive=True)
                                 if history.added:
                                     hasdata = True
-                        elif mapper.polymorphic_on and mapper.polymorphic_on.shares_lineage(col):
+                        elif mapper.polymorphic_on and mapper.polymorphic_on.shares_lineage(col) and col not in pks:
                             pass
                         else:
                             if post_update_cols is not None and col not in post_update_cols:
@@ -1617,8 +1636,8 @@ class Mapper(object):
                 dict_ = attributes.instance_dict(instance)
 
                 if self._should_log_debug:
-                    self._log_debug("_instance(): using existing instance %s identity %s",
-                                        instance_str(instance), identitykey)
+                    self._log_debug("_instance(): using existing instance %s identity %s" %
+                                    (instance_str(instance), identitykey))
 
                 isnew = state.runid != context.runid
                 currentload = not isnew
@@ -1641,7 +1660,7 @@ class Mapper(object):
                 loaded_instance = False
             else:
                 if self._should_log_debug:
-                    self._log_debug("_instance(): identity key %s not in session", identitykey)
+                    self._log_debug("_instance(): identity key %s not in session" % (identitykey,))
 
                 if self.allow_null_pks:
                     for x in identitykey[1]:
@@ -1669,8 +1688,8 @@ class Mapper(object):
                     instance = self.class_manager.new_instance()
 
                 if self._should_log_debug:
-                    self._log_debug("_instance(): created new instance %s identity %s",
-                                instance_str(instance), identitykey)
+                    self._log_debug("_instance(): created new instance %s identity %s" %
+                                    (instance_str(instance), identitykey))
 
                 dict_ = attributes.instance_dict(instance)
                 state = attributes.instance_state(instance)
