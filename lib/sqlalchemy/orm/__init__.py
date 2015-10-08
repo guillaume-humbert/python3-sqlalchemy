@@ -29,6 +29,7 @@ from sqlalchemy.orm.interfaces import (
      )
 from sqlalchemy.orm.util import (
      AliasedClass as aliased,
+     Validator,
      join,
      object_mapper,
      outerjoin,
@@ -44,6 +45,7 @@ from sqlalchemy.orm.properties import (
      SynonymProperty,
      )
 from sqlalchemy.orm import mapper as mapperlib
+from sqlalchemy.orm.mapper import reconstructor, validates
 from sqlalchemy.orm import strategies
 from sqlalchemy.orm.query import AliasOption, Query
 from sqlalchemy.sql import util as sql_util
@@ -58,6 +60,7 @@ __all__ = (
     'EXT_STOP',
     'InstrumentationManager',
     'MapperExtension',
+    'Validator',
     'PropComparator',
     'Query',
     'aliased',
@@ -83,12 +86,14 @@ __all__ = (
     'object_mapper',
     'object_session',
     'polymorphic_union',
+    'reconstructor',
     'relation',
     'scoped_session',
     'sessionmaker',
     'synonym',
     'undefer',
     'undefer_group',
+    'validates'
     )
 
 
@@ -204,6 +209,14 @@ def relation(argument, secondary=None, **kwargs):
           a class or function that returns a new list-holding object. will be
           used in place of a plain list for storing elements.
 
+        extension
+          an [sqlalchemy.orm.interfaces#AttributeExtension] instance, 
+          or list of extensions, which will be prepended to the list of 
+          attribute listeners for the resulting descriptor placed on the class.
+          These listeners will receive append and set events before the 
+          operation proceeds, and may be used to halt (via exception throw)
+          or change the value used in the operation.
+          
         foreign_keys
           a list of columns which are to be used as "foreign key" columns.
           this parameter should be used in conjunction with explicit
@@ -394,6 +407,14 @@ def column_property(*args, **kwargs):
           attribute is first accessed on an instance.  See also
           [sqlalchemy.orm#deferred()].
 
+      extension
+        an [sqlalchemy.orm.interfaces#AttributeExtension] instance, 
+        or list of extensions, which will be prepended to the list of 
+        attribute listeners for the resulting descriptor placed on the class.
+        These listeners will receive append and set events before the 
+        operation proceeds, and may be used to halt (via exception throw)
+        or change the value used in the operation.
+
     """
 
     return ColumnProperty(*args, **kwargs)
@@ -416,10 +437,28 @@ def composite(class_, *cols, **kwargs):
               self.x = x
               self.y = y
           def __composite_values__(self):
-              return (self.x, self.y)
-
+              return self.x, self.y
+          def __eq__(self, other):
+              return other is not None and self.x == other.x and self.y == other.y
+              
       # and then in the mapping:
       ... composite(Point, mytable.c.x, mytable.c.y) ...
+
+    The composite object may have its attributes populated based on the names
+    of the mapped columns.  To override the way internal state is set,
+    additionally implement ``__set_composite_values__``:
+        
+        class Point(object):
+            def __init__(self, x, y):
+                self.some_x = x
+                self.some_y = y
+            def __composite_values__(self):
+                return self.some_x, self.some_y
+            def __set_composite_values__(self, x, y):
+                self.some_x = x
+                self.some_y = y
+            def __eq__(self, other):
+                return other is not None and self.some_x == other.x and self.some_y == other.y
 
     Arguments are:
 
@@ -440,6 +479,14 @@ def composite(class_, *cols, **kwargs):
     comparator
       An optional instance of [sqlalchemy.orm#PropComparator] which provides
       SQL expression generation functions for this composite type.
+
+    extension
+      an [sqlalchemy.orm.interfaces#AttributeExtension] instance, 
+      or list of extensions, which will be prepended to the list of 
+      attribute listeners for the resulting descriptor placed on the class.
+      These listeners will receive append and set events before the 
+      operation proceeds, and may be used to halt (via exception throw)
+      or change the value used in the operation.
 
     """
     return CompositeProperty(class_, *cols, **kwargs)
@@ -622,7 +669,7 @@ def mapper(class_, local_table=None, *args, **params):
     """
     return Mapper(class_, local_table, *args, **params)
 
-def synonym(name, map_column=False, descriptor=None, proxy=False):
+def synonym(name, map_column=False, descriptor=None, comparator_factory=None, proxy=False):
     """Set up `name` as a synonym to another mapped property.
 
     Used with the ``properties`` dictionary sent to  [sqlalchemy.orm#mapper()].
@@ -664,7 +711,7 @@ def synonym(name, map_column=False, descriptor=None, proxy=False):
     is not already available.
 
     """
-    return SynonymProperty(name, map_column=map_column, descriptor=descriptor)
+    return SynonymProperty(name, map_column=map_column, descriptor=descriptor, comparator_factory=comparator_factory)
 
 def comparable_property(comparator_factory, descriptor=None):
     """Provide query semantics for an unmanaged attribute.

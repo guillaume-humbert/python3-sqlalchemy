@@ -652,7 +652,7 @@ class GenerativeTest(TestBase, AssertsExecutionResults):
         metadata.drop_all()
     def tearDown(self):
         clear_mappers()
-        for t in metadata.table_iterator(reverse=True):
+        for t in reversed(metadata.sorted_tables):
             t.delete().execute()
 
     def testjointo(self):
@@ -692,7 +692,7 @@ class GenerativeTest(TestBase, AssertsExecutionResults):
         manager_mapper  = mapper(Manager, managers, inherits=person_mapper, polymorphic_identity='manager')
         car_mapper      = mapper(Car, cars, properties= {'employee':relation(person_mapper), 'status':relation(status_mapper)})
 
-        session = create_session(echo_uow=False)
+        session = create_session()
 
         active = Status(name="active")
         dead = Status(name="dead")

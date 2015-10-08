@@ -433,7 +433,10 @@ class ManyToManyDP(DependencyProcessor):
                         uowcommit.attributes[(self, "manytomany", state, child)] = True
                         secondary_delete.append(associationrow)
 
-                if not self.passive_updates and unchanged and self._pks_changed(uowcommit, state):
+                if not self.passive_updates and self._pks_changed(uowcommit, state):
+                    if not unchanged:
+                        (added, unchanged, deleted) = uowcommit.get_attribute_history(state, self.key, passive=False)
+                    
                     for child in unchanged:
                         associationrow = {}
                         sync.update(state, self.parent, associationrow, "old_", self.prop.synchronize_pairs)
@@ -485,14 +488,14 @@ class ManyToManyDP(DependencyProcessor):
         return sync.source_changes(uowcommit, state, self.parent, self.prop.synchronize_pairs)
 
 class MapperStub(object):
-    """Pose as a Mapper representing the association table in a
-    many-to-many join, when performing a ``flush()``.
+    """Represent a many-to-many dependency within a flush 
+    context. 
+     
+    The UOWTransaction corresponds dependencies to mappers.   
+    MapperStub takes the place of the "association table" 
+    so that a depedendency can be corresponded to it.
 
-    The ``Task`` objects in the objectstore module treat it just like
-    any other ``Mapper``, but in fact it only serves as a dependency
-    placeholder for the many-to-many update task.
     """
-
     __metaclass__ = util.ArgSingleton
 
     def __init__(self, parent, mapper, key):

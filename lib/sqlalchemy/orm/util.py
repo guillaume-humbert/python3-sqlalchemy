@@ -9,8 +9,9 @@ import new
 import sqlalchemy.exceptions as sa_exc
 from sqlalchemy import sql, util
 from sqlalchemy.sql import expression, util as sql_util, operators
-from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE, PropComparator, MapperProperty
+from sqlalchemy.orm.interfaces import MapperExtension, EXT_CONTINUE, PropComparator, MapperProperty, AttributeExtension
 from sqlalchemy.orm import attributes, exc
+
 
 all_cascades = frozenset(("delete", "delete-orphan", "all", "merge",
                           "expunge", "save-update", "refresh-expire",
@@ -40,11 +41,37 @@ class CascadeOptions(object):
         return getattr(self, item.replace("-", "_"), False)
 
     def __repr__(self):
-        return "CascadeOptions(arg=%s)" % repr(",".join(
+        return "CascadeOptions(%s)" % repr(",".join(
             [x for x in ['delete', 'save_update', 'merge', 'expunge',
                          'delete_orphan', 'refresh-expire']
              if getattr(self, x, False) is True]))
 
+
+class Validator(AttributeExtension):
+    """Runs a validation method on an attribute value to be set or appended."""
+    
+    def __init__(self, key, validator):
+        """Construct a new Validator.
+        
+            key - name of the attribute to be validated;
+            will be passed as the second argument to 
+            the validation method (the first is the object instance itself).
+            
+            validator - an function or instance method which accepts
+            three arguments; an instance (usually just 'self' for a method),
+            the key name of the attribute, and the value.  The function should
+            return the same value given, unless it wishes to modify it.
+            
+        """
+        self.key = key
+        self.validator = validator
+    
+    def append(self, state, value, initiator):
+        return self.validator(state.obj(), self.key, value)
+
+    def set(self, state, value, oldvalue, initiator):
+        return self.validator(state.obj(), self.key, value)
+    
 def polymorphic_union(table_map, typecolname, aliasname='p_union'):
     """Create a ``UNION`` statement used by a polymorphic mapper.
 
@@ -209,9 +236,9 @@ class ExtensionCarrier(object):
             pass
         return _do
 
+    @staticmethod
     def _pass(*args, **kwargs):
         return EXT_CONTINUE
-    _pass = staticmethod(_pass)
 
     def __getattr__(self, key):
         """Delegate MapperExtension methods to bundled fronts."""
@@ -464,6 +491,11 @@ def class_mapper(class_, compile=True, raiseerror=True):
     try:
         class_manager = attributes.manager_of_class(class_)
         mapper = class_manager.mapper
+        
+        # HACK until [ticket:1142] is complete
+        if mapper is None:
+            raise AttributeError
+            
     except exc.NO_STATE:
         if not raiseerror:
             return

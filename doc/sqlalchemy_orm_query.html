@@ -31,8 +31,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta3</span>
-  Last Updated: 08/04/08 18:36:49
+  Version: <span class="versionnum">0.5.0rc1</span>
+  Last Updated: 09/11/08 17:04:35
 </div>
 
 
@@ -202,9 +202,32 @@ to disable autoflush for a specific Query.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def delete(<i>self</i>, <i>synchronize_session='evaluate'</i>)</b>
+    <b>def delete(<i>self</i>, <i>synchronize_session='fetch'</i>)</b>
     <div class="docstring">
-    <p>EXPERIMENTAL</p>
+    <p>Perform a bulk delete query.</p>
+<p>Deletes rows matched by this query from the database. The synchronize_session
+parameter chooses the strategy for the removal of matched objects from the
+session. Valid values are:</p>
+<dl class="docutils">
+<dt>False</dt>
+<dd>don't synchronize the session. Use this when you don't need to use the
+session after the delete or you can be sure that none of the matched objects
+are in the session. The behavior of deleted objects still in the session is
+undefined.</dd>
+<dt>'fetch'</dt>
+<dd>performs a select query before the delete to find objects that are matched
+by the delete query and need to be removed from the session. Matched objects
+are removed from the session. 'fetch' is the default strategy.</dd>
+<dt>'evaluate'</dt>
+<dd><p class="first">experimental feature. Tries to evaluate the querys criteria in Python
+straight on the objects in the session. If evaluation of the criteria isn't
+implemented, the 'fetch' strategy will be used as a fallback.</p>
+<p class="last">The expression evaluator currently doesn't account for differing string
+collations between the database and Python.</p>
+</dd>
+</dl>
+<p>Returns the number of rows deleted, excluding any cascades.</p>
+<p>Warning - this currently doesn't account for any foreign key/relation cascades.</p>
 
     </div>
     </div>
@@ -578,6 +601,30 @@ the root.</p>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def scalar(<i>self</i>)</b>
+    <div class="docstring">
+    <p>Return the first element of the first result or None.</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; session.query(Item).scalar()
+&lt;Item&gt;
+&gt;&gt;&gt; session.query(Item.id).scalar()
+1
+&gt;&gt;&gt; session.query(Item.id, Item.name).scalar()
+1
+&gt;&gt;&gt; session.query(func.count(Parent.id)).scalar()
+20
+</pre>
+</blockquote>
+<p>This results in an execution of the underlying query.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def select_from(<i>self</i>, <i>from_obj</i>)</b>
     <div class="docstring">
     <p>Set the <cite>from_obj</cite> parameter of the query and return the newly
@@ -604,7 +651,7 @@ from with the given table.</p>
          <A name=""></a>
          <b>statement = property()</b>
          <div class="docstring">
-         <p>return the full SELECT statement represented by this Query.</p>
+         <p>The full SELECT statement represented by this Query.</p>
 
          </div> 
          </div>
@@ -624,9 +671,42 @@ from with the given table.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def update(<i>self</i>, <i>values</i>, <i>synchronize_session='evaluate'</i>)</b>
+    <b>def update(<i>self</i>, <i>values</i>, <i>synchronize_session='expire'</i>)</b>
     <div class="docstring">
-    <p>EXPERIMENTAL</p>
+    <p>Perform a bulk update query.</p>
+<p>Updates rows matched by this query in the database. The values parameter takes
+a dictionary with object attributes as keys and literal values or sql expressions
+as values. The synchronize_session parameter chooses the strategy to update the
+attributes on objects in the session. Valid values are:</p>
+<dl class="docutils">
+<dt>False</dt>
+<dd>don't synchronize the session. Use this when you don't need to use the
+session after the update or you can be sure that none of the matched objects
+are in the session.</dd>
+<dt>'expire'</dt>
+<dd>performs a select query before the update to find objects that are matched
+by the update query. The updated attributes are expired on matched objects.</dd>
+<dt>'evaluate'</dt>
+<dd><p class="first">experimental feature. Tries to evaluate the querys criteria in Python
+straight on the objects in the session. If evaluation of the criteria isn't
+implemented, the 'expire' strategy will be used as a fallback.</p>
+<p class="last">The expression evaluator currently doesn't account for differing string
+collations between the database and Python.</p>
+</dd>
+</dl>
+<p>Returns the number of rows matched by the update.</p>
+<p>Warning - this currently doesn't account for any foreign key/relation cascades.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def value(<i>self</i>, <i>column</i>)</b>
+    <div class="docstring">
+    <p>Return a scalar result corresponding to the given column expression.</p>
 
     </div>
     </div>
@@ -647,7 +727,7 @@ from with the given table.</p>
          <A name=""></a>
          <b>whereclause = property()</b>
          <div class="docstring">
-         <p>return the WHERE criterion for this Query.</p>
+         <p>The WHERE criterion for this Query.</p>
 
          </div> 
          </div>
@@ -659,12 +739,13 @@ from with the given table.</p>
     <b>def with_labels(<i>self</i>)</b>
     <div class="docstring">
     <p>Apply column labels to the return value of Query.statement.</p>
-<p>Indicates that this Query's <cite>statement</cite> accessor should return a
-SELECT statement that applies labels to all columns in the form
-&lt;tablename&gt;_&lt;columnname&gt;; this is commonly used to disambiguate
-columns from multiple tables which have the same name.</p>
-<p>When the <cite>Query</cite> actually issues SQL to load rows, it always uses
-column labeling.</p>
+<p>Indicates that this Query's <cite>statement</cite> accessor should return
+a SELECT statement that applies labels to all columns in the
+form &lt;tablename&gt;_&lt;columnname&gt;; this is commonly used to
+disambiguate columns from multiple tables which have the same
+name.</p>
+<p>When the <cite>Query</cite> actually issues SQL to load rows, it always
+uses column labeling.</p>
 
     </div>
     </div>

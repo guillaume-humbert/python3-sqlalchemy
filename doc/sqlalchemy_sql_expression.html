@@ -31,8 +31,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta3</span>
-  Last Updated: 08/04/08 18:36:49
+  Version: <span class="versionnum">0.5.0rc1</span>
+  Last Updated: 09/11/08 17:04:35
 </div>
 
 
@@ -192,7 +192,10 @@
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__BinaryExpression">class _BinaryExpression(ColumnElement)</a></li>
 
         
-        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__BindParamClause">class _BindParamClause(ClauseElement,_CompareMixin)</a></li>
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__BindParamClause">class _BindParamClause(ColumnElement)</a></li>
+
+        
+        <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_BooleanClauseList">class BooleanClauseList(ClauseList,ColumnElement)</a></li>
 
         
         <li><a style="" href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__CalculatedClause">class _CalculatedClause(ColumnElement)</a></li>
@@ -1378,7 +1381,7 @@ function as well as the <tt class="docutils literal"><span class="pre">alias()</
     
     <div class="sectionL3">
 
-    <h3>class _BindParamClause(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ClauseElement">ClauseElement</a>,<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression__CompareMixin">_CompareMixin</a>)</h3>
+    <h3>class _BindParamClause(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ColumnElement">ColumnElement</a>)</h3>
     
     
     <div class="darkcell"><p>Represent a bind parameter.</p>
@@ -1444,6 +1447,39 @@ parameter.</dd>
 <p>Since <tt class="docutils literal"><span class="pre">compare()</span></tt> is meant to compare statement syntax, this
 method returns True if the two <tt class="docutils literal"><span class="pre">_BindParamClauses</span></tt> have just
 the same type.</p>
+
+    </div>
+    </div>
+
+
+    
+
+            <a href="#top" class="totoc">back to section top</a>
+    </div>
+
+
+
+            
+    
+
+    
+    
+    <A name="docstrings_sqlalchemy.sql.expression_BooleanClauseList"></a>
+    
+    <div class="sectionL3">
+
+    <h3>class BooleanClauseList(<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ClauseList">ClauseList</a>,<a href="sqlalchemy_sql_expression.html#docstrings_sqlalchemy.sql.expression_ColumnElement">ColumnElement</a>)</h3>
+    
+    
+    
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def __init__(<i>self</i>, <i>*clauses</i>, <i>**kwargs</i>)</b>
+    <div class="docstring">
+    <p>Construct a new <tt class="docutils literal"><span class="pre">BooleanClauseList</span></tt>.</p>
 
     </div>
     </div>
@@ -2895,6 +2931,17 @@ to the existing clause via AND, if any.</p>
     <b>def select(<i>self</i>, <i>whereclause=None</i>, <i>**params</i>)</b>
     <div class="docstring">
     
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
+    <b>def select_from(<i>self</i>, <i>clause</i>)</b>
+    <div class="docstring">
+    <p>return a new exists() construct with the given expression set as its FROM clause.</p>
+
     </div>
     </div>
 

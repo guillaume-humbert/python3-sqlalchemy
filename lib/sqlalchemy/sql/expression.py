@@ -372,7 +372,7 @@ def and_(*clauses):
     """
     if len(clauses) == 1:
         return clauses[0]
-    return ClauseList(operator=operators.and_, *clauses)
+    return BooleanClauseList(operator=operators.and_, *clauses)
 
 def or_(*clauses):
     """Join a list of clauses together using the ``OR`` operator.
@@ -384,7 +384,7 @@ def or_(*clauses):
 
     if len(clauses) == 1:
         return clauses[0]
-    return ClauseList(operator=operators.or_, *clauses)
+    return BooleanClauseList(operator=operators.or_, *clauses)
 
 def not_(clause):
     """Return a negation of the given clause, i.e. ``NOT(clause)``.
@@ -1814,7 +1814,7 @@ class FromClause(Selectable):
     def _populate_column_collection(self):
         pass
 
-class _BindParamClause(ClauseElement, _CompareMixin):
+class _BindParamClause(ColumnElement):
     """Represent a bind parameter.
 
     Public constructor is the ``bindparam()`` function.
@@ -1874,7 +1874,7 @@ class _BindParamClause(ClauseElement, _CompareMixin):
             self.type = type_()
         else:
             self.type = type_
-
+    
     def _clone(self):
         c = ClauseElement._clone(self)
         if self.unique:
@@ -1993,6 +1993,7 @@ class ClauseList(ClauseElement):
     """Describe a list of clauses, separated by an operator.
 
     By default, is comma-separated, such as a column listing.
+
     """
     __visit_name__ = 'clauselist'
 
@@ -2051,6 +2052,14 @@ class ClauseList(ClauseElement):
                 return self.operator == other.operator
         else:
             return False
+
+class BooleanClauseList(ClauseList, ColumnElement):
+    __visit_name__ = 'clauselist'
+    
+    def __init__(self, *clauses, **kwargs):
+        super(BooleanClauseList, self).__init__(*clauses, **kwargs)
+        self.type = sqltypes.to_instance(kwargs.get('type_', sqltypes.Boolean))
+
 
 class _CalculatedClause(ColumnElement):
     """Describe a calculated SQL expression that has a type, like ``CASE``.
@@ -2267,7 +2276,7 @@ class _Exists(_UnaryExpression):
                 args = ([literal_column('*')],)
             s = select(*args, **kwargs).as_scalar().self_group()
             
-        _UnaryExpression.__init__(self, s, operator=operators.exists)
+        _UnaryExpression.__init__(self, s, operator=operators.exists, type_=sqltypes.Boolean)
 
     def select(self, whereclause=None, **params):
         return select([self], whereclause, **params)
@@ -2277,6 +2286,16 @@ class _Exists(_UnaryExpression):
         e.element = self.element.correlate(fromclause).self_group()
         return e
 
+    def _get_from_objects(self, **modifiers):
+        return []
+
+    def select_from(self, clause):
+        """return a new exists() construct with the given expression set as its FROM clause."""
+    
+        e = self._clone()
+        e.element = self.element.select_from(clause).self_group()
+        return e
+        
     def where(self, clause):
         """return a new exists() construct with the given expression added to its WHERE clause, joined
         to the existing clause via AND, if any."""

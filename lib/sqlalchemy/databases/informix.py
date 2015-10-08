@@ -45,7 +45,7 @@ class InfoNumeric(sqltypes.Numeric):
         if not self.precision:
             return 'NUMERIC'
         else:
-            return "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length}
+            return "NUMERIC(%(precision)s, %(scale)s)" % {'precision': self.precision, 'scale' : self.scale}
 
 class InfoInteger(sqltypes.Integer):
     def get_col_spec(self):
@@ -202,7 +202,6 @@ class InfoDialect(default.DefaultDialect):
     default_paramstyle = 'qmark'
     # for informix 7.31
     max_identifier_length = 18
-    supports_simple_order_by_label = False
 
     def __init__(self, use_ansi=True, **kwargs):
         self.use_ansi = use_ansi
@@ -415,12 +414,12 @@ class InfoCompiler(compiler.DefaultCompiler):
         else:
             return compiler.DefaultCompiler.visit_function( self , func )
 
-    def visit_clauselist(self, list, within_order_by=False, **kwargs):
+    def visit_clauselist(self, list, **kwargs):
         try:
             li = [ c for c in list.clauses if c.name != 'oid' ]
         except:
             li = [ c for c in list.clauses ]
-        return ', '.join([s for s in [self.process(c, within_order_by=within_order_by) for c in li] if s is not None])
+        return ', '.join([s for s in [self.process(c) for c in li] if s is not None])
 
 class InfoSchemaGenerator(compiler.SchemaGenerator):
     def get_column_specification(self, column, first_pk=False):

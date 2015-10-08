@@ -4,7 +4,7 @@ from sqlalchemy.ext import declarative as decl
 from sqlalchemy import exc
 from testlib import sa, testing
 from testlib.sa import MetaData, Table, Column, Integer, String, ForeignKey, ForeignKeyConstraint, asc
-from testlib.sa.orm import relation, create_session, class_mapper, eagerload, compile_mappers
+from testlib.sa.orm import relation, create_session, class_mapper, eagerload, compile_mappers, backref
 from testlib.testing import eq_
 from orm._base import ComparableEntity
 
@@ -114,7 +114,27 @@ class DeclarativeTest(testing.TestBase, testing.AssertsExecutionResults):
             id = Column(Integer, primary_key=True)
             rel = relation("User", primaryjoin="User.addresses==Foo.id")
         self.assertRaisesMessage(exc.InvalidRequestError, "'addresses' is not an instance of ColumnProperty", compile_mappers)
-    
+
+    def test_string_dependency_resolution_in_backref(self):
+        class User(Base, ComparableEntity):
+            __tablename__ = 'users'
+            id = Column(Integer, primary_key=True)
+            name = Column(String(50))
+            addresses = relation("Address", 
+                primaryjoin="User.id==Address.user_id", 
+                backref="user"
+                )
+
+        class Address(Base, ComparableEntity):
+            __tablename__ = 'addresses'
+            id = Column(Integer, primary_key=True)
+            email = Column(String(50))
+            user_id = Column(Integer, ForeignKey('users.id'))  
+
+        compile_mappers()
+        eq_(str(User.addresses.property.primaryjoin), str(Address.user.property.primaryjoin))
+        
+        
     def test_uncompiled_attributes_in_relation(self):
         class Address(Base, ComparableEntity):
             __tablename__ = 'addresses'
@@ -392,7 +412,7 @@ class DeclarativeTest(testing.TestBase, testing.AssertsExecutionResults):
 
         u1 = User(name='u1', a='a', b='b')
         eq_(u1.a, 'a')
-        eq_(User.a.get_history(u1), (['a'], [], []))
+        eq_(User.a.get_history(u1), (['a'], (), ()))
         sess = create_session()
         sess.save(u1)
         sess.flush()
@@ -679,6 +699,22 @@ class DeclarativeTest(testing.TestBase, testing.AssertsExecutionResults):
               Address(email='one'),
               Address(email='two')])])
 
+    def test_pk_with_fk_init(self):
+        class Bar(Base):
+            __tablename__ = 'bar'
+
+            id = sa.Column(sa.Integer, sa.ForeignKey("foo.id"), primary_key=True)
+            ex = sa.Column(sa.Integer, primary_key=True)
+
+        class Foo(Base):
+            __tablename__ = 'foo'
+
+            id = sa.Column(sa.Integer, primary_key=True)
+            bars = sa.orm.relation(Bar)
+        
+        assert Bar.__mapper__.primary_key[0] is Bar.__table__.c.id
+        assert Bar.__mapper__.primary_key[1] is Bar.__table__.c.ex
+        
     def test_single_inheritance(self):
         class Company(Base, ComparableEntity):
             __tablename__ = 'companies'
@@ -777,7 +813,7 @@ class DeclarativeReflectionTest(testing.TestBase):
         Base = decl.declarative_base(testing.db)
 
     def tearDown(self):
-        for t in reflection_metadata.table_iterator():
+        for t in reversed(reflection_metadata.sorted_tables):
             t.delete().execute()
 
     def tearDownAll(self):

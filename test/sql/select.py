@@ -170,24 +170,36 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
         self.assert_compile(select([table1, exists([1], from_obj=table2).label('foo')]), "SELECT mytable.myid, mytable.name, mytable.description, EXISTS (SELECT 1 FROM myothertable) AS foo FROM mytable", params={})
 
         self.assert_compile(
-          table1.select(exists([1], table2.c.otherid == table1.c.myid).correlate(table1)),
-          "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE EXISTS (SELECT 1 FROM myothertable WHERE myothertable.otherid = mytable.myid)"
+          table1.select(exists().where(table2.c.otherid == table1.c.myid).correlate(table1)),
+          "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE EXISTS (SELECT * FROM myothertable WHERE myothertable.otherid = mytable.myid)"
         )
 
         self.assert_compile(
-          table1.select(exists([1]).where(table2.c.otherid == table1.c.myid).correlate(table1)),
-          "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE EXISTS (SELECT 1 FROM myothertable WHERE myothertable.otherid = mytable.myid)"
+          table1.select(exists().where(table2.c.otherid == table1.c.myid).correlate(table1)),
+          "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE EXISTS (SELECT * FROM myothertable WHERE myothertable.otherid = mytable.myid)"
         )
 
         self.assert_compile(
-          table1.select(exists([1]).where(table2.c.otherid == table1.c.myid).correlate(table1)).replace_selectable(table2, table2.alias()),
-          "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE EXISTS (SELECT 1 FROM myothertable AS myothertable_1 WHERE myothertable_1.otherid = mytable.myid)"
+          table1.select(exists().where(table2.c.otherid == table1.c.myid).correlate(table1)).replace_selectable(table2, table2.alias()),
+          "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE EXISTS (SELECT * FROM myothertable AS myothertable_1 WHERE myothertable_1.otherid = mytable.myid)"
         )
 
         self.assert_compile(
-          table1.select(exists([1]).where(table2.c.otherid == table1.c.myid).correlate(table1)).select_from(table1.join(table2, table1.c.myid==table2.c.otherid)).replace_selectable(table2, table2.alias()),
-          "SELECT mytable.myid, mytable.name, mytable.description FROM mytable JOIN myothertable AS myothertable_1 ON mytable.myid = myothertable_1.otherid WHERE EXISTS (SELECT 1 FROM myothertable AS myothertable_1 WHERE myothertable_1.otherid = mytable.myid)"
+          table1.select(exists().where(table2.c.otherid == table1.c.myid).correlate(table1)).select_from(table1.join(table2, table1.c.myid==table2.c.otherid)).replace_selectable(table2, table2.alias()),
+          "SELECT mytable.myid, mytable.name, mytable.description FROM mytable JOIN myothertable AS myothertable_1 ON mytable.myid = myothertable_1.otherid WHERE EXISTS (SELECT * FROM myothertable AS myothertable_1 WHERE myothertable_1.otherid = mytable.myid)"
         )
+        
+        self.assert_compile(
+            select([
+                or_(
+                    exists().where(table2.c.otherid=='foo'),
+                    exists().where(table2.c.otherid=='bar')
+                )
+            ]),
+            "SELECT (EXISTS (SELECT * FROM myothertable WHERE myothertable.otherid = :otherid_1)) "\
+            "OR (EXISTS (SELECT * FROM myothertable WHERE myothertable.otherid = :otherid_2)) AS anon_1"
+        )
+        
 
     def test_where_subquery(self):
         s = select([addresses.c.street], addresses.c.user_id==users.c.user_id, correlate=True).alias('s')
@@ -327,55 +339,18 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
         x = func.lala(table1.c.myid).label('foo')
         self.assert_compile(select([x], x==5), "SELECT lala(mytable.myid) AS foo FROM mytable WHERE lala(mytable.myid) = :param_1")
 
-    def test_labels_in_expressions(self):
-        """test that label() constructs in ORDER BY render as the labelname.
-        
-        Postgres' behavior was used as the guide for this,
-        so that only a simple label expression 
-        and not a more complex expression involving the label
-        name would be rendered using the label name.
-        
-        """
-        lab1 = (table1.c.myid + "12").label('foo')
-        lab2 = func.somefunc(table1.c.name).label('bar')
-
-        dialect = default.DefaultDialect()
-        self.assert_compile(select([lab1, lab2]).order_by(lab1, desc(lab2)), 
-            "SELECT mytable.myid + :myid_1 AS foo, somefunc(mytable.name) AS bar FROM mytable ORDER BY foo, bar DESC",
-            dialect=dialect
-        )
-
-        # the function embedded label renders as the function
-        self.assert_compile(select([lab1, lab2]).order_by(func.hoho(lab1), desc(lab2)), 
-            "SELECT mytable.myid + :myid_1 AS foo, somefunc(mytable.name) AS bar FROM mytable ORDER BY hoho(mytable.myid + :myid_1), bar DESC",
-            dialect=dialect
-        )
-
-        # binary expressions render as the expression without labels
-        self.assert_compile(select([lab1, lab2]).order_by(lab1 + "test"), 
-            "SELECT mytable.myid + :myid_1 AS foo, somefunc(mytable.name) AS bar FROM mytable ORDER BY mytable.myid + :myid_1 + :param_1",
-            dialect=dialect
-        )
-
-        # labels within functions in the columns clause render with the expression
-        self.assert_compile(
-            select([lab1, func.foo(lab1)]), 
-            "SELECT mytable.myid + :myid_1 AS foo, foo(mytable.myid + :myid_1) AS foo_1 FROM mytable",
-            dialect=dialect
-            )
-
-        dialect = default.DefaultDialect()
-        dialect.supports_simple_order_by_label = False
-        self.assert_compile(select([lab1, lab2]).order_by(lab1, desc(lab2)), 
-            "SELECT mytable.myid + :myid_1 AS foo, somefunc(mytable.name) AS bar FROM mytable ORDER BY mytable.myid + :myid_1, somefunc(mytable.name) DESC",
-            dialect=dialect
-        )
-        self.assert_compile(select([lab1, lab2]).order_by(func.hoho(lab1), desc(lab2)), 
-            "SELECT mytable.myid + :myid_1 AS foo, somefunc(mytable.name) AS bar FROM mytable ORDER BY hoho(mytable.myid + :myid_1), somefunc(mytable.name) DESC",
-            dialect=dialect
-        )
+    
 
     def test_conjunctions(self):
+        a, b, c = 'a', 'b', 'c'
+        x = and_(a, b, c)
+        assert isinstance(x.type,  Boolean)
+        assert str(x) == 'a AND b AND c'
+        self.assert_compile(
+            select([x.label('foo')]),
+            'SELECT a AND b AND c AS foo'
+        )
+        
         self.assert_compile(
             and_(table1.c.myid == 12, table1.c.name=='asdf', table2.c.othername == 'foo', "sysdate() = today()"),
             "mytable.myid = :myid_1 AND mytable.name = :name_1 "\
@@ -1122,6 +1097,7 @@ UNION SELECT mytable.myid FROM mytable"
 
         s = select([t, literal('lala').label('hoho')])
         self.assert_compile(s, "SELECT foo.id, :param_1 AS hoho FROM foo")
+        
         assert [str(c) for c in s.c] == ["id", "hoho"]
 
     def test_in(self):

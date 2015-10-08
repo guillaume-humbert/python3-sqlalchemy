@@ -621,7 +621,10 @@ class SessionTest(_fixtures.FixtureTest):
     def test_save_update_delete(self):
 
         s = create_session()
-        mapper(User, users)
+        mapper(User, users, properties={
+            'addresses':relation(Address, cascade="all, delete")
+        })
+        mapper(Address, addresses)
 
         user = User(name='u1')
 
@@ -658,9 +661,14 @@ class SessionTest(_fixtures.FixtureTest):
         self.assertRaisesMessage(sa.exc.InvalidRequestError, "is already attached to session", s2.delete, user)
 
         u2 = s2.query(User).get(user.id)
-        self.assertRaisesMessage(sa.exc.InvalidRequestError, "already persisted with a different identity", s.delete, u2)
+        self.assertRaisesMessage(sa.exc.InvalidRequestError, "another instance with key", s.delete, u2)
 
+        s.expire(user)
+        s.expunge(user)
+        assert user not in s
         s.delete(user)
+        assert user in s
+        
         s.flush()
         assert user not in s
         assert s.query(User).count() == 0
@@ -909,6 +917,101 @@ class SessionTest(_fixtures.FixtureTest):
         sess = create_session(autocommit=False, extension=MyExt(), bind=testing.db)
         conn = sess.connection()
         assert log == ['after_begin']
+
+    @testing.resolve_artifact_names
+    def test_before_flush(self):
+        """test that the flush plan can be affected during before_flush()"""
+        
+        mapper(User, users)
+        
+        class MyExt(sa.orm.session.SessionExtension):
+            def before_flush(self, session, flush_context, objects):
+                for obj in list(session.new) + list(session.dirty):
+                    if isinstance(obj, User):
+                        session.add(User(name='another %s' % obj.name))
+                for obj in list(session.deleted):
+                    if isinstance(obj, User):
+                        x = session.query(User).filter(User.name=='another %s' % obj.name).one()
+                        session.delete(x)
+                    
+        sess = create_session(extension = MyExt(), autoflush=True)
+        u = User(name='u1')
+        sess.add(u)
+        sess.flush()
+        self.assertEquals(sess.query(User).order_by(User.name).all(), 
+            [
+                User(name='another u1'),
+                User(name='u1')
+            ]
+        )
+        
+        sess.flush()
+        self.assertEquals(sess.query(User).order_by(User.name).all(), 
+            [
+                User(name='another u1'),
+                User(name='u1')
+            ]
+        )
+
+        u.name='u2'
+        sess.flush()
+        self.assertEquals(sess.query(User).order_by(User.name).all(), 
+            [
+                User(name='another u1'),
+                User(name='another u2'),
+                User(name='u2')
+            ]
+        )
+
+        sess.delete(u)
+        sess.flush()
+        self.assertEquals(sess.query(User).order_by(User.name).all(), 
+            [
+                User(name='another u1'),
+            ]
+        )
+
+    @testing.resolve_artifact_names
+    def test_before_flush_affects_dirty(self):
+        mapper(User, users)
+        
+        class MyExt(sa.orm.session.SessionExtension):
+            def before_flush(self, session, flush_context, objects):
+                for obj in list(session.identity_map.values()):
+                    obj.name += " modified"
+                    
+        sess = create_session(extension = MyExt(), autoflush=True)
+        u = User(name='u1')
+        sess.add(u)
+        sess.flush()
+        self.assertEquals(sess.query(User).order_by(User.name).all(), 
+            [
+                User(name='u1')
+            ]
+        )
+        
+        sess.add(User(name='u2'))
+        sess.flush()
+        sess.clear()
+        self.assertEquals(sess.query(User).order_by(User.name).all(), 
+            [
+                User(name='u1 modified'),
+                User(name='u2')
+            ]
+        )
+
+    @testing.resolve_artifact_names
+    def test_reentrant_flush(self):
+
+        mapper(User, users)
+
+        class MyExt(sa.orm.session.SessionExtension):
+            def before_flush(s, session, flush_context, objects):
+                session.flush()
+        
+        sess = create_session(extension=MyExt())
+        sess.add(User(name='foo'))
+        self.assertRaisesMessage(sa.exc.InvalidRequestError, "already flushing", sess.flush)
 
     @testing.resolve_artifact_names
     def test_pickled_update(self):

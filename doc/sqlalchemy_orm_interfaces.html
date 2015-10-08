@@ -31,8 +31,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta3</span>
-  Last Updated: 08/04/08 18:36:49
+  Version: <span class="versionnum">0.5.0rc1</span>
+  Last Updated: 09/11/08 17:04:35
 </div>
 
 
@@ -179,8 +179,9 @@ remainder of this module is generally private to the ORM.</p>
     <h3>class AttributeExtension(object)</h3>
     
     
-    <div class="darkcell"><p>An abstract class which specifies <cite>append</cite>, <cite>delete</cite>, and <cite>set</cite>
-event handlers to be attached to an object property.</p>
+    <div class="darkcell"><p>An event handler for individual attribute change events.</p>
+<p>AttributeExtension is assembled within the descriptors associated
+with a mapped class.</p>
 </div>
     
 
@@ -188,9 +189,12 @@ event handlers to be attached to an object property.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def append(<i>self</i>, <i>obj</i>, <i>child</i>, <i>initiator</i>)</b>
+    <b>def append(<i>self</i>, <i>state</i>, <i>value</i>, <i>initiator</i>)</b>
     <div class="docstring">
-    
+    <p>Receive a collection append event.</p>
+<p>The returned value will be used as the actual value to be
+appended.</p>
+
     </div>
     </div>
 
@@ -198,9 +202,11 @@ event handlers to be attached to an object property.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def remove(<i>self</i>, <i>obj</i>, <i>child</i>, <i>initiator</i>)</b>
+    <b>def remove(<i>self</i>, <i>state</i>, <i>value</i>, <i>initiator</i>)</b>
     <div class="docstring">
-    
+    <p>Receive a remove event.</p>
+<p>No return value is defined.</p>
+
     </div>
     </div>
 
@@ -208,9 +214,12 @@ event handlers to be attached to an object property.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def set(<i>self</i>, <i>obj</i>, <i>child</i>, <i>oldchild</i>, <i>initiator</i>)</b>
+    <b>def set(<i>self</i>, <i>state</i>, <i>value</i>, <i>oldvalue</i>, <i>initiator</i>)</b>
     <div class="docstring">
-    
+    <p>Receive a set event.</p>
+<p>The returned value will be used as the actual value to be
+set.</p>
+
     </div>
     </div>
 
@@ -654,11 +663,12 @@ not take effect until the next flush call.</p>
 into its table.</p>
 <p>This is a good place to set up primary key values and such
 that aren't handled otherwise.</p>
-<p>Column-based attributes can be modified within this method which will
-result in the new value being inserted.  However <em>no</em> changes to the overall
-flush plan can be made; this means any collection modification or
-save() operations which occur within this method will not take effect
-until the next flush call.</p>
+<p>Column-based attributes can be modified within this method
+which will result in the new value being inserted.  However
+<em>no</em> changes to the overall flush plan can be made; this means
+any collection modification or save() operations which occur
+within this method will not take effect until the next flush
+call.</p>
 
     </div>
     </div>
@@ -751,18 +761,23 @@ EXT_CONTINUE to indicate normal object creation should take place.</p>
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def on_reconstitute(<i>self</i>, <i>mapper</i>, <i>instance</i>)</b>
+    <b>def populate_instance(<i>self</i>, <i>mapper</i>, <i>selectcontext</i>, <i>row</i>, <i>instance</i>, <i>**flags</i>)</b>
     <div class="docstring">
-    <p>Receive an object instance after it has been created via
-<tt class="docutils literal"><span class="pre">__new__()</span></tt>, and after initial attribute population has
-occurred.</p>
-<p>This typicically occurs when the instance is created based
-on incoming result rows, and is only called once for that
-instance's lifetime.</p>
-<p>Note that during a result-row load, this method is called upon
-the first row received for this instance; therefore, if eager loaders
-are to further populate collections on the instance, those will
-<em>not</em> have been completely loaded as of yet.</p>
+    <p>Receive an instance before that instance has
+its attributes populated.</p>
+<p>This usually corresponds to a newly loaded instance but may
+also correspond to an already-loaded instance which has
+unloaded attributes to be populated.  The method may be called
+many times for a single instance, as multiple result rows are
+used to populate eagerly loaded collections.</p>
+<p>If this method returns EXT_CONTINUE, instance population will
+proceed normally.  If any other value or None is returned,
+instance population will not proceed, giving this extension an
+opportunity to populate the instance itself, if desired.</p>
+<p>As of 0.5, most usages of this hook are obsolete.  For a
+generic &quot;object has been newly created from a row&quot; hook, use
+<tt class="docutils literal"><span class="pre">reconstruct_instance()</span></tt>, or the <tt class="docutils literal"><span class="pre">&#64;orm.reconstructor</span></tt>
+decorator.</p>
 
     </div>
     </div>
@@ -771,24 +786,18 @@ are to further populate collections on the instance, those will
     <div class="darkcell">
     
     <A name=""></a>
-    <b>def populate_instance(<i>self</i>, <i>mapper</i>, <i>selectcontext</i>, <i>row</i>, <i>instance</i>, <i>**flags</i>)</b>
+    <b>def reconstruct_instance(<i>self</i>, <i>mapper</i>, <i>instance</i>)</b>
     <div class="docstring">
-    <p>Receive an instance before that instance has
-its attributes populated.</p>
-<p>This usually corresponds to a newly loaded instance but may
-also correspond to an already-loaded instance which has
-unloaded attributes to be populated.  The method may be
-called many times for a single instance, as multiple
-result rows are used to populate eagerly loaded collections.</p>
-<p>If this method returns EXT_CONTINUE, instance
-population will proceed normally.  If any other value or None
-is returned, instance population will not proceed, giving this
-extension an opportunity to populate the instance itself, if
-desired.</p>
-<p>As of 0.5, most usages of this hook are obsolete.
-For a generic &quot;object has been newly created from a row&quot; hook,
-use <tt class="docutils literal"><span class="pre">on_reconstitute()</span></tt>, or the &#64;attributes.on_reconstitute
-decorator.</p>
+    <p>Receive an object instance after it has been created via
+<tt class="docutils literal"><span class="pre">__new__</span></tt>, and after initial attribute population has
+occurred.</p>
+<p>This typicically occurs when the instance is created based on
+incoming result rows, and is only called once for that
+instance's lifetime.</p>
+<p>Note that during a result-row load, this method is called upon
+the first row received for this instance. If eager loaders are
+set to further populate collections on the instance, those
+will <em>not</em> yet be completely loaded.</p>
 
     </div>
     </div>
@@ -1096,17 +1105,6 @@ or attributes.</dd>
 <dd>key/value pairs corresponding to member class attribute names which
 will be compared via equality to the corresponding values.</dd>
 </dl>
-
-    </div>
-    </div>
-
-                    
-    <div class="darkcell">
-    
-    <A name=""></a>
-    <b>def contains(<i>self</i>, <i>other</i>)</b>
-    <div class="docstring">
-    <p>Return true if this collection contains other</p>
 
     </div>
     </div>

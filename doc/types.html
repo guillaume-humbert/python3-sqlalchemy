@@ -28,8 +28,8 @@
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
 <div class="versionheader">
-  Version: <span class="versionnum prerelease">0.5.0beta3</span>
-  Last Updated: 08/04/08 18:36:49
+  Version: <span class="versionnum">0.5.0rc1</span>
+  Last Updated: 09/11/08 17:04:35
 </div>
 
 
@@ -476,19 +476,17 @@
 </span>
     <span class="python_name">impl </span><span class="python_operator">= </span><span class="python_name">types</span><span class="python_operator">.</span><span class="python_name">Unicode</span><span class="python_operator">
 </span>
-    <span class="python_keyword">def </span><span class="python_name">process_bind_param</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
+    <span class="python_keyword">def </span><span class="python_name">process_bind_param</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">dialect</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_literal">"PREFIX:" </span><span class="python_operator">+ </span><span class="python_name">value</span><span class="python_operator">
 </span>
-    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">process_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
+    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">process_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">dialect</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_enclosure">[</span><span class="python_number">7</span><span class="python_operator">:</span><span class="python_enclosure">]</span><span class="python_operator">
 </span>
     <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">copy</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">MyType</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">impl</span><span class="python_operator">.</span><span class="python_name">length</span><span class="python_enclosure">)</span><span class="python_operator">
 </span></pre>
     </div>
-<p>Note that the "old" way to process bind parameters and result values, the <code>convert_bind_param()</code> and <code>convert_result_value()</code> methods, are still available.  The downside of these is that when using a type which already processes data such as the <code>Unicode</code> type, you need to call the superclass version of these methods directly.  Using <code>process_bind_param()</code> and <code>process_result_value()</code>, user-defined code can return and receive the desired Python data directly.
-</p>
-<p>As of version 0.4.2, <code>TypeDecorator</code> should generally be used for any user-defined type which redefines the behavior of another type, including other <code>TypeDecorator</code> subclasses such as <code>PickleType</code>, and the new <code>process_...()</code> methods described above should be used.  <br></br>
+<p><code>TypeDecorator</code> should generally be used for any user-defined type which redefines the behavior of another type, including other <code>TypeDecorator</code> subclasses such as <code>PickleType</code>, and the new <code>process_...()</code> methods described above should be used.
 </p>
 <p>To build a type object from scratch, which will not have a corresponding database-specific implementation, subclass <code>TypeEngine</code>:
 </p>
@@ -506,10 +504,16 @@
     <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">get_col_spec</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_literal">"MYTYPE(%s)" </span><span class="python_operator">% </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">precision</span><span class="python_operator">
 </span>
-    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">convert_bind_param</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
-        </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
+    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">bind_processor</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">dialect</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_keyword">def </span><span class="python_name">process</span><span class="python_enclosure">(</span><span class="python_name">value</span><span class="python_enclosure">)</span><span class="python_operator">:
+            </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">process</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">result_processor</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">dialect</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_keyword">def </span><span class="python_name">process</span><span class="python_enclosure">(</span><span class="python_name">value</span><span class="python_enclosure">)</span><span class="python_operator">:
+            </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
+        </span><span class="python_keyword">return </span><span class="python_name">process</span><span class="python_operator">
 </span>
-    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">convert_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_enclosure">)</span><span class="python_operator">:
+    <span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">convert_result_value</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_operator">, </span><span class="python_name">dialect</span><span class="python_enclosure">)</span><span class="python_operator">:
         </span><span class="python_keyword">return </span><span class="python_name">value</span><span class="python_operator">
 </span></pre>
     </div>

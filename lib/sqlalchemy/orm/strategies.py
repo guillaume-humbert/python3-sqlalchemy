@@ -13,15 +13,19 @@ from sqlalchemy.sql import visitors, expression, operators
 from sqlalchemy.orm import mapper, attributes
 from sqlalchemy.orm.interfaces import (
     LoaderStrategy, StrategizedOption, MapperOption, PropertyOption,
-    serialize_path, deserialize_path
+    serialize_path, deserialize_path, StrategizedProperty
     )
 from sqlalchemy.orm import session as sessionlib
 from sqlalchemy.orm import util as mapperutil
 
 
 class DefaultColumnLoader(LoaderStrategy):
-    def _register_attribute(self, compare_function, copy_function, mutable_scalars, comparator_factory, callable_=None, proxy_property=None):
+    def _register_attribute(self, compare_function, copy_function, mutable_scalars, comparator_factory, callable_=None, proxy_property=None, active_history=False):
         self.logger.info("%s register managed attribute" % self)
+
+        attribute_ext = util.to_list(self.parent_property.extension) or []
+        if self.key in self.parent._validators:
+            attribute_ext.append(mapperutil.Validator(self.key, self.parent._validators[self.key]))
 
         for mapper in self.parent.polymorphic_iterator():
             if (mapper is self.parent or not mapper.concrete) and mapper.has_property(self.key):
@@ -36,16 +40,17 @@ class DefaultColumnLoader(LoaderStrategy):
                     comparator=comparator_factory(self.parent_property, mapper), 
                     parententity=mapper,
                     callable_=callable_,
-                    proxy_property=proxy_property
+                    extension=attribute_ext,
+                    proxy_property=proxy_property,
+                    active_history=active_history
                     )
 
-DefaultColumnLoader.logger = log.class_logger(DefaultColumnLoader)
+log.class_logger(DefaultColumnLoader)
     
 class ColumnLoader(DefaultColumnLoader):
     
     def init(self):
         self.columns = self.parent_property.columns
-        self._should_log_debug = log.is_debug_enabled(self.logger)
         self.is_composite = hasattr(self.parent_property, 'composite_class')
         
     def setup_query(self, context, entity, path, adapter, column_collection=None, **kwargs):
@@ -57,12 +62,15 @@ class ColumnLoader(DefaultColumnLoader):
     def init_class_attribute(self):
         self.is_class_level = True
         coltype = self.columns[0].type
+        active_history = self.columns[0].primary_key  # TODO: check all columns ?  check for foreign Key as well?
         
         self._register_attribute(
             coltype.compare_values,
             coltype.copy_value,
             self.columns[0].type.is_mutable(),
-            self.parent_property.comparator_factory
+            self.parent_property.comparator_factory,
+            active_history = active_history
+            
        )
         
     def create_row_processor(self, selectcontext, path, mapper, row, adapter):
@@ -87,7 +95,7 @@ class ColumnLoader(DefaultColumnLoader):
                 self.logger.debug("%s deferring load" % self)
             return (new_execute, None)
 
-ColumnLoader.logger = log.class_logger(ColumnLoader)
+log.class_logger(ColumnLoader)
 
 class CompositeColumnLoader(ColumnLoader):
     def init_class_attribute(self):
@@ -95,6 +103,8 @@ class CompositeColumnLoader(ColumnLoader):
         self.logger.info("%s register managed composite attribute" % self)
 
         def copy(obj):
+            if obj is None:
+                return None
             return self.parent_property.composite_class(*obj.__composite_values__())
             
         def compare(a, b):
@@ -140,7 +150,7 @@ class CompositeColumnLoader(ColumnLoader):
 
             return (new_execute, None)
 
-CompositeColumnLoader.logger = log.class_logger(CompositeColumnLoader)
+log.class_logger(CompositeColumnLoader)
     
 class DeferredColumnLoader(DefaultColumnLoader):
     """Deferred column loader, a per-column or per-column-group lazy loader."""
@@ -170,7 +180,6 @@ class DeferredColumnLoader(DefaultColumnLoader):
             raise NotImplementedError("Deferred loading for composite types not implemented yet")
         self.columns = self.parent_property.columns
         self.group = self.parent_property.group
-        self._should_log_debug = log.is_debug_enabled(self.logger)
 
     def init_class_attribute(self):
         self.is_class_level = True
@@ -207,7 +216,7 @@ class DeferredColumnLoader(DefaultColumnLoader):
     def setup_loader(self, state, props=None, create_statement=None):
         return LoadDeferredColumns(state, self.key, props)
                 
-DeferredColumnLoader.logger = log.class_logger(DeferredColumnLoader)
+log.class_logger(DeferredColumnLoader)
 
 class LoadDeferredColumns(object):
     """serializable loader object used by DeferredColumnLoader"""
@@ -243,7 +252,13 @@ class LoadDeferredColumns(object):
         if self.keys:
             toload = self.keys
         elif strategy.group:
-            toload = [p.key for p in localparent.iterate_properties if isinstance(p.strategy, DeferredColumnLoader) and p.group==strategy.group]
+            toload = [
+                    p.key for p in 
+                    localparent.iterate_properties 
+                    if isinstance(p, StrategizedProperty) and 
+                      isinstance(p.strategy, DeferredColumnLoader) and 
+                      p.group==strategy.group
+                    ]
         else:
             toload = [self.key]
 
@@ -283,7 +298,6 @@ class AbstractRelationLoader(LoaderStrategy):
     def init(self):
         for attr in ['mapper', 'target', 'table', 'uselist']:
             setattr(self, attr, getattr(self.parent_property, attr))
-        self._should_log_debug = log.is_debug_enabled(self.logger)
         
     def _init_instance_attribute(self, state, callable_=None):
         if callable_:
@@ -294,11 +308,14 @@ class AbstractRelationLoader(LoaderStrategy):
     def _register_attribute(self, class_, callable_=None, impl_class=None, **kwargs):
         self.logger.info("%s register managed %s attribute" % (self, (self.uselist and "collection" or "scalar")))
         
-        if self.parent_property.backref:
-            attribute_ext = self.parent_property.backref.extension
-        else:
-            attribute_ext = None
+        attribute_ext = util.to_list(self.parent_property.extension) or []
         
+        if self.parent_property.backref:
+            attribute_ext.append(self.parent_property.backref.extension)
+        
+        if self.key in self.parent._validators:
+            attribute_ext.append(mapperutil.Validator(self.key, self.parent._validators[self.key]))
+            
         sessionlib.register_attribute(
             class_, 
             self.key, 
@@ -329,7 +346,7 @@ class NoLoader(AbstractRelationLoader):
             )
         return (new_execute, None)
 
-NoLoader.logger = log.class_logger(NoLoader)
+log.class_logger(NoLoader)
         
 class LazyLoader(AbstractRelationLoader):
     def init(self):
@@ -479,7 +496,7 @@ class LazyLoader(AbstractRelationLoader):
         return (lazywhere, bind_to_col, equated_columns)
     _create_lazy_clause = classmethod(_create_lazy_clause)
     
-LazyLoader.logger = log.class_logger(LazyLoader)
+log.class_logger(LazyLoader)
 
 class LoadLazyAttribute(object):
     """serializable loader object used by LazyLoader"""
@@ -737,7 +754,7 @@ class EagerLoader(AbstractRelationLoader):
                 self.logger.debug("%s degrading to lazy loader" % self)
             return self.parent_property._get_strategy(LazyLoader).create_row_processor(context, path, mapper, row, adapter)
 
-EagerLoader.logger = log.class_logger(EagerLoader)
+log.class_logger(EagerLoader)
 
 class EagerLazyOption(StrategizedOption):
     def __init__(self, key, lazy=True, chained=False, mapper=None):

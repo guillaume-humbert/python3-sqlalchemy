@@ -76,7 +76,7 @@ class MSNumeric(sqltypes.Numeric):
         if self.precision is None:
             return "NUMERIC"
         else:
-            return "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length}
+            return "NUMERIC(%(precision)s, %(scale)s)" % {'precision': self.precision, 'scale' : self.scale}
 
 class MSFloat(sqltypes.Float):
     def get_col_spec(self):
@@ -361,7 +361,6 @@ class MSSQLExecutionContext_pyodbc (MSSQLExecutionContext):
 
 class MSSQLDialect(default.DefaultDialect):
     name = 'mssql'
-    supports_simple_order_by_label = False
 
     colspecs = {
         sqltypes.Unicode : MSNVarchar,
@@ -670,12 +669,7 @@ class MSSQLDialect(default.DefaultDialect):
         fknm, scols, rcols = (None, [], [])
         for r in rows:
             scol, rschema, rtbl, rcol, rfknm, fkmatch, fkuprule, fkdelrule = r
-
-            if table.schema and rschema != table.schema or rschema != current_schema:
-                schema.Table(rtbl, table.metadata, schema=rschema, autoload=True, autoload_with=connection)
-            else:
-                schema.Table(rtbl, table.metadata, autoload=True, autoload_with=connection)
-                
+            schema.Table(rtbl, table.metadata, schema=rschema, autoload=True, autoload_with=connection)               
             if rfknm != fknm:
                 if fknm:
                     table.append_constraint(schema.ForeignKeyConstraint(scols, [_gen_fkref(table, s, t, c) for s, t, c in rcols], fknm))

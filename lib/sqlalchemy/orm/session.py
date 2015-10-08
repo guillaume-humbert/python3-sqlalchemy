@@ -87,14 +87,14 @@ def sessionmaker(bind=None, class_=None, autoflush=True, autocommit=False,
       Defaults to ``True``. When ``True``, all instances will be fully expired after
       each ``commit()``, so that all attribute/object access subsequent to a completed
       transaction will load from the most recent database state.
-    
+
     _enable_transaction_accounting
       Defaults to ``True``.  A legacy-only flag which when ``False``
       disables *all* 0.5-style object accounting on transaction boundaries,
       including auto-expiry of instances on rollback and commit, maintenance of
       the "new" and "deleted" lists upon rollback, and autoflush
       of pending changes upon begin(), all of which are interdependent.
-    
+
     autoflush
       When ``True``, all query operations will issue a ``flush()`` call to
       this ``Session`` before proceeding. This is a convenience feature so
@@ -135,12 +135,12 @@ def sessionmaker(bind=None, class_=None, autoflush=True, autocommit=False,
       directly to the constructor for ``Session``.
 
     echo_uow
-      When ``True``, configure Python logging to dump all unit-of-work
-      transactions. This is the equivalent of
+      Deprecated.  Use
       ``logging.getLogger('sqlalchemy.orm.unitofwork').setLevel(logging.DEBUG)``.
 
     extension
-      An optional [sqlalchemy.orm.session#SessionExtension] instance, which
+      An optional [sqlalchemy.orm.session#SessionExtension] instance, or
+      a list of such instances, which
       will receive pre- and post- commit and flush events, as well as a
       post-rollback event.  User- defined code may be placed within these
       hooks using a user-defined subclass of ``SessionExtension``.
@@ -156,7 +156,7 @@ def sessionmaker(bind=None, class_=None, autoflush=True, autocommit=False,
     query_cls
       Class which should be used to create new Query objects, as returned
       by the ``query()`` method.  Defaults to [sqlalchemy.orm.query#Query].
-      
+
     weak_identity_map
       When set to the default value of ``False``, a weak-referencing map is
       used; instances which are not externally referenced will be garbage
@@ -218,11 +218,10 @@ class SessionTransaction(object):
 
     """
 
-    def __init__(self, session, parent=None, nested=False, reentrant_flush=False):
+    def __init__(self, session, parent=None, nested=False):
         self.session = session
         self._connections = {}
         self._parent = parent
-        self.reentrant_flush = reentrant_flush
         self.nested = nested
         self._active = True
         self._prepared = False
@@ -234,9 +233,9 @@ class SessionTransaction(object):
         if self.session._enable_transaction_accounting:
             self._take_snapshot()
 
+    @property
     def is_active(self):
         return self.session is not None and self._active
-    is_active = property(is_active)
 
     def _assert_is_active(self):
         self._assert_is_open()
@@ -249,19 +248,19 @@ class SessionTransaction(object):
         if self.session is None:
             raise sa_exc.InvalidRequestError("The transaction is closed")
 
+    @property
     def _is_transaction_boundary(self):
         return self.nested or not self._parent
-    _is_transaction_boundary = property(_is_transaction_boundary)
 
     def connection(self, bindkey, **kwargs):
         self._assert_is_active()
         engine = self.session.get_bind(bindkey, **kwargs)
         return self._connection_for_bind(engine)
 
-    def _begin(self, reentrant_flush=False, nested=False):
+    def _begin(self, nested=False):
         self._assert_is_active()
         return SessionTransaction(
-            self.session, self, reentrant_flush=reentrant_flush, nested=nested)
+            self.session, self, nested=nested)
 
     def _iterate_parents(self, upto=None):
         if self._parent is upto:
@@ -279,7 +278,7 @@ class SessionTransaction(object):
             self._deleted = self._parent._deleted
             return
 
-        if not self.reentrant_flush:
+        if not self.session._flushing:
             self.session.flush()
 
         self._new = weakref.WeakKeyDictionary()
@@ -335,8 +334,8 @@ class SessionTransaction(object):
 
         self._connections[conn] = self._connections[conn.engine] = \
           (conn, transaction, conn is not bind)
-        if self.session.extension is not None:
-            self.session.extension.after_begin(self.session, self, conn)
+        for ext in self.session.extensions:
+            ext.after_begin(self.session, self, conn)
         return conn
 
     def prepare(self):
@@ -347,16 +346,16 @@ class SessionTransaction(object):
 
     def _prepare_impl(self):
         self._assert_is_active()
-        if (self.session.extension is not None and
-            (self._parent is None or self.nested)):
-            self.session.extension.before_commit(self.session)
+        if self._parent is None or self.nested:
+            for ext in self.session.extensions:
+                ext.before_commit(self.session)
 
         stx = self.session.transaction
         if stx is not self:
             for subtransaction in stx._iterate_parents(upto=self):
                 subtransaction.commit()
 
-        if not self.reentrant_flush:
+        if not self.session._flushing:
             self.session.flush()
 
         if self._parent is None and self.session.twophase:
@@ -379,8 +378,8 @@ class SessionTransaction(object):
             for t in set(self._connections.values()):
                 t[1].commit()
 
-            if self.session.extension is not None:
-                self.session.extension.after_commit(self.session)
+            for ext in self.session.extensions:
+                ext.after_commit(self.session)
 
             if self.session._enable_transaction_accounting:
                 self._remove_snapshot()
@@ -415,8 +414,8 @@ class SessionTransaction(object):
         if self.session._enable_transaction_accounting:
             self._restore_snapshot()
 
-        if self.session.extension is not None:
-            self.session.extension.after_rollback(self.session)
+        for ext in self.session.extensions:
+            ext.after_rollback(self.session)
 
     def _deactivate(self):
         self._active = False
@@ -527,7 +526,7 @@ class Session(object):
 
     def __init__(self, bind=None, autoflush=True, expire_on_commit=True,
                 _enable_transaction_accounting=True,
-                 autocommit=False, twophase=False, echo_uow=False,
+                 autocommit=False, twophase=False, echo_uow=None,
                  weak_identity_map=True, binds=None, extension=None, query_cls=query.Query):
         """Construct a new Session.
 
@@ -535,7 +534,13 @@ class Session(object):
         [sqlalchemy.orm#sessionmaker()] function.
 
         """
-        self.echo_uow = echo_uow
+        
+        if echo_uow is not None:
+            util.warn_deprecated(
+                "echo_uow is deprecated. "
+                "Use logging.getLogger('sqlalchemy.orm.unitofwork').setLevel(logging.DEBUG).")
+            log.class_logger(UOWTransaction, echo_uow)
+
         if weak_identity_map:
             self._identity_cls = identity.WeakInstanceDict
         else:
@@ -546,6 +551,7 @@ class Session(object):
         self._deleted = {}  # same
         self.bind = bind
         self.__binds = {}
+        self._flushing = False
         self.transaction = None
         self.hash_key = id(self)
         self.autoflush = autoflush
@@ -553,7 +559,7 @@ class Session(object):
         self.expire_on_commit = expire_on_commit
         self._enable_transaction_accounting = _enable_transaction_accounting
         self.twophase = twophase
-        self.extension = extension
+        self.extensions = util.to_list(extension) or []
         self._query_cls = query_cls
         self._mapper_flush_opts = {}
 
@@ -570,7 +576,7 @@ class Session(object):
             self.begin()
         _sessions[self.hash_key] = self
 
-    def begin(self, subtransactions=False, nested=False, _reentrant_flush=False):
+    def begin(self, subtransactions=False, nested=False):
         """Begin a transaction on this Session.
 
         If this Session is already within a transaction, either a plain
@@ -596,14 +602,14 @@ class Session(object):
         if self.transaction is not None:
             if subtransactions or nested:
                 self.transaction = self.transaction._begin(
-                    nested=nested, reentrant_flush=_reentrant_flush)
+                    nested=nested)
             else:
                 raise sa_exc.InvalidRequestError(
                     "A transaction is already begun.  Use subtransactions=True "
                     "to allow subtransactions.")
         else:
             self.transaction = SessionTransaction(
-                self, nested=nested, reentrant_flush=_reentrant_flush)
+                self, nested=nested)
         return self.transaction  # needed for __enter__/__exit__ hook
 
     def begin_nested(self):
@@ -912,7 +918,7 @@ class Session(object):
         return self._query_cls(entities, self, **kwargs)
 
     def _autoflush(self):
-        if self.autoflush and (self.transaction is None or not self.transaction.reentrant_flush):
+        if self.autoflush and not self._flushing:
             self.flush()
 
     def _finalize_loaded(self, states):
@@ -1137,13 +1143,29 @@ class Session(object):
             state = attributes.instance_state(instance)
         except exc.NO_STATE:
             raise exc.UnmappedInstanceError(instance)
-        
-        # grab the full cascade list first, since lazyloads/autoflush
-        # may be triggered by this operation (delete cascade lazyloads by default)
+
+        if state.key is None:
+            raise sa_exc.InvalidRequestError(
+                "Instance '%s' is not persisted" %
+                mapperutil.state_str(state))
+
+        if state in self._deleted:
+            return
+            
+        # ensure object is attached to allow the 
+        # cascade operation to load deferred attributes
+        # and collections
+        self._attach(state)
+
+        # grab the cascades before adding the item to the deleted list
+        # so that autoflush does not delete the item
         cascade_states = list(_cascade_state_iterator('delete', state))
-        self._delete_impl(state)    
+
+        self._deleted[state] = state.obj()
+        self.identity_map.add(state)
+
         for state, m, o in cascade_states:
-            self._delete_impl(state, ignore_transient=True)
+            self._delete_impl(state)
 
     def merge(self, instance, dont_load=False,
               _recursive=None):
@@ -1215,15 +1237,15 @@ class Session(object):
             merged_state._run_on_load(merged)
         return merged
 
+    @classmethod
     def identity_key(cls, *args, **kwargs):
         return mapperutil.identity_key(*args, **kwargs)
-    identity_key = classmethod(identity_key)
 
+    @classmethod
     def object_session(cls, instance):
         """Return the ``Session`` to which an object belongs."""
 
         return object_session(instance)
-    object_session = classmethod(object_session)
 
     def _validate_persistent(self, state):
         if not self.identity_map.contains_state(state):
@@ -1236,6 +1258,7 @@ class Session(object):
             raise sa_exc.InvalidRequestError(
                 "Object '%s' already has an identity - it can't be registered "
                 "as pending" % mapperutil.state_str(state))
+                
         self._attach(state)
         if state not in self._new:
             self._new[state] = state.obj()
@@ -1245,17 +1268,11 @@ class Session(object):
         if (self.identity_map.contains_state(state) and
             state not in self._deleted):
             return
+            
         if state.key is None:
             raise sa_exc.InvalidRequestError(
                 "Instance '%s' is not persisted" %
                 mapperutil.state_str(state))
-
-        if (state.key in self.identity_map and
-            not self.identity_map.contains_state(state)):
-            raise sa_exc.InvalidRequestError(
-                "Could not update instance '%s', identity key %s; a different "
-                "instance with the same identity key already exists in this "
-                "session." % (mapperutil.state_str(state), state.key))
 
         self._attach(state)
         self._deleted.pop(state, None)
@@ -1267,37 +1284,36 @@ class Session(object):
         else:
             self._update_impl(state)
 
-    def _delete_impl(self, state, ignore_transient=False):
-        if self.identity_map.contains_state(state) and state in self._deleted:
+    def _delete_impl(self, state):
+        if state in self._deleted:
             return
 
         if state.key is None:
-            if ignore_transient:
-                return
-            else:
-                raise sa_exc.InvalidRequestError(
-                    "Instance '%s' is not persisted" %
-                    mapperutil.state_str(state))
-        if (state.key in self.identity_map and
-            not self.identity_map.contains_state(state)):
-            raise sa_exc.InvalidRequestError(
-                "Instance '%s' is with key %s already persisted with a "
-                "different identity" % (mapperutil.state_str(state),
-                                        state.key))
-
-        self._deleted[state] = state.obj()
+            return
+                    
         self._attach(state)
-
+        self._deleted[state] = state.obj()
+        self.identity_map.add(state)
+    
     def _attach(self, state):
+        if state.key and \
+            state.key in self.identity_map and \
+            not self.identity_map.contains_state(state):
+            raise sa_exc.InvalidRequestError(
+                "Can't attach instance %s; another instance with key %s is already present in this session." % 
+                    (mapperutil.state_str(state), state.key)
+                )
+                
         if state.session_id and state.session_id is not self.hash_key:
             raise sa_exc.InvalidRequestError(
                 "Object '%s' is already attached to session '%s' "
                 "(this is '%s')" % (mapperutil.state_str(state),
                                     state.session_id, self.hash_key))
+                                    
         if state.session_id != self.hash_key:
             state.session_id = self.hash_key
-        if self.extension is not None:
-            self.extension.after_attach(self, state.obj())
+            for ext in self.extensions:
+                ext.after_attach(self, state.obj())
 
     def __contains__(self, instance):
         """Return True if the instance is associated with this session.
@@ -1319,7 +1335,6 @@ class Session(object):
 
     def _contains_state(self, state):
         return state in self._new or self.identity_map.contains_state(state)
-
 
     def flush(self, objects=None):
         """Flush all the object changes to the database.
@@ -1343,6 +1358,17 @@ class Session(object):
           to only these objects, rather than all pending changes.
 
         """
+        
+        if self._flushing:
+            raise sa_exc.InvalidRequestError("Session is already flushing")
+            
+        try:
+            self._flushing = True
+            self._flush(objects)
+        finally:
+            self._flushing = False
+            
+    def _flush(self, objects=None):
         if (not self.identity_map.check_modified() and
             not self._deleted and not self._new):
             return
@@ -1352,15 +1378,17 @@ class Session(object):
             self.identity_map.modified = False
             return
 
+        flush_context   = UOWTransaction(self)
+
+        if self.extensions:
+            for ext in self.extensions:
+                ext.before_flush(self, flush_context, objects)
+            dirty = self._dirty_states
+            
         deleted = set(self._deleted)
         new = set(self._new)
 
         dirty = set(dirty).difference(deleted)
-
-        flush_context = UOWTransaction(self)
-
-        if self.extension is not None:
-            self.extension.before_flush(self, flush_context, objects)
 
         # create the set of all objects we want to operate upon
         if objects:
@@ -1404,12 +1432,12 @@ class Session(object):
             return
 
         flush_context.transaction = transaction = self.begin(
-            subtransactions=True, _reentrant_flush=True)
+            subtransactions=True)
         try:
             flush_context.execute()
 
-            if self.extension is not None:
-                self.extension.after_flush(self, flush_context)
+            for ext in self.extensions:
+                ext.after_flush(self, flush_context)
             transaction.commit()
         except:
             transaction.rollback()
@@ -1420,8 +1448,8 @@ class Session(object):
         if not objects:
             self.identity_map.modified = False
 
-        if self.extension is not None:
-            self.extension.after_flush_postexec(self, flush_context)
+        for ext in self.extensions:
+            ext.after_flush_postexec(self, flush_context)
 
     def is_modified(self, instance, include_collections=True, passive=False):
         """Return True if instance has modified attributes.
@@ -1453,61 +1481,62 @@ class Session(object):
             if added or deleted:
                 return True
         return False
-    
-    def is_active(self):
-        """return True if this Session has an active transaction."""
-        
-        return self.transaction and self.transaction.is_active
-    is_active = property(is_active)
-    
-    def _dirty_states(self):
-        """Return a set of all persistent states considered dirty.
 
-        This method returns all states that were modified including those that
-        were possibly deleted.
+    @property
+    def is_active(self):
+        """True if this Session has an active transaction."""
+
+        return self.transaction and self.transaction.is_active
+
+    @property
+    def _dirty_states(self):
+        """The set of all persistent states considered dirty.
+
+        This method returns all states that were modified including
+        those that were possibly deleted.
 
         """
         return util.IdentitySet(
             [state
              for state in self.identity_map.all_states()
              if state.check_modified()])
-    _dirty_states = property(_dirty_states)
 
+    @property
     def dirty(self):
-        """Return a set of all persistent instances considered dirty.
+        """The set of all persistent instances considered dirty.
 
         Instances are considered dirty when they were modified but not
         deleted.
 
         Note that this 'dirty' calculation is 'optimistic'; most
-        attribute-setting or collection modification operations will mark an
-        instance as 'dirty' and place it in this set, even if there is no net
-        change to the attribute's value.  At flush time, the value of each
-        attribute is compared to its previously saved value, and if there's no
-        net change, no SQL operation will occur (this is a more expensive
-        operation so it's only done at flush time).
+        attribute-setting or collection modification operations will
+        mark an instance as 'dirty' and place it in this set, even if
+        there is no net change to the attribute's value.  At flush
+        time, the value of each attribute is compared to its
+        previously saved value, and if there's no net change, no SQL
+        operation will occur (this is a more expensive operation so
+        it's only done at flush time).
 
-        To check if an instance has actionable net changes to its attributes,
-        use the is_modified() method.
+        To check if an instance has actionable net changes to its
+        attributes, use the is_modified() method.
 
         """
         return util.IdentitySet(
             [state.obj()
              for state in self._dirty_states
              if state not in self._deleted])
-    dirty = property(dirty)
 
+    @property
     def deleted(self):
-        "Return a set of all instances marked as 'deleted' within this ``Session``"
+        "The set of all instances marked as 'deleted' within this ``Session``"
 
         return util.IdentitySet(self._deleted.values())
-    deleted = property(deleted)
 
+    @property
     def new(self):
-        "Return a set of all instances marked as 'new' within this ``Session``."
+        "The set of all instances marked as 'new' within this ``Session``."
 
         return util.IdentitySet(self._new.values())
-    new = property(new)
 
 def _expire_state(state, attribute_names):
     """Stand-alone expire instance function.
