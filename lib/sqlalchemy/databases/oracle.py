@@ -1,5 +1,5 @@
 # oracle.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -58,8 +58,19 @@ class OracleChar(sqltypes.CHAR):
     def get_col_spec(self):
         return "CHAR(%(length)s)" % {'length' : self.length}
 class OracleBinary(sqltypes.Binary):
+    def get_dbapi_type(self, dbapi):
+        return dbapi.BINARY
     def get_col_spec(self):
         return "BLOB"
+    def convert_bind_param(self, value, dialect):
+        # this is RAWTOHEX
+        return ''.join(["%.2X" % ord(c) for c in value])
+    def convert_result_value(self, value, dialect):
+        if value is None:
+            return None
+        else:
+            return value.read()
+
 class OracleBoolean(sqltypes.Boolean):
     def get_col_spec(self):
         return "SMALLINT"

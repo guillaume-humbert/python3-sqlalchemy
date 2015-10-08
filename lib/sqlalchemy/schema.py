@@ -1,5 +1,5 @@
 # schema.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -438,6 +438,10 @@ class Column(SchemaItem, sql._ColumnClause):
             table._columns.add(self)
         if self.primary_key:
             table.primary_key.add(self)
+        elif self.key in table.primary_key:
+            raise exceptions.ArgumentError("Trying to redefine primary-key column '%s' as a non-primary-key column on table '%s'" % (self.key, table.fullname))
+            # if we think this should not raise an error, we'd instead do this:
+            #table.primary_key.remove(self)
         self.table = table
 
         if self.index:
@@ -752,6 +756,9 @@ class PrimaryKeyConstraint(Constraint):
         visitor.visit_primary_key_constraint(self)
     def add(self, col):
         self.append_column(col)
+    def remove(self, col):
+        col.primary_key=False
+        del self.columns[col.key]
     def append_column(self, col):
         self.columns.add(col)
         col.primary_key=True

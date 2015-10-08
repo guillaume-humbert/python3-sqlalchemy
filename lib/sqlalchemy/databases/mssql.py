@@ -51,7 +51,6 @@ try:
     make_connect_string = lambda keys: \
         [["Provider=SQLOLEDB;Data Source=%s;User Id=%s;Password=%s;Initial Catalog=%s" % (
             keys.get("host"), keys.get("user"), keys.get("password"), keys.get("database"))], {}]
-    do_commit = False
     sane_rowcount = True
 except:
     try:
@@ -65,7 +64,6 @@ except:
                 keys['host'] = ''.join([keys.get('host', ''), ':', str(keys['port'])])
                 del keys['port'] 
             return [[], keys]
-        do_commit = True
     except:
         dbmodule = None
         make_connect_string = lambda keys: [[],{}]
@@ -148,9 +146,13 @@ class MSText(sqltypes.TEXT):
 class MSString(sqltypes.String):
     def get_col_spec(self):
         return "VARCHAR(%(length)s)" % {'length' : self.length}
-class MSUnicode(sqltypes.Unicode):
+class MSNVarchar(MSString):
+    """NVARCHAR string, does unicode conversion if dialect.convert_encoding is true"""
     def get_col_spec(self):
         return "NVARCHAR(%(length)s)" % {'length' : self.length}
+class MSUnicode(sqltypes.Unicode):
+    """Unicode subclass, does unicode conversion in all cases, uses NVARCHAR impl"""
+    impl = MSNVarchar
 class MSChar(sqltypes.CHAR):
     def get_col_spec(self):
         return "CHAR(%(length)s)" % {'length' : self.length}
@@ -261,14 +263,13 @@ class MSSQLExecutionContext(default.DefaultExecutionContext):
             self.HASIDENT = False
 
 
-
-
 class MSSQLDialect(ansisql.ANSIDialect):
     def __init__(self, module=None, auto_identity_insert=False, **params):
         self.module = module or dbmodule
         self.auto_identity_insert = auto_identity_insert
         ansisql.ANSIDialect.__init__(self, **params)
-
+        self.set_default_schema_name("dbo")
+        
     def create_connect_args(self, url):
         opts = url.translate_connect_args(['host', 'database', 'user', 'password', 'port'])
         opts.update(url.query)
@@ -302,16 +303,14 @@ class MSSQLDialect(ansisql.ANSIDialect):
         return MSSQLIdentifierPreparer(self)
 
     def get_default_schema_name(self):
-        return "dbo"
-        
+        return self.schema_name
+
+    def set_default_schema_name(self, schema_name):
+        self.schema_name = schema_name
+
     def last_inserted_ids(self):
         return self.context.last_inserted_ids
             
-    def do_begin(self, connection):
-        """implementations might want to put logic here for turning autocommit on/off, etc."""
-        if do_commit:
-            pass  
-
     def _execute(self, c, statement, parameters):
         try:
             c.execute(statement, parameters)
@@ -320,56 +319,12 @@ class MSSQLDialect(ansisql.ANSIDialect):
         except Exception, e:
             raise exceptions.SQLError(statement, parameters, e)
 
-
-
-    def do_rollback(self, connection):
-        """implementations might want to put logic here for turning autocommit on/off, etc."""
-        if do_commit:
-            try:
-                # connection.rollback() for pymmsql failed sometimes--the begin tran doesn't show up
-                # this is a workaround that seems to be handle it.
-                r = self.raw_connection(connection)
-                r.query("if @@trancount > 0 rollback tran")
-                r.fetch_array()
-                r.query("begin tran")
-                r.fetch_array()
-            except:
-                pass
-        try:
-            del connection
-        except:
-            raise
-
     def raw_connection(self, connection):
         """Pull the raw pymmsql connection out--sensative to "pool.ConnectionFairy" and pymssql.pymssqlCnx Classes"""
         try:
             return connection.connection.__dict__['_pymssqlCnx__cnx']
         except:
             return connection.connection.adoConn
-
-    def do_commit(self, connection):
-        """implementations might want to put logic here for turning autocommit on/off, etc.
-            do_commit is set for pymmsql connections--ADO seems to handle transactions without any issue 
-        """
-        # ADO Uses Implicit Transactions.
-        if do_commit:
-            # This is very pymssql specific.  We use this instead of its commit, because it hangs on failed rollbacks.
-            # By using the "if" we don't assume an open transaction--much better.
-            r = self.raw_connection(connection)
-            r.query("if @@trancount > 0 commit tran")
-            r.fetch_array()
-            r.query("begin tran")
-            r.fetch_array()
-        else:
-            pass
-            #connection.supportsTransactions = 1
-            try:
-                pass
-                #connection.adoConn.CommitTrans()
-            except:
-                pass
-                #connection.adoConn.execute("begin trans", {})
-            #connection.adoConn.BeginTrans()
 
     def connection(self):
         """returns a managed DBAPI connection from this SQLEngine's connection pool."""
@@ -510,6 +465,39 @@ class MSSQLDialect(ansisql.ANSIDialect):
                                 
 
 
+class PyMSSQLDialect(MSSQLDialect):
+    def do_begin(self, connection):
+        """implementations might want to put logic here for turning autocommit on/off, etc."""
+        if do_commit:
+            pass  
+
+    def do_rollback(self, connection):
+        """implementations might want to put logic here for turning autocommit on/off, etc."""
+        try:
+            # connection.rollback() for pymmsql failed sometimes--the begin tran doesn't show up
+            # this is a workaround that seems to be handle it.
+            r = self.raw_connection(connection)
+            r.query("if @@trancount > 0 rollback tran")
+            r.fetch_array()
+            r.query("begin tran")
+            r.fetch_array()
+        except:
+            pass
+
+    def do_commit(self, connection):
+        """implementations might want to put logic here for turning autocommit on/off, etc.
+            do_commit is set for pymmsql connections--ADO seems to handle transactions without any issue 
+        """
+        # ADO Uses Implicit Transactions.
+        # This is very pymssql specific.  We use this instead of its commit, because it hangs on failed rollbacks.
+        # By using the "if" we don't assume an open transaction--much better.
+        r = self.raw_connection(connection)
+        r.query("if @@trancount > 0 commit tran")
+        r.fetch_array()
+        r.query("begin tran")
+        r.fetch_array()
+
+
 class MSSQLCompiler(ansisql.ANSICompiler):
     def __init__(self, dialect, statement, parameters, **kwargs):
         super(MSSQLCompiler, self).__init__(dialect, statement, parameters, **kwargs)
@@ -560,7 +548,7 @@ class MSSQLCompiler(ansisql.ANSICompiler):
 class MSSQLSchemaGenerator(ansisql.ANSISchemaGenerator):
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column) + " " + column.type.engine_impl(self.engine).get_col_spec()
-
+        
         # install a IDENTITY Sequence if we have an implicit IDENTITY column
         if column.primary_key and column.autoincrement and isinstance(column.type, sqltypes.Integer) and not column.foreign_key:
             if column.default is None or (isinstance(column.default, schema.Sequence) and column.default.optional):
@@ -597,4 +585,7 @@ class MSSQLIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
         #TODO: determin MSSQL's case folding rules
         return value
 
-dialect = MSSQLDialect
+if dbmodule and dbmodule.__name__ == 'adodbapi':
+	dialect = MSSQLDialect
+else:
+	dialect = PyMSSQLDialect

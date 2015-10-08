@@ -1,5 +1,5 @@
 # attributes.py - manages object attributes
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -210,7 +210,7 @@ class InstrumentedAttribute(object):
                     orig = state.get('original', None)
                     if orig is not None:
                         orig.commit_attribute(self, obj)
-                    return obj.__dict__[self.key]
+                    return value
                 else:
                     # note that we arent raising AttributeErrors, just returning None.
                     # this might be a good thing to be changeable by options.
@@ -758,11 +758,9 @@ class AttributeManager(object):
         #print self, "register attribute", key, "for class", class_
         if not hasattr(class_, '_state'):
             def _get_state(self):
-                try:
-                    return self.__sa_attr_state
-                except AttributeError:
-                    self.__sa_attr_state = {}
-                    return self.__sa_attr_state
+                if not hasattr(self, '_sa_attr_state'):
+                    self._sa_attr_state = {}
+                return self._sa_attr_state
             class_._state = property(_get_state)
         
         typecallable = kwargs.pop('typecallable', None)

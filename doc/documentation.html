@@ -26,7 +26,7 @@
 <a href="documentation.html">One Page</a>
 </div>
 
-<div class="">Version: 0.3.3   Last Updated: 12/15/06 01:53:03</div>
+<div class="">Version: 0.3.4   Last Updated: 01/23/07 14:21:19</div>
 </div>
 
 
@@ -168,6 +168,14 @@
     </ul>
 
 
+    </ul>
+
+
+        
+        
+    <li><A href="#tutorial_twoinone">SQLAlchemy is Two Libraries in One</a></li>
+
+    <ul class="small_toc_list">
     </ul>
 
 
@@ -333,6 +341,14 @@
         
         
     <li><A href="#dbengine_options">Database Engine Options</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
+        
+        
+    <li><A href="#dbengine_logging">Configuring Logging</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -862,7 +878,7 @@
 
         
         
-    <li><A href="#datamapping_selectrelations_relselectby">Creating Joins Using selectby()</a></li>
+    <li><A href="#datamapping_selectrelations_relselectby">Creating Joins Using select_by()</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -1287,7 +1303,7 @@
 
         
         
-    <li><A href="#advdatamapping_recursive">Self Referential Mappers</a></li>
+    <li><A href="#advdatamapping_selfreferential">Self Referential Mappers</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -1298,12 +1314,20 @@
     <li><A href="#advdatamapping_resultset">Result-Set Mapping</a></li>
 
     <ul class="small_toc_list">
+        
+        
+    <li><A href="#advdatamapping_resultset_combining">Combining Eager Loads with Result Set Mappings</a></li>
+
+    <ul class="small_toc_list">
+    </ul>
+
+
     </ul>
 
 
         
         
-    <li><A href="#advdatamapping_arguments">Mapper Arguments</a></li>
+    <li><A href="#advdatamapping_mapperoptions">Mapper Options</a></li>
 
     <ul class="small_toc_list">
     </ul>
@@ -2310,7 +2334,7 @@
 <p>Installing SQLAlchemy from scratch is most easily achieved with <a href='http://peak.telecommunity.com/DevCenter/setuptools'>setuptools</a>.  (<a href='http://peak.telecommunity.com/DevCenter/EasyInstall#installation-instructions'>setuptools installation</a>). Just run this from the command-line:
 </p>
 <pre><code># easy_install SQLAlchemy
-</code></pre><p>This command will download the latest version of SQLAlchemy from the <a href='http://cheeseshop.python.org/pypi'>Python Cheese Shop</a> and install it to your system.
+</code></pre><p>This command will download the latest version of SQLAlchemy from the <a href='http://cheeseshop.python.org/pypi/SQLAlchemy'>Python Cheese Shop</a> and install it to your system.
 </p>
 <p>Otherwise, you can install from the distribution using the <code>setup.py</code> script:
 </p>
@@ -2335,9 +2359,11 @@
     <div class="sectiontext">
     
 
-<p>SQLAlchemy is designed to operate with a <a href='http://www.python.org/doc/peps/pep-0249/'>DBAPI</a> implementation built for a particular database, and includes support for the most popular databases. If you have one of the <a href="dbengine.html#dbengine_establishing">supported DBAPI implementations</a>, you can proceed to the following section. Otherwise <a href='http://sqlite.org/'>SQLite</a> is an easy-to-use database to get started with, which works with plain files or in-memory databases.
+<p>SQLAlchemy is designed to operate with a <a href='http://www.python.org/doc/peps/pep-0249/'>DBAPI</a> implementation built for a particular database, and includes support for the most popular databases. If you have one of the <a href="dbengine.html#dbengine_supported">supported DBAPI implementations</a>, you can proceed to the following section. Otherwise <a href='http://sqlite.org/'>SQLite</a> is an easy-to-use database to get started with, which works with plain files or in-memory databases.
 </p>
-<p>To work with SQLite, you'll need:
+<p>SQLite is included with Python 2.5 and greater.
+</p>
+<p>If you are working with Python 2.3 or 2.4, SQLite and the Python API for SQLite can be installed from the following packages:
 </p>
 <ul>
  <li>
@@ -2345,7 +2371,7 @@
  </li>
 
  <li>
-     SQLite library 
+     <a href='http://sqlite.org'>SQLite library</a>
  </li>
 </ul>
 <p>Note that the SQLite library download is not required with Windows, as the Windows Pysqlite library already includes it linked in.  Pysqlite and SQLite can also be installed on Linux or FreeBSD via pre-made <a href='http://initd.org/tracker/pysqlite/wiki/PysqlitePackages'>packages</a> or <a href='http://pysqlite.org/'>from sources</a>.
@@ -2389,12 +2415,14 @@
     <div class="sectiontext">
     
 
-<p>SQLAlchemy provides the entire namespace of everything you'll need under the module name <code>sqlalchemy</code>.  For the purposes of this tutorial, we will import its full list of symbols into our own local namespace.  <br></br>
+<p>To start connecting to databases and begin issuing queries, we want to import the base of SQLAlchemy's functionality, which is provided under the module name of <code>sqlalchemy</code>.  For the purposes of this tutorial, we will import its full list of symbols into our own local namespace.  <br></br>
 </p>
 
 
 <div class="sliding_code">
 <pre><span class="python_literal">>>> </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*</span></pre></div>
+<p>Note that importing using the <code>*</code> operator pulls all the names from <code>sqlalchemy</code> into the local module namespace, which in a real application can produce name conflicts.  Therefore its recommended in practice to either import the individual symbols desired (i.e. <code>from sqlalchemy import Table, Column</code>) or to import under a distinct namespace (i.e. <code>import sqlalchemy as sa</code>).
+</p>
 
 
     </div>
@@ -2421,6 +2449,8 @@
 
 <div class="sliding_code">
 <pre><span class="python_literal">>>> </span><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///tutorial.db'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+<p>Technically, the above statement did not make an actual connection to the sqlite database just yet.  As soon as we begine working with the engine, it will start creating connections.  In the case of SQLite, the <code>tutorial.db</code> file will actually be created at the moment it is first used, if the file does not exist already.
+</p>
 <p>For full information on creating database engines, including those for SQLite and others, see <a href="dbengine.html#dbengine">Database Engines</a>.
 </p>
 
@@ -2429,6 +2459,36 @@
 
 </div>
 
+
+
+    </div>
+
+    <a href="#tutorial" class="toclink">back to section top</a>
+</div>
+
+
+
+
+<A name="tutorial_twoinone"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+
+<h3>SQLAlchemy is Two Libraries in One</h3>
+
+    <div class="sectiontext">
+    
+
+<p>Now that the basics of installing SQLAlchemy and connecting to our database are established, we can start getting in to actually doing something.  But first, a little bit of explanation is required.
+</p>
+<p>A central concept of SQLAlchemy is that it actually contains two distinct areas of functionality, one of which builds upon the other.  One is a <strong>SQL Construction Language</strong> and the other is an <strong>Object Relational Mapper</strong> ("ORM" for short).  The SQL construction language allows you to construct objects called <code>ClauseElements</code> which represent SQL expressions.  These ClauseElements can then be executed against any database, where they are <strong>compiled</strong> into strings that are appropriate for the target database, and return an object called a <code>ResultProxy</code>, which is essentially a result set object that acts very much like a deluxe version of the dbapi <code>cursor</code> object.
+</p>
+<p>The Object Relational Mapper (ORM) is a set of tools completely distinct from the SQL Construction Language which serve the purpose of mapping Python object instances into database rows, providing a rich selection interface with which to retrieve instances from tables as well as a comprehensive solution to persisting changes on those instances back into the database.  When working with the ORM, its underlying workings as well as its public API make extensive use of the SQL Construction Language, however the general theory of operation is slightly different.  Instead of working with database rows directly, you work with your own user-defined classes and object instances.  Additionally, the method of issuing queries to the database is different, as the ORM handles the job of generating most of the SQL required, and instead requires more information about what kind of class instances you'd like to load and where you'd like to put them.
+</p>
+<p>Where SA is somewhat unique, more powerful, and slightly more complicated is that the two areas of functionality can be mixed together in many ways.  A key strategy to working with SA effectively is to have a solid awareness of these two distinct toolsets, and which concepts of SA belong to each - even some publications have confused the SQL Construction Language with the ORM.  The key difference between the two is that when you're working with cursor-like result sets its the SQL Construction Language, and when working with collections of your own class instances its the Object Relational Mapper.
+</p>
+<p>This tutorial will first focus on the basic configuration that is common to using both the SQL Construction Language as well as the ORM, which is to declare information about your database called <strong>table metadata</strong>.  This will be followed by some constructed SQL examples, and then into usage of the ORM utilizing the same data we established in the SQL construction examples.
+</p>
 
 
     </div>
@@ -2449,8 +2509,6 @@
     <div class="sectiontext">
     
 
-<p>A core philosophy of SQLAlchemy is that tables and domain classes are different beasts.  For this reason, SQLAlchemy provides constructs that represent tables by themselves (known as <em>table metadata</em>).  So we will begin by constructing table metadata objects and performing SQL operations with them directly.  Later, we will look into SQLAlchemy's Object Relational Mapper (ORM), which provides an additional layer of abstraction onto table metadata, allowing us to load and save objects of any arbitrary Python class.
-</p>
 
 
 
@@ -2464,7 +2522,7 @@
     <div class="sectiontext">
     
 
-<p>Firstly, your Tables have to belong to a collection called <code>MetaData</code>.  We will create a handy form of <code>MetaData</code> that automatically connects to our <code>Engine</code> (connecting a schema object to an Engine is called <em>binding</em>):
+<p>Configuring SQLAlchemy for your database consists of creating objects called <code>Tables</code>, each of which represent an actual table in the database.  A collection of <code>Table</code> objects resides in a <code>MetaData</code> object which is essentially a table collection.  We will create a handy form of <code>MetaData</code> that automatically connects to our <code>Engine</code> (connecting a schema object to an Engine is called <em>binding</em>):
 </p>
 
 
@@ -2476,9 +2534,9 @@
 
 <div class="sliding_code">
 <pre><span class="python_literal">>>> </span><span class="python_name">metadata </span><span class="python_operator">= </span><span class="python_name">BoundMetaData</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite:///tutorial.db'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>Now, when we tell "metadata" about the tables in our database, we can issue CREATE statements for those tables, as well as create and execute SQL statements derived from them, without needing to open or close any connections; that will be all done automatically.  Note that this feature is <strong>entirely optional</strong>.  SQLAlchemy includes full support for explicit Connections used with schema and SQL constructs that are entirely unbound to any Engine.
+<p>Now, when we tell "metadata" about the tables in our database, we can issue CREATE statements for those tables, as well as execute SQL statements derived from them, without needing to open or close any connections; that will be all done automatically.
 </p>
-<p>For the purposes of this tutorial, we will stick with "bound" objects, as it makes the code simpler and easier to read.  <br></br>
+<p>Note that SQLALchemy fully supports the usage of explicit Connection objects for all SQL operations, which may be in conjunction with plain <code>MetaData</code> objects that are entirely unbound to any Engine, providing a more decoupled pattern that allows finer-grained control of connections than the "bound" approach this tutorial will present.  For the purposes of this tutorial, we will stick with "bound" objects, as it allows us to focus more on SA's general concepts, leaving explicit connection management as a more advanced topic.
 </p>
 
 
@@ -2532,7 +2590,7 @@
 <pre><span class="python_literal">>>> </span><span class="python_name">users_table </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">metadata</span><span class="python_operator">, </span><span class="python_name">autoload</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_name">list</span><span class="python_enclosure">(</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">columns</span><span class="python_enclosure">)[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator">.</span><span class="python_name">name</span><span class="python_operator">
 </span><span class="python_literal">'user_id'</span><span class="python_operator"></span></pre></div>
-<p>Documentation on table metadata is available in <a href="metadata.html#metadata">Database Meta Data</a>.
+<p>Loading a table's columns from the database is called <strong>reflection</strong>.  Documentation on table metadata, including reflection, is available in <a href="metadata.html#metadata">Database Meta Data</a>.
 </p>
 
 
@@ -2562,6 +2620,7 @@
 <pre><span class="python_literal">>>> </span><span class="python_name">i </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_name">i </span><span class="python_operator">
 <</span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">sql</span><span class="python_operator">.</span><span class="python_name">_Insert object at </span><span class="python_number">0x</span><span class="python_operator">...>
+</span><span class="python_literal">>>> </span><span class="python_comment"># the string form of the Insert object is a generic SQL representation</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">i</span><span class="python_operator">
 </span><span class="python_name">INSERT INTO users </span><span class="python_enclosure">(</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">user_name</span><span class="python_operator">, </span><span class="python_name">password</span><span class="python_enclosure">) </span><span class="python_name">VALUES </span><span class="python_enclosure">(</span><span class="python_operator">?, ?, ?</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 <p>Since we created this insert statement object from the <code>users</code> table which is bound to our <code>Engine</code>, the statement itself is also bound to the <code>Engine</code>, and supports executing itself.  The <code>execute()</code> method of the clause object will <em>compile</em> the object into a string according to the underlying <em>dialect</em> of the Engine to which the statement is bound, and will then execute the resulting statement.  <br></br>
@@ -2569,18 +2628,20 @@
 
 
 <div class="sliding_code">
-<pre><span class="python_literal">>>> </span><span class="python_name">i</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Mary'</span><span class="python_operator">, </span><span class="python_name">password</span><span class="python_operator">=</span><span class="python_literal">'secure'</span><span class="python_enclosure">) </span><span class="python_operator">
+<pre><span class="python_literal">>>> </span><span class="python_comment"># insert a single row</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_name">i</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">=</span><span class="python_literal">'Mary'</span><span class="python_operator">, </span><span class="python_name">password</span><span class="python_operator">=</span><span class="python_literal">'secure'</span><span class="python_enclosure">) </span><span class="python_operator">
 </span><span class="python_name">INSERT INTO users </span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_operator">, </span><span class="python_name">password</span><span class="python_enclosure">) </span><span class="python_name">VALUES </span><span class="python_enclosure">(</span><span class="python_operator">?, ?</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_enclosure">[</span><span class="python_literal">'Mary'</span><span class="python_operator">, </span><span class="python_literal">'secure'</span><span class="python_enclosure">]</span><span class="python_operator">
 </span><span class="python_name">COMMIT</span><span class="python_operator">
 <</span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">base</span><span class="python_operator">.</span><span class="python_name">ResultProxy object at </span><span class="python_number">0x</span><span class="python_operator">...>
 </span>
-<span class="python_literal">>>> </span><span class="python_name">i</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">({</span><span class="python_literal">'user_name'</span><span class="python_operator">:</span><span class="python_literal">'Tom'</span><span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'user_name'</span><span class="python_operator">:</span><span class="python_literal">'Fred'</span><span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'user_name'</span><span class="python_operator">:</span><span class="python_literal">'Harry'</span><span class="python_enclosure">}) </span><span class="python_operator">
+<span class="python_literal">>>> </span><span class="python_comment"># insert multiple rows simultaneously</span><span class="python_operator">
+</span><span class="python_literal">>>> </span><span class="python_name">i</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">({</span><span class="python_literal">'user_name'</span><span class="python_operator">:</span><span class="python_literal">'Tom'</span><span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'user_name'</span><span class="python_operator">:</span><span class="python_literal">'Fred'</span><span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'user_name'</span><span class="python_operator">:</span><span class="python_literal">'Harry'</span><span class="python_enclosure">}) </span><span class="python_operator">
 </span><span class="python_name">INSERT INTO users </span><span class="python_enclosure">(</span><span class="python_name">user_name</span><span class="python_enclosure">) </span><span class="python_name">VALUES </span><span class="python_enclosure">(</span><span class="python_operator">?</span><span class="python_enclosure">)</span><span class="python_operator">
 </span><span class="python_enclosure">[[</span><span class="python_literal">'Tom'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'Fred'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_enclosure">[</span><span class="python_literal">'Harry'</span><span class="python_enclosure">]]</span><span class="python_operator">
 </span><span class="python_name">COMMIT</span><span class="python_operator">
 <</span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">base</span><span class="python_operator">.</span><span class="python_name">ResultProxy object at </span><span class="python_number">0x</span><span class="python_operator">...></span></pre></div>
-<p>Note that the <code>VALUES</code> clause of each <code>INSERT</code> statement was automatically adjusted to correspond to the parameters sent to the <code>execute()</code> method.  This is because the compilation step of a <code>ClauseElement</code> takes into account not just the constructed SQL object and the specifics of the type of database being used, but the execution parameters sent along as well.  <br></br>
+<p>Note that the <code>VALUES</code> clause of each <code>INSERT</code> statement was automatically adjusted to correspond to the parameters sent to the <code>execute()</code> method.  This is because the compilation step of a <code>ClauseElement</code> takes into account not just the constructed SQL object and the specifics of the type of database being used, but the execution parameters sent along as well.
 </p>
 <p>When constructing clause objects, SQLAlchemy will bind all literal values into bind parameters.  On the construction side, bind parameters are always treated as named parameters.  At compilation time, SQLAlchemy will convert them into their proper format, based on the paramstyle of the underlying DBAPI.  This works equally well for all named and positional bind parameter formats described in the DBAPI specification.
 </p>
@@ -2789,7 +2850,15 @@
     <div class="sectiontext">
     
 
-<p>Now that we have a little bit of Table and SQL operations covered, lets look into SQLAlchemy's ORM (object relational mapper).  With the ORM, you associate Tables (and other <em>Selectable</em> units, like queries and table aliases) with Python classes, into units called <em>Mappers</em>.  Then you can execute queries that return lists of object instances, instead of result sets.  The object instances themselves are associated with an object called a <em>Session</em>, which automatically tracks changes on each object and supports a "save all at once" operation called a <em>flush</em>.
+<p>Now that we have a little bit of Table and SQL operations covered, lets look into SQLAlchemy's ORM (object relational mapper).  With the ORM, you associate Tables (and other <em>Selectable</em> units, like queries and table aliases) with Python classes, into units called <strong>Mappers</strong>.  Then you can execute queries that return lists of object instances, instead of result sets.  The object instances themselves are associated with an object called a <strong>Session</strong>, which automatically tracks changes on each object and supports a "save all at once" operation called a <strong>flush</strong>.
+</p>
+<p>To start, we will import the names necessary to use SQLAlchemy's ORM, again using <code>import *</code> for simplicities sake, even though we all know that in real life we should be importing individual names via "<code>from sqlalchemy.orm import symbol1, symbol2, ...</code>" or "<code>import sqlalchemy.orm as orm</code>":
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_literal">>>> </span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm </span><span class="python_keyword">import </span><span class="python_operator">*</span></pre></div>
+<p>It should be noted that the above step is technically not needed when working with the 0.3 series of SQLAlchemy; all symbols from the <code>orm</code> package are also included in the <code>sqlalchemy</code> package.  However, a future release (most likely the 0.4 series) will make the separate <code>orm</code> import required in order to use the object relational mapper, so its a good practice for now.
 </p>
 
 
@@ -2818,13 +2887,14 @@
 
 
 <div class="sliding_code">
-<pre><span class="python_literal">>>> </span><span class="python_name">usermapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">)</span><span class="python_operator">
+<pre><span class="python_literal">>>> </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_enclosure">) </span><span class="python_operator">
+<</span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">Mapper object at </span><span class="python_number">0x</span><span class="python_operator">...>
 </span><span class="python_literal">>>> </span><span class="python_name">u1 </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_enclosure">()</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">u1</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">
 </span><span class="python_name">None</span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_keyword">print </span><span class="python_name">u1</span><span class="python_operator">.</span><span class="python_name">password</span><span class="python_operator">
 </span><span class="python_name">None</span><span class="python_operator"></span></pre></div>
-<p>The <code>mapper</code> function returns a new instance of <code>Mapper</code>.  As it is the first Mapper we have created for the <code>User</code> class, it is known as the classes' <em>primary mapper</em>.  We generally don't need to hold onto the <code>usermapper</code> instance variable; SA's ORM can automatically locate this Mapper when it deals with the class, or instances of that class.  <br></br>
+<p>The <code>mapper</code> function returns a new instance of <code>Mapper</code>.  As it is the first Mapper we have created for the <code>User</code> class, it is known as the classes' <em>primary mapper</em>.  We generally don't need to hold onto the return value of the <code>mapper</code> function; SA can automatically locate this Mapper as needed when it deals with the <code>User</code> class.  <br></br>
 </p>
 
 
@@ -2846,7 +2916,7 @@
     <div class="sectiontext">
     
 
-<p>After you create a Mapper, all operations with that Mapper require the usage of an important object called a <code>Session</code>.  All objects loaded or saved by the Mapper must be <em>attached</em> to a <code>Session</code> object, which represents a kind of "workspace" of objects that are loaded into memory.  A particular object instance can only be attached to one <code>Session</code> at a time.
+<p>After you create a Mapper, all operations with that Mapper require the usage of an important object called a <code>Session</code>.  All objects loaded or saved by the Mapper must be <em>attached</em> to a <code>Session</code> object, which represents a kind of "workspace" of objects that are loaded into memory.  A particular object instance can only be attached to one <code>Session</code> at a time (but of course can be moved around or detached altogether).
 </p>
 <p>By default, you have to create a <code>Session</code> object explicitly before you can load or save objects.  Theres several ways to manage sessions, but the most straightforward is to just create one, which we will do by saying, <code>create_session()</code>:
 </p>
@@ -2876,8 +2946,7 @@
     <div class="sectiontext">
     
 
-<pre><code>
-</code></pre><p>The Session has all kinds of methods on it to retrieve and store objects, and also to view their current status.  The Session also provides an easy interface which can be used to query the database, by giving you an instance to a <code>Query</code> object corresponding to a particular Python class:
+<p>The Session has all kinds of methods on it to manage and inspect its collection of objects.  The Session also provides an easy interface which can be used to query the database, by giving you an instance to a <code>Query</code> object corresponding to a particular Python class:
 </p>
 
 
@@ -2889,7 +2958,7 @@
 </span><span class="python_name">WHERE users</span><span class="python_operator">.</span><span class="python_name">user_name </span><span class="python_operator">= ? </span><span class="python_name">ORDER BY users</span><span class="python_operator">.</span><span class="python_name">oid</span><span class="python_operator">
 </span><span class="python_enclosure">[</span><span class="python_literal">'Harry'</span><span class="python_enclosure">]</span><span class="python_operator">
 </span><span class="python_enclosure">[</span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_literal">u'Harry'</span><span class="python_operator">,</span><span class="python_name">None</span><span class="python_enclosure">)]</span><span class="python_operator"></span></pre></div>
-<p>All querying for objects is performed via an instance of <code>Query</code>.  The various <code>select</code> methods on an instance of <code>Mapper</code> also use an underlying <code>Query</code> object to perform the operation.  A <code>Query</code> is always bound to a specific <code>Session</code>.  <br></br>
+<p>All querying for objects is performed via an instance of <code>Query</code>.  The various <code>select</code> methods on an instance of <code>Mapper</code> also use an underlying <code>Query</code> object to perform the operation.  A <code>Query</code> is always bound to a specific <code>Session</code>.
 </p>
 <p>Lets turn off the database echoing for a moment, and try out a few methods on <code>Query</code>.  Methods that end with the suffix <code>_by</code> primarily take keyword arguments which correspond to properties on the object.  Other methods take <code>ClauseElement</code> objects, which are constructed by using <code>Column</code> objects inside of Python expressions, in the same way as we did with our SQL select example in the previous section of this tutorial.  Using <code>ClauseElement</code> structures to query objects is more verbose but more flexible:
 </p>
@@ -2959,7 +3028,7 @@
 </span><span class="python_name">True</span><span class="python_operator"></span></pre></div>
 <p>With the identity map, a single <code>Session</code> can be relied upon to keep all loaded instances straight.
 </p>
-<p>As far as the issue of the same object being modified in two different Sessions, that's an issue of concurrency detection; SQLAlchemy does some basic concurrency checks when saving objects, with the option for a stronger check using version ids.  See <a href="adv_datamapping.html#advdatamapping_arguments">Mapper Arguments</a> for more details.
+<p>As far as the issue of the same object being modified in two different Sessions, that's an issue of concurrency detection; SQLAlchemy does some basic concurrency checks when saving objects, with the option for a stronger check using version ids.  See <b>advdatamapping_arguments</b> for more details.
 </p>
 
 
@@ -3025,9 +3094,17 @@
     <div class="sectiontext">
     
 
-<p>When our User object contains relationships to other kinds of information, such as a list of email addresses, we can indicate this by using a function when creating the <code>Mapper</code> called <code>relation()</code>.  While there is a lot you can do with relations, we'll cover a simple one here.  First, recall that our <code>users</code> table has a foreign key relationship to another table called <code>email_addresses</code>.   A single row in <code>email_addresses</code> has a column <code>user_id</code> that references a row in the <code>users</code> table; since many rows in the <code>email_addresses</code> table can reference a single row in <code>users</code>, this is called a <em>one to many</em> relationship.
+<p>When our User object contains relationships to other kinds of information, such as a list of email addresses, we can indicate this by using a function when creating the <code>Mapper</code> called <code>relation()</code>.  While there is a lot you can do with relations, we'll cover a simple one here.  First, recall that our <code>users</code> table has a foreign key relationship to another table called <code>email_addresses</code>.  A single row in <code>email_addresses</code> has a column <code>user_id</code> that references a row in the <code>users</code> table; since many rows in the <code>email_addresses</code> table can reference a single row in <code>users</code>, this is called a <em>one to many</em> relationship.
 </p>
-<p>First, deal with the <code>email_addresses</code> table by itself.  We will create a new class <code>Address</code> which represents a single row in the <code>email_addresses</code> table, and a corresponding <code>Mapper</code> which will associate the <code>Address</code> class with the <code>email_addresses</code> table:
+<p>To illustrate this relationship, we will start with a new mapper configuration.  Since our <code>User</code> class has a mapper assigned to it, we want to discard it and start over again.  So we issue the <code>clear_mappers()</code> function first, which removes all mapping associations from classes:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_literal">>>> </span><span class="python_name">clear_mappers</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+<p>When removing mappers, it is usually best to remove all mappings at the same time, since mappers usually have relationships to each other which will become invalid if only part of the mapper collection is removed.  In practice, a particular mapping setup will usually remain throughout the lifetime of an application.  Clearing out the mappers and making new ones is a practice that is generally limited to writing mapper unit tests and experimenting from the console.
+</p>
+<p>Next, we want to create a class/mapping that corresponds to the <code>email_addresses</code> table.  We will create a new class <code>Address</code> which represents a single row in the <code>email_addresses</code> table, and a corresponding <code>Mapper</code> which will associate the <code>Address</code> class with the <code>email_addresses</code> table:
 </p>
 
 
@@ -3040,15 +3117,20 @@
 <span class="python_operator">...            </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">__class__</span><span class="python_operator">.</span><span class="python_name">__name__</span><span class="python_operator">, </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_enclosure">)    </span><span class="python_operator">
 </span><span class="python_literal">>>> </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">email_addresses_table</span><span class="python_enclosure">) </span><span class="python_operator">
 <</span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">Mapper object at </span><span class="python_number">0x</span><span class="python_operator">...></span></pre></div>
-<p>Next, we associate the <code>User</code> and <code>Address</code> classes together by creating a relation using <code>relation()</code>, and then adding that relation to the <code>User</code> mapper, using the <code>add_property</code> function:
+<p>We then create a mapper for the <code>User</code> class which contains a relationship to the <code>Address</code> class using the <code>relation()</code> function:
 </p>
 
 
 <div class="sliding_code">
-<pre><span class="python_literal">>>> </span><span class="python_name">usermapper</span><span class="python_operator">.</span><span class="python_name">add_property</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
-<p>The <code>relation()</code> function takes either a class or a Mapper as its first argument, and has many options to further control its behavior.  The 'User' mapper has now placed additional property on each <code>User</code> instance called <code>addresses</code>.  SQLAlchemy will automatically determine that this relationship is a one-to-many relationship, and will subsequently create <code>addresses</code> as a list.  When a new <code>User</code> is created, this list will begin as empty.
+<pre><span class="python_literal">>>> </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{ </span>
+<span class="python_operator">...    </span><span class="python_literal">'addresses'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span>
+<span class="python_operator">... </span><span class="python_enclosure">})</span><span class="python_operator">
+<</span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">orm</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">Mapper object at </span><span class="python_number">0x</span><span class="python_operator">...></span></pre></div>
+<p>The <code>relation()</code> function takes either a class or a Mapper as its first argument, and has many options to further control its behavior.  When this mapping relationship is used, each new <code>User</code> instance will contain an attribute called <code>addresses</code>.  SQLAlchemy will automatically determine that this relationship is a one-to-many relationship, and will subsequently create <code>addresses</code> as a list.  When a new <code>User</code> is created, this list will begin as empty.
 </p>
-<p>Lets see what we get for the email addresses already in the database.  Since we have made a change to the mapper's configuration, its best that we clear out our <code>Session</code>, which is currently holding onto every <code>User</code> object we have already loaded:
+<p>The order in which the mapping definitions for <code>User</code> and <code>Address</code> is created is <em>not significant</em>.  When the <code>mapper()</code> function is called, it creates an <em>uncompiled</em> mapping record corresponding to the given class/table combination.  When the mappers are first used, the entire collection of mappers created up until that point will be compiled, which involves the establishment of class instrumentation as well as the resolution of all mapping relationships.  <br></br>
+</p>
+<p>Lets try out this new mapping configuration, and see what we get for the email addresses already in the database.  Since we have made a new mapping configuration, its best that we clear out our <code>Session</code>, which is currently holding onto every <code>User</code> object we have already loaded:
 </p>
 
 
@@ -3104,7 +3186,7 @@
     <div class="sectiontext">
     
 
-<p>You may have noticed from the example above that when we say <code>session.flush()</code>, SQLAlchemy indicates the names <code>BEGIN</code> and <code>COMMIT</code> to indicate a transaction with the database.  The <code>flush()</code> method, since it may execute many statements in a row, will automatically use a transaction in order to execute these instructions.  But what if we want to use <code>flush()</code> inside of a larger transaction?  This is performed via the <code>SessionTransaction</code> object, which we can establish using <code>session.create_transaction()</code>.  Below, we will perform a more complicated <code>SELECT</code> statement, make several changes to our collection of users and email addresess, and then create a new user with two email addresses, within the context of a transaction.  We will perform a <code>flush()</code> in the middle of it to write the changes we have so far, and then allow the remaining changes to be written when we finally <code>commit()</code> the transaction.  We enclose our operations within a <code>try/except</code> block to insure that resources are properly freed:
+<p>You may have noticed from the example above that when we say <code>session.flush()</code>, SQLAlchemy indicates the names <code>BEGIN</code> and <code>COMMIT</code> to indicate a transaction with the database.  The <code>flush()</code> method, since it may execute many statements in a row, will automatically use a transaction in order to execute these instructions.  But what if we want to use <code>flush()</code> inside of a larger transaction?  This is performed via the <code>SessionTransaction</code> object, which we can establish using <code>session.create_transaction()</code>.  Below, we will perform a more complicated <code>SELECT</code> statement, make several changes to our collection of users and email addresess, and then create a new user with two email addresses, within the context of a transaction.  We will perform a <code>flush()</code> in the middle of it to write the changes we have so far, and then allow the remaining changes to be written when we finally <code>commit()</code> the transaction.  We enclose our operations within a <code>try/except</code> block to ensure that resources are properly freed:
 </p>
 
 
@@ -3284,13 +3366,13 @@
     <div class="sectiontext">
     
 
-<p>Engines exist for SQLite, Postgres, MySQL, and Oracle, using the Pysqlite, Psycopg2 (Psycopg1 will work to some degree but its typing model is not supported...install Psycopg2!), MySQLDB, and cx_Oracle modules.  There is also preliminary support for MS-SQL using adodbapi or pymssql, as well as Firebird.   For each engine, a distinct Python module exists in the <code>sqlalchemy.databases</code> package, which provides implementations of some of the objects mentioned in the previous section.
+<p>Engines exist for SQLite, Postgres, MySQL, and Oracle, using the Pysqlite, Psycopg2 (Psycopg1 will work to a limited degree, but it is <strong>not supported</strong>), MySQLDB, and cx_Oracle modules.  There is also preliminary support for MS-SQL using adodbapi or pymssql, as well as Firebird.   For each engine, a distinct Python module exists in the <code>sqlalchemy.databases</code> package, which provides implementations of some of the objects mentioned in the previous section.
 </p>
 <p>Downloads for each DBAPI at the time of this writing are as follows:
 </p>
 <ul>
  <li>
-     Postgres:  <a href='http://www.initd.org/tracker/psycopg'>psycopg2</a>
+     Postgres:  <a href='http://www.initd.org/tracker/psycopg/wiki/PsycopgTwo'>psycopg2</a>
  </li>
 
  <li>
@@ -3429,15 +3511,35 @@
 
 <div class="sliding_code">
 <pre><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://...'</span><span class="python_operator">, </span><span class="python_name">encoding</span><span class="python_operator">=</span><span class="python_literal">'latin1'</span><span class="python_operator">, </span><span class="python_name">echo</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_operator">, </span><span class="python_name">module</span><span class="python_operator">=</span><span class="python_name">psycopg1</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>Options that can be specified include the following:
+<p>A list of all standard options, as well as several that are used by particular database dialects, is as follows:
 </p>
 <ul>
  <li>
-     poolclass=None : a <code>sqlalchemy.pool.Pool</code> subclass (or duck-typed equivalent) that will be instantated in place of the default connection pool.
+     <strong>convert_unicode=False</strong> - if set to True, all String/character based types will convert Unicode values to raw byte values going into the database, and all raw byte values to Python Unicode coming out in result sets.  This is an engine-wide method to provide unicode conversion across the board.  For unicode conversion on a column-by-column level, use the <code>Unicode</code> column type instead, described in <a href="types.html#types">The Types System</a>.
  </li>
 
  <li>
-     pool=None : an actual pool instance.  Note that an already-constructed pool should already know how to create database connections, so this option supercedes any other connect options specified.  Typically, it is an instance of <code>sqlalchemy.pool.Pool</code> to be used as the underlying source for connections.  For more on connection pooling, see <a href="pooling.html#pooling">Connection Pooling</a>.
+     <strong>echo=False</strong> - if True, the Engine will log all statements as well as a repr() of their parameter lists to the engines logger, which defaults to sys.stdout.  The <code>echo</code> attribute of <code>Engine</code> can be modified at any time to turn logging on and off.  If set to the string <code>"debug"</code>, result rows will be printed to the standard output as well.  This flag ultimately controls a Python logger; see <a href="dbengine.html#dbengine_logging">Configuring Logging</a> for information on how to configure logging directly.
+ </li>
+
+ <li>
+     <strong>echo_pool=False</strong> - if True, the connection pool will log all checkouts/checkins to the logging stream, which defaults to sys.stdout.  This flag ultimately controls a Python logger; see <a href="dbengine.html#dbengine_logging">Configuring Logging</a> for information on how to configure logging directly.
+ </li>
+
+ <li>
+     <strong>encoding='utf-8'</strong> - the encoding to use for all Unicode translations, both by engine-wide unicode conversion as well as the <code>Unicode</code> type object.
+ </li>
+
+ <li>
+     <strong>max_overflow=10</strong> - the number of connections to allow in connection pool "overflow", that is connections that can be opened above and beyond the initial setting, which defaults to five.  this is only used with <code>QueuePool</code>.
+ </li>
+
+ <li>
+     <strong>module=None</strong> - used by database implementations which support multiple DBAPI modules, this is a reference to a DBAPI2 module to be used instead of the engine's default module.  For Postgres, the default is psycopg2, or psycopg1 if 2 cannot be found.  For Oracle, its cx_Oracle.
+ </li>
+
+ <li>
+     <strong>pool=None</strong> - an actual pool instance.  Note that an already-constructed pool should already know how to create database connections, so this option supercedes any other connect options specified.  Typically, it is an instance of <code>sqlalchemy.pool.Pool</code> to be used as the underlying source for connections.  For more on connection pooling, see <a href="pooling.html#pooling">Connection Pooling</a>.
  </li>
 </ul>
 <p>Example of a manual invocation of <code>pool.QueuePool</code> (which is the pool instance used for all databases except sqlite):
@@ -3455,57 +3557,109 @@
 <span class="python_operator"></span><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql://'</span><span class="python_operator">, </span><span class="python_name">pool</span><span class="python_operator">=</span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">QueuePool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_operator">, </span><span class="python_name">pool_size</span><span class="python_operator">=</span><span class="python_number">20</span><span class="python_operator">, </span><span class="python_name">max_overflow</span><span class="python_operator">=</span><span class="python_number">40</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
 <ul>
  <li>
-     pool_size=5 : the number of connections to keep open inside the connection pool.  This used with <code>QueuePool</code> as well as <code>SingletonThreadPool</code>.
+     <strong>poolclass=None</strong> - a <code>sqlalchemy.pool.Pool</code> subclass that will be instantated in place of the default connection pool.
  </li>
 
  <li>
-     max_overflow=10 : the number of connections to allow in "overflow", that is connections that can be opened above and beyond the initial five.  this is only used with <code>QueuePool</code>.
+     <strong>pool_size=5</strong> - the number of connections to keep open inside the connection pool.  This used with <code>QueuePool</code> as well as <code>SingletonThreadPool</code>.
  </li>
 
  <li>
-     pool_timeout=30 : number of seconds to wait before giving up on getting a connection from the pool.  This is only used with <code>QueuePool</code>.
+     <strong>pool_recycle=-1</strong> - this setting causes the pool to recycle connections after the given number of seconds has passed.  It defaults to -1, or no timeout.  For example, setting to 3600 means connections will be recycled after one hour.  Note that MySQL in particular will disconnect automatically if no activity is detected on a connection for eight hours (although this is configurable with the MySQLDB connection itself and the  server configuration as well).
  </li>
 
  <li>
-     pool_recycle=-1 : this setting causes the pool to recycle connections after the given number of seconds has passed.  It defaults to -1, or no timeout.  For example, setting to 3600 means connections will be recycled after one hour.  Note that MySQL in particular will disconnect automatically if no activity is detected on a connection for eight hours (although this is configurable with the MySQLDB connection itself and the  server configuration as well).
+     <strong>pool_timeout=30</strong> - number of seconds to wait before giving up on getting a connection from the pool.  This is only used with <code>QueuePool</code>.
  </li>
 
  <li>
-     echo=False : if True, the Engine will log all statements as well as a repr() of their parameter lists to the engines logger, which defaults to sys.stdout.  The <code>echo</code> attribute of <code>Engine</code> can be modified at any time to turn logging on and off.  If set to the string <code>"debug"</code>, result rows will be printed to the standard output as well.
+     <strong>strategy='plain'</strong> - the Strategy argument is used to select alternate implementations of the underlying Engine object, which coordinates operations between dialects, compilers, connections, and so on.  Currently, the only alternate strategy besides the default value of "plain" is the "threadlocal" strategy, which selects the usage of the <code>TLEngine</code> class that provides a modified connection scope for implicit executions.  Implicit execution as well as further detail on this setting are described in <a href="dbengine.html#dbengine_implicit">Implicit Execution</a>.
  </li>
 
  <li>
-     logger=None : a file-like object where logging output can be sent, if echo is set to True.  Newlines will not be sent with log messages.  This defaults to an internal logging object which references <code>sys.stdout</code>.
+     <strong>threaded=True</strong> - used by cx_Oracle; sets the <code>threaded</code> parameter of the connection indicating thread-safe usage.  cx_Oracle docs indicate setting this flag to <code>False</code> will speed performance by 10-15%.  While this defaults to <code>False</code> in cx_Oracle, SQLAlchemy defaults it to <code>True</code>, preferring stability over early optimization.
  </li>
 
  <li>
-     module=None : used by database implementations which support multiple DBAPI modules, this is a reference to a DBAPI2 module to be used instead of the engine's default module.  For Postgres, the default is psycopg2, or psycopg1 if 2 cannot be found.  For Oracle, its cx_Oracle.
+     <strong>use_ansi=True</strong> - used only by Oracle;  when False, the Oracle driver attempts to support a particular "quirk" of Oracle versions 8 and previous, that the LEFT OUTER JOIN SQL syntax is not supported, and the "Oracle join" syntax of using <code>&lt;column1&gt;(+)=&lt;column2&gt;</code> must be used in order to achieve a LEFT OUTER JOIN.
  </li>
 
  <li>
-     use_ansi=True : used only by Oracle;  when False, the Oracle driver attempts to support a particular "quirk" of Oracle versions 8 and previous, that the LEFT OUTER JOIN SQL syntax is not supported, and the "Oracle join" syntax of using <code>&lt;column1&gt;(+)=&lt;column2&gt;</code> must be used in order to achieve a LEFT OUTER JOIN.  <br></br>
- </li>
-
- <li>
-     threaded=True : used by cx_Oracle; sets the <code>threaded</code> parameter of the connection indicating thread-safe usage.  cx_Oracle docs indicate setting this flag to <code>False</code> will speed performance by 10-15%.  While this defaults to <code>False</code> in cx_Oracle, SQLAlchemy defaults it to <code>True</code>, preferring stability over early optimization.
- </li>
-
- <li>
-     strategy='plain' : the Strategy argument is used to select alternate implementations of the underlying Engine object, which coordinates operations between dialects, compilers, connections, and so on.  Currently, the only alternate strategy besides the default value of "plain" is the "threadlocal" strategy, which selects the usage of the <code>TLEngine</code> class that provides a modified connection scope for implicit executions.  Implicit execution as well as further detail on this setting are described in <a href="dbengine.html#dbengine_implicit">Implicit Execution</a>.
- </li>
-
- <li>
-     use_oids=False : used only by Postgres, will enable the column name "oid" as the object ID column, which is also used for the default sort order of tables.  Postgres as of 8.1 has object IDs disabled by default.
- </li>
-
- <li>
-     convert_unicode=False : if set to True, all String/character based types will convert Unicode values to raw byte values going into the database, and all raw byte values to Python Unicode coming out in result sets.  This is an engine-wide method to provide unicode across the board.  For unicode conversion on a column-by-column level, use the <code>Unicode</code> column type instead.
- </li>
-
- <li>
-     encoding='utf-8' : the encoding to use for all Unicode translations, both by engine-wide unicode conversion as well as the <code>Unicode</code> type object.
+     <strong>use_oids=False</strong> - used only by Postgres, will enable the column name "oid" as the object ID column, which is also used for the default sort order of tables.  Postgres as of 8.1 has object IDs disabled by default.
  </li>
 </ul>
+
+
+    </div>
+
+    <a href="#dbengine" class="toclink">back to section top</a>
+</div>
+
+
+
+
+<A name="dbengine_logging"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+
+<h3>Configuring Logging</h3>
+
+    <div class="sectiontext">
+    
+
+<p>As of the 0.3 series of SQLAlchemy, Python's standard <a href='http://www.python.org/doc/lib/module-logging.html'>logging</a> module is used to implement informational and debug log output.  This allows SQLAlchemy's logging to integrate in a standard way with other applications and libraries.  The <code>echo</code> and <code>echo_pool</code> flags that are present on <code>create_engine()</code>, as well as the <code>echo_uow</code> flag used on <code>Session</code>, all interact with regular loggers.
+</p>
+<p>This section assumes familiarity with the above linked logging module.  All logging performed by SQLAlchemy exists underneath the <code>sqlalchemy</code> namespace, as used by <code>logging.getLogger('sqlalchemy')</code>.  When logging has been configured (i.e. such as via <code>logging.basicConfig()</code>), the general namespace of SA loggers that can be turned on is as follows:
+</p>
+<ul>
+ <li>
+     <code>sqlalchemy.engine</code> - controls SQL echoing.  set to <code>logging.INFO</code> for SQL query output, <code>logging.DEBUG</code> for query + result set output.
+ </li>
+
+ <li>
+     <code>sqlalchemy.pool</code> - controls connection pool logging.  set to <code>logging.INFO</code> or lower to log connection pool checkouts/checkins.
+ </li>
+
+ <li>
+     <code>sqlalchemy.orm</code> - controls logging of various ORM functions.  set to <code>logging.INFO</code> for configurational logging as well as unit of work dumps, <code>logging.DEBUG</code> for extensive logging during query and flush() operations.  Subcategories of <code>sqlalchemy.orm</code> include:<ul>
+ <li>
+     <code>sqlalchemy.orm.attributes</code> - logs certain instrumented attribute operations, such as triggered callables
+ </li>
+
+ <li>
+     <code>sqlalchemy.orm.mapper</code> - logs Mapper configuration and operations
+ </li>
+
+ <li>
+     <code>sqlalchemy.orm.unitofwork</code> - logs flush() operations, including dependency sort graphs and other operations
+ </li>
+
+ <li>
+     <code>sqlalchemy.orm.strategies</code> - logs relation loader operations (i.e. lazy and eager loads)
+ </li>
+
+ <li>
+     <code>sqlalchemy.orm.sync</code> - logs synchronization of attributes from parent to child instances during a flush()
+ </li>
+</ul>
+
+ </li>
+</ul>
+<p>For example, to log SQL queries as well as unit of work debugging:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_keyword">import </span><span class="python_name">logging</span><span class="python_operator">
+</span>
+<span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">basicConfig</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">getLogger</span><span class="python_enclosure">(</span><span class="python_literal">'sqlalchemy.engine'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">setLevel</span><span class="python_enclosure">(</span><span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">INFO</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">getLogger</span><span class="python_enclosure">(</span><span class="python_literal">'sqlalchemy.orm.unitofwork'</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">setLevel</span><span class="python_enclosure">(</span><span class="python_name">logging</span><span class="python_operator">.</span><span class="python_name">DEBUG</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+<p>By default, the log level is set to <code>logging.ERROR</code> within the entire <code>sqlalchemy</code> namespace so that no log operations occur, even within an application that has logging enabled otherwise.
+</p>
+<p>The <code>echo</code> flags present as keyword arguments to <code>create_engine()</code> and others as well as the <code>echo</code> property on <code>Engine</code>, when set to <code>True</code>, will first attempt to insure that logging is enabled.  Unfortunately, the <code>logging</code> module provides no way of determining if output has already been configured (note we are referring to if a logging configuration has been set up, not just that the logging level is set).  For this reason, any <code>echo=True</code> flags will result in a call to <code>logging.basicConfig()</code> using sys.stdout as the destination.  It also sets up a default format using the level name, timestamp, and logger name.  Note that this configuration has the affect of being configured <strong>in addition</strong> to any existing logger configurations.  Therefore, <strong>when using Python logging, insure all echo flags are set to False at all times</strong>, to avoid getting duplicate log lines.  <br></br>
+</p>
 
 
     </div>
@@ -4230,6 +4384,8 @@
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'lala'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">40</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
     <span class="python_name">ForeignKeyConstraint</span><span class="python_enclosure">([</span><span class="python_literal">'lala'</span><span class="python_enclosure">]</span><span class="python_operator">,</span><span class="python_enclosure">[</span><span class="python_literal">'hoho.lala'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">onupdate</span><span class="python_operator">=</span><span class="python_literal">"CASCADE"</span><span class="python_operator">, </span><span class="python_name">ondelete</span><span class="python_operator">=</span><span class="python_literal">"CASCADE"</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
+<p>Note that these clauses are not supported on SQLite, and require <code>InnoDB</code> tables when used with MySQL.  They may also not be supported on other databases.
+</p>
 
 
     </div>
@@ -5121,7 +5277,7 @@
 <div class="code">
     <div class="codetitle">use_labels Generates Abbreviated Labels</div>
 <pre><span class="python_name">long_named_table </span><span class="python_operator">= </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">alias</span><span class="python_enclosure">(</span><span class="python_literal">'this_is_the_person_table'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_11', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">c </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">person</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_11_div" class="codepop" style="display:none;">SELECT this_is_the_person_table.user_id AS this_is_the_person_table_b36c, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_11', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">c </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">long_named_table</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_11_div" class="codepop" style="display:none;">SELECT this_is_the_person_table.user_id AS this_is_the_person_table_b36c, <br/>
   this_is_the_person_table.user_name AS this_is_the_person_table_f76a, <br/>
   this_is_the_person_table.password AS this_is_the_person_table_1e7c<br/>
   FROM users AS this_is_the_person_table<br/>
@@ -6459,7 +6615,7 @@
     <div class="sectiontext">
     
 
-<p>When objects corresponding to mapped classes are created or manipulated, all changes are logged by the <code>Session</code> object.  The changes are then written to the database when an application calls <code>flush()</code>.  This pattern is known as a <em>Unit of Work</em>, and has many advantages over saving individual objects or attributes on those objects with individual method invocations.  Domain models can be built with far greater complexity with no concern over the order of saves and deletes, excessive database round-trips and write operations, or deadlocking issues.  The <code>flush()</code> operation batches its SQL statements into a transaction, and can also perform optimistic concurrency checks (using a version id column) to insure the proper number of rows were in fact affected (not supported with the current MySQL drivers). 
+<p>When objects corresponding to mapped classes are created or manipulated, all changes are logged by the <code>Session</code> object.  The changes are then written to the database when an application calls <code>flush()</code>.  This pattern is known as a <em>Unit of Work</em>, and has many advantages over saving individual objects or attributes on those objects with individual method invocations.  Domain models can be built with far greater complexity with no concern over the order of saves and deletes, excessive database round-trips and write operations, or deadlocking issues.  The <code>flush()</code> operation batches its SQL statements into a transaction, and can also perform optimistic concurrency checks (using a version id column) to ensure the proper number of rows were in fact affected (not supported with the current MySQL drivers). 
 </p>
 <p>The Unit of Work is a powerful tool, and has some important concepts that should be understood in order to use it effectively.  See the <a href="unitofwork.html#unitofwork">Session / Unit of Work</a> section for a full description on all its operations.
 </p>
@@ -6522,6 +6678,8 @@
 </span><span class="python_literal"><a href="javascript:togglePopbox('popbox_77', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">flush</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_77_div" class="codepop" style="display:none;">INSERT INTO users (user_name, password) VALUES (:user_name, :password)<br/>
   {'password': 'foo', 'user_name': 'john'}</div><pre><span class="python_literal">>>> </span><span class="python_name">u</span><span class="python_operator">
 </span><span class="python_name">User id </span><span class="python_number">1 </span><span class="python_name">name </span><span class="python_literal">'john' </span><span class="python_name">password </span><span class="python_literal">'foo'</span><span class="python_operator"></span></pre></div>
+<p>Note that the <strong>__init__() method is not called when the instance is loaded</strong>.  This is so that classes can define operations that are specific to their initial construction which are not re-called when the object is restored from the database, and is similar in concept to how Python's <code>pickle</code> module calls <code>__new__()</code> when deserializing instances.  To allow <code>__init__()</code> to be called at object load time, or to define any other sort of on-load operation, create a <code>MapperExtension</code> which supplies the <code>create_instance()</code> method (see <a href="adv_datamapping.html#advdatamapping_extending">Extending Mapper</a>, as well as the example in the FAQ).
+</p>
 <p>SQLAlchemy will only put modified object attributes columns into the UPDATE statements generated upon flush.  This is to conserve database traffic and also to successfully interact with a "deferred" attribute, which is a mapped object attribute against the mapper's primary table that isnt loaded until referenced by the application.
 </p>
 
@@ -6879,7 +7037,7 @@
 <div class="subsection" style="margin-left:30px;">
 
 
-<h3>Creating Joins Using selectby()</h3>
+<h3>Creating Joins Using select_by()</h3>
 
     <div class="sectiontext">
     
@@ -6910,6 +7068,19 @@
 <p>All keyword arguments sent to <code>select_by</code> are used to create query criterion.  This means that familiar <code>select</code> keyword options like <code>order_by</code> and <code>limit</code> are not directly available.  To enable these options with <code>select_by</code>, you can try the <a href="plugins.html#plugins_selectresults">SelectResults</a> extension which offers transitive methods off the result of a <code>select</code> or <code>select_by</code> such as <code>order_by()</code>, <code>limit()</code>, etc.  <br></br>
 </p>
 <p>Note that the <code>select_by</code> method, while it primarily uses keyword arguments, also can accomodate <code>ClauseElement</code> objects positionally; recall that a <code>ClauseElement</code> is genearated when producing a comparison off of a <code>Column</code> expression, such as <code>users.c.name=='ed'</code>.  When using <code>ClauseElements</code> with <code>select_by</code>, these clauses are passed directly to the generated SQL and are <strong>not</strong> used to further locate join criterion.  If criterion is being constructed with these kinds of expressions, consider using the <code>select()</code> method which is better designed to accomodate these expressions.
+</p>
+<p>As of SA 0.3.4, <code>select_by()</code> and related functions can compare not only column-based attributes to column-based values, but also relations to object instances:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_comment"># get an instance of Address
+</span><span class="python_name">someaddress </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">get_by</span><span class="python_enclosure">(</span><span class="python_name">street</span><span class="python_operator">=</span><span class="python_literal">'123 Green Street'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># look for User instances which have the 
+# "someaddress" instance in their "addresses" collection
+</span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">=</span><span class="python_name">someaddress</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+<p>Where above, the comparison denoted by <code>addresses=someaddress</code> is constructed by comparing all the primary key columns in the <code>Address</code> mapper to each corresponding primary key value in the <code>someaddress</code> entity.  In other words, its equivalent to saying <code>select_by(address_id=someaddress.address_id)</code> (<a href='javascript:alphaApi()'>Alpha API</a>).
 </p>
 
 
@@ -7300,7 +7471,7 @@
     <div class="sectiontext">
     
 
-<p>Many to Many can also be done with an association object, that adds additional information about how two items are related.  In this pattern, the "secondary" option to <code>relation()</code> is no longer used; instead, the association object becomes a mapped entity itself, mapped to the association table.  If the association table has no explicit primary key columns defined, you also have to tell the mapper what columns will compose its "primary key", which are typically the two (or more) columns involved in the association.  Also, the relation between the parent and association mapping is typically set up with a cascade of <code>all, delete-orphan</code>.  This is to insure that when an association object is removed from its parent collection, it is deleted (otherwise, the unit of work tries to null out one of the foreign key columns, which raises an error condition since that column is also part of its "primary key").
+<p>Many to Many can also be done with an association object, that adds additional information about how two items are related.  In this pattern, the "secondary" option to <code>relation()</code> is no longer used; instead, the association object becomes a mapped entity itself, mapped to the association table.  If the association table has no explicit primary key columns defined, you also have to tell the mapper what columns will compose its "primary key", which are typically the two (or more) columns involved in the association.  Also, the relation between the parent and association mapping is typically set up with a cascade of <code>all, delete-orphan</code>.  This is to ensure that when an association object is removed from its parent collection, it is deleted (otherwise, the unit of work tries to null out one of the foreign key columns, which raises an error condition since that column is also part of its "primary key").
 </p>
 
 
@@ -7627,7 +7798,7 @@
     <div class="sectiontext">
     
 
-<p>A primary concept of the Session's underlying Unit of Work is that it is keeps track of all persistent instances; recall that a persistent instance has a database identity and is attached to a Session.  In particular, the Unit of Work must insure that only <em>one</em> copy of a particular persistent instance exists within the Session at any given time.   The UOW accomplishes this task using a dictionary known as an <em>Identity Map</em>.
+<p>A primary concept of the Session's underlying Unit of Work is that it is keeps track of all persistent instances; recall that a persistent instance has a database identity and is attached to a Session.  In particular, the Unit of Work must ensure that only <em>one</em> copy of a particular persistent instance exists within the Session at any given time.   The UOW accomplishes this task using a dictionary known as an <em>Identity Map</em>.
 </p>
 <p>When a <code>Query</code> is used to issue <code>select</code> or <code>get</code> requests to the database, it will in nearly all cases result in an actual SQL execution to the database, and a corresponding traversal of rows received from that execution.  However, when the underlying mapper actually <em>creates</em> objects corresponding to the result set rows it receives, it will check the session's identity map first before instantating a new object, and return the same instance already present in the identity map if it already exists, essentially <em>ignoring</em> the object state represented by that row.  There are several ways to override this behavior and truly refresh an already-loaded instance which are described later, but the main idea is that once your instance is loaded into a particular Session, it will <em>never change</em> its state without your explicit approval, regardless of what the database says about it.
 </p>
@@ -7946,7 +8117,7 @@
     <div class="sectiontext">
     
 
-<p>This method first calls <code>clear()</code>, removing all objects from this <code>Session</code>, and then insures that any transactional resources are closed.
+<p>This method first calls <code>clear()</code>, removing all objects from this <code>Session</code>, and then ensures that any transactional resources are closed.
 </p>
 
 
@@ -8600,7 +8771,7 @@
 <pre><span class="python_keyword">class </span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
     </span><span class="python_keyword">def </span><span class="python_name">_set_email</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">email</span><span class="python_enclosure">)</span><span class="python_operator">:
        </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">_email </span><span class="python_operator">= </span><span class="python_name">email</span><span class="python_operator">
-    </span><span class="python_keyword">def </span><span class="python_name">_get_email</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">email</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">def </span><span class="python_name">_get_email</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">:
        </span><span class="python_keyword">return </span><span class="python_name">self</span><span class="python_operator">.</span><span class="python_name">_email</span><span class="python_operator">
     </span><span class="python_name">email </span><span class="python_operator">= </span><span class="python_name">property</span><span class="python_enclosure">(</span><span class="python_name">_get_email</span><span class="python_operator">, </span><span class="python_name">_set_email</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
@@ -8617,7 +8788,7 @@
 <pre><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
     <span class="python_comment"># map the '_email' attribute to the "email" column</span>
     <span class="python_comment"># on the table</span>
-    <span class="python_literal">'_email'</span><span class="python_operator">: </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email</span>
+    <span class="python_literal">'_email'</span><span class="python_operator">: </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email</span><span class="python_operator">,</span>
 
     <span class="python_comment"># make a synonym 'email'</span>
     <span class="python_literal">'email' </span><span class="python_operator">: </span><span class="python_name">synonym</span><span class="python_enclosure">(</span><span class="python_literal">'_email'</span><span class="python_enclosure">)</span>
@@ -8625,7 +8796,7 @@
 </span>
 <span class="python_comment"># now you can select_by(email)
 </span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">email</span><span class="python_operator">=</span><span class="python_literal">'john@smith.com'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
-<p>Synonym can be established with the flag "proxy=True", to create a class-level proxy to the actual property:
+<p>Synonym can be established with the flag "proxy=True", to create a class-level proxy to the actual property.  This has the effect of creating a fully functional synonym on class instances:
 </p>
 
 
@@ -8640,8 +8811,6 @@
 </span>
 <span class="python_literal">>>> </span><span class="python_name">x</span><span class="python_operator">.</span><span class="python_name">_email</span><span class="python_operator">
 </span><span class="python_literal">'john@doe.com'</span><span class="python_operator"></span></pre></div>
-<p>The <code>synonym</code> keyword is currently an <a href='javascript:alphaApi()'>Alpha Feature</a>.
-</p>
 
 
     </div>
@@ -8718,8 +8887,7 @@
     <div class="sectiontext">
     
 
-<pre><code>
-</code></pre><p>When creating relations on a mapper, most examples so far have illustrated the mapper and relationship joining up based on the foreign keys of the tables they represent.  in fact, this "automatic" inspection can be completely circumvented using the <code>primaryjoin</code> and <code>secondaryjoin</code> arguments to <code>relation</code>, as in this example which creates a User object which has a relationship to all of its Addresses which are in Boston:
+<p>When creating relations on a mapper, most examples so far have illustrated the mapper and relationship joining up based on the foreign keys of the tables they represent.  in fact, this "automatic" inspection can be completely circumvented using the <code>primaryjoin</code> and <code>secondaryjoin</code> arguments to <code>relation</code>, as in this example which creates a User object which has a relationship to all of its Addresses which are in Boston:
 </p>
 
 
@@ -8856,6 +9024,14 @@
     <span class="python_literal">'photo2' </span><span class="python_operator">: </span><span class="python_name">deferred</span><span class="python_enclosure">(</span><span class="python_name">book_excerpts</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">photo2</span><span class="python_operator">, </span><span class="python_name">group</span><span class="python_operator">=</span><span class="python_literal">'photos'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_literal">'photo3' </span><span class="python_operator">: </span><span class="python_name">deferred</span><span class="python_enclosure">(</span><span class="python_name">book_excerpts</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">photo3</span><span class="python_operator">, </span><span class="python_name">group</span><span class="python_operator">=</span><span class="python_literal">'photos'</span><span class="python_enclosure">)</span>
 <span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+<p>You can defer or undefer columns at the <code>Query</code> level with the <code>options</code> method:
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">Book</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">defer</span><span class="python_enclosure">(</span><span class="python_literal">'summary'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">undefer</span><span class="python_enclosure">(</span><span class="python_literal">'excerpt'</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
 
 
     </div>
@@ -8876,7 +9052,7 @@
     <div class="sectiontext">
     
 
-<p>SQLAlchemy relations are generally simplistic; the lazy loader loads in the full list of child objects when accessed, and the eager load builds a query that loads the full list of child objects.  Additionally, when you are deleting a parent object, SQLAlchemy insures that it has loaded the full list of child objects so that it can mark them as deleted as well (or to update their parent foreign key to NULL).  It does not issue an en-masse "delete from table where parent_id=?" type of statement in such a scenario.  This is because the child objects themselves may also have further dependencies, and additionally may also exist in the current session in which case SA needs to know their identity so that their state can be properly updated.
+<p>SQLAlchemy relations are generally simplistic; the lazy loader loads in the full list of child objects when accessed, and the eager load builds a query that loads the full list of child objects.  Additionally, when you are deleting a parent object, SQLAlchemy ensures that it has loaded the full list of child objects so that it can mark them as deleted as well (or to update their parent foreign key to NULL).  It does not issue an en-masse "delete from table where parent_id=?" type of statement in such a scenario.  This is because the child objects themselves may also have further dependencies, and additionally may also exist in the current session in which case SA needs to know their identity so that their state can be properly updated.
 </p>
 <p>So there are several techniques that can be used individually or combined together to address these issues, in the context of a large collection where you normally would not want to load the full list of relationships:
 </p>
@@ -8887,7 +9063,7 @@
 
 <div class="sliding_code">
 <pre><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_name">relation</span><span class="python_enclosure">{</span>
-    <span class="python_literal">'children'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">MyObj</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span>
+    <span class="python_literal">'children'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span>
 <span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
 
  </li>
@@ -8906,25 +9082,30 @@
 
  </li>
 
- <li><p>Use <code>passive_updates=True</code> to disable child object loading on a DELETE operation (noload also accomplishes this)
-</p>
-
- </li>
-
- <li><p>Use "ON DELETE (CASCADE|SET NULL)" on your database to automatically cascade deletes to child objects (this is the best way to do it)
+ <li><p>Use <code>passive_deletes=True</code> to disable child object loading on a DELETE operation, in conjunction with "ON DELETE (CASCADE|SET NULL)" on your database to automatically cascade deletes to child objects.   Note that "ON DELETE" is not supported on SQLite, and requires <code>InnoDB</code> tables when using MySQL:
 </p>
 
 
 <div class="sliding_code">
-<pre><span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'sometable'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
+<pre><span class="python_name">mytable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'mytable'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">myothertable </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'myothertable'</span><span class="python_operator">, </span><span class="python_name">meta</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
     <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'parent_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-    <span class="python_name">ForeignKeyConstraint</span><span class="python_enclosure">([</span><span class="python_literal">'parent_id'</span><span class="python_enclosure">]</span><span class="python_operator">,</span><span class="python_enclosure">[</span><span class="python_literal">'parenttable.id'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">ondelete</span><span class="python_operator">=</span><span class="python_literal">"CASCADE"</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
-    <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+    <span class="python_name">ForeignKeyConstraint</span><span class="python_enclosure">([</span><span class="python_literal">'parent_id'</span><span class="python_enclosure">]</span><span class="python_operator">,</span><span class="python_enclosure">[</span><span class="python_literal">'mytable.id'</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">ondelete</span><span class="python_operator">=</span><span class="python_literal">"CASCADE"</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">mmapper</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">myothertable</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_name">mytable</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'children'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">MyOtherClass</span><span class="python_operator">, </span><span class="python_name">passive_deletes</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
 
  </li>
 
- <li><p>Alternatively, you can create a simple <code>MapperExtension</code> that will issue a DELETE for child objects:
+ <li><p>As an alternative to using "ON DELETE CASCADE", for very simple scenarios you can create a simple <code>MapperExtension</code> that will issue a DELETE for child objects before the parent object is deleted:
 </p>
 
 
@@ -8939,6 +9120,8 @@
 
  </li>
 </ul>
+<p>Note that this approach is not nearly as efficient or general-purpose as "ON DELETE CASCADE", since the database itself can cascade the operation along any number of tables.
+</p>
 <p>The latest distribution includes an example <code>examples/collection/large_collection.py</code> which illustrates most of these techniques.    <br></br>
 </p>
 
@@ -8961,71 +9144,71 @@
     <div class="sectiontext">
     
 
-<p>Keyword options to the <code>relation</code> function include:
+<p>Options which can be sent to the <code>relation()</code> function.  For arguments to <code>mapper()</code>, see <a href="adv_datamapping.html#advdatamapping_mapperoptions">Mapper Options</a>.
 </p>
 <ul>
  <li>
-     lazy=(True|False|None) - specifies how the related items should be loaded.  a value of True indicates they should be loaded when the property is first accessed.  A value of False indicates they should be loaded by joining against the parent object query, so parent and child are loaded in one round trip.  A value of None indicates the related items are not loaded by the mapper in any case; the application will manually insert items into the list in some other way.  A relationship with lazy=None is still important; items added to the list or removed will cause the appropriate updates and deletes upon flush().  Future capabilities for lazy might also include "lazy='extra'", which would allow lazy loading of child elements one at a time, for very large collections.
+     <strong>association</strong> - Deprecated; as of version 0.3.0 the association keyword is synonomous with applying the "all, delete-orphan" cascade to a "one-to-many" relationship.  SA can now automatically reconcile a "delete" and "insert" operation of two objects with the same "identity" in a flush() operation into a single "update" statement, which is the pattern that "association" used to indicate.  See the updated example of association mappings in <a href="datamapping.html#datamapping_association">Association Object</a>.
  </li>
 
  <li>
-     cascade - a string list of <strong>cascade rules</strong> which determines how persistence operations should be "cascaded" from parent to child.  For a description of cascade rules, see <a href="datamapping.html#datamapping_relations_lifecycle">datamapping_relations_cycle</a> and <a href="unitofwork.html#unitofwork_cascade">Cascade rules</a>.
+     <strong>backref</strong> - indicates the name of a property to be placed on the related mapper's class that will handle this relationship in the other direction, including synchronizing the object attributes on both sides of the relation.  Can also point to a <code>backref()</code> construct for more configurability.  See <a href="datamapping.html#datamapping_relations_backreferences">Backreferences</a>.
  </li>
 
  <li>
-     secondary - for a many-to-many relationship, specifies the intermediary table.
+     <strong>cascade</strong> - a string list of cascade rules which determines how persistence operations should be "cascaded" from parent to child. For a description of cascade rules, see <a href="datamapping.html#datamapping_relations_lifecycle">Lifecycle Relations</a> and <a href="unitofwork.html#unitofwork_cascade">Cascade rules</a>.
  </li>
 
  <li>
-     primaryjoin - a ClauseElement that will be used as the primary join of this child object against the parent object, or in a many-to-many relationship the join of the primary object to the association table.  By default, this value is computed based on the foreign key relationships of the parent and child tables (or association table).
+     <strong>collection_class</strong> - a class or function that returns a new list-holding object.  will be used in place of a plain list for storing elements.  See <a href="adv_datamapping.html#advdatamapping_properties_customlist">Custom List Classes</a>.
  </li>
 
  <li>
-     secondaryjoin - a ClauseElement that will be used as the join of an association table to the child object.  By default, this value is computed based on the foreign key relationships of the association and child tables.
+     <strong>foreignkey</strong> - deprecated for most uses.  As of 0.3.2, use <code>remote_side</code> to indicate the direction of self-referential relationships.  For <code>ForeignKey</code> specification, this field is only partially functional (i.e. does not work for many-to-many relationships), but is needed in rare cases when both sides of the primaryjoin condition contain foreign keys to either side of the relationship, and <code>relation()</code> cannot determine which side of the relationship is "foreign".  a new field <code>foreign_keys</code> will be added in a future release to fully implement this functionality.
  </li>
 
  <li>
-     remote_side - used for self-referential relationships, indicates the column or list of columns that form the "remote side" of the relationship.
+     <strong>lazy=True</strong> - specifies how the related items should be loaded.  a value of True indicates they should be loaded lazily when the property is first accessed.  A value of False indicates they should be loaded by joining against the parent object query, so parent and child are loaded in one round trip (i.e. eagerly).  A value of None indicates the related items are not loaded by the mapper in any case; the application will manually insert items into the list in some other way.  In all cases, items added or removed to the parent object's collection (or scalar attribute) will cause the appropriate updates and deletes upon flush(),  i.e. this option only affects load operations, not save operations.  <br></br>
  </li>
 
  <li>
-     foreignkey - deprecated.  As of 0.3.2, use remote_side to indicate the direction of self-referential relationships.  For ForeignKey specification, this field is only partially functional (i.e. does not work for many-to-many relationships).  a new field "foreign_keys" will be added in a future release to implement this functionality.
+     <strong>order_by</strong> - indicates the ordering that should be applied when loading these items.  See the section <a href="adv_datamapping.html#advdatamapping_orderby">Controlling Ordering</a> for details.
  </li>
 
  <li>
-     uselist - a boolean that indicates if this property should be loaded as a list or a scalar.  In most cases, this value is determined based on the type and direction of the relationship - one to many forms a list, many to one forms a scalar, many to many is a list.  If a scalar is desired where normally a list would be present, such as a bi-directional one-to-one relationship, set uselist to False.
+     <strong>passive_deletes=False</strong> - Indicates if lazy-loaders should not be executed during the <code>flush()</code> process, which normally occurs in order to locate all existing child items when a parent item is to be deleted.  Setting this flag to True is appropriate when <code>ON DELETE CASCADE</code> rules have been set up on the actual tables so that the database may handle cascading deletes automatically.  This strategy is useful particularly for handling the deletion of objects that have very large (and/or deep) child-object collections.  See the example in <a href="adv_datamapping.html#advdatamapping_properties_working">Working with Large Collections</a>.
  </li>
 
  <li>
-     private - setting <code>private=True</code> is the equivalent of setting <code>cascade="all, delete-orphan"</code>, and indicates the lifecycle of child objects should be contained within that of the parent.   See the example in <a href="datamapping.html#datamapping_relations_lifecycle">datamapping_relations_cycle</a>.
+     <strong>post_update</strong> - this indicates that the relationship should be handled by a second UPDATE statement after an INSERT or before a DELETE.  Currently, it also will issue an UPDATE after the instance was UPDATEd as well, although this technically should be improved.  This flag is used to handle saving bi-directional dependencies between two individual rows (i.e. each row references the other), where it would otherwise be impossible to INSERT or DELETE both rows fully since one row exists before the other.  Use this flag when a particular mapping arrangement will incur two rows that are dependent on each other, such as a table that has a one-to-many relationship to a set of child rows, and also has a column that references a single child row within that list (i.e. both tables contain a foreign key to each other).  If a <code>flush()</code> operation returns an error that a "cyclical dependency" was detected, this is a cue that you might want to use <code>post_update</code> to "break" the cycle.
  </li>
 
  <li>
-     backref - indicates the name of a property to be placed on the related mapper's class that will handle this relationship in the other direction, including synchronizing the object attributes on both sides of the relation.  Can also point to a <code>backref()</code> construct for more configurability.  See <a href="datamapping.html#datamapping_relations_backreferences">Backreferences</a>.
+     <strong>primaryjoin</strong> - a ClauseElement that will be used as the primary join of this child object against the parent object, or in a many-to-many relationship the join of the primary object to the association table.  By default, this value is computed based on the foreign key relationships of the parent and child tables (or association table).
  </li>
 
  <li>
-     order_by - indicates the ordering that should be applied when loading these items.  See the section <a href="adv_datamapping.html#advdatamapping_orderby">Controlling Ordering</a> for details.
+     <strong>private=False</strong> - deprecated.  setting <code>private=True</code> is the equivalent of setting <code>cascade="all, delete-orphan"</code>, and indicates the lifecycle of child objects should be contained within that of the parent.   See the example in <a href="datamapping.html#datamapping_relations_lifecycle">Lifecycle Relations</a>.
  </li>
 
  <li>
-     association - Deprecated; as of version 0.3.0 the association keyword is synonomous with applying the "all, delete-orphan" cascade to a "one-to-many" relationship.  SA can now automatically reconcile a "delete" and "insert" operation of two objects with the same "identity" in a flush() operation into a single "update" statement, which is the pattern that "association" used to indicate.  See the updated example of association mappings in <a href="datamapping.html#datamapping_association">Association Object</a>.
+     <strong>remote_side</strong> - used for self-referential relationships, indicates the column or list of columns that form the "remote side" of the relationship.  See the examples in <a href="adv_datamapping.html#advdatamapping_selfreferential">Self Referential Mappers</a>.
  </li>
 
  <li>
-     post_update - this indicates that the relationship should be handled by a second UPDATE statement after an INSERT, or before a DELETE.  using this flag essentially means the relationship will not incur any "dependency" between parent and child item, as the particular foreign key relationship between them is handled by a second statement.  use this flag when a particular mapping arrangement will incur two rows that are dependent on each other, such as a table that has a one-to-many relationship to a set of child rows, and also has a column that references a single child row within that list (i.e. both tables contain a foreign key to each other).  If a flush() operation returns an error that a "cyclical dependency" was detected, this is a cue that you might want to use post_update.
+     <strong>secondary</strong> - for a many-to-many relationship, specifies the intermediary table.  The <code>secondary</code> keyword argument should generally only be used for a table that is not otherwise expressed in any class mapping.  In particular, using the <a href="datamapping.html#datamapping_association">Association Object Pattern</a> is generally mutually exclusive against using the <code>secondary</code> keyword argument.
  </li>
 
  <li>
-     viewonly=(True|False) - when set to True, the relation is used only for loading objects within the relationship, and has no effect on the unit-of-work flush process.  relations with viewonly can specify any kind of join conditions to provide additional views of related objects onto a parent object.
+     <strong>secondaryjoin</strong> - a ClauseElement that will be used as the join of an association table to the child object.  By default, this value is computed based on the foreign key relationships of the association and child tables.
  </li>
 
  <li>
-     collection_class = None - a class or function that returns a new list-holding object.  will be used in place of a plain list for storing elements.
+     <strong>uselist=(True|False)</strong> - a boolean that indicates if this property should be loaded as a list or a scalar.  In most cases, this value is determined automatically by <code>relation()</code>, based on the type and direction of the relationship - one to many forms a list, many to one forms a scalar, many to many is a list.  If a scalar is desired where normally a list would be present, such as a bi-directional one-to-one relationship, set uselist to False.
  </li>
 
  <li>
-     passive_deletes = False - if False, child instances will be loaded from the database into the current session when a parent instance is deleted so that delete cascade can be processed on those child instances, even if they were not loaded already.  When set to True, lazy loaders will not be fired off in order to process a "delete" cascade, which is appropriate if "ON DELETE" rules have been set up on the database tables themselves.
+     <strong>viewonly=False</strong> - when set to True, the relation is used only for loading objects within the relationship, and has no effect on the unit-of-work flush process.  Relations with viewonly can specify any kind of join conditions to provide additional views of related objects onto a parent object.  Note that the functionality of a viewonly relationship has its limits - complicated join conditions may not compile into eager or lazy loaders properly.  If this is the case, use an alternative method, such as those described in <a href="adv_datamapping.html#advdatamapping_properties_working">Working with Large Collections</a>, <a href="adv_datamapping.html#advdatamapping_resultset">Result-Set Mapping</a>, or <a href="adv_datamapping.html#advdatamapping_selects">Mapping a Class against Arbitary Selects</a>.
  </li>
 </ul>
 
@@ -9545,7 +9728,7 @@
 
 
 
-<A name="advdatamapping_recursive"></a>
+<A name="advdatamapping_selfreferential"></a>
 
 <div class="subsection" style="margin-left:20px;">
 
@@ -9580,15 +9763,7 @@
                         <span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all"</span>
                      <span class="python_enclosure">)</span><span class="python_operator">,</span>
         <span class="python_enclosure">}</span>
-    <span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_comment"># or, specify the circular relationship after establishing the original mapper:
-</span><span class="python_name">mymapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">TreeNode</span><span class="python_operator">, </span><span class="python_name">trees</span><span class="python_enclosure">)</span><span class="python_operator">
-</span>
-<span class="python_name">mymapper</span><span class="python_operator">.</span><span class="python_name">add_property</span><span class="python_enclosure">(</span><span class="python_literal">'children'</span><span class="python_operator">, </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
-                        <span class="python_name">mymapper</span><span class="python_operator">, </span>
-                        <span class="python_name">cascade</span><span class="python_operator">=</span><span class="python_literal">"all"</span>
-                     <span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
+    <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 <p>This kind of mapper goes through a lot of extra effort when saving and deleting items, to determine the correct dependency graph of nodes within the tree.
 </p>
 <p>A self-referential mapper where there is more than one relationship on the table requires that all join conditions be explicitly spelled out.  Below is a self-referring table that contains a "parent_node_id" column to reference parent/child relationships, and a "root_node_id" column which points child nodes back to the ultimate root node:
@@ -9670,7 +9845,8 @@
 <span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># select users and addresses in one query
-</span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
+# use_labels is so that the user_id column in both tables are distinguished
+</span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
 <span class="python_comment"># execute it, and process the results with the User mapper, chained to the Address mapper
 </span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator">, </span><span class="python_name">class_mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">))</span><span class="python_operator">
@@ -9681,6 +9857,70 @@
     </span><span class="python_name">address </span><span class="python_operator">= </span><span class="python_name">r</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre></div>
 
 
+
+<A name="advdatamapping_resultset_combining"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+
+<h3>Combining Eager Loads with Result Set Mappings</h3>
+
+    <div class="sectiontext">
+    
+
+<p>When result-set mapping is used with a particular Mapper, SQLAlchemy has no access to the query being used and therefore has no way of tacking on its own <code>LEFT OUTER JOIN</code> conditions that are normally used to eager load relationships.  If the query being constructed is created in such a way that it returns rows not just from a parent table (or tables) but also returns rows from child tables, the result-set mapping can be notified as to which additional properties are contained within the result set.  This is done using the <code>contains_eager()</code> query option, which specifies the name of the relationship to be eagerly loaded, and optionally a <strong>decorator function</strong> that can translate aliased column names when results are received.
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_comment"># mapping is the users->addresses mapping
+</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'addresses'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+</span>
+<span class="python_comment"># define a query on USERS with an outer join to ADDRESSES
+</span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># construct a Query object which expects the "addresses" results 
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator">
+</span>
+<span class="python_comment"># get results normally
+</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">())</span><span class="python_operator"></span></pre></div>
+<p>It is often the case with large queries that some of the tables within the query need to be aliased in order to distinguish them from other occurences of the same table within the query.  A query that attempts to add eagerly loaded child items will often have this condition.  Therefore with a little more effort a decorator function can be used to produce translated rows (in the form of a dictionary which accepts Column instances), in the case that aliasing is used for the relationship tables.
+</p>
+
+
+<div class="code">
+<pre><span class="python_comment"># use an alias of the addresses table
+</span><span class="python_name">adalias </span><span class="python_operator">= </span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">alias</span><span class="python_enclosure">(</span><span class="python_literal">'adalias'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># define a query on USERS with an outer join to adalias
+</span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">adalias</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># define row-translation function.  this should return 
+# a dictionary-like object that will receive Column instances from the normally expected
+# table (i.e. addreses_table), and produce results from the actual result set
+</span><span class="python_keyword">def </span><span class="python_name">adtranslator</span><span class="python_enclosure">(</span><span class="python_name">row</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">d </span><span class="python_operator">= </span><span class="python_enclosure">{}</span><span class="python_operator">
+    </span><span class="python_keyword">for </span><span class="python_name">c </span><span class="python_keyword">in </span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">columns</span><span class="python_operator">:
+        </span><span class="python_name">d</span><span class="python_enclosure">[</span><span class="python_name">c</span><span class="python_enclosure">] </span><span class="python_operator">= </span><span class="python_name">row</span><span class="python_enclosure">[</span><span class="python_name">adalias</span><span class="python_operator">.</span><span class="python_name">corresponding_column</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_enclosure">)]</span><span class="python_operator">
+    </span><span class="python_keyword">return </span><span class="python_name">d</span><span class="python_operator">
+</span>
+<span class="python_comment"># construct a Query object which expects the "addresses" results 
+</span><span class="python_operator"></span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">decorator</span><span class="python_operator">=</span><span class="python_name">adtranslator</span><span class="python_enclosure">))</span><span class="python_operator">
+</span>
+<span class="python_comment"># get results normally
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_93', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">())</span><span class="python_operator"></span></pre><div id="popbox_93_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, adalias.address_id AS adalias_address_id, <br/>
+  adalias.user_id AS adalias_user_id, adalias.email_address AS adalias_email_address, (...other columns...)<br/>
+  FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias.user_id</div><pre><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+</div>
+
+
+
     </div>
 
     <a href="#advdatamapping" class="toclink">back to section top</a>
@@ -9689,31 +9929,91 @@
 
 
 
-<A name="advdatamapping_arguments"></a>
+<A name="advdatamapping_mapperoptions"></a>
 
 <div class="subsection" style="margin-left:20px;">
 
 
-<h3>Mapper Arguments</h3>
+<h3>Mapper Options</h3>
 
     <div class="sectiontext">
     
 
-<p>Other arguments not covered above include:
+<p>Options which can be sent to the <code>mapper()</code> function.  For arguments to <code>relation()</code>, see <a href="adv_datamapping.html#advdatamapping_properties_relationoptions">Relation Options</a>.
 </p>
 <ul>
  <li>
-     select_table=None - often used with polymorphic mappers, this is a <code>Selectable</code> which will take the place of the <code>Mapper</code>'s main table argument when performing queries.
+     <strong>allow_column_override</strong> - if True, allows the usage of a <code>relation()</code> which has the same name as a column in the mapped table. The table column will no longer be mapped.
  </li>
 
  <li>
-     version_id_col=None - an integer-holding Column object that will be assigned an incrementing
-counter, which is added to the WHERE clause used by UPDATE and DELETE statements.  The matching row
-count returned by the database is compared to the expected row count, and an exception is raised if they dont match.  This is a basic "optimistic concurrency" check.  Without the version id column, SQLAlchemy still compares the updated rowcount.
+     <strong>allow_null_pks=False</strong> - indicates that composite primary keys where one or more (but not all) columns contain NULL is a valid primary key. Primary keys which contain NULL values usually indicate that a result row does not contain an entity and should be skipped.
  </li>
 
  <li>
-     always_refresh=False - this option will cause the mapper to refresh all the attributes of all objects loaded by select/get statements, regardless of if they already exist in the current session.  this includes all lazy- and eager-loaded relationship attributes, and will also overwrite any changes made to attributes on the column. 
+     <strong>always_refresh=False</strong> - if True, all query operations for this mapped class will overwrite all data within object instances that already exist within the session, erasing any in-memory changes with whatever information was loaded from the database.
+ </li>
+
+ <li>
+     <strong>batch=True</strong> - when False, indicates that when a mapper is persisting a list of instances, each instance will be fully saved to the database before moving onto the next instance. Normally, inserts and updates are batched together per-table, such as for an inheriting mapping that spans multiple tables. This flag is for rare circumstances where custom <code>MapperExtension</code> objects are used to attach logic to <code>before_insert()</code>, <code>before_update()</code>, etc., and the user-defined logic requires that the full persistence of each instance must be completed before moving onto the next (such as logic which queries the tables for the most recent ID). Note that this flag has a significant impact on the efficiency of a large save operation.
+ </li>
+
+ <li>
+     <strong>column_prefix</strong> - a string which will be prepended to the "key" name of all Columns when creating column-based properties from the given Table. Does not affect explicitly specified column-based properties. Setting <code>column_prefix='_'</code> is equivalent to defining all column-based properties as <code>_columnname=table.c.columnname</code>. See <a href="adv_datamapping.html#advdatamapping_properties_colname">Overriding Column Names</a> for information on overriding column-based attribute names.
+ </li>
+
+ <li>
+     <strong>concrete</strong> - if True, indicates this mapper should use concrete table inheritance with its parent mapper.  Requires <code>inherits</code> to be set.
+ </li>
+
+ <li>
+     <strong>entity_name</strong> - defines this mapping as local to a particular class of entities within a single class.  Allows alternate persistence mappings for a single class. See <a href="adv_datamapping.html#advdatamapping_multiple">Multiple Mappers for One Class</a>.
+ </li>
+
+ <li>
+     <strong>extension</strong> - a MapperExtension instance or list of MapperExtension instances which will be applied to all operations by this Mapper. See <a href="adv_datamapping.html#advdatamapping_extending">Extending Mapper</a>.
+ </li>
+
+ <li>
+     <strong>inherits</strong> - another Mapper or class for which this Mapper will have an inheritance relationship with. See the examples in <a href="adv_datamapping.html#advdatamapping_inheritance">Mapping a Class with Table Inheritance</a>.
+ </li>
+
+ <li>
+     <strong>inherit_condition</strong> - for joined table inheritance, a SQL expression (constructed ClauseElement) which will define how the two tables are joined;
+defaults to a natural join between the two tables.
+ </li>
+
+ <li>
+     <strong>non_primary=False</strong> - if True, construct a Mapper that will define only the selection of instances, not their persistence. It essentially creates a mapper that can be used for querying but does not define how instances of the class are stored. A non_primary mapper is always created after a regular primary mapper has already been created for the class. To use one, send it in place of the class argument when creating a query, such as <code>session.query(somemapper)</code>. Note that it is usually invalid to define additional relationships on a non_primary mapper as they will conflict with those of the primary. See <a href="adv_datamapping.html#advdatamapping_multiple">Multiple Mappers for One Class</a>.
+ </li>
+
+ <li>
+     <strong>order_by</strong> - a single Column or list of Columns for which selection operations should use as the default ordering for entities. Defaults to the OID/ROWID of the table if any, or the first primary key column of the table. See <a href="adv_datamapping.html#advdatamapping_orderby">Controlling Ordering</a>.
+ </li>
+
+ <li>
+     <strong>polymorphic_on</strong> - used with mappers in an inheritance relationship, a Column which will identify the class/mapper combination to be used with a particular row. requires the <code>polymorphic_identity</code> value to be set for all mappers in the inheritance hierarchy.
+ </li>
+
+ <li>
+     <strong>polymorphic_identity</strong> - a value which will be stored in the Column denoted by <code>polymorphic_on</code>, corresponding to the "class identity" of this mapper.  See <a href="adv_datamapping.html#advdatamapping_inheritance">Mapping a Class with Table Inheritance</a>.
+ </li>
+
+ <li>
+     <strong>primary_key</strong> - a list of Column objects which define the "primary key" to be used against this mapper's selectable unit. The mapper normally determines these automatically from the given <code>local_table</code> of the mapper combined against any inherited tables. When this argument is specified, the primary keys of the mapped table if any are disregarded in place of the columns given. This can be used to provide primary key identity to a table that has no PKs defined at the schema level, or to modify what defines "identity" for a particular table.
+ </li>
+
+ <li>
+     <strong>properties</strong> - a dictionary mapping the string names of object attributes to MapperProperty instances, which define the persistence behavior of that attribute. Note that the columns in the mapped table are automatically converted into ColumnProperty instances based on the "key" property of each Column (although they can be overridden using this dictionary).
+ </li>
+
+ <li>
+     <strong>select_table</strong> - used with polymorphic mappers, this is a <code>Selectable</code> which will take the place of the <code>Mapper</code>'s main table argument when
+performing queries.
+ </li>
+
+ <li>
+     <strong>version_id_col</strong> - a Column which must have an integer type that will be used to keep a running "version id" of mapped entities in the database. This is used during save operations to ensure that no other thread or process has updated the instance during the lifetime of the entity, else a ConcurrentModificationError exception is thrown.
  </li>
 </ul>
 
@@ -12032,6 +12332,16 @@ count returned by the database is compared to the expected row count, and an exc
     
             <div class="darkcell">
         <A name=""></a>
+        <b>def __init__(<i>self</i>, <i>*cols</i>)</b>
+        <div class="docstring">
+        <p></p>
+<p></p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
         <b>def add(<i>self</i>, <i>column</i>)</b>
         <div class="docstring">
         <p>
@@ -12425,7 +12735,7 @@ count returned by the database is compared to the expected row count, and an exc
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def corresponding_column(<i>self</i>, <i>column</i>, <i>raiseerr=True</i>, <i>keys_ok=False</i>)</b>
+        <b>def corresponding_column(<i>self</i>, <i>column</i>, <i>raiseerr=True</i>, <i>keys_ok=False</i>, <i>require_exact=False</i>)</b>
         <div class="docstring">
         <p>
     given a ColumnElement, return the ColumnElement object from this 
@@ -13925,6 +14235,16 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
         </div>
         </div>
 
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def remove(<i>self</i>, <i>col</i>)</b>
+        <div class="docstring">
+        <p></p>
+<p></p>
+        </div>
+        </div>
+
 
 
     </div>
@@ -15157,6 +15477,17 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
     
             <div class="darkcell">
         <A name=""></a>
+        <b>def create_cursor(<i>self</i>, <i>connection</i>)</b>
+        <div class="docstring">
+        <p>
+    return a new cursor generated from the given connection
+</p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
         <b>def dbapi(<i>self</i>)</b>
         <div class="docstring">
         <p>
@@ -15766,7 +16097,7 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def __init__(<i>self</i>, <i>engine</i>, <i>connection</i>, <i>cursor</i>, <i>executioncontext=None</i>, <i>typemap=None</i>)</b>
+        <b>def __init__(<i>self</i>, <i>engine</i>, <i>connection</i>, <i>cursor</i>, <i>executioncontext=None</i>, <i>typemap=None</i>, <i>columns=None</i>)</b>
         <div class="docstring">
         <p>
     ResultProxy objects are constructed via the execute() method on SQLEngine.
@@ -15805,6 +16136,17 @@ the schema package &quot;plugs in&quot; to the SQL package.</p>
         <div class="docstring">
         <p>
     fetch all rows, just like DBAPI cursor.fetchall().
+</p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
+        <b>def fetchmany(<i>self</i>, <i>size=None</i>)</b>
+        <div class="docstring">
+        <p>
+    fetch many rows, juts like DBAPI cursor.fetchmany(size=cursor.arraysize)
 </p>
         </div>
         </div>
@@ -16378,6 +16720,18 @@ packages and tying operations to class properties and constructors.</p>
     
             <div class="darkcell">
         <A name=""></a>
+        <b>def compile_mappers()</b>
+        <div class="docstring">
+        <p>
+    compile all mappers that have been defined.  </p>
+<p>this is equivalent to calling compile() on any individual mapper.
+</p>
+        </div>
+        </div>
+
+    
+            <div class="darkcell">
+        <A name=""></a>
         <b>def contains_eager(<i>key</i>, <i>decorator=None</i>)</b>
         <div class="docstring">
         <p>
@@ -16901,14 +17255,14 @@ packages and tying operations to class properties and constructors.</p>
         all operations by this Mapper.</p>
 <p>order_by - a single Column or list of Columns for which selection operations should use as the default
         ordering for entities.  Defaults to the OID/ROWID of the table if any, or the first primary key column of the table.</p>
-<p>allow_column_override - if True, allows association relationships to be set up which override the usage of 
-        a column that is on the table (based on key/attribute name).</p>
+<p>allow_column_override - if True, allows the usage of a `relation()` which has the same name as a column in the mapped table.
+        The table column will no longer be mapped.</p>
 <p>entity_name - a name to be associated with the class, to allow alternate mappings for a single class.</p>
 <p>always_refresh - if True, all query operations for this mapped class will overwrite all data
         within object instances that already exist within the session, erasing any in-memory changes with whatever
         information was loaded from the database.</p>
 <p>version_id_col - a Column which must have an integer type that will be used to keep a running &quot;version id&quot; of
-        mapped entities in the database.  this is used during save operations to insure that no other thread or process
+        mapped entities in the database.  this is used during save operations to ensure that no other thread or process
         has updated the instance during the lifetime of the entity, else a ConcurrentModificationError exception is thrown.</p>
 <p>polymorphic_on - used with mappers in an inheritance relationship, a Column which will identify the class/mapper
         combination to be used with a particular row.  requires the polymorphic_identity value to be set for all mappers
@@ -17531,7 +17885,7 @@ packages and tying operations to class properties and constructors.</p>
         load the objects.</p>
 <p>For more advanced usage, arg can also be a Select statement object, which
         will be executed and its resulting rowset used to build new object instances.  
-        in this case, the developer must insure that an adequate set of columns exists in the 
+        in this case, the developer must ensure that an adequate set of columns exists in the 
         rowset with which to build new object instances.
 </p>
         </div>
@@ -18199,12 +18553,15 @@ packages and tying operations to class properties and constructors.</p>
     
             <div class="darkcell">
         <A name=""></a>
-        <b>def merge(<i>self</i>, <i>object</i>, <i>entity_name=None</i>)</b>
+        <b>def merge(<i>self</i>, <i>object</i>, <i>entity_name=None</i>, <i>_recursive=None</i>)</b>
         <div class="docstring">
         <p>
-    merge the object into a newly loaded or existing instance from this Session.</p>
-<p>note: this method is currently not completely implemented.
-</p>
+    copy the state of the given object onto the persistent object with the same identifier. </p>
+<p>If there is no persistent instance currently associated with the session, it will be loaded. 
+        Return the persistent instance. If the given instance is unsaved, save a copy of and return it as 
+        a newly persistent instance. The given instance does not become associated with the session. 
+        This operation cascades to associated instances if the association is mapped with cascade=&quot;merge&quot;.</p>
+<p></p>
         </div>
         </div>
 

@@ -164,9 +164,11 @@ test/orm/inheritance.py
 test/orm/inheritance2.py
 test/orm/inheritance3.py
 test/orm/inheritance4.py
+test/orm/inheritance5.py
 test/orm/lazytest1.py
 test/orm/manytomany.py
 test/orm/mapper.py
+test/orm/merge.py
 test/orm/onetoone.py
 test/orm/poly_linked_list.py
 test/orm/polymorph.py
@@ -183,6 +185,7 @@ test/perf/massload.py
 test/perf/massload2.py
 test/perf/masssave.py
 test/perf/poolload.py
+test/perf/threaded_compile.py
 test/perf/wsgi.py
 test/sql/__init__.py
 test/sql/alltests.py

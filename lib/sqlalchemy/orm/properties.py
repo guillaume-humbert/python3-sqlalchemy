@@ -1,5 +1,5 @@
 # properties.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -31,7 +31,6 @@ class SynonymProperty(MapperProperty):
         class SynonymProp(object):
             def __set__(s, obj, value):
                 setattr(obj, self.name, value)
-                self.set(None, obj, value)
             def __delete__(s, obj):
                 delattr(obj, self.name)
             def __get__(s, obj, owner):
@@ -39,6 +38,8 @@ class SynonymProperty(MapperProperty):
                     return s
                 return getattr(obj, self.name)
         setattr(self.parent.class_, self.key, SynonymProp())
+    def merge(self, session, source, dest, _recursive):
+        pass
         
 class ColumnProperty(StrategizedProperty):
     """describes an object attribute that corresponds to a table column."""
@@ -55,11 +56,15 @@ class ColumnProperty(StrategizedProperty):
         else:
             return strategies.ColumnLoader(self)
     def getattr(self, object):
-        return getattr(object, self.key, None)
+        return getattr(object, self.key)
     def setattr(self, object, value):
         setattr(object, self.key, value)
     def get_history(self, obj, passive=False):
         return sessionlib.attribute_manager.get_history(obj, self.key, passive=passive)
+    def merge(self, session, source, dest, _recursive):
+        setattr(dest, self.key, getattr(source, self.key, None))
+    def compare(self, value):
+        return self.columns[0] == value
         
 ColumnProperty.logger = logging.class_logger(ColumnProperty)
         
@@ -89,7 +94,7 @@ class PropertyLoader(StrategizedProperty):
             if private:
                 self.cascade = mapperutil.CascadeOptions("all, delete-orphan")
             else:
-                self.cascade = mapperutil.CascadeOptions("save-update")
+                self.cascade = mapperutil.CascadeOptions("save-update, merge")
 
         self.association = association
         self.order_by = order_by
@@ -105,6 +110,9 @@ class PropertyLoader(StrategizedProperty):
         else:
             self.backref = backref
         self.is_backref = is_backref
+    
+    def compare(self, value):
+        return sql.and_(*[x==y for (x, y) in zip(self.mapper.primary_key, self.mapper.primary_key_from_instance(value))])
         
     private = property(lambda s:s.cascade.delete_orphan)
 
@@ -118,7 +126,27 @@ class PropertyLoader(StrategizedProperty):
             
     def __str__(self):
         return self.__class__.__name__ + " " + str(self.parent) + "->" + self.key + "->" + str(self.mapper)
-        
+
+    def merge(self, session, source, dest, _recursive):
+        if not "merge" in self.cascade or source in _recursive:
+            return
+        _recursive.add(source)
+        try:
+            childlist = sessionlib.attribute_manager.get_history(source, self.key, passive=True)
+            if childlist is None:
+                return
+            if self.uselist:
+                # sets a blank list according to the correct list class
+                dest_list = getattr(self.parent.class_, self.key).initialize(dest)
+                for current in list(childlist):
+                    dest_list.append(session.merge(current, _recursive=_recursive))
+            else:
+                current = list(childlist)[0]
+                if current is not None:
+                    setattr(dest, self.key, session.merge(current, _recursive=_recursive))
+        finally:
+            _recursive.remove(source)
+            
     def cascade_iterator(self, type, object, recursive, halt_on=None):
         if not type in self.cascade:
             return
@@ -165,8 +193,9 @@ class PropertyLoader(StrategizedProperty):
         else:
             raise exceptions.ArgumentError("relation '%s' expects a class or a mapper argument (received: %s)" % (self.key, type(self.argument)))
             
-        self.mapper = self.mapper.get_select_mapper()._check_compile()
-            
+        # insure the "select_mapper", if different from the regular target mapper, is compiled.
+        self.mapper.get_select_mapper()._check_compile()
+           
         if self.association is not None:
             if isinstance(self.association, type):
                 self.association = mapper.class_mapper(self.association, compile=False)._check_compile()
@@ -192,6 +221,19 @@ class PropertyLoader(StrategizedProperty):
                     self.primaryjoin = sql.join(self.parent.unjoined_table, self.target).onclause
         except exceptions.ArgumentError, e:
             raise exceptions.ArgumentError("Error determining primary and/or secondary join for relationship '%s' between mappers '%s' and '%s'.  If the underlying error cannot be corrected, you should specify the 'primaryjoin' (and 'secondaryjoin', if there is an association table present) keyword arguments to the relation() function (or for backrefs, by specifying the backref using the backref() function with keyword arguments) to explicitly specify the join conditions.  Nested error is \"%s\"" % (self.key, self.parent, self.mapper, str(e)))
+
+        # if using polymorphic mapping, the join conditions must be agasint the base tables of the mappers,
+        # as the loader strategies expect to be working with those now (they will adapt the join conditions
+        # to the "polymorphic" selectable as needed).  since this is an API change, put an explicit check/
+        # error message in case its the "old" way.
+        if self.mapper.select_table is not self.mapper.mapped_table:
+            vis = sql_util.ColumnsInClause(self.mapper.select_table)
+            self.primaryjoin.accept_visitor(vis)
+            if self.secondaryjoin:
+                self.secondaryjoin.accept_visitor(vis)
+            if vis.result:
+                raise exceptions.ArgumentError("In relationship '%s' between mappers '%s' and '%s', primary and secondary join conditions must not include columns from the polymorphic 'select_table' argument as of SA release 0.3.4.  Construct join conditions using the base tables of the related mappers." % (self.key, self.parent, self.mapper))
+
         # if the foreign key wasnt specified and theres no assocaition table, try to figure
         # out who is dependent on who. we dont need all the foreign keys represented in the join,
         # just one of them.
@@ -251,12 +293,17 @@ class PropertyLoader(StrategizedProperty):
                         return sync.ONETOMANY
                 else:
                     return sync.MANYTOONE
-        elif len([c for c in self.foreignkey if self.mapper.unjoined_table.corresponding_column(c, False) is not None]):
-            return sync.ONETOMANY
-        elif len([c for c in self.foreignkey if self.parent.unjoined_table.corresponding_column(c, False) is not None]):
-            return sync.MANYTOONE
         else:
-            raise exceptions.ArgumentError("Cant determine relation direction for '%s' in mapper '%s' with primary join\n '%s'" %(self.key, str(self.mapper), str(self.primaryjoin)))
+            onetomany = len([c for c in self.foreignkey if self.mapper.unjoined_table.corresponding_column(c, False) is not None])
+            manytoone = len([c for c in self.foreignkey if self.parent.unjoined_table.corresponding_column(c, False) is not None])
+            if not onetomany and not manytoone:
+                raise exceptions.ArgumentError("Cant determine relation direction for '%s' on mapper '%s' with primary join '%s' - foreign key columns are not present in neither the parent nor the child's mapped tables" %(self.key, str(self.parent), str(self.primaryjoin)) +  str(self.foreignkey))
+            elif onetomany and manytoone:
+                raise exceptions.ArgumentError("Cant determine relation direction for '%s' on mapper '%s' with primary join '%s' - foreign key columns are present in both the parent and the child's mapped tables.  Specify 'foreignkey' argument." %(self.key, str(self.parent), str(self.primaryjoin)))
+            elif onetomany:
+                return sync.ONETOMANY
+            elif manytoone:
+                return sync.MANYTOONE
             
     def _find_dependent(self):
         """searches through the primary join condition to determine which side
@@ -275,7 +322,7 @@ class PropertyLoader(StrategizedProperty):
         visitor = mapperutil.BinaryVisitor(foo)
         self.primaryjoin.accept_visitor(visitor)
         if len(foreignkeys) == 0:
-            raise exceptions.ArgumentError("On relation '%s', can't figure out which side is the foreign key for join condition '%s'.  Specify the 'foreignkey' argument to the relation." % (self.key, str(self.primaryjoin)))
+            raise exceptions.ArgumentError("Cant determine relation direction for '%s' on mapper '%s' with primary join '%s' - no foreign key relationship is expressed within the join condition.  Specify 'foreignkey' argument." %(self.key, str(self.parent), str(self.primaryjoin)))
         self.foreignkey = foreignkeys
         
     def get_join(self):

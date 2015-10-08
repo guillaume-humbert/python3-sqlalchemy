@@ -1,5 +1,5 @@
 # orm/dependency.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -70,7 +70,7 @@ class DependencyProcessor(object):
         raise NotImplementedError()
 
     def preprocess_dependencies(self, task, deplist, uowcommit, delete = False):
-        """used before the flushes' topological sort to traverse through related objects and insure every 
+        """used before the flushes' topological sort to traverse through related objects and ensure every 
         instance which will require save/update/delete is properly added to the UOWTransaction."""
         raise NotImplementedError()
 
@@ -108,7 +108,7 @@ class DependencyProcessor(object):
         given related object list contains INSERTs or DELETEs."""
         if obj is not None and self.post_update:
             for x in related:
-                if x is not None and (uowcommit.is_deleted(x) or not hasattr(x, '_instance_key')):
+                if x is not None:
                     uowcommit.register_object(obj, postupdate=True, post_update_cols=self.syncrules.dest_columns())
                     break
 
@@ -320,7 +320,16 @@ class ManyToManyDP(DependencyProcessor):
             connection.execute(statement, secondary_insert)
 
     def preprocess_dependencies(self, task, deplist, uowcommit, delete = False):
-        pass
+        #print self.mapper.mapped_table.name + " " + self.key + " " + repr(len(deplist)) + " preprocess_dep isdelete " + repr(delete) + " direction " + repr(self.direction)
+        if not delete:
+            for obj in deplist:
+                childlist = self.get_object_dependencies(obj, uowcommit, passive=True)
+                if childlist is not None:
+                    for child in childlist.deleted_items():
+                        if self.cascade.delete_orphan and childlist.hasparent(child) is False:
+                            uowcommit.register_object(child, isdelete=True)
+                            for c in self.mapper.cascade_iterator('delete', child):
+                                uowcommit.register_object(c, isdelete=True)
     def _synchronize(self, obj, child, associationrow, clearkeys):
         dest = associationrow
         source = None

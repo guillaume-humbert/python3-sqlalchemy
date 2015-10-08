@@ -1,5 +1,5 @@
 # mysql.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -422,10 +422,10 @@ class MySQLDialect(ansisql.ANSIDialect):
             if match:
                 tabletype = match.group('ttype')
 
-        fkpat = r'CONSTRAINT `(?P<name>.+?)` FOREIGN KEY \((?P<columns>.+?)\) REFERENCES `(?P<reftable>.+?)` \((?P<refcols>.+?)\)'
+        fkpat = r'''CONSTRAINT [`"'](?P<name>.+?)[`"'] FOREIGN KEY \((?P<columns>.+?)\) REFERENCES [`"'](?P<reftable>.+?)[`"'] \((?P<refcols>.+?)\)'''
         for match in re.finditer(fkpat, desc):
-            columns = re.findall(r'`(.+?)`', match.group('columns'))
-            refcols = [match.group('reftable') + "." + x for x in re.findall(r'`(.+?)`', match.group('refcols'))]
+            columns = re.findall(r'''[`"'](.+?)[`"']''', match.group('columns'))
+            refcols = [match.group('reftable') + "." + x for x in re.findall(r'''[`"'](.+?)[`"']''', match.group('refcols'))]
             schema.Table(match.group('reftable'), table.metadata, autoload=True, autoload_with=connection)
             constraint = schema.ForeignKeyConstraint(columns, refcols, name=match.group('name'))
             table.append_constraint(constraint)
@@ -477,11 +477,12 @@ class MySQLSchemaGenerator(ansisql.ANSISchemaGenerator):
         return colspec
 
     def post_create_table(self, table):
-        mysql_engine = table.kwargs.get('mysql_engine', None)
-        if mysql_engine is not None:
-            return " TYPE=%s" % mysql_engine
-        else:
-            return ""
+        args = ""
+        for k in table.kwargs:
+            if k.startswith('mysql_'):
+                opt = k[6:]
+                args += " %s=%s" % (opt.upper(), table.kwargs[k])
+        return args
 
 class MySQLSchemaDropper(ansisql.ANSISchemaDropper):
     def visit_index(self, index):

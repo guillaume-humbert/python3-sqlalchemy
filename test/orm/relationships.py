@@ -353,6 +353,5 @@ class RelationTest3(testbase.PersistTest):
         
         
         
-        
 if __name__ == "__main__":
     testbase.main()        

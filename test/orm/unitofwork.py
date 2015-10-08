@@ -3,6 +3,7 @@ from sqlalchemy import *
 import testbase
 import pickleable
 from sqlalchemy.orm.mapper import global_extensions
+from sqlalchemy.orm import util as ormutil
 from sqlalchemy.ext.sessioncontext import SessionContext
 import sqlalchemy.ext.assignmapper as assignmapper
 from tables import *
@@ -403,6 +404,24 @@ class PKTest(UnitOfWorkTest):
         e.data = 'some more data'
         ctx.current.flush()
 
+    def testpksimmutable(self):
+        class Entry(object):
+            pass
+        mapper(Entry, table)
+        e = Entry()
+        e.multi_id=5
+        e.multi_rev=5
+        e.name='somename'
+        ctx.current.flush()
+        e.multi_rev=6
+        e.name = 'someothername'
+        try:
+            ctx.current.flush()
+            assert False
+        except exceptions.FlushError, fe:
+            assert str(fe) == "Can't change the identity of instance Entry@%s in session (existing identity: (%s, (5, 5), None); new identity: (%s, (5, 6), None))" % (hex(id(e)), repr(e.__class__), repr(e.__class__))
+            
+            
 class ForeignPKTest(UnitOfWorkTest):
     """tests mapper detection of the relationship direction when parent/child tables are joined on their
     primary keys"""
@@ -445,6 +464,61 @@ class ForeignPKTest(UnitOfWorkTest):
         p.sites.append(ps)
         ctx.current.flush()
         assert people.count(people.c.person=='im the key').scalar() == peoplesites.count(peoplesites.c.person=='im the key').scalar() == 1
+
+class PassiveDeletesTest(UnitOfWorkTest):
+    def setUpAll(self):
+        UnitOfWorkTest.setUpAll(self)
+        global metadata, mytable,myothertable
+        metadata = BoundMetaData(testbase.db)
+        mytable = Table('mytable', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('data', String(30)),
+            mysql_engine='InnoDB'
+            )
+
+        myothertable = Table('myothertable', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('parent_id', Integer),
+            Column('data', String(30)),
+            ForeignKeyConstraint(['parent_id'],['mytable.id'], ondelete="CASCADE"),
+            mysql_engine='InnoDB'
+            )
+
+        metadata.create_all()
+    def tearDownAll(self):
+        metadata.drop_all()
+        UnitOfWorkTest.tearDownAll(self)
+
+    @testbase.unsupported('sqlite')
+    def testbasic(self):
+        class MyClass(object):
+            pass
+        class MyOtherClass(object):
+            pass
+        
+        mapper(MyOtherClass, myothertable)
+
+        mapper(MyClass, mytable, properties={
+            'children':relation(MyOtherClass, passive_deletes=True, cascade="all")
+        })
+
+        sess = ctx.current
+        mc = MyClass()
+        mc.children.append(MyOtherClass())
+        mc.children.append(MyOtherClass())
+        mc.children.append(MyOtherClass())
+        mc.children.append(MyOtherClass())
+        sess.save(mc)
+        sess.flush()
+        sess.clear()
+        assert myothertable.count().scalar() == 4
+        mc = sess.query(MyClass).get(mc.id)
+        sess.delete(mc)
+        sess.flush()
+        assert mytable.count().scalar() == 0
+        assert myothertable.count().scalar() == 0
+        
+
         
 class PrivateAttrTest(UnitOfWorkTest):
     """tests various things to do with private=True mappers"""
@@ -889,7 +963,8 @@ class SaveTest(UnitOfWorkTest):
         ctx.current.delete(u)
         ctx.current.flush()
         self.assert_(a.address_id is not None and a.user_id is None and not ctx.current.identity_map.has_key(u._instance_key) and ctx.current.identity_map.has_key(a._instance_key))
-        
+    
+    
     def testbackwardsonetoone(self):
         # test 'backwards'
 #        m = mapper(Address, addresses, properties = dict(

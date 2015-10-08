@@ -106,18 +106,19 @@ To finish covering the basics, let's insert a new loan, then delete it:
     >>> db.delete(loan)
     >>> db.flush()
 
-You can also delete rows that have not been loaded as objects.  Let's do our insert/delete cycle once more,
-this time using the loans table's delete method.  (For SQLAlchemy experts:
-note that no flush() call is required since this
-delete acts at the SQL level, not at the Mapper level.)  The same where-clause construction rules
-apply here as to the select methods.
+You can also delete rows that have not been loaded as objects. Let's do our
+insert/delete cycle once more, this time using the loans table's delete
+method. (For SQLAlchemy experts: note that no flush() call is required since
+this delete acts at the SQL level, not at the Mapper level.) The same
+where-clause construction rules apply here as to the select methods.
 
     >>> db.loans.insert(book_id=book_id, user_name=user.name)
     MappedLoans(book_id=2,user_name='Bhargan Basepair',loan_date=None)
     >>> db.flush()
     >>> db.loans.delete(db.loans.c.book_id==2)
 
-You can similarly update multiple rows at once.  This will change the book_id to 1 in all loans whose book_id is 2:
+You can similarly update multiple rows at once. This will change the book_id
+to 1 in all loans whose book_id is 2:
 
     >>> db.loans.update(db.loans.c.book_id==2, book_id=1)
     >>> db.loans.select_by(db.loans.c.book_id==1)
@@ -159,14 +160,40 @@ to disambiguate columns with their table name:
     >>> db.with_labels(join1).c.keys()
     ['users_name', 'users_email', 'users_password', 'users_classname', 'users_admin', 'loans_book_id', 'loans_user_name', 'loans_loan_date']
 
+You can also join directly to a labeled object:
+
+    >>> labeled_loans = db.with_labels(db.loans)
+    >>> db.join(db.users, labeled_loans, isouter=True).c.keys()
+    ['name', 'email', 'password', 'classname', 'admin', 'loans_book_id', 'loans_user_name', 'loans_loan_date']
+
 
 Advanced Use
 ============
 
+Accessing the Session
+---------------------
+
+SqlSoup uses a SessionContext to provide thread-local sessions.  You can
+get a reference to the current one like this:
+
+    >>> from sqlalchemy.ext.sqlsoup import objectstore
+    >>> session = objectstore.current
+
+Now you have access to all the standard session-based SA features, such
+as transactions.  (SqlSoup's flush() is normally transactionalized, but
+you can perform manual transaction management if you need a transaction
+to span multiple flushes.)
+
+
 Mapping arbitrary Selectables
 -----------------------------
 
-SqlSoup can map any SQLAlchemy Selectable with the map method.  Let's map a Select object that uses an aggregate function; we'll use the SQLAlchemy Table that SqlSoup introspected as the basis.  (Since we're not mapping to a simple table or join, we need to tell SQLAlchemy how to find the "primary key," which just needs to be unique within the select, and not necessarily correspond to a "real" PK in the database.)
+SqlSoup can map any SQLAlchemy Selectable with the map method. Let's map a
+Select object that uses an aggregate function; we'll use the SQLAlchemy Table
+that SqlSoup introspected as the basis. (Since we're not mapping to a simple
+table or join, we need to tell SQLAlchemy how to find the "primary key," which
+just needs to be unique within the select, and not necessarily correspond to a
+"real" PK in the database.)
 
     >>> from sqlalchemy import select, func
     >>> b = db.books._table
@@ -176,7 +203,10 @@ SqlSoup can map any SQLAlchemy Selectable with the map method.  Let's map a Sele
     >>> years_with_count.select_by(published_year='1989')
     [MappedBooks(published_year='1989',n=1)]
     
-Obviously if we just wanted to get a list of counts associated with book years once, raw SQL is going to be less work.  The advantage of mapping a Select is reusability, both standalone and in Joins.  (And if you go to full SQLAlchemy, you can perform mappings like this directly to your object models.)
+Obviously if we just wanted to get a list of counts associated with book years
+once, raw SQL is going to be less work. The advantage of mapping a Select is
+reusability, both standalone and in Joins. (And if you go to full SQLAlchemy,
+you can perform mappings like this directly to your object models.)
 
 
 Raw SQL
@@ -217,6 +247,15 @@ Boring tests here.  Nothing of real expository value.
     Traceback (most recent call last):
     ...
     InvalidRequestError: SQLSoup can only modify mapped Tables (found: Alias)
+
+    [tests clear()]
+    >>> db.loans.count()
+    1
+    >>> _ = db.loans.insert(book_id=1, user_name='Bhargan Basepair')
+    >>> db.clear()
+    >>> db.flush()
+    >>> db.loans.count()
+    1
 """
 
 from sqlalchemy import *
@@ -287,23 +326,17 @@ class PKNotFoundError(SQLAlchemyError): pass
 
 # metaclass is necessary to expose class methods with getattr, e.g.
 # we want to pass db.users.select through to users._mapper.select
-def _ddl_check(cls):
-    if not isinstance(cls._table, Table):
-        msg = 'SQLSoup can only modify mapped Tables (found: %s)' \
-              % cls._table.__class__.__name__
-        raise InvalidRequestError(msg)
-class TableClassType(type):
+def _ddl_error(cls):
+    msg = 'SQLSoup can only modify mapped Tables (found: %s)' \
+          % cls._table.__class__.__name__
+    raise InvalidRequestError(msg)
+class SelectableClassType(type):
     def insert(cls, **kwargs):
-        _ddl_check(cls)
-        o = cls()
-        o.__dict__.update(kwargs)
-        return o
+        _ddl_error(cls)
     def delete(cls, *args, **kwargs):
-        _ddl_check(cls)
-        cls._table.delete(*args, **kwargs).execute()
+        _ddl_error(cls)
     def update(cls, whereclause=None, values=None, **kwargs):
-        _ddl_check(cls)
-        cls._table.update(whereclause, values).execute(**kwargs)
+        _ddl_error(cls)
     def _selectable(cls):
         return cls._table
     def __getattr__(cls, attr):
@@ -311,6 +344,15 @@ class TableClassType(type):
             # called during mapper init
             raise AttributeError()
         return getattr(cls._query, attr)
+class TableClassType(SelectableClassType):
+    def insert(cls, **kwargs):
+        o = cls()
+        o.__dict__.update(kwargs)
+        return o
+    def delete(cls, *args, **kwargs):
+        cls._table.delete(*args, **kwargs).execute()
+    def update(cls, whereclause=None, values=None, **kwargs):
+        cls._table.update(whereclause, values).execute(**kwargs)
             
 
 def _is_outer_join(selectable):
@@ -336,9 +378,12 @@ def _selectable_name(selectable):
 def class_for_table(selectable, **mapper_kwargs):
     if not hasattr(selectable, '_selectable') \
     or selectable._selectable() != selectable:
-        raise 'class_for_table requires a selectable as its argument'
+        raise ArgumentError('class_for_table requires a selectable as its argument')
     mapname = 'Mapped' + _selectable_name(selectable)
-    klass = TableClassType(mapname, (object,), {})
+    if isinstance(selectable, Table):
+        klass = TableClassType(mapname, (object,), {})
+    else:
+        klass = SelectableClassType(mapname, (object,), {})
     def __cmp__(self, o):
         L = self.__class__.c.keys()
         L.sort()
@@ -393,7 +438,7 @@ class SqlSoup:
         objectstore.delete(*args, **kwargs)
     def flush(self):
         objectstore.get_session().flush()
-    def rollback(self):
+    def clear(self):
         objectstore.clear()
     def map(self, selectable, **kwargs):
         try:

@@ -1,5 +1,5 @@
 # postgres.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -50,7 +50,7 @@ class PGInteger(sqltypes.Integer):
 class PGSmallInteger(sqltypes.Smallinteger):
     def get_col_spec(self):
         return "SMALLINT"
-class PGBigInteger(sqltypes.Integer):
+class PGBigInteger(PGInteger):
     def get_col_spec(self):
         return "BIGINT"
 class PG2DateTime(sqltypes.DateTime):
@@ -191,7 +191,6 @@ def descriptor():
     ]}
 
 class PGExecutionContext(default.DefaultExecutionContext):
-
     def post_exec(self, engine, proxy, compiled, parameters, **kwargs):
         if getattr(compiled, "isinsert", False) and self.last_inserted_ids is None:
             if not engine.dialect.use_oids:
@@ -208,8 +207,9 @@ class PGExecutionContext(default.DefaultExecutionContext):
                 self._last_inserted_ids = [v for v in row]
     
 class PGDialect(ansisql.ANSIDialect):
-    def __init__(self, module=None, use_oids=False, use_information_schema=False, **params):
+    def __init__(self, module=None, use_oids=False, use_information_schema=False, server_side_cursors=False, **params):
         self.use_oids = use_oids
+        self.server_side_cursors = server_side_cursors
         if module is None:
             #if psycopg is None:
             #    raise exceptions.ArgumentError("Couldnt locate psycopg1 or psycopg2: specify postgres module argument")
@@ -240,6 +240,14 @@ class PGDialect(ansisql.ANSIDialect):
         opts.update(url.query)
         return ([], opts)
 
+    def create_cursor(self, connection):
+        if self.server_side_cursors:
+            # use server-side cursors:
+            # http://lists.initd.org/pipermail/psycopg/2007-January/005251.html
+            return connection.cursor('x')
+        else:
+            return connection.cursor()
+
     def create_execution_context(self):
         return PGExecutionContext(self)
 
@@ -248,7 +256,7 @@ class PGDialect(ansisql.ANSIDialect):
             return sqltypes.adapt_type(typeobj, pg2_colspecs)
         else:
             return sqltypes.adapt_type(typeobj, pg1_colspecs)
-
+        
     def compiler(self, statement, bindparams, **kwargs):
         return PGCompiler(self, statement, bindparams, **kwargs)
     def schemagenerator(self, *args, **kwargs):
@@ -290,9 +298,12 @@ class PGDialect(ansisql.ANSIDialect):
     def dbapi(self):
         return self.module
 
-    def has_table(self, connection, table_name):
-        # TODO: why are we case folding here ?
-        cursor = connection.execute("""select relname from pg_class where lower(relname) = %(name)s""", {'name':table_name.lower()})
+    def has_table(self, connection, table_name, schema=None):
+        # seems like case gets folded in pg_class...
+        if schema is None:
+            cursor = connection.execute("""select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname=current_schema() and lower(relname)=%(name)s""", {'name':table_name.lower()});
+        else:
+            cursor = connection.execute("""select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname=%(schema)s and lower(relname)=%(name)s""", {'name':table_name.lower(), 'schema':schema});
         return bool( not not cursor.rowcount )
 
     def has_sequence(self, connection, sequence_name):
@@ -310,9 +321,9 @@ class PGDialect(ansisql.ANSIDialect):
         else:
             preparer = self.identifier_preparer
             if table.schema is not None:
-                current_schema = table.schema
+                schema_where_clause = "n.nspname = :schema"
             else:
-                current_schema = connection.default_schema_name()
+                schema_where_clause = "pg_catalog.pg_table_is_visible(c.oid)"
     
             ## information schema in pg suffers from too many permissions' restrictions
             ## let us find out at the pg way what is needed...
@@ -323,39 +334,38 @@ class PGDialect(ansisql.ANSIDialect):
                   (SELECT substring(d.adsrc for 128) FROM pg_catalog.pg_attrdef d
                    WHERE d.adrelid = a.attrelid AND d.adnum = a.attnum AND a.atthasdef)
                   AS DEFAULT,
-                  a.attnotnull, a.attnum
+                  a.attnotnull, a.attnum, a.attrelid as table_oid
                 FROM pg_catalog.pg_attribute a
                 WHERE a.attrelid = (
                     SELECT c.oid
                     FROM pg_catalog.pg_class c
                          LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-                    WHERE (n.nspname = :schema OR pg_catalog.pg_table_is_visible(c.oid))
-                          AND c.relname = :table_name AND (c.relkind = 'r' OR c.relkind = 'v')
+                         WHERE (%s)
+                         AND c.relname = :table_name AND c.relkind in ('r','v')
                 ) AND a.attnum > 0 AND NOT a.attisdropped
                 ORDER BY a.attnum
-            """
+            """ % schema_where_clause
     
-            s = text(SQL_COLS )
-            c = connection.execute(s, table_name=table.name, schema=current_schema)
-            found_table = False
-            while True:
-                row = c.fetchone()
-                if row is None:
-                    break
-                found_table = True
-                name = row['attname']
-                ## strip (30) from character varying(30)
-                attype = re.search('([^\(]+)', row['format_type']).group(1)
-    
-                nullable = row['attnotnull'] == False
+            s = text(SQL_COLS)
+            c = connection.execute(s, table_name=table.name, 
+                                      schema=table.schema)
+            rows = c.fetchall()
+            
+            if not rows: 
+                raise exceptions.NoSuchTableError(table.name)
+                
+            for name, format_type, default, notnull, attnum, table_oid in rows:
+                ## strip (30) from character varying(30)                
+                attype = re.search('([^\(]+)', format_type).group(1)
+                nullable = not notnull
+                
                 try:
-                    charlen = re.search('\(([\d,]+)\)',row['format_type']).group(1)
+                    charlen = re.search('\(([\d,]+)\)', format_type).group(1)
                 except:
                     charlen = False
     
                 numericprec = False
                 numericscale = False
-                default = row['default']
                 if attype == 'numeric':
                     if charlen is False:
                         numericprec, numericscale = (None, None)
@@ -363,7 +373,7 @@ class PGDialect(ansisql.ANSIDialect):
                         numericprec, numericscale = charlen.split(',')
                     charlen = False
                 if attype == 'double precision':
-                    numericprec, numericscale = (53, None)
+                    numericprec, numericscale = (53, False)
                     charlen = False
                 if attype == 'integer':
                     numericprec, numericscale = (32, 0)
@@ -390,24 +400,18 @@ class PGDialect(ansisql.ANSIDialect):
                 table.append_column(schema.Column(name, coltype, nullable=nullable, *colargs))
     
     
-            if not found_table:
-                raise exceptions.NoSuchTableError(table.name)
-    
             # Primary keys
             PK_SQL = """
               SELECT attname FROM pg_attribute 
               WHERE attrelid = (
-                 SELECT indexrelid FROM  pg_index i, pg_class c, pg_namespace n
-                 WHERE n.nspname = :schema AND c.relname = :table_name 
-                 AND c.oid = i.indrelid AND n.oid = c.relnamespace
-                 AND i.indisprimary = 't' ) ;
+                 SELECT indexrelid FROM pg_index i
+                 WHERE i.indrelid = :table
+                 AND i.indisprimary = 't')
+              ORDER BY attnum
             """ 
             t = text(PK_SQL)
-            c = connection.execute(t, table_name=table.name, schema=current_schema)
-            while True:
-                row = c.fetchone()
-                if row is None:
-                    break
+            c = connection.execute(t, table=table_oid)
+            for row in c.fetchall(): 
                 pk = row[0]
                 table.primary_key.add(table.c[pk])
     
@@ -415,27 +419,15 @@ class PGDialect(ansisql.ANSIDialect):
             FK_SQL = """
               SELECT conname, pg_catalog.pg_get_constraintdef(oid, true) as condef 
               FROM  pg_catalog.pg_constraint r 
-              WHERE r.conrelid = (
-                  SELECT c.oid FROM pg_catalog.pg_class c 
-                               LEFT JOIN pg_catalog.pg_namespace n
-                               ON n.oid = c.relnamespace 
-                  WHERE c.relname = :table_name 
-                    AND pg_catalog.pg_table_is_visible(c.oid)) 
-                    AND r.contype = 'f' ORDER BY 1
-    
+              WHERE r.conrelid = :table AND r.contype = 'f' 
+              ORDER BY 1
             """
             
             t = text(FK_SQL)
-            c = connection.execute(t, table_name=table.name)
-            while True:
-                row = c.fetchone()
-                if row is None:
-                    break
-
-                foreign_key_pattern = 'FOREIGN KEY \((.*?)\) REFERENCES (?:(.*?)\.)?(.*?)\((.*?)\)'
-                m = re.search(foreign_key_pattern, row['condef'])
-                (constrained_columns, referred_schema, referred_table, referred_columns) = m.groups() 
-                
+            c = connection.execute(t, table=table_oid)
+            for conname, condef in c.fetchall():
+                m = re.search('FOREIGN KEY \((.*?)\) REFERENCES (?:(.*?)\.)?(.*?)\((.*?)\)', condef).groups()
+                (constrained_columns, referred_schema, referred_table, referred_columns) = m
                 constrained_columns = [preparer._unquote_identifier(x) for x in re.split(r'\s*,\s*', constrained_columns)]
                 if referred_schema:
                     referred_schema = preparer._unquote_identifier(referred_schema)
@@ -453,7 +445,7 @@ class PGDialect(ansisql.ANSIDialect):
                     for column in referred_columns:
                         refspec.append(".".join([referred_table, column]))
                 
-                table.append_constraint(ForeignKeyConstraint(constrained_columns, refspec, row['conname']))
+                table.append_constraint(ForeignKeyConstraint(constrained_columns, refspec, conname))
 
 class PGCompiler(ansisql.ANSICompiler):
         
@@ -500,7 +492,10 @@ class PGSchemaGenerator(ansisql.ANSISchemaGenerator):
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column)
         if column.primary_key and len(column.foreign_keys)==0 and column.autoincrement and isinstance(column.type, sqltypes.Integer) and not isinstance(column.type, sqltypes.SmallInteger) and (column.default is None or (isinstance(column.default, schema.Sequence) and column.default.optional)):
-            colspec += " SERIAL"
+            if isinstance(column.type, PGBigInteger):
+                colspec += " BIGSERIAL"
+            else:
+                colspec += " SERIAL"
         else:
             colspec += " " + column.type.engine_impl(self.engine).get_col_spec()
             default = self.get_column_default_string(column)

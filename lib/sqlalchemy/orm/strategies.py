@@ -1,5 +1,5 @@
 # strategies.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -130,7 +130,10 @@ class AbstractRelationLoader(LoaderStrategy):
         self.secondary = self.parent_property.secondary
         self.foreignkey = self.parent_property.foreignkey
         self.mapper = self.parent_property.mapper
+        self.select_mapper = self.mapper.get_select_mapper()
         self.target = self.parent_property.target
+        self.select_table = self.parent_property.mapper.select_table
+        self.loads_polymorphic = self.target is not self.select_table
         self.uselist = self.parent_property.uselist
         self.cascade = self.parent_property.cascade
         self.attributeext = self.parent_property.attributeext
@@ -160,7 +163,7 @@ NoLoader.logger = logging.class_logger(NoLoader)
 class LazyLoader(AbstractRelationLoader):
     def init(self):
         super(LazyLoader, self).init()
-        (self.lazywhere, self.lazybinds, self.lazyreverse) = self._create_lazy_clause(self.parent.unjoined_table, self.primaryjoin, self.secondaryjoin, self.foreignkey, self.remote_side)
+        (self.lazywhere, self.lazybinds, self.lazyreverse) = self._create_lazy_clause(self.parent.unjoined_table, self.primaryjoin, self.secondaryjoin, self.foreignkey, self.remote_side, self.mapper.select_table)
         # determine if our "lazywhere" clause is the same as the mapper's
         # get() clause.  then we can just use mapper.get()
         self.use_get = not self.uselist and query.Query(self.mapper)._get_clause.compare(self.lazywhere)
@@ -244,7 +247,7 @@ class LazyLoader(AbstractRelationLoader):
                 # to load data into it.
                 sessionlib.attribute_manager.reset_instance_attribute(instance, self.key)
 
-    def _create_lazy_clause(self, table, primaryjoin, secondaryjoin, foreignkey, remote_side):
+    def _create_lazy_clause(self, table, primaryjoin, secondaryjoin, foreignkey, remote_side, select_table):
         binds = {}
         reverse = {}
         def column_in_table(table, column):
@@ -262,6 +265,13 @@ class LazyLoader(AbstractRelationLoader):
                     columns.append(c)
             expr.accept_visitor(FindColumnInColumnClause())
             return len(columns) and columns[0] or None
+        
+        def col_in_collection(column, collection):
+            for c in collection:
+                if column.shares_lineage(c):
+                    return True
+            else:
+                return False
                 
         def bind_label():
             return "lazy_" + hex(random.randint(0, 65535))[2:]
@@ -271,13 +281,13 @@ class LazyLoader(AbstractRelationLoader):
             if leftcol is None or rightcol is None:
                 return
             circular = leftcol.table is rightcol.table
-            if ((not circular and column_in_table(table, leftcol)) or (circular and rightcol in remote_side)):
+            if ((not circular and column_in_table(table, leftcol)) or (circular and col_in_collection(rightcol, remote_side))):
                 col = leftcol
                 binary.left = binds.setdefault(leftcol,
                         sql.bindparam(bind_label(), None, shortname=leftcol.name, type=binary.right.type))
                 reverse[rightcol] = binds[col]
 
-            if (leftcol is not rightcol) and ((not circular and column_in_table(table, rightcol)) or (circular and leftcol in remote_side)):
+            if (leftcol is not rightcol) and ((not circular and column_in_table(table, rightcol)) or (circular and col_in_collection(leftcol, remote_side))):
                 col = rightcol
                 binary.right = binds.setdefault(rightcol,
                         sql.bindparam(bind_label(), None, shortname=rightcol.name, type=binary.left.type))
@@ -286,9 +296,15 @@ class LazyLoader(AbstractRelationLoader):
         lazywhere = primaryjoin.copy_container()
         li = mapperutil.BinaryVisitor(visit_binary)
         lazywhere.accept_visitor(li)
+        
         if secondaryjoin is not None:
+            secondaryjoin = secondaryjoin.copy_container()
+            secondaryjoin.accept_visitor(sql_util.ClauseAdapter(select_table))
             lazywhere = sql.and_(lazywhere, secondaryjoin)
-        LazyLoader.logger.debug("create_lazy_clause " + str(lazywhere))
+        else:
+            lazywhere.accept_visitor(sql_util.ClauseAdapter(select_table))
+            
+        LazyLoader.logger.info("create_lazy_clause " + str(lazywhere))
         return (lazywhere, binds, reverse)
 
 LazyLoader.logger = logging.class_logger(LazyLoader)
@@ -299,7 +315,7 @@ class EagerLoader(AbstractRelationLoader):
     """loads related objects inline with a parent query."""
     def init(self):
         super(EagerLoader, self).init()
-        if self.parent.isa(self.mapper):
+        if self.parent.isa(self.select_mapper):
             raise exceptions.ArgumentError("Error creating eager relationship '%s' on parent class '%s' to child class '%s': Cant use eager loading on a self referential relationship." % (self.key, repr(self.parent.class_), repr(self.mapper.class_)))
         self.parent._eager_loaders.add(self.parent_property)
 
@@ -337,8 +353,9 @@ class EagerLoader(AbstractRelationLoader):
         """
         def __init__(self, eagerloader, parentclauses=None):
             self.parent = eagerloader
-            self.target = eagerloader.target
-            self.eagertarget = eagerloader.target.alias()
+            self.target = eagerloader.select_table
+            self.eagertarget = eagerloader.select_table.alias()
+            
             if eagerloader.secondary:
                 self.eagersecondary = eagerloader.secondary.alias()
                 self.aliasizer = sql_util.Aliasizer(eagerloader.target, eagerloader.secondary, aliases={
@@ -346,12 +363,16 @@ class EagerLoader(AbstractRelationLoader):
                         eagerloader.secondary:self.eagersecondary
                         })
                 self.eagersecondaryjoin = eagerloader.secondaryjoin.copy_container()
+                if eagerloader.loads_polymorphic:
+                    self.eagersecondaryjoin.accept_visitor(sql_util.ClauseAdapter(eagerloader.select_table))
                 self.eagersecondaryjoin.accept_visitor(self.aliasizer)
                 self.eagerprimary = eagerloader.primaryjoin.copy_container()
                 self.eagerprimary.accept_visitor(self.aliasizer)
             else:
-                self.aliasizer = sql_util.Aliasizer(eagerloader.target, aliases={eagerloader.target:self.eagertarget})
                 self.eagerprimary = eagerloader.primaryjoin.copy_container()
+                if eagerloader.loads_polymorphic:
+                    self.eagerprimary.accept_visitor(sql_util.ClauseAdapter(eagerloader.select_table))
+                self.aliasizer = sql_util.Aliasizer(self.target, aliases={self.target:self.eagertarget})
                 self.eagerprimary.accept_visitor(self.aliasizer)
 
             if parentclauses is not None:
@@ -460,34 +481,58 @@ class EagerLoader(AbstractRelationLoader):
             clauses._aliasize_orderby(statement.order_by_clause, False)
                 
         statement.append_from(statement._outerjoin)
-        for value in self.mapper.props.values():
-            value.setup(context, eagertable=clauses.eagertarget, parentclauses=clauses, parentmapper=self.mapper)
+        for value in self.select_mapper.props.values():
+            value.setup(context, eagertable=clauses.eagertarget, parentclauses=clauses, parentmapper=self.select_mapper)
+
+    def _create_row_processor(self, selectcontext, row):
+        """create a 'row processing' function that will apply eager aliasing to the row.
+        
+        also check that an identity key can be retrieved from the row, else return None."""
+        # check for a user-defined decorator in the SelectContext (which was set up by the contains_eager() option)
+        if selectcontext.attributes.has_key((EagerLoader, self.parent_property)):
+            # custom row decoration function, placed in the selectcontext by the 
+            # contains_eager() mapper option
+            decorator = selectcontext.attributes[(EagerLoader, self.parent_property)]
+            if decorator is None:
+                decorator = lambda row: row
+        else:
+            try:
+                # decorate the row according to the stored AliasedClauses for this eager load
+                clauses = self.clauses_by_lead_mapper[selectcontext.mapper]
+                decorator = clauses._row_decorator
+            except KeyError:
+                # no stored AliasedClauses: eager loading was not set up in the query and
+                # AliasedClauses never got initialized
+                return None
+
+        try:
+            decorated_row = decorator(row)
+            # check for identity key
+            identity_key = self.mapper.identity_key_from_row(decorated_row)
+            # and its good
+            return decorator
+        except KeyError:
+            # no identity key - dont return a row processor, will cause a degrade to lazy
+            return None
 
     def process_row(self, selectcontext, instance, row, identitykey, isnew):
         """receive a row.  tell our mapper to look for a new object instance in the row, and attach
         it to a list on the parent instance."""
-
         if self in selectcontext.recursion_stack:
             return
         
         try:
-            # decorate the row according to the stored AliasedClauses for this eager load,
-            # or look for a user-defined decorator in the SelectContext (which was set up by the contains_eager() option)
-            if selectcontext.attributes.has_key((EagerLoader, self.parent_property)):
-                # custom row decoration function, placed in the selectcontext by the 
-                # contains_eager() mapper option
-                decorator = selectcontext.attributes[(EagerLoader, self.parent_property)]
-                if decorator is None:
-                    decorated_row = row
-                else:
-                    decorated_row = decorator(row)
-            else:
-                clauses = self.clauses_by_lead_mapper[selectcontext.mapper]
-                decorated_row = clauses._decorate_row(row)
-            # check for identity key
-            identity_key = self.mapper.identity_key_from_row(decorated_row)
+            # check for row processor
+            row_processor = selectcontext.attributes[id(self)]
         except KeyError:
-            # else degrade to a lazy loader
+            # create a row processor function and cache it in the context
+            row_processor = self._create_row_processor(selectcontext, row)
+            selectcontext.attributes[id(self)] = row_processor
+            
+        if row_processor is not None:
+            decorated_row = row_processor(row)
+        else:
+            # row_processor was None: degrade to a lazy loader
             if self._should_log_debug:
                 self.logger.debug("degrade to lazy loader on %s" % mapperutil.attribute_str(instance, self.key))
             self.parent_property._get_strategy(LazyLoader).process_row(selectcontext, instance, row, identitykey, isnew)

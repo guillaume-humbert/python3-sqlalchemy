@@ -26,7 +26,7 @@
 <a href="documentation.html">One Page</a>
 </div>
 
-<div class="">Version: 0.3.3   Last Updated: 12/15/06 01:53:03</div>
+<div class="">Version: 0.3.4   Last Updated: 01/23/07 14:21:19</div>
 </div>
 
 
@@ -442,7 +442,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
     <div class="sectiontext">
     
 
-<p>A primary concept of the Session's underlying Unit of Work is that it is keeps track of all persistent instances; recall that a persistent instance has a database identity and is attached to a Session.  In particular, the Unit of Work must insure that only <em>one</em> copy of a particular persistent instance exists within the Session at any given time.   The UOW accomplishes this task using a dictionary known as an <em>Identity Map</em>.
+<p>A primary concept of the Session's underlying Unit of Work is that it is keeps track of all persistent instances; recall that a persistent instance has a database identity and is attached to a Session.  In particular, the Unit of Work must ensure that only <em>one</em> copy of a particular persistent instance exists within the Session at any given time.   The UOW accomplishes this task using a dictionary known as an <em>Identity Map</em>.
 </p>
 <p>When a <code>Query</code> is used to issue <code>select</code> or <code>get</code> requests to the database, it will in nearly all cases result in an actual SQL execution to the database, and a corresponding traversal of rows received from that execution.  However, when the underlying mapper actually <em>creates</em> objects corresponding to the result set rows it receives, it will check the session's identity map first before instantating a new object, and return the same instance already present in the identity map if it already exists, essentially <em>ignoring</em> the object state represented by that row.  There are several ways to override this behavior and truly refresh an already-loaded instance which are described later, but the main idea is that once your instance is loaded into a particular Session, it will <em>never change</em> its state without your explicit approval, regardless of what the database says about it.
 </p>
@@ -761,7 +761,7 @@ Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
     <div class="sectiontext">
     
 
-<p>This method first calls <code>clear()</code>, removing all objects from this <code>Session</code>, and then insures that any transactional resources are closed.
+<p>This method first calls <code>clear()</code>, removing all objects from this <code>Session</code>, and then ensures that any transactional resources are closed.
 </p>
 
 

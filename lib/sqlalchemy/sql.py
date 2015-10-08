@@ -1,4 +1,4 @@
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -274,6 +274,8 @@ class _FunctionGateway(object):
     """returns a callable based on an attribute name, which then returns a _Function 
     object with that name."""
     def __getattr__(self, name):
+        if name[-1] == '_':
+            name = name[0:-1]
         return getattr(_FunctionGenerator(), name)
 func = _FunctionGateway()
 
@@ -562,7 +564,7 @@ class _CompareMixin(object):
     def between(self, cleft, cright):
         return _BooleanExpression(self, and_(self._check_literal(cleft), self._check_literal(cright)), 'BETWEEN')
     def op(self, operator):
-        return lambda other: self._compare(operator, other)
+        return lambda other: self._operate(operator, other)
     # and here come the math operators:
     def __add__(self, other):
         return self._operate('+', other)
@@ -676,6 +678,9 @@ class ColumnCollection(util.OrderedProperties):
     
     overrides the __eq__() method to produce SQL clauses between sets of
     correlated columns."""
+    def __init__(self, *cols):
+        super(ColumnCollection, self).__init__()
+        [self.add(c) for c in cols]
     def add(self, column):
         """add a column to this collection.
         
@@ -723,9 +728,17 @@ class FromClause(Selectable):
         if not hasattr(self, '_oid_column'):
             self._oid_column = self._locate_oid_column()
         return self._oid_column
-    def corresponding_column(self, column, raiseerr=True, keys_ok=False):
+    def corresponding_column(self, column, raiseerr=True, keys_ok=False, require_exact=False):
         """given a ColumnElement, return the ColumnElement object from this 
         Selectable which corresponds to that original Column via a proxy relationship."""
+        if require_exact:
+            if self.columns.get(column.key) is column:
+                return column
+            else:
+                if not raiseerr:
+                    return None
+                else:
+                    raise exceptions.InvalidRequestError("Column instance '%s' is not directly present in table '%s'" % (str(column), str(column.table)))
         for c in column.orig_set:
             try:
                 return self.original_columns[c]
@@ -1073,8 +1086,14 @@ class _BinaryClause(ClauseElement):
             self.left.compare(other.left) and self.right.compare(other.right)
         )
 
-class _BooleanExpression(_BinaryClause):
-    """represents a boolean expression, which is only useable in WHERE criterion."""
+class _BinaryExpression(_BinaryClause, ColumnElement):
+    """represents a binary expression, which can be in a WHERE criterion or in the column list 
+    of a SELECT.  By adding "ColumnElement" to its inherited list, it becomes a Selectable
+    unit which can be placed in the column list of a SELECT."""
+    pass
+
+class _BooleanExpression(_BinaryExpression):
+    """represents a boolean expression."""
     def __init__(self, *args, **kwargs):
         self.negate = kwargs.pop('negate', None)
         super(_BooleanExpression, self).__init__(*args, **kwargs)
@@ -1083,13 +1102,6 @@ class _BooleanExpression(_BinaryClause):
             return _BooleanExpression(self.left, self.right, self.negate, negate=self.operator, type=self.type)
         else:
             return super(_BooleanExpression, self)._negate()
-        
-class _BinaryExpression(_BinaryClause, ColumnElement):
-    """represents a binary expression, which can be in a WHERE criterion or in the column list 
-    of a SELECT.  By adding "ColumnElement" to its inherited list, it becomes a Selectable
-    unit which can be placed in the column list of a SELECT."""
-    pass
-    
         
 class Join(FromClause):
     def __init__(self, left, right, onclause=None, isouter = False):
@@ -1460,14 +1472,17 @@ class Select(_SelectBaseMixin, FromClause):
         if columns is not None:
             for c in columns:
                 self.append_column(c)
-            
+
+        for f in from_obj:
+            self.append_from(f)
+
+        # whereclauses must be appended after the columns/FROM, since it affects
+        # the correlation of subqueries.  see test/sql/select.py SelectTest.testwheresubquery
         if whereclause is not None:
             self.append_whereclause(whereclause)
         if having is not None:
             self.append_having(having)
             
-        for f in from_obj:
-            self.append_from(f)
     
     class _CorrelatedVisitor(ClauseVisitor):
         """visits a clause, locates any Select clauses, and tells them that they should
@@ -1574,7 +1589,13 @@ class Select(_SelectBaseMixin, FromClause):
         else:
             return None
 
-    froms = property(lambda self: self.__froms.difference(self.__hide_froms).difference(self.__correlated), doc="""a collection containing all elements of the FROM clause""")
+    def _calc_froms(self):
+        f = self.__froms.difference(self.__hide_froms)
+        if (len(f) > 1):
+            return f.difference(self.__correlated)
+        else:
+            return f
+    froms = property(_calc_froms, doc="""a collection containing all elements of the FROM clause""")
 
     def accept_visitor(self, visitor):
         for f in self.froms:

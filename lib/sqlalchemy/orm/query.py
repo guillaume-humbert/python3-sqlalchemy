@@ -1,5 +1,5 @@
 # orm/query.py
-# Copyright (C) 2005,2006 Michael Bayer mike_mp@zzzcomputing.com
+# Copyright (C) 2005, 2006, 2007 Michael Bayer mike_mp@zzzcomputing.com
 #
 # This module is part of SQLAlchemy and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -126,7 +126,7 @@ class Query(object):
 
         for key, value in params.iteritems():
             (keys, prop) = self._locate_prop(key)
-            c = (prop.columns[0]==value) & self.join_via(keys)
+            c = prop.compare(value) & self.join_via(keys)
             if clause is None:
                 clause =  c
             else:                
@@ -235,18 +235,16 @@ class Query(object):
 
         For more advanced usage, arg can also be a Select statement object, which
         will be executed and its resulting rowset used to build new object instances.  
-        in this case, the developer must insure that an adequate set of columns exists in the 
+        in this case, the developer must ensure that an adequate set of columns exists in the 
         rowset with which to build new object instances."""
 
         ret = self.extension.select(self, arg=arg, **kwargs)
         if ret is not mapper.EXT_PASS:
             return ret
-        try:
-            s = arg._selectable()
-        except AttributeError:
-            return self.select_whereclause(whereclause=arg, **kwargs)
+        if isinstance(arg, sql.FromClause):
+            return self.select_statement(arg, **kwargs)
         else:
-            return self.select_statement(s, **kwargs)
+            return self.select_whereclause(whereclause=arg, **kwargs)
 
     def select_whereclause(self, whereclause=None, params=None, **kwargs):
         """given a WHERE criterion, create a SELECT statement, execute and return the resulting instances."""
@@ -455,7 +453,7 @@ class Query(object):
             if order_by:
                 statement.order_by(*util.to_list(order_by))
             # for a DISTINCT query, you need the columns explicitly specified in order
-            # to use it in "order_by".  insure they are in the column criterion (particularly oid).
+            # to use it in "order_by".  ensure they are in the column criterion (particularly oid).
             # TODO: this should be done at the SQL level not the mapper level
             if kwargs.get('distinct', False) and order_by:
                 [statement.append_column(c) for c in util.to_list(order_by)]

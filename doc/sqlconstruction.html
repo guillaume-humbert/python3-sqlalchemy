@@ -26,7 +26,7 @@
 <a href="documentation.html">One Page</a>
 </div>
 
-<div class="">Version: 0.3.3   Last Updated: 12/15/06 01:53:03</div>
+<div class="">Version: 0.3.4   Last Updated: 01/23/07 14:21:19</div>
 </div>
 
 
@@ -531,7 +531,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 <div class="code">
     <div class="codetitle">use_labels Generates Abbreviated Labels</div>
 <pre><span class="python_name">long_named_table </span><span class="python_operator">= </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">alias</span><span class="python_enclosure">(</span><span class="python_literal">'this_is_the_person_table'</span><span class="python_enclosure">)</span><span class="python_operator">
-</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_8', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">c </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">person</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_8_div" class="codepop" style="display:none;">SELECT this_is_the_person_table.user_id AS this_is_the_person_table_b36c, <br/>
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_8', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">c </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">long_named_table</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_8_div" class="codepop" style="display:none;">SELECT this_is_the_person_table.user_id AS this_is_the_person_table_b36c, <br/>
   this_is_the_person_table.user_name AS this_is_the_person_table_f76a, <br/>
   this_is_the_person_table.password AS this_is_the_person_table_1e7c<br/>
   FROM users AS this_is_the_person_table<br/>

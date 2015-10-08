@@ -113,6 +113,9 @@ class Dialect(sql.AbstractDialect):
         raise NotImplementedError()
     def do_execute(self, cursor, statement, parameters):
         raise NotImplementedError()
+    def create_cursor(self, connection):
+        """return a new cursor generated from the given connection"""
+        raise NotImplementedError()
     def compile(self, clauseelement, parameters=None):
         """compile the given ClauseElement using this Dialect.
         
@@ -279,7 +282,7 @@ class Connection(Connectable):
         return self.execute_compiled(elem.compile(engine=self.__engine, parameters=param), *multiparams, **params)
     def execute_compiled(self, compiled, *multiparams, **params):
         """executes a sql.Compiled object."""
-        cursor = self.connection.cursor()
+        cursor = self.__engine.dialect.create_cursor(self.connection)
         parameters = [compiled.get_params(**m) for m in self._params_to_listofdicts(*multiparams, **params)]
         if len(parameters) == 1:
             parameters = parameters[0]
@@ -294,7 +297,7 @@ class Connection(Connectable):
         context.pre_exec(self.__engine, proxy, compiled, parameters)
         proxy(str(compiled), parameters)
         context.post_exec(self.__engine, proxy, compiled, parameters)
-        return ResultProxy(self.__engine, self, cursor, context, typemap=compiled.typemap)
+        return ResultProxy(self.__engine, self, cursor, context, typemap=compiled.typemap, columns=compiled.columns)
         
     # poor man's multimethod/generic function thingy
     executors = {
@@ -319,7 +322,7 @@ class Connection(Connectable):
         return callable_(self)
     def _execute_raw(self, statement, parameters=None, cursor=None, context=None, **kwargs):
         if cursor is None:
-            cursor = self.connection.cursor()
+            cursor = self.__engine.dialect.create_cursor(self.connection)
         try:
             self.__engine.logger.info(statement)
             self.__engine.logger.info(repr(parameters))
@@ -542,13 +545,14 @@ class ResultProxy(object):
         def convert_result_value(self, arg, engine):
             raise exceptions.InvalidRequestError("Ambiguous column name '%s' in result set! try 'use_labels' option on select statement." % (self.key))
     
-    def __init__(self, engine, connection, cursor, executioncontext=None, typemap=None):
+    def __init__(self, engine, connection, cursor, executioncontext=None, typemap=None, columns=None):
         """ResultProxy objects are constructed via the execute() method on SQLEngine."""
         self.connection = connection
         self.dialect = engine.dialect
         self.cursor = cursor
         self.engine = engine
         self.closed = False
+        self.columns = columns
         if executioncontext is not None:
             self.__executioncontext = executioncontext
             self.rowcount = executioncontext.get_rowcount(cursor)
@@ -608,15 +612,26 @@ class ResultProxy(object):
                     try:
                         rec = self.props[key.key.lower()]
                     except KeyError:
-#                        rec = self.props[key.name.lower()]
                         try:
                             rec = self.props[key.name.lower()]
                         except KeyError:
                             raise exceptions.NoSuchColumnError("Could not locate column in row for column '%s'" % str(key))
             elif isinstance(key, str):
-                rec = self.props[key.lower()]
+                try:
+                    rec = self.props[key.lower()]
+                except KeyError:
+                    try:
+                        if self.columns is not None:
+                            rec = self._convert_key(self.columns[key])
+                        else:
+                            raise
+                    except KeyError:
+                        raise exceptions.NoSuchColumnError("Could not locate column in row for column '%s'" % str(key))
             else:
-                rec = self.props[key]
+                try:
+                    rec = self.props[key]
+                except KeyError:
+                    raise exceptions.NoSuchColumnError("Could not locate column in row for column '%s'" % str(key))
             self.__key_cache[key] = rec
             return rec
             
@@ -673,6 +688,19 @@ class ResultProxy(object):
         self.close()
         return l
             
+    def fetchmany(self, size=None):
+        """fetch many rows, juts like DBAPI cursor.fetchmany(size=cursor.arraysize)"""
+        if size is None:
+            rows = self.cursor.fetchmany()
+        else:
+            rows = self.cursor.fetchmany(size=size)
+        l = []
+        for row in rows:
+            l.append(RowProxy(self, row))
+        if len(l) == 0:
+            self.close()
+        return l
+        
     def fetchone(self):
         """fetch one row, just like DBAPI cursor.fetchone()."""
         row = self.cursor.fetchone()
