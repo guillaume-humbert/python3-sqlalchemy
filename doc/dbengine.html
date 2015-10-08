@@ -1,0 +1,608 @@
+<html>
+<head>
+	<title>
+    Database Engines - SQLAlchemy Documentation
+</title>
+</head>
+<body>
+
+
+
+<link href="style.css" rel="stylesheet" type="text/css"></link>
+<link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
+
+<link href="docs.css" rel="stylesheet" type="text/css"></link>
+<script src="scripts.js"></script>
+
+
+<div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
+
+<div class="doccontainer">
+
+<div class="docheader">
+
+<div class="docheadertext" >Database Engines</div>
+<div class="">Version: 0.1.4   Last Updated: 03/13/06 12:39:29</div>
+</div>
+
+
+
+		<A name="dbengine"></a>
+		
+	
+<div class="topnav">
+
+
+	
+	<div class="topnavcontrol">
+	View: <b>Paged</b> &nbsp;|&nbsp; <a href="documentation.html">One Page</a>
+	</div>
+
+
+
+<div class="topnavsectionlink">
+
+<a href="index.html">Table of Contents</a>
+
+<div class="prevnext">
+Previous: <a href="pooling.html">Connection Pooling</a>
+
+&nbsp; | &nbsp;
+
+
+Next: <a href="metadata.html">Database Meta Data</a>
+
+</div>
+</div>
+
+
+<div class="topnavmain">
+	<div class="topnavheader">Database Engines</div>
+	<div class="topnavitems">
+	
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#dbengine_establishing">Establishing a Database Engine</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#dbengine_methods">Database Engine Methods</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#dbengine_options">Database Engine Options</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#dbengine_proxy">Using the Proxy Engine</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#dbengine_proxy_defaultproxy">Using the Global Proxy</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#dbengine_transactions">Transactions</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+
+	</div>
+</div>
+
+</div>
+
+		<div class="sectioncontent">
+			
+
+
+
+
+<div class="subsection" style="margin-left:10px;">
+
+    <div class="sectiontext">
+
+
+    <p>A database engine is a subclass of <span class="codeline">sqlalchemy.engine.SQLEngine</span>, and is the starting point for where SQLAlchemy provides a layer of abstraction on top of the various DBAPI2 database modules.  It serves as an abstract factory for database-specific implementation objects as well as a layer of abstraction over the most essential tasks of a database connection, including connecting, executing queries, returning result sets, and managing transactions.</p>
+    
+    <p>
+    The average developer doesn't need to know anything about the interface or workings of a SQLEngine in order to use it.  Simply creating one, and then specifying it when constructing tables and other SQL objects is all that's needed. </p>
+    
+    <p>A SQLEngine is also a layer of abstraction on top of the connection pooling described in the previous section.  While a DBAPI connection pool can be used explicitly alongside a SQLEngine, its not really necessary.  Once you have a SQLEngine, you can retrieve pooled connections directly from its underlying connection pool via its own <span class="codeline">connection()</span> method.  However, if you're exclusively using SQLALchemy's SQL construction objects and/or object-relational mappers, all the details of connecting are handled by those libraries automatically.
+    </p>
+    
+			
+    
+			
+    
+    
+			
+    
+			
+    
+			
+
+    </div>
+
+        
+
+
+
+<A name="dbengine_establishing"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Establishing a Database Engine</span>
+    <div class="sectiontext">
+
+
+    <p>
+    Engines exist for SQLite, Postgres, MySQL, and Oracle, using the Pysqlite, Psycopg (1 or 2), MySQLDB, and cx_Oracle modules.  Each engine imports its corresponding module which is required to be installed.  For Postgres and Oracle, an alternate module may be specified at construction time as well.
+    </p>
+    <p>The string based argument names for connecting are translated to the appropriate names when the connection is made; argument names include "host" or "hostname" for database host, "database", "db", or "dbname" for the database name (also is dsn for Oracle), "user" or "username" for the user, and "password", "pw", or "passwd" for the password.  SQLite expects "filename" or "file" for the filename, or if None it defaults to "":memory:".</p>
+    <p>The connection arguments can be specified as a string + dictionary pair, or a single URL-encoded string, as follows:</p>
+    
+    
+
+<div class="code">
+<pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
+</span>
+<span class="python_comment"># sqlite in memory    
+</span><span class="python_name">sqlite_engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite'</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'filename'</span><span class="python_operator">:</span><span class="python_literal">':memory:'</span><span class="python_enclosure">}</span><span class="python_operator">, **</span><span class="python_name">opts</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># via URL
+</span><span class="python_name">sqlite_engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://'</span><span class="python_operator">, **</span><span class="python_name">opts</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># sqlite using a file
+</span><span class="python_name">sqlite_engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite'</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'filename'</span><span class="python_operator">:</span><span class="python_literal">'querytest.db'</span><span class="python_enclosure">}</span><span class="python_operator">, **</span><span class="python_name">opts</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># via URL
+</span><span class="python_name">sqlite_engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://filename=querytest.db'</span><span class="python_operator">, **</span><span class="python_name">opts</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># postgres
+</span><span class="python_name">postgres_engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres'</span><span class="python_operator">, </span>
+                        <span class="python_enclosure">{</span><span class="python_literal">'database'</span><span class="python_operator">:</span><span class="python_literal">'test'</span><span class="python_operator">, </span>
+                        <span class="python_literal">'host'</span><span class="python_operator">:</span><span class="python_literal">'127.0.0.1'</span><span class="python_operator">, </span>
+                        <span class="python_literal">'user'</span><span class="python_operator">:</span><span class="python_literal">'scott'</span><span class="python_operator">, </span>
+                        <span class="python_literal">'password'</span><span class="python_operator">:</span><span class="python_literal">'tiger'</span><span class="python_enclosure">}</span><span class="python_operator">, **</span><span class="python_name">opts</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># via URL
+</span><span class="python_name">postgres_engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://database=test&amp;host=127.0.0.1&amp;user=scott&amp;password=tiger'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># mysql
+</span><span class="python_name">mysql_engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql'</span><span class="python_operator">,</span>
+                        <span class="python_enclosure">{</span>
+                            <span class="python_literal">'db'</span><span class="python_operator">:</span><span class="python_literal">'mydb'</span><span class="python_operator">,</span>
+                            <span class="python_literal">'user'</span><span class="python_operator">:</span><span class="python_literal">'scott'</span><span class="python_operator">,</span>
+                            <span class="python_literal">'passwd'</span><span class="python_operator">:</span><span class="python_literal">'tiger'</span><span class="python_operator">,</span>
+                            <span class="python_literal">'host'</span><span class="python_operator">:</span><span class="python_literal">'127.0.0.1'</span>
+                        <span class="python_enclosure">}</span>
+                        <span class="python_operator">**</span><span class="python_name">opts</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_comment"># oracle
+</span><span class="python_name">oracle_engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'oracle'</span><span class="python_operator">, </span>
+                        <span class="python_enclosure">{</span><span class="python_literal">'dsn'</span><span class="python_operator">:</span><span class="python_literal">'mydsn'</span><span class="python_operator">, </span>
+                        <span class="python_literal">'user'</span><span class="python_operator">:</span><span class="python_literal">'scott'</span><span class="python_operator">, </span>
+                        <span class="python_literal">'password'</span><span class="python_operator">:</span><span class="python_literal">'tiger'</span><span class="python_enclosure">}</span><span class="python_operator">, **</span><span class="python_name">opts</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+    <p>Note that the general form of connecting to an engine is:</p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># separate arguments
+</span><span class="python_operator">           </span><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span>
+            <span class="python_operator"><</span><span class="python_name">enginename</span><span class="python_operator">>, </span>
+            <span class="python_enclosure">{</span><span class="python_operator"><</span><span class="python_name">named DBAPI arguments</span><span class="python_operator">></span><span class="python_enclosure">}</span><span class="python_operator">, </span>
+            <span class="python_operator"><</span><span class="python_name">sqlalchemy options</span><span class="python_operator">>;</span>
+        <span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># url
+</span><span class="python_operator"></span><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'&lt;enginename&gt;://&lt;named DBAPI arguments&gt;'</span><span class="python_operator">, <</span><span class="python_name">sqlalchemy options</span><span class="python_operator">></span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+    
+    </div>
+
+
+    <a href="#dbengine" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="dbengine_methods"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Database Engine Methods</span>
+    <div class="sectiontext">
+
+
+    <p>A few useful methods off the SQLEngine are described here:</p>
+        
+
+<div class="code">
+<pre><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://hostname=localhost&user=scott&password=tiger&database=test'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># get a pooled DBAPI connection
+</span><span class="python_name">conn </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connection</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># create/drop tables based on table metadata objects
+# (see the next section, Table Metadata, for info on table metadata)
+</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">create</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">drop</span><span class="python_enclosure">(</span><span class="python_name">mytable</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># get the DBAPI module being used
+</span><span class="python_name">dbapi </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">dbapi</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># get the default schema name
+</span><span class="python_name">name </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">get_default_schema_name</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># execute some SQL directly, returns a ResultProxy (see the SQL Construction section for details)
+</span><span class="python_name">result </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"select * from table where col1=:col1"</span><span class="python_operator">, </span><span class="python_enclosure">{</span><span class="python_literal">'col1'</span><span class="python_operator">:</span><span class="python_literal">'foo'</span><span class="python_enclosure">})</span><span class="python_operator">
+</span>
+<span class="python_comment"># log a message to the engine's log stream
+</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">log</span><span class="python_enclosure">(</span><span class="python_literal">'this is a message'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+    
+    
+    </div>
+
+
+    <a href="#dbengine" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="dbengine_options"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Database Engine Options</span>
+    <div class="sectiontext">
+
+
+    <p>The remaining arguments to <span class="codeline">create_engine</span> are keyword arguments that are passed to the specific subclass of <span class="codeline">sqlalchemy.engine.SQLEngine</span> being used,  as well as the underlying <span class="codeline">sqlalchemy.pool.Pool</span> instance.  All of the options described in the previous section <a href="pooling.html#pooling_configuration" >Connection Pool Configuration</a> can be specified, as well as engine-specific options:</p>
+    <ul>
+        <li><p>pool=None : an instance of <span class="codeline">sqlalchemy.pool.Pool</span> to be used as the underlying source for connections, overriding the engine's connect arguments (pooling is described in the previous section).  If None, a default Pool (QueuePool or SingletonThreadPool as appropriate) will be created using the engine's connect arguments.</p>
+        <p>Example:</p>
+        
+
+<div class="code">
+<pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
+</span><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">pool as pool</span><span class="python_operator">
+</span><span class="python_keyword">import </span><span class="python_name">MySQLdb</span><span class="python_operator">
+</span>
+<span class="python_keyword">def </span><span class="python_name">getconn</span><span class="python_enclosure">()</span><span class="python_operator">:
+    </span><span class="python_keyword">return </span><span class="python_name">MySQLdb</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">user</span><span class="python_operator">=</span><span class="python_literal">'ed'</span><span class="python_operator">, </span><span class="python_name">dbname</span><span class="python_operator">=</span><span class="python_literal">'mydb'</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span>
+<span class="python_operator"></span><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'mysql'</span><span class="python_operator">, </span><span class="python_name">pool</span><span class="python_operator">=</span><span class="python_name">pool</span><span class="python_operator">.</span><span class="python_name">QueuePool</span><span class="python_enclosure">(</span><span class="python_name">getconn</span><span class="python_operator">, </span><span class="python_name">pool_size</span><span class="python_operator">=</span><span class="python_number">20</span><span class="python_operator">, </span><span class="python_name">max_overflow</span><span class="python_operator">=</span><span class="python_number">40</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
+</li>
+        <li>echo=False : if True, the SQLEngine will log all statements as well as a repr() of their parameter lists to the engines logger, which defaults to sys.stdout.  A SQLEngine instances' "echo" data member can be modified at any time to turn logging on and off.  If set to the string 'debug', result rows will be printed to the standard output as well.</li>
+        <li>logger=None : a file-like object where logging output can be sent, if echo is set to True.  This defaults to sys.stdout.</li>
+        <li>module=None : used by Oracle and Postgres, this is a reference to a DBAPI2 module to be used instead of the engine's default module.  For Postgres, the default is psycopg2, or psycopg1 if 2 cannot be found.  For Oracle, its cx_Oracle.</li>
+        <li>default_ordering=False : if True, table objects and associated joins and aliases will generate information used for ordering by primary keys (or OIDs, if the database supports OIDs).  This information is used by the Mapper system to when it constructs select queries to supply a default ordering to mapped objects.</li>
+        <li>use_ansi=True : used only by Oracle;  when False, the Oracle driver attempts to support a particular "quirk" of some Oracle databases, that the LEFT OUTER JOIN SQL syntax is not supported, and the "Oracle join" syntax of using &lt;column1&gt;(+)=&lt;column2&gt; must be used in order to achieve a LEFT OUTER JOIN.  Its advised that the Oracle database be configured to have full ANSI support instead of using this feature.</li>
+        <li>use_oids=False : used only by Postgres, will enable the column name "oid" as the object ID column.  Postgres as of 8.1 has object IDs disabled by default.</li>
+        <li>convert_unicode=False : if set to True, all String/character based types will convert Unicode values to raw byte values going into the database, and all raw byte values to Python Unicode coming out in result sets.  This is an engine-wide method to provide unicode across the board.  For unicode conversion on a column-by-column level, use the Unicode column type instead.</li>
+	<li>encoding='utf-8' : the encoding to use for Unicode translations - passed to all encode/decode methods.</li>
+	<li>echo_uow=False : when True, logs unit of work commit plans to the standard output.</li>
+    </ul>
+    
+    </div>
+
+
+    <a href="#dbengine" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="dbengine_proxy"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Using the Proxy Engine</span>
+    <div class="sectiontext">
+
+
+    <p>The ProxyEngine is useful for applications that need to swap engines
+    at runtime, or to create their tables and mappers before they know
+    what engine they will use. One use case is an application meant to be
+    pluggable into a mix of other applications, such as a WSGI
+    application. Well-behaved WSGI applications should be relocatable; and
+    since that means that two versions of the same application may be
+    running in the same process (or in the same thread at different
+    times), WSGI applications ought not to depend on module-level or
+    global configuration. Using the ProxyEngine allows a WSGI application
+    to define tables and mappers in a module, but keep the specific
+    database connection uri as an application instance or thread-local
+    value.</p>
+
+    <p>The ProxyEngine is used in the same way as any other engine, with one
+    additional method:</p>
+    
+    
+
+<div class="code">
+<pre><span class="python_comment"># define the tables and mappers
+</span><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
+</span><span class="python_keyword">from </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">ext</span><span class="python_operator">.</span><span class="python_name">proxy </span><span class="python_keyword">import </span><span class="python_name">ProxyEngine</span><span class="python_operator">
+</span>
+<span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">ProxyEngine</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_operator">, ... </span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">Users</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">assign_mapper</span><span class="python_enclosure">(</span><span class="python_name">Users</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">def </span><span class="python_name">app</span><span class="python_enclosure">(</span><span class="python_name">environ</span><span class="python_operator">, </span><span class="python_name">start_response</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_comment"># later, connect the proxy engine to a real engine via the connect() method
+</span><span class="python_operator">    </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connect</span><span class="python_enclosure">(</span><span class="python_name">environ</span><span class="python_enclosure">[</span><span class="python_literal">'db_uri'</span><span class="python_enclosure">])</span><span class="python_operator">
+    </span><span class="python_comment"># now you have a real db connection and can select, insert, etc.</span><span class="python_operator"></span></pre></div>
+
+
+    
+			
+    
+    </div>
+
+        
+
+
+
+<A name="dbengine_proxy_defaultproxy"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Using the Global Proxy</span>
+    <div class="sectiontext">
+
+
+    <p>There is an instance of ProxyEngine available within the schema package as "default_engine".  You can construct Table objects and not specify the engine parameter, and they will connect to this engine by default.  To connect the default_engine, use the <span class="codeline">global_connect</span> function.</p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># define the tables and mappers
+</span><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
+</span>
+<span class="python_comment"># specify a table with no explicit engine
+</span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span>
+        <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+        <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">)</span>
+    <span class="python_enclosure">)</span><span class="python_operator">
+    </span>
+<span class="python_comment"># connect the global proxy engine
+</span><span class="python_name">global_connect</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://filename=foo.db'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># create the table in the selected database
+</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">create</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+
+    
+    </div>
+
+
+    <a href="#dbengine" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+        
+
+
+
+<A name="dbengine_transactions"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Transactions</span>
+    <div class="sectiontext">
+
+
+    <p>A SQLEngine also provides an interface to the transactional capabilities of the underlying DBAPI connection object, as well as the connection object itself.  Note that when using the object-relational-mapping package, described in a later section, basic transactional operation is handled for you automatically by its "Unit of Work" system;  the methods described here will usually apply just to literal SQL update/delete/insert operations or those performed via the SQL construction library.</p>
+    
+    <p>Typically, a connection is opened with "autocommit=False".  So to perform SQL operations and just commit as you go, you can simply pull out a connection from the connection pool, keep it in the local scope, and call commit() on it as needed.  As long as the connection remains referenced, all other SQL operations within the same thread will use this same connection, including those used by the SQL construction system as well as the object-relational mapper, both described in later sections:</p>
+        
+
+<div class="code">
+<pre><span class="python_name">conn </span><span class="python_operator">= </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">connection</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># execute SQL via the engine
+</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"insert into mytable values ('foo', 'bar')"</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># execute SQL via the SQL construction library            
+</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">col1</span><span class="python_operator">=</span><span class="python_literal">'bat'</span><span class="python_operator">, </span><span class="python_name">col2</span><span class="python_operator">=</span><span class="python_literal">'lala'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">conn</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+        
+    <p>There is a more automated way to do transactions, and that is to use the engine's begin()/commit() functionality.  When the begin() method is called off the engine, a connection is checked out from the pool and stored in a thread-local context.  That way, all subsequent SQL operations within the same thread will use that same connection.  Subsequent commit() or rollback() operations are performed against that same connection.  In effect, its a more automated way to perform the "commit as you go" example above.  </p>
+    
+        
+
+<div class="code">
+<pre><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"insert into mytable values ('foo', 'bar')"</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">col1</span><span class="python_operator">=</span><span class="python_literal">'foo'</span><span class="python_operator">, </span><span class="python_name">col2</span><span class="python_operator">=</span><span class="python_literal">'bar'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+
+    <P>A traditional "rollback on exception" pattern looks like this:</p>    
+
+        
+
+<div class="code">
+<pre><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_keyword">try</span><span class="python_operator">:
+    </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"insert into mytable values ('foo', 'bar')"</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">col1</span><span class="python_operator">=</span><span class="python_literal">'foo'</span><span class="python_operator">, </span><span class="python_name">col2</span><span class="python_operator">=</span><span class="python_literal">'bar'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_keyword">except</span><span class="python_operator">:
+    </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
+    </span><span class="python_keyword">raise</span><span class="python_operator">
+</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+    
+    <p>An shortcut which is equivalent to the above is provided by the <span class="codeline">transaction</span> method:</p>
+    
+        
+
+<div class="code">
+<pre><span class="python_keyword">def </span><span class="python_name">do_stuff</span><span class="python_enclosure">()</span><span class="python_operator">:
+    </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"insert into mytable values ('foo', 'bar')"</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">col1</span><span class="python_operator">=</span><span class="python_literal">'foo'</span><span class="python_operator">, </span><span class="python_name">col2</span><span class="python_operator">=</span><span class="python_literal">'bar'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">transaction</span><span class="python_enclosure">(</span><span class="python_name">do_stuff</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+    <p>An added bonus to the engine's transaction methods is "reentrant" functionality; once you call begin(), subsequent calls to begin() will increment a counter that must be decremented corresponding to each commit() statement before an actual commit can happen.  This way, any number of methods that want to insure a transaction can call begin/commit, and be nested arbitrarily:</p>
+        
+
+<div class="code">
+<pre> 
+ <span class="python_comment"># method_a starts a transaction and calls method_b
+</span><span class="python_operator"> </span><span class="python_keyword">def </span><span class="python_name">method_a</span><span class="python_enclosure">()</span><span class="python_operator">:
+     </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
+     </span><span class="python_keyword">try</span><span class="python_operator">:
+         </span><span class="python_name">method_b</span><span class="python_enclosure">()</span><span class="python_operator">
+     </span><span class="python_keyword">except</span><span class="python_operator">:
+         </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
+         </span><span class="python_keyword">raise</span><span class="python_operator">
+     </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+ <span class="python_comment"># method_b starts a transaction, or joins the one already in progress,
+ # and does some SQL
+ </span><span class="python_operator"></span><span class="python_keyword">def </span><span class="python_name">method_b</span><span class="python_enclosure">()</span><span class="python_operator">:
+     </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
+     </span><span class="python_keyword">try</span><span class="python_operator">:
+         </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_literal">"insert into mytable values ('bat', 'lala')"</span><span class="python_enclosure">)</span><span class="python_operator">
+         </span><span class="python_name">mytable</span><span class="python_operator">.</span><span class="python_name">insert</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">(</span><span class="python_name">col1</span><span class="python_operator">=</span><span class="python_literal">'bat'</span><span class="python_operator">, </span><span class="python_name">col2</span><span class="python_operator">=</span><span class="python_literal">'lala'</span><span class="python_enclosure">)</span><span class="python_operator">
+     </span><span class="python_keyword">except</span><span class="python_operator">:
+         </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
+         </span><span class="python_keyword">raise</span><span class="python_operator">
+     </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
+     </span>
+ <span class="python_comment"># call method_a                
+ </span><span class="python_operator"></span><span class="python_name">method_a</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+       <p>Above, method_a is called first, which calls engine.begin().  Then it calls method_b. When method_b calls engine.begin(), it just increments a counter that is decremented when it calls commit().  If either method_a or method_b calls rollback(), the whole transaction is rolled back.  The transaction is not committed until method_a calls the commit() method.</p>
+       
+       <p>The object-relational-mapper capability of SQLAlchemy includes its own <span class="codeline">commit()</span> method that gathers SQL statements into a batch and runs them within one transaction.  That transaction is also invokved within the scope of the "reentrant" methodology above; so multiple objectstore.commit() operations can also be bundled into a larger database transaction via the above methodology.</p>
+    
+    </div>
+
+
+    <a href="#dbengine" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+    
+<div class="sectionnavblock">
+<div class="sectionnav">
+
+
+        Previous: <a href="pooling.html">Connection Pooling</a>
+
+                |
+
+        Next: <a href="metadata.html">Database Meta Data</a>
+
+</div>
+</div>
+
+
+</div>
+
+
+		</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<center>
+</center>
+</body>
+</html>
+
+
+
+

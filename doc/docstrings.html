@@ -1,0 +1,7800 @@
+<html>
+<head>
+	<title>
+    Modules and Classes - SQLAlchemy Documentation
+</title>
+</head>
+<body>
+
+
+
+<link href="style.css" rel="stylesheet" type="text/css"></link>
+<link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
+
+<link href="docs.css" rel="stylesheet" type="text/css"></link>
+<script src="scripts.js"></script>
+
+
+<div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
+
+<div class="doccontainer">
+
+<div class="docheader">
+
+<div class="docheadertext" >Modules and Classes</div>
+<div class="">Version: 0.1.4   Last Updated: 03/13/06 12:39:29</div>
+</div>
+
+
+
+		<A name="docstrings"></a>
+		
+	
+<div class="topnav">
+
+
+	
+	<div class="topnavcontrol">
+	View: <b>Paged</b> &nbsp;|&nbsp; <a href="documentation.html">One Page</a>
+	</div>
+
+
+
+<div class="topnavsectionlink">
+
+<a href="index.html">Table of Contents</a>
+
+<div class="prevnext">
+Previous: <a href="types.html">The Types System</a>
+
+
+
+</div>
+</div>
+
+
+<div class="topnavmain">
+	<div class="topnavheader">Modules and Classes</div>
+	<div class="topnavitems">
+	
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#docstrings_sqlalchemy.schema">Module sqlalchemy.schema</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_Column">Class Column(ColumnClause)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_ColumnDefault">Class ColumnDefault(DefaultGenerator)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_ForeignKey">Class ForeignKey(SchemaItem)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_Index">Class Index(SchemaItem)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_PassiveDefault">Class PassiveDefault(DefaultGenerator)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_SchemaEngine">Class SchemaEngine(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_SchemaItem">Class SchemaItem(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_SchemaVisitor">Class SchemaVisitor(ClauseVisitor)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_Sequence">Class Sequence(DefaultGenerator)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.schema_Table">Class Table(TableClause)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#docstrings_sqlalchemy.engine">Module sqlalchemy.engine</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.engine_modfunc">Module Functions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.engine_SQLEngine">Class SQLEngine(SchemaEngine)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.engine_ResultProxy">Class ResultProxy</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.engine_RowProxy">Class RowProxy</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#docstrings_sqlalchemy.sql">Module sqlalchemy.sql</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.sql_modfunc">Module Functions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.sql_ClauseParameters">Class ClauseParameters(OrderedDict)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.sql_Compiled">Class Compiled(ClauseVisitor)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.sql_ClauseElement">Class ClauseElement(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.sql_TableClause">Class TableClause(FromClause)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.sql_ColumnClause">Class ColumnClause(ColumnElement)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#docstrings_sqlalchemy.pool">Module sqlalchemy.pool</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.pool_modfunc">Module Functions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.pool_DBProxy">Class DBProxy(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.pool_Pool">Class Pool(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.pool_QueuePool">Class QueuePool(Pool)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.pool_SingletonThreadPool">Class SingletonThreadPool(Pool)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#docstrings_sqlalchemy.mapping">Module sqlalchemy.mapping</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.mapping_modfunc">Module Functions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.mapping_MapperExtension">Class MapperExtension(object)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#docstrings_sqlalchemy.mapping.objectstore">Module sqlalchemy.mapping.objectstore</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.mapping.objectstore_modfunc">Module Functions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.mapping.objectstore_Session">Class Session(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.mapping.objectstore_SessionTrans">Class SessionTrans(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.mapping.objectstore_UnitOfWork">Class UnitOfWork(object)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#docstrings_sqlalchemy.exceptions">Module sqlalchemy.exceptions</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.exceptions_ArgumentError">Class ArgumentError</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.exceptions_AssertionError">Class AssertionError</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.exceptions_CommitError">Class CommitError</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.exceptions_DBAPIError">Class DBAPIError</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.exceptions_InvalidRequestError">Class InvalidRequestError</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.exceptions_SQLAlchemyError">Class SQLAlchemyError</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.exceptions_SQLError">Class SQLError</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#docstrings_sqlalchemy.ext.proxy">Module sqlalchemy.ext.proxy</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.ext.proxy_modfunc">Module Functions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.ext.proxy_AutoConnectEngine">Class AutoConnectEngine(BaseProxyEngine)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.ext.proxy_BaseProxyEngine">Class BaseProxyEngine(SchemaEngine)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.ext.proxy_ProxyEngine">Class ProxyEngine(BaseProxyEngine)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.ext.proxy_ProxyType">Class ProxyType(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.ext.proxy_ProxyTypeEngine">Class ProxyTypeEngine(object)</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#docstrings_sqlalchemy.ext.proxy_TypeEngine">Class TypeEngine(object)</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+
+	</div>
+</div>
+
+</div>
+
+		<div class="sectioncontent">
+			
+
+
+
+
+<div class="subsection" style="margin-left:10px;">
+
+    <div class="sectiontext">
+
+
+
+
+
+        
+
+			
+
+
+
+
+        
+
+			
+
+
+
+
+        
+
+			
+
+
+
+
+        
+
+			
+
+
+
+
+        
+
+			
+
+
+
+
+        
+
+			
+
+
+
+
+        
+
+			
+
+
+
+
+        
+
+			
+
+
+
+
+
+    </div>
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Module sqlalchemy.schema</span>
+    <div class="sectiontext">
+
+
+<p>
+    the schema module provides the building blocks for database metadata.  This means all the entities within a SQL database that we might want to look at, modify, or create and delete are described by these objects, in a database-agnostic way.   </p>
+<p>A structure of SchemaItems also provides a &quot;visitor&quot; interface which is the primary  method by which other methods operate upon the schema.  The SQL package extends this structure with its own clause-specific objects as well as the visitor interface, so that the schema package &quot;plugs in&quot; to the SQL package.</p>
+<p></p>
+
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+
+    </table>
+
+
+    </div>
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_Column"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class Column(ColumnClause)</span>
+    <div class="sectiontext">
+
+
+<p>
+    represents a column in a database table.  this is a subclass of sql.ColumnClause and     represents an actual existing table in the database, in a similar fashion as TableClause/Table.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Column_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>name</i>, <i>type</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    constructs a new Column object.  Arguments are:
+                 name : the name of this column.  this should be the identical name as it appears,
+        or will appear, in the database.
+                 type : this is the type of column. This can be any subclass of types.TypeEngine,
+        including the database-agnostic types defined in the types module, database-specific types         defined within specific database modules, or user-defined types.
+                 *args : ForeignKey and Sequence objects should be added as list values.
+                 **kwargs : keyword arguments include:
+                 key=None : an optional &quot;alias name&quot; for this column.  The column will then be identified everywhere         in an application, including the column list on its Table, by this key, and not the given name.           Generated SQL, however, will still reference the column by its actual name.
+                 primary_key=False : True if this column is a primary key column.  Multiple columns can have this flag         set to specify composite primary keys.
+                 nullable=True : True if this column should allow nulls. Defaults to True unless this column is a primary         key column.
+                 default=None : a scalar, python callable, or ClauseElement representing the &quot;default value&quot; for this column,
+        which will be invoked upon insert if this column is not present in the insert list or is given a value         of None.
+                 hidden=False : indicates this column should not be listed in the         table's list of columns.  Used for the &quot;oid&quot; column, which generally
+        isnt in column lists.</p>
+<p>index=None : True or index name. Indicates that this column is
+        indexed. Pass true to autogenerate the index name. Pass a string to
+        specify the index name. Multiple columns that specify the same index
+        name will all be included in the index, in the order of their
+        creation.</p>
+<p>unique=None : True or index name. Indicates that this column is
+        indexed in a unique index . Pass true to autogenerate the index
+        name. Pass a string to specify the index name. Multiple columns that
+        specify the same index name will all be included in the index, in the
+        order of their creation.  
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Column_def accept_schema_visitor"></a>
+        <b>def accept_schema_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p>
+    traverses the given visitor to this Column's default and foreign key object,
+        then calls visit_column on the visitor.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Column_def append_item"></a>
+        <b>def append_item(<i>self</i>, <i>item</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.schema_Column_columns = property()"></a>
+           <b>columns = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Column_def copy"></a>
+        <b>def copy(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    creates a copy of this Column, unitialized
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.schema_Column_engine = property()"></a>
+           <b>engine = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.schema_Column_original = property()"></a>
+           <b>original = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.schema_Column_parent = property()"></a>
+           <b>parent = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_ColumnDefault"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ColumnDefault(DefaultGenerator)</span>
+    <div class="sectiontext">
+
+
+<p>
+    A plain default value on a column.  this could correspond to a constant,      a callable function, or a SQL clause.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ColumnDefault_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>arg</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ColumnDefault_def accept_schema_visitor"></a>
+        <b>def accept_schema_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p>
+    calls the visit_column_default method on the given visitor.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_ForeignKey"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ForeignKey(SchemaItem)</span>
+    <div class="sectiontext">
+
+
+<p>
+    defines a ForeignKey constraint between two columns.  ForeignKey is      specified as an argument to a Column object.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKey_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>column</i>)</b>
+        <div class="docstring">
+    <p>
+    Constructs a new ForeignKey object.  &quot;column&quot; can be a schema.Column         object representing the relationship, or just its string name given as          &quot;tablename.columnname&quot;.  schema can be specified as          &quot;schemaname.tablename.columnname&quot; 
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKey_def accept_schema_visitor"></a>
+        <b>def accept_schema_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p>
+    calls the visit_foreign_key method on the given visitor.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.schema_ForeignKey_column = property()"></a>
+           <b>column = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKey_def copy"></a>
+        <b>def copy(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    produces a copy of this ForeignKey object.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_ForeignKey_def references"></a>
+        <b>def references(<i>self</i>, <i>table</i>)</b>
+        <div class="docstring">
+    <p>
+    returns True if the given table is referenced by this ForeignKey.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_Index"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class Index(SchemaItem)</span>
+    <div class="sectiontext">
+
+
+<p>
+    Represents an index of columns from a database table     
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Index_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>name</i>, <i>*columns</i>, <i>**kw</i>)</b>
+        <div class="docstring">
+    <p>
+    Constructs an index object. Arguments are:</p>
+<p>name : the name of the index</p>
+<p>*columns : columns to include in the index. All columns must belong to         the same table, and no column may appear more than once.</p>
+<p>**kw : keyword arguments include:</p>
+<p>unique=True : create a unique index         
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Index_def accept_schema_visitor"></a>
+        <b>def accept_schema_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Index_def append_column"></a>
+        <b>def append_column(<i>self</i>, <i>column</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Index_def create"></a>
+        <b>def create(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Index_def drop"></a>
+        <b>def drop(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.schema_Index_engine = property()"></a>
+           <b>engine = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Index_def execute"></a>
+        <b>def execute(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_PassiveDefault"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class PassiveDefault(DefaultGenerator)</span>
+    <div class="sectiontext">
+
+
+<p>
+    a default that takes effect on the database side
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_PassiveDefault_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>arg</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_PassiveDefault_def accept_schema_visitor"></a>
+        <b>def accept_schema_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_SchemaEngine"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class SchemaEngine(object)</span>
+    <div class="sectiontext">
+
+
+<p>
+    a factory object used to create implementations for schema objects.  This object     is the ultimate base class for the engine.SQLEngine class.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaEngine_def __init__"></a>
+        <b>def __init__(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaEngine_def reflecttable"></a>
+        <b>def reflecttable(<i>self</i>, <i>table</i>)</b>
+        <div class="docstring">
+    <p>
+    given a table, will query the database and populate its Column and ForeignKey          objects.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_SchemaItem"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class SchemaItem(object)</span>
+    <div class="sectiontext">
+
+
+<p>
+    base class for items that define a database schema.
+</p>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_SchemaVisitor"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class SchemaVisitor(ClauseVisitor)</span>
+    <div class="sectiontext">
+
+
+<p>
+    defines the visiting for SchemaItem objects
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_def visit_column"></a>
+        <b>def visit_column(<i>self</i>, <i>column</i>)</b>
+        <div class="docstring">
+    <p>
+    visit a Column.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_def visit_column_default"></a>
+        <b>def visit_column_default(<i>self</i>, <i>default</i>)</b>
+        <div class="docstring">
+    <p>
+    visit a ColumnDefault.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_def visit_column_onupdate"></a>
+        <b>def visit_column_onupdate(<i>self</i>, <i>onupdate</i>)</b>
+        <div class="docstring">
+    <p>
+    visit a ColumnDefault with the &quot;for_update&quot; flag set.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_def visit_foreign_key"></a>
+        <b>def visit_foreign_key(<i>self</i>, <i>join</i>)</b>
+        <div class="docstring">
+    <p>
+    visit a ForeignKey.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_def visit_index"></a>
+        <b>def visit_index(<i>self</i>, <i>index</i>)</b>
+        <div class="docstring">
+    <p>
+    visit an Index.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_def visit_passive_default"></a>
+        <b>def visit_passive_default(<i>self</i>, <i>default</i>)</b>
+        <div class="docstring">
+    <p>
+    visit a passive default
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_def visit_schema"></a>
+        <b>def visit_schema(<i>self</i>, <i>schema</i>)</b>
+        <div class="docstring">
+    <p>
+    visit a generic SchemaItem
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_def visit_sequence"></a>
+        <b>def visit_sequence(<i>self</i>, <i>sequence</i>)</b>
+        <div class="docstring">
+    <p>
+    visit a Sequence.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_SchemaVisitor_def visit_table"></a>
+        <b>def visit_table(<i>self</i>, <i>table</i>)</b>
+        <div class="docstring">
+    <p>
+    visit a Table.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_Sequence"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class Sequence(DefaultGenerator)</span>
+    <div class="sectiontext">
+
+
+<p>
+    represents a sequence, which applies to Oracle and Postgres databases.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Sequence_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>name</i>, <i>start=None</i>, <i>increment=None</i>, <i>optional=False</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Sequence_def accept_schema_visitor"></a>
+        <b>def accept_schema_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p>
+    calls the visit_seauence method on the given visitor.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Sequence_def create"></a>
+        <b>def create(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Sequence_def drop"></a>
+        <b>def drop(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.schema_Table"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class Table(TableClause)</span>
+    <div class="sectiontext">
+
+
+<p>
+    represents a relational database table.  This subclasses sql.TableClause to provide     a table that is &quot;wired&quot; to an engine.  Whereas TableClause represents a table as its      used in a SQL expression, Table represents a table as its created in the database.            Be sure to look at sqlalchemy.sql.TableImpl for additional methods defined on a Table.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Table_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>name</i>, <i>engine</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    Table objects can be constructed directly.  The init method is actually called via          the TableSingleton metaclass.  Arguments are:
+                 name : the name of this table, exactly as it appears, or will appear, in the database.
+        This property, along with the &quot;schema&quot;, indicates the &quot;singleton identity&quot; of this table.
+        Further tables constructed with the same name/schema combination will return the same          Table instance.
+                 engine : a SchemaEngine instance to provide services to this table.  Usually a subclass of         sql.SQLEngine.
+                 *args : should contain a listing of the Column objects for this table.
+                 **kwargs : options include:
+                 schema=None : the &quot;schema name&quot; for this table, which is required if the table resides in a          schema other than the default selected schema for the engine's database connection.
+                 autoload=False : the Columns for this table should be reflected from the database.  Usually         there will be no Column objects in the constructor if this property is set.
+                 redefine=False : if this Table has already been defined in the application, clear out its columns         and redefine with new arguments.
+                 mustexist=False : indicates that this Table must already have been defined elsewhere in the application,
+        else an exception is raised.
+                 useexisting=False : indicates that if this Table was already defined elsewhere in the application, disregard         the rest of the constructor arguments.  If this flag and the &quot;redefine&quot; flag are not set, constructing 
+        the same table twice will result in an exception.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Table_def accept_schema_visitor"></a>
+        <b>def accept_schema_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p>
+    traverses the given visitor across the Column objects inside this Table,
+        then calls the visit_table method on the visitor.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Table_def append_column"></a>
+        <b>def append_column(<i>self</i>, <i>column</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Table_def append_index"></a>
+        <b>def append_index(<i>self</i>, <i>index</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Table_def append_index_column"></a>
+        <b>def append_index_column(<i>self</i>, <i>column</i>, <i>index=None</i>, <i>unique=None</i>)</b>
+        <div class="docstring">
+    <p>
+    Add an index or a column to an existing index of the same name.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Table_def append_item"></a>
+        <b>def append_item(<i>self</i>, <i>item</i>)</b>
+        <div class="docstring">
+    <p>
+    appends a Column item or other schema item to this Table.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Table_def create"></a>
+        <b>def create(<i>self</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Table_def deregister"></a>
+        <b>def deregister(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    removes this table from it's engines table registry.  this does not         issue a SQL DROP statement.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Table_def drop"></a>
+        <b>def drop(<i>self</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Table_def reload_values"></a>
+        <b>def reload_values(<i>self</i>, <i>*args</i>)</b>
+        <div class="docstring">
+    <p>
+    clears out the columns and other properties of this Table, and reloads them from the          given argument list.  This is used with the &quot;redefine&quot; keyword argument sent to the         metaclass constructor.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.schema_Table_def toengine"></a>
+        <b>def toengine(<i>self</i>, <i>engine</i>, <i>schema=None</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a singleton instance of this Table with a different engine
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.engine"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Module sqlalchemy.engine</span>
+    <div class="sectiontext">
+
+
+<p>
+    Defines the SQLEngine class, which serves as the primary &quot;database&quot; object used throughout the sql construction and object-relational mapper packages.
+A SQLEngine is a facade around a single connection pool corresponding to a  particular set of connection parameters, and provides thread-local transactional  methods and statement execution methods for Connection objects.  It also provides  a facade around a Cursor object to allow richer column selection for result rows  as well as type conversion operations, known as a ResultProxy.</p>
+<p>A SQLEngine is provided to an application as a subclass that is specific to a particular type  of DBAPI, and is the central switching point for abstracting different kinds of database behavior into a consistent set of behaviors.  It provides a variety of factory methods  to produce everything specific to a certain kind of database, including a Compiler,  schema creation/dropping objects.</p>
+<p>The term &quot;database-specific&quot; will be used to describe any object or function that has behavior corresponding to a particular vendor, such as mysql-specific, sqlite-specific, etc.</p>
+<p></p>
+
+
+			
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+
+    </table>
+
+
+    </div>
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.engine_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Module Functions</span>
+    <div class="sectiontext">
+
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_modfunc_def create_engine"></a>
+        <b>def create_engine(<i>name</i>, <i>opts=None</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    creates a new SQLEngine instance.  There are two forms of calling this method.
+         In the first, the &quot;name&quot; argument is the type of engine to load, i.e. 'sqlite', 'postgres',      'oracle', 'mysql'.  &quot;opts&quot; is a dictionary of options to be sent to the underlying DBAPI module      to create a connection, usually including a hostname, username, password, etc.
+         In the second, the &quot;name&quot; argument is a URL in the form &lt;enginename&gt;://opt1=val1&amp;opt2=val2.       Where &lt;enginename&gt; is the name as above, and the contents of the option dictionary are      spelled out as a URL encoded string.  The &quot;opts&quot; argument is not used.
+         In both cases, **kwargs represents options to be sent to the SQLEngine itself.  A possibly     partial listing of those options is as follows:
+         pool=None : an instance of sqlalchemy.pool.DBProxy to be used as the underlying source      for connections (DBProxy is described in the previous section).  If None, a default DBProxy      will be created using the engine's own database module with the given arguments.
+         echo=False : if True, the SQLEngine will log all statements as well as a repr() of their      parameter lists to the engines logger, which defaults to sys.stdout.  A SQLEngine instances'      &quot;echo&quot; data member can be modified at any time to turn logging on and off.  If set to the string      'debug', result rows will be printed to the standard output as well.
+         logger=None : a file-like object where logging output can be sent, if echo is set to True.  
+    This defaults to sys.stdout.</p>
+<p>module=None : used by Oracle and Postgres, this is a reference to a DBAPI2 module to be used 
+    instead of the engine's default module.  For Postgres, the default is psycopg2, or psycopg1 if 
+    2 cannot be found.  For Oracle, its cx_Oracle.  For mysql, MySQLdb.</p>
+<p>use_ansi=True : used only by Oracle;  when False, the Oracle driver attempts to support a 
+    particular &quot;quirk&quot; of some Oracle databases, that the LEFT OUTER JOIN SQL syntax is not 
+    supported, and the &quot;Oracle join&quot; syntax of using &lt;column1&gt;(+)=&lt;column2&gt; must be used 
+    in order to achieve a LEFT OUTER JOIN.  Its advised that the Oracle database be configured to 
+    have full ANSI support instead of using this feature.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_modfunc_def engine_descriptors"></a>
+        <b>def engine_descriptors()</b>
+        <div class="docstring">
+    <p>
+    provides a listing of all the database implementations supported.  this data     is provided as a list of dictionaries, where each dictionary contains the following     key/value pairs:
+         name :       the name of the engine, suitable for use in the create_engine function</p>
+<p>description: a plain description of the engine.</p>
+<p>arguments :  a dictionary describing the name and description of each parameter                  used to connect to this engine's underlying DBAPI.
+         This function is meant for usage in automated configuration tools that wish to      query the user for database and connection information.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.engine_SQLEngine"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class SQLEngine(SchemaEngine)</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p>The central &quot;database&quot; object used by an application.  Subclasses of this object is used     by the schema and SQL construction packages to provide database-specific behaviors,
+    as well as an execution and thread-local transaction context.
+         SQLEngines are constructed via the create_engine() function inside this package.</p>
+<p></p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>pool=None</i>, <i>echo=False</i>, <i>logger=None</i>, <i>default_ordering=False</i>, <i>echo_pool=False</i>, <i>echo_uow=False</i>, <i>convert_unicode=False</i>, <i>encoding='utf-8'</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    constructs a new SQLEngine.   SQLEngines should be constructed via the create_engine()
+        function which will construct the appropriate subclass of SQLEngine.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def begin"></a>
+        <b>def begin(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    &quot;begins&quot; a transaction on a pooled connection, and stores the connection in a thread-local         context.  repeated calls to begin() within the same thread will increment a counter that must be         decreased by corresponding commit() statements before an actual commit occurs.  this is to provide         &quot;nested&quot; behavior of transactions so that different functions can all call begin()/commit() and still         call each other.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def commit"></a>
+        <b>def commit(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    commits the current thread-local transaction started by begin().  If begin() was called multiple         times, a counter will be decreased for each call to commit(), with the actual commit operation occuring         when the counter reaches zero.  this is to provide         &quot;nested&quot; behavior of transactions so that different functions can all call begin()/commit() and still         call each other.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def compile"></a>
+        <b>def compile(<i>self</i>, <i>statement</i>, <i>parameters</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    given a sql.ClauseElement statement plus optional bind parameters, creates a new         instance of this engine's SQLCompiler, compiles the ClauseElement, and returns the         newly compiled object.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def compiler"></a>
+        <b>def compiler(<i>self</i>, <i>statement</i>, <i>parameters</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a sql.ClauseVisitor which will produce a string representation of the given         ClauseElement and parameter dictionary.  This object is usually a subclass of          ansisql.ANSICompiler.                    compiler is called within the context of the compile() method.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def connect_args"></a>
+        <b>def connect_args(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    subclasses override this method to provide a two-item tuple containing the *args         and **kwargs used to establish a connection.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def connection"></a>
+        <b>def connection(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a managed DBAPI connection from this SQLEngine's connection pool.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def create"></a>
+        <b>def create(<i>self</i>, <i>entity</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    creates a table or index within this engine's database connection given a schema.Table object.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def dbapi"></a>
+        <b>def dbapi(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    subclasses override this method to provide the DBAPI module used to establish         connections.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def defaultrunner"></a>
+        <b>def defaultrunner(<i>self</i>, <i>proxy=None</i>)</b>
+        <div class="docstring">
+    <p>
+    Returns a schema.SchemaVisitor instance that can execute the default values on a column.
+        The base class for this visitor is the DefaultRunner class inside this module.
+        This visitor will typically only receive schema.DefaultGenerator schema objects.  The given          proxy is a callable that takes a string statement and a dictionary of bind parameters         to be executed.  For engines that require positional arguments, the dictionary should          be an instance of OrderedDict which returns its bind parameters in the proper order.
+                 defaultrunner is called within the context of the execute_compiled() method.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def dispose"></a>
+        <b>def dispose(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    disposes of the underlying pool manager for this SQLEngine.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def do_begin"></a>
+        <b>def do_begin(<i>self</i>, <i>connection</i>)</b>
+        <div class="docstring">
+    <p>
+    implementations might want to put logic here for turning autocommit on/off,
+        etc.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def do_commit"></a>
+        <b>def do_commit(<i>self</i>, <i>connection</i>)</b>
+        <div class="docstring">
+    <p>
+    implementations might want to put logic here for turning autocommit on/off, etc.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def do_rollback"></a>
+        <b>def do_rollback(<i>self</i>, <i>connection</i>)</b>
+        <div class="docstring">
+    <p>
+    implementations might want to put logic here for turning autocommit on/off,
+        etc.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def drop"></a>
+        <b>def drop(<i>self</i>, <i>entity</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    drops a table or index within this engine's database connection given a schema.Table object.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def execute"></a>
+        <b>def execute(<i>self</i>, <i>statement</i>, <i>parameters=None</i>, <i>connection=None</i>, <i>cursor=None</i>, <i>echo=None</i>, <i>typemap=None</i>, <i>commit=False</i>, <i>return_raw=False</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    executes the given string-based SQL statement with the given parameters.  </p>
+<p>The parameters can be a dictionary or a list, or a list of dictionaries or lists, depending         on the paramstyle of the DBAPI.
+                 If the current thread has specified a transaction begin() for this engine, the         statement will be executed in the context of the current transactional connection.
+        Otherwise, a commit() will be performed immediately after execution, since the local         pooled connection is returned to the pool after execution without a transaction set         up.</p>
+<p>In all error cases, a rollback() is immediately performed on the connection before         propigating the exception outwards.</p>
+<p>Other options include:</p>
+<p>connection  -  a DBAPI connection to use for the execute.  If None, a connection is                        pulled from this engine's connection pool.</p>
+<p>echo        -  enables echo for this execution, which causes all SQL and parameters                        to be dumped to the engine's logging output before execution.</p>
+<p>typemap     -  a map of column names mapped to sqlalchemy.types.TypeEngine objects.
+                       These will be passed to the created ResultProxy to perform                        post-processing on result-set values.</p>
+<p>commit      -  if True, will automatically commit the statement after completion. 
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def execute_compiled"></a>
+        <b>def execute_compiled(<i>self</i>, <i>compiled</i>, <i>parameters</i>, <i>connection=None</i>, <i>cursor=None</i>, <i>echo=None</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    executes the given compiled statement object with the given parameters.  </p>
+<p>The parameters can be a dictionary of key/value pairs, or a list of dictionaries for an         executemany() style of execution.  Engines that use positional parameters will convert         the parameters to a list before execution.</p>
+<p>If the current thread has specified a transaction begin() for this engine, the         statement will be executed in the context of the current transactional connection.
+        Otherwise, a commit() will be performed immediately after execution, since the local         pooled connection is returned to the pool after execution without a transaction set         up.</p>
+<p>In all error cases, a rollback() is immediately performed on the connection before         propigating the exception outwards.</p>
+<p>Other options include:</p>
+<p>connection  -  a DBAPI connection to use for the execute.  If None, a connection is                        pulled from this engine's connection pool.</p>
+<p>echo        -  enables echo for this execution, which causes all SQL and parameters                        to be dumped to the engine's logging output before execution.</p>
+<p>typemap     -  a map of column names mapped to sqlalchemy.types.TypeEngine objects.
+                       These will be passed to the created ResultProxy to perform                        post-processing on result-set values.</p>
+<p>commit      -  if True, will automatically commit the statement after completion. 
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.engine_SQLEngine_func = property()"></a>
+           <b>func = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def get_default_schema_name"></a>
+        <b>def get_default_schema_name(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    returns the currently selected schema in the current connection.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def hash_key"></a>
+        <b>def hash_key(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.engine_SQLEngine_ischema = property()"></a>
+           <b>ischema = property()</b></td>
+           <div class="docstring">
+    <p>
+    returns an ISchema object for this engine, which allows access to information_schema tables (if supported)
+</p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def last_inserted_ids"></a>
+        <b>def last_inserted_ids(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a thread-local list of the primary key values for the last insert statement executed.
+        This does not apply to straight textual clauses; only to sql.Insert objects compiled against          a schema.Table object, which are executed via statement.execute().  The order of items in the          list is the same as that of the Table's 'primary_key' attribute.
+                 In some cases, this method may invoke a query back to the database to retrieve the data, based on         the &quot;lastrowid&quot; value in the cursor.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def last_inserted_params"></a>
+        <b>def last_inserted_params(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a dictionary of the full parameter dictionary for the last compiled INSERT statement,
+        including any ColumnDefaults or Sequences that were pre-executed.  this value is thread-local.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def last_updated_params"></a>
+        <b>def last_updated_params(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a dictionary of the full parameter dictionary for the last compiled UPDATE statement,
+        including any ColumnDefaults that were pre-executed. this value is thread-local.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def lastrow_has_defaults"></a>
+        <b>def lastrow_has_defaults(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    returns True if the last row INSERTED via a compiled insert statement contained PassiveDefaults,
+        indicating that the database inserted data beyond that which we gave it. this value is thread-local.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def log"></a>
+        <b>def log(<i>self</i>, <i>msg</i>)</b>
+        <div class="docstring">
+    <p>
+    logs a message using this SQLEngine's logger stream.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def multi_transaction"></a>
+        <b>def multi_transaction(<i>self</i>, <i>tables</i>, <i>func</i>)</b>
+        <div class="docstring">
+    <p>
+    provides a transaction boundary across tables which may be in multiple databases.
+        If you have three tables, and a function that operates upon them, providing the tables as a          list and the function will result in a begin()/commit() pair invoked for each distinct engine         represented within those tables, and the function executed within the context of that transaction.
+        any exceptions will result in a rollback().
+                 clearly, this approach only goes so far, such as if database A commits, then database B commits         and fails, A is already committed.  Any failure conditions have to be raised before anyone         commits for this to be useful.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.engine_SQLEngine_name = property()"></a>
+           <b>name = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def oid_column_name"></a>
+        <b>def oid_column_name(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    returns the oid column name for this engine, or None if the engine cant/wont support OID/ROWID.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.engine_SQLEngine_paramstyle = property()"></a>
+           <b>paramstyle = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def post_exec"></a>
+        <b>def post_exec(<i>self</i>, <i>proxy</i>, <i>compiled</i>, <i>parameters</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    called by execute_compiled after the compiled statement is executed.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def pre_exec"></a>
+        <b>def pre_exec(<i>self</i>, <i>proxy</i>, <i>compiled</i>, <i>parameters</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    called by execute_compiled before the compiled statement is executed.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def proxy"></a>
+        <b>def proxy(<i>self</i>, <i>statement=None</i>, <i>parameters=None</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def reflecttable"></a>
+        <b>def reflecttable(<i>self</i>, <i>table</i>)</b>
+        <div class="docstring">
+    <p>
+    given a Table object, reflects its columns and properties from the database.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def rollback"></a>
+        <b>def rollback(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    rolls back the current thread-local transaction started by begin().  the &quot;begin&quot; counter          is cleared and the transaction ended.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def schemadropper"></a>
+        <b>def schemadropper(<i>self</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a schema.SchemaVisitor instance that can drop schemas, when it is         invoked to traverse a set of schema objects.                   schemagenerator is called via the drop() method.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def schemagenerator"></a>
+        <b>def schemagenerator(<i>self</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a schema.SchemaVisitor instance that can generate schemas, when it is         invoked to traverse a set of schema objects.                   schemagenerator is called via the create() method.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def supports_sane_rowcount"></a>
+        <b>def supports_sane_rowcount(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    Provided to indicate when MySQL is being used, which does not have standard behavior         for the &quot;rowcount&quot; function on a statement handle.  
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def text"></a>
+        <b>def text(<i>self</i>, <i>text</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a sql.text() object for performing literal queries.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def transaction"></a>
+        <b>def transaction(<i>self</i>, <i>func</i>)</b>
+        <div class="docstring">
+    <p>
+    executes the given function within a transaction boundary.  this is a shortcut for         explicitly calling begin() and commit() and optionally rollback() when execptions are raised.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_SQLEngine_def type_descriptor"></a>
+        <b>def type_descriptor(<i>self</i>, <i>typeobj</i>)</b>
+        <div class="docstring">
+    <p>
+    provides a database-specific TypeEngine object, given the generic object         which comes from the types module.  Subclasses will usually use the adapt_type()
+        method in the types module to make this job easy.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.engine_ResultProxy"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ResultProxy</span>
+    <div class="sectiontext">
+
+
+<p>
+    wraps a DBAPI cursor object to provide access to row columns based on integer     position, case-insensitive column name, or by schema.Column object. e.g.:
+         row = fetchone()</p>
+<p>col1 = row[0]    # access via integer position</p>
+<p>col2 = row['col2']   # access via name</p>
+<p>col3 = row[mytable.c.mycol] # access via Column object.            ResultProxy also contains a map of TypeEngine objects and will invoke the appropriate     convert_result_value() method before returning columns.</p>
+<p></p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_ResultProxy_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>cursor</i>, <i>engine</i>, <i>typemap=None</i>)</b>
+        <div class="docstring">
+    <p>
+    ResultProxy objects are constructed via the execute() method on SQLEngine.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_ResultProxy_def fetchall"></a>
+        <b>def fetchall(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    fetches all rows, just like DBAPI cursor.fetchall().
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_ResultProxy_def fetchone"></a>
+        <b>def fetchone(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    fetches one row, just like DBAPI cursor.fetchone().
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.engine_RowProxy"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class RowProxy</span>
+    <div class="sectiontext">
+
+
+<p>
+    proxies a single cursor row for a parent ResultProxy.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_RowProxy_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>parent</i>, <i>row</i>)</b>
+        <div class="docstring">
+    <p>
+    RowProxy objects are constructed by ResultProxy objects.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_RowProxy_def items"></a>
+        <b>def items(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_RowProxy_def keys"></a>
+        <b>def keys(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.engine_RowProxy_def values"></a>
+        <b>def values(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.sql"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Module sqlalchemy.sql</span>
+    <div class="sectiontext">
+
+
+<p>
+    defines the base components of SQL expression trees.
+</p>
+
+
+			
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+
+    </table>
+
+
+    </div>
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.sql_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Module Functions</span>
+    <div class="sectiontext">
+
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def alias"></a>
+        <b>def alias(<i>*args</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def and_"></a>
+        <b>def and_(<i>*clauses</i>)</b>
+        <div class="docstring">
+    <p>
+    joins a list of clauses together by the AND operator.  the &amp; operator can be used as well.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def asc"></a>
+        <b>def asc(<i>column</i>)</b>
+        <div class="docstring">
+    <p>
+    returns an ascending ORDER BY clause element, e.g.:
+         order_by = [asc(table1.mycol)]</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def bindparam"></a>
+        <b>def bindparam(<i>key</i>, <i>value=None</i>, <i>type=None</i>)</b>
+        <div class="docstring">
+    <p>
+    creates a bind parameter clause with the given key.            An optional default value can be specified by the value parameter, and the optional type parameter     is a sqlalchemy.types.TypeEngine object which indicates bind-parameter and result-set translation for     this bind parameter.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def column"></a>
+        <b>def column(<i>text</i>, <i>table=None</i>, <i>type=None</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a textual column clause, relative to a table.  this is also the primitive version of     a schema.Column which is a subclass. 
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def delete"></a>
+        <b>def delete(<i>table</i>, <i>whereclause=None</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a DELETE clause element.            This can also be called from a table directly via the table's delete() method.
+         'table' is the table to be updated.
+    'whereclause' is a ClauseElement describing the WHERE condition of the UPDATE statement.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def desc"></a>
+        <b>def desc(<i>column</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a descending ORDER BY clause element, e.g.:
+         order_by = [desc(table1.mycol)]</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def exists"></a>
+        <b>def exists(<i>*args</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def insert"></a>
+        <b>def insert(<i>table</i>, <i>values=None</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns an INSERT clause element.            This can also be called from a table directly via the table's insert() method.
+         'table' is the table to be inserted into.
+         'values' is a dictionary which specifies the column specifications of the INSERT,      and is optional.  If left as None, the column specifications are determined from the      bind parameters used during the compile phase of the INSERT statement.  If the      bind parameters also are None during the compile phase, then the column     specifications will be generated from the full list of table columns.</p>
+<p>If both 'values' and compile-time bind parameters are present, the compile-time      bind parameters override the information specified within 'values' on a per-key basis.</p>
+<p>The keys within 'values' can be either Column objects or their string identifiers.       Each key may reference one of: a literal data value (i.e. string, number, etc.), a Column object,
+    or a SELECT statement.  If a SELECT statement is specified which references this INSERT      statement's table, the statement will be correlated against the INSERT statement.       
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def join"></a>
+        <b>def join(<i>left</i>, <i>right</i>, <i>onclause=None</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a JOIN clause element (regular inner join), given the left and right      hand expressions, as well as the ON condition's expression.  To chain joins      together, use the resulting Join object's &quot;join()&quot; or &quot;outerjoin()&quot; methods.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def literal"></a>
+        <b>def literal(<i>value</i>, <i>type=None</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a literal clause, bound to a bind parameter.            literal clauses are created automatically when used as the right-hand      side of a boolean or math operation against a column object.  use this      function when a literal is needed on the left-hand side (and optionally on the right as well).
+         the optional type parameter is a sqlalchemy.types.TypeEngine object which indicates bind-parameter     and result-set translation for this literal.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def not_"></a>
+        <b>def not_(<i>clause</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a negation of the given clause, i.e. NOT(clause).  the ~ operator can be used as well.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def or_"></a>
+        <b>def or_(<i>*clauses</i>)</b>
+        <div class="docstring">
+    <p>
+    joins a list of clauses together by the OR operator.  the | operator can be used as well.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def outerjoin"></a>
+        <b>def outerjoin(<i>left</i>, <i>right</i>, <i>onclause=None</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns an OUTER JOIN clause element, given the left and right hand expressions,
+    as well as the ON condition's expression.  To chain joins together, use the resulting     Join object's &quot;join()&quot; or &quot;outerjoin()&quot; methods.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def select"></a>
+        <b>def select(<i>columns=None</i>, <i>whereclause=None</i>, <i>from_obj=[]</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a SELECT clause element.
+         this can also be called via the table's select() method.
+         'columns' is a list of columns and/or selectable items to select columns from     'whereclause' is a text or ClauseElement expression which will form the WHERE clause     'from_obj' is an list of additional &quot;FROM&quot; objects, such as Join objects, which will      extend or override the default &quot;from&quot; objects created from the column list and the      whereclause.
+    **kwargs - additional parameters for the Select object.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def subquery"></a>
+        <b>def subquery(<i>alias</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def table"></a>
+        <b>def table(<i>name</i>, <i>*columns</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a table clause.  this is a primitive version of the schema.Table object, which is a subclass     of this object.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def text"></a>
+        <b>def text(<i>text</i>, <i>engine=None</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    creates literal text to be inserted into a query.            When constructing a query from a select(), update(), insert() or delete(), using      plain strings for argument values will usually result in text objects being created     automatically.  Use this function when creating textual clauses outside of other     ClauseElement objects, or optionally wherever plain text is to be used.
+         Arguments include:</p>
+<p>text - the text of the SQL statement to be created.  use :&lt;param&gt; to specify     bind parameters; they will be compiled to their engine-specific format.</p>
+<p>engine - an optional engine to be used for this text query.  Alternatively, call the     text() method off the engine directly.</p>
+<p>bindparams - a list of bindparam() instances which can be used to define the     types and/or initial values for the bind parameters within the textual statement;
+    the keynames of the bindparams must match those within the text of the statement.
+    The types will be used for pre-processing on bind values.</p>
+<p>typemap - a dictionary mapping the names of columns represented in the SELECT     clause of the textual statement to type objects, which will be used to perform     post-processing on columns within the result set (for textual statements that      produce result sets).
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def union"></a>
+        <b>def union(<i>*selects</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def union_all"></a>
+        <b>def union_all(<i>*selects</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_modfunc_def update"></a>
+        <b>def update(<i>table</i>, <i>whereclause=None</i>, <i>values=None</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns an UPDATE clause element.             This can also be called from a table directly via the table's update() method.
+         'table' is the table to be updated.
+    'whereclause' is a ClauseElement describing the WHERE condition of the UPDATE statement.
+    'values' is a dictionary which specifies the SET conditions of the UPDATE, and is     optional. If left as None, the SET conditions are determined from the bind parameters     used during the compile phase of the UPDATE statement.  If the bind parameters also are     None during the compile phase, then the SET conditions will be generated from the full     list of table columns.</p>
+<p>If both 'values' and compile-time bind parameters are present, the compile-time bind     parameters override the information specified within 'values' on a per-key basis.</p>
+<p>The keys within 'values' can be either Column objects or their string identifiers. Each     key may reference one of: a literal data value (i.e. string, number, etc.), a Column     object, or a SELECT statement.  If a SELECT statement is specified which references this     UPDATE statement's table, the statement will be correlated against the UPDATE statement.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.sql_ClauseParameters"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ClauseParameters(OrderedDict)</span>
+    <div class="sectiontext">
+
+
+<p>
+    represents a dictionary/iterator of bind parameter key names/values.  Includes parameters compiled with a Compiled object as well as additional arguments passed to the Compiled object's get_params() method.  Parameter values will be converted as per the TypeEngine objects present in the bind parameter objects.  The non-converted value can be retrieved via the get_original method.  For Compiled objects that compile positional parameters, the values() iteration of the object will return the parameter values in the correct order.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseParameters_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>engine=None</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseParameters_def get_original"></a>
+        <b>def get_original(<i>self</i>, <i>key</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseParameters_def get_original_dict"></a>
+        <b>def get_original_dict(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseParameters_def get_raw_dict"></a>
+        <b>def get_raw_dict(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseParameters_def set_parameter"></a>
+        <b>def set_parameter(<i>self</i>, <i>key</i>, <i>value</i>, <i>bindparam</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseParameters_def values"></a>
+        <b>def values(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.sql_Compiled"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class Compiled(ClauseVisitor)</span>
+    <div class="sectiontext">
+
+
+<p>
+    represents a compiled SQL expression.  the __str__ method of the Compiled object     should produce the actual text of the statement.  Compiled objects are specific to the     database library that created them, and also may or may not be specific to the columns     referenced within a particular set of bind parameters.  In no case should the Compiled     object be dependent on the actual values of those bind parameters, even though it may     reference those values as defaults.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_Compiled_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>statement</i>, <i>parameters</i>, <i>engine=None</i>)</b>
+        <div class="docstring">
+    <p>
+    constructs a new Compiled object.
+                 statement - ClauseElement to be compiled                  parameters - optional dictionary indicating a set of bind parameters         specified with this Compiled object.  These parameters are the &quot;default&quot;
+        values corresponding to the ClauseElement's BindParamClauses when the Compiled          is executed.   In the case of an INSERT or UPDATE statement, these parameters          will also result in the creation of new BindParamClause objects for each key         and will also affect the generated column list in an INSERT statement and the SET          clauses of an UPDATE statement.  The keys of the parameter dictionary can         either be the string names of columns or ColumnClause objects.
+                 engine - optional SQLEngine to compile this statement against
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_Compiled_def compile"></a>
+        <b>def compile(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_Compiled_def execute"></a>
+        <b>def execute(<i>self</i>, <i>*multiparams</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    executes this compiled object using the underlying SQLEngine
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_Compiled_def get_params"></a>
+        <b>def get_params(<i>self</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    returns the bind params for this compiled object.
+                 Will start with the default parameters specified when this Compiled object         was first constructed, and will override those values with those sent via         **params, which are key/value pairs.  Each key should match one of the          BindParamClause objects compiled into this object; either the &quot;key&quot; or          &quot;shortname&quot; property of the BindParamClause.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_Compiled_def scalar"></a>
+        <b>def scalar(<i>self</i>, <i>*multiparams</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    executes this compiled object via the execute() method, then          returns the first column of the first row.  Useful for executing functions,
+        sequences, rowcounts, etc.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.sql_ClauseElement"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ClauseElement(object)</span>
+    <div class="sectiontext">
+
+
+<p>
+    base class for elements of a programmatically constructed SQL expression.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseElement_def accept_visitor"></a>
+        <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p>
+    accepts a ClauseVisitor and calls the appropriate visit_xxx method.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseElement_def compare"></a>
+        <b>def compare(<i>self</i>, <i>other</i>)</b>
+        <div class="docstring">
+    <p>
+    compares this ClauseElement to the given ClauseElement.
+                 Subclasses should override the default behavior, which is a straight         identity comparison.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseElement_def compile"></a>
+        <b>def compile(<i>self</i>, <i>engine=None</i>, <i>parameters=None</i>, <i>typemap=None</i>, <i>compiler=None</i>)</b>
+        <div class="docstring">
+    <p>
+    compiles this SQL expression using its underlying SQLEngine to produce         a Compiled object.  If no engine can be found, an ansisql engine is used.
+        bindparams is a dictionary representing the default bind parameters to be used with          the statement.  
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseElement_def copy_container"></a>
+        <b>def copy_container(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    should return a copy of this ClauseElement, iff this ClauseElement contains other         ClauseElements.  Otherwise, it should be left alone to return self.  This is used to         create copies of expression trees that still reference the same &quot;leaf nodes&quot;.  The         new structure can then be restructured without affecting the original.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.sql_ClauseElement_engine = property()"></a>
+           <b>engine = property()</b></td>
+           <div class="docstring">
+    <p>
+    attempts to locate a SQLEngine within this ClauseElement structure, or returns None if none found.
+</p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseElement_def execute"></a>
+        <b>def execute(<i>self</i>, <i>*multiparams</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    compiles and executes this SQL expression using its underlying SQLEngine. the         given **params are used as bind parameters when compiling and executing the         expression. the DBAPI cursor object is returned.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseElement_def is_selectable"></a>
+        <b>def is_selectable(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    returns True if this ClauseElement is Selectable, i.e. it contains a list of Column         objects and can be used as the target of a select statement.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ClauseElement_def scalar"></a>
+        <b>def scalar(<i>self</i>, <i>*multiparams</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    executes this SQL expression via the execute() method, then          returns the first column of the first row.  Useful for executing functions,
+        sequences, rowcounts, etc.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.sql_TableClause"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class TableClause(FromClause)</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p></p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_TableClause_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>name</i>, <i>*columns</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_TableClause_def accept_visitor"></a>
+        <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_TableClause_def alias"></a>
+        <b>def alias(<i>self</i>, <i>name=None</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_TableClause_def append_column"></a>
+        <b>def append_column(<i>self</i>, <i>c</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.sql_TableClause_c = property()"></a>
+           <b>c = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.sql_TableClause_columns = property()"></a>
+           <b>columns = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_TableClause_def count"></a>
+        <b>def count(<i>self</i>, <i>whereclause=None</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_TableClause_def delete"></a>
+        <b>def delete(<i>self</i>, <i>whereclause=None</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.sql_TableClause_foreign_keys = property()"></a>
+           <b>foreign_keys = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.sql_TableClause_indexes = property()"></a>
+           <b>indexes = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_TableClause_def insert"></a>
+        <b>def insert(<i>self</i>, <i>values=None</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_TableClause_def join"></a>
+        <b>def join(<i>self</i>, <i>right</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.sql_TableClause_oid_column = property()"></a>
+           <b>oid_column = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.sql_TableClause_original_columns = property()"></a>
+           <b>original_columns = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_TableClause_def outerjoin"></a>
+        <b>def outerjoin(<i>self</i>, <i>right</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.sql_TableClause_primary_key = property()"></a>
+           <b>primary_key = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_TableClause_def select"></a>
+        <b>def select(<i>self</i>, <i>whereclause=None</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_TableClause_def update"></a>
+        <b>def update(<i>self</i>, <i>whereclause=None</i>, <i>values=None</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.sql_ColumnClause"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ColumnClause(ColumnElement)</span>
+    <div class="sectiontext">
+
+
+<p>
+    represents a textual column clause in a SQL statement.  May or may not     be bound to an underlying Selectable.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ColumnClause_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>text</i>, <i>selectable=None</i>, <i>type=None</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.sql_ColumnClause_def accept_visitor"></a>
+        <b>def accept_visitor(<i>self</i>, <i>visitor</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.pool"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Module sqlalchemy.pool</span>
+    <div class="sectiontext">
+
+
+<p>
+    provides a connection pool implementation, which optionally manages connections on a thread local basis.  Also provides a DBAPI2 transparency layer so that pools can be managed automatically, based on module type and connect arguments,
+ simply by calling regular DBAPI connect() methods.
+</p>
+
+
+			
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+
+    </table>
+
+
+    </div>
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.pool_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Module Functions</span>
+    <div class="sectiontext">
+
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_modfunc_def clear_managers"></a>
+        <b>def clear_managers()</b>
+        <div class="docstring">
+    <p>
+    removes all current DBAPI2 managers.  all pools and connections are disposed.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_modfunc_def manage"></a>
+        <b>def manage(<i>module</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    given a DBAPI2 module and pool management parameters, returns a proxy for the module     that will automatically pool connections.  Options are delivered to an underlying DBProxy     object.</p>
+<p>Arguments:
+    module : a DBAPI2 database module.
+         Options:
+    echo=False : if set to True, connections being pulled and retrieved from/to the pool will     be logged to the standard output, as well as pool sizing information.</p>
+<p>use_threadlocal=True : if set to True, repeated calls to connect() within the same     application thread will be guaranteed to return the same connection object, if one has     already been retrieved from the pool and has not been returned yet. This allows code to     retrieve a connection from the pool, and then while still holding on to that connection,
+    to call other functions which also ask the pool for a connection of the same arguments;
+    those functions will act upon the same connection that the calling method is using.</p>
+<p>poolclass=QueuePool : the default class used by the pool module to provide pooling.
+    QueuePool uses the Python Queue.Queue class to maintain a list of available connections.</p>
+<p>pool_size=5 : used by QueuePool - the size of the pool to be maintained. This is the     largest number of connections that will be kept persistently in the pool. Note that the     pool begins with no connections; once this number of connections is requested, that     number of connections will remain.</p>
+<p>max_overflow=10 : the maximum overflow size of the pool. When the number of checked-out     connections reaches the size set in pool_size, additional connections will be returned up     to this limit. When those additional connections are returned to the pool, they are     disconnected and discarded. It follows then that the total number of simultaneous     connections the pool will allow is pool_size + max_overflow, and the total number of     &quot;sleeping&quot; connections the pool will allow is pool_size. max_overflow can be set to -1 to     indicate no overflow limit; no limit will be placed on the total number of concurrent
+    connections.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.pool_DBProxy"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class DBProxy(object)</span>
+    <div class="sectiontext">
+
+
+<p>
+    proxies a DBAPI2 connect() call to a pooled connection keyed to the specific connect     parameters.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_DBProxy_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>module</i>, <i>poolclass=<class 'sqlalchemy.pool.QueuePool'></i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p>module is a DBAPI2 module         poolclass is a Pool class, defaulting to QueuePool.
+        other parameters are sent to the Pool object's constructor.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_DBProxy_def close"></a>
+        <b>def close(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_DBProxy_def connect"></a>
+        <b>def connect(<i>self</i>, <i>*args</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    connects to a database using this DBProxy's module and the given connect         arguments.  if the arguments match an existing pool, the connection will be returned         from the pool's current thread-local connection instance, or if there is no         thread-local connection instance it will be checked out from the set of pooled         connections.  If the pool has no available connections and allows new connections to         be created, a new database connection will be made.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_DBProxy_def dispose"></a>
+        <b>def dispose(<i>self</i>, <i>*args</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    disposes the connection pool referenced by the given connect arguments.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_DBProxy_def get_pool"></a>
+        <b>def get_pool(<i>self</i>, <i>*args</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.pool_Pool"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class Pool(object)</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p></p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>echo=False</i>, <i>use_threadlocal=True</i>, <i>logger=None</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_def connect"></a>
+        <b>def connect(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_def do_get"></a>
+        <b>def do_get(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_def do_return_conn"></a>
+        <b>def do_return_conn(<i>self</i>, <i>conn</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_def do_return_invalid"></a>
+        <b>def do_return_invalid(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_def get"></a>
+        <b>def get(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_def log"></a>
+        <b>def log(<i>self</i>, <i>msg</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_def return_conn"></a>
+        <b>def return_conn(<i>self</i>, <i>conn</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_def return_invalid"></a>
+        <b>def return_invalid(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_Pool_def status"></a>
+        <b>def status(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.pool_QueuePool"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class QueuePool(Pool)</span>
+    <div class="sectiontext">
+
+
+<p>
+    uses Queue.Queue to maintain a fixed-size list of connections.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_QueuePool_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>creator</i>, <i>pool_size=5</i>, <i>max_overflow=10</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_QueuePool_def checkedin"></a>
+        <b>def checkedin(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_QueuePool_def checkedout"></a>
+        <b>def checkedout(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_QueuePool_def do_get"></a>
+        <b>def do_get(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_QueuePool_def do_return_conn"></a>
+        <b>def do_return_conn(<i>self</i>, <i>conn</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_QueuePool_def do_return_invalid"></a>
+        <b>def do_return_invalid(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_QueuePool_def overflow"></a>
+        <b>def overflow(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_QueuePool_def size"></a>
+        <b>def size(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_QueuePool_def status"></a>
+        <b>def status(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.pool_SingletonThreadPool"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class SingletonThreadPool(Pool)</span>
+    <div class="sectiontext">
+
+
+<p>
+    Maintains one connection per each thread, never moving to another thread.  this is     used for SQLite and other databases with a similar restriction.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_SingletonThreadPool_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>creator</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_SingletonThreadPool_def do_get"></a>
+        <b>def do_get(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_SingletonThreadPool_def do_return_conn"></a>
+        <b>def do_return_conn(<i>self</i>, <i>conn</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_SingletonThreadPool_def do_return_invalid"></a>
+        <b>def do_return_invalid(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.pool_SingletonThreadPool_def status"></a>
+        <b>def status(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.mapping"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Module sqlalchemy.mapping</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p>the mapper package provides object-relational functionality, building upon the schema and sql packages and tying operations to class properties and constructors.</p>
+<p></p>
+
+
+			
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+      
+        
+
+			
+
+
+
+
+    </table>
+
+
+    </div>
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.mapping_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Module Functions</span>
+    <div class="sectiontext">
+
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def assign_mapper"></a>
+        <b>def assign_mapper(<i>class_</i>, <i>*args</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def backref"></a>
+        <b>def backref(<i>name</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def cascade_mappers"></a>
+        <b>def cascade_mappers(<i>*classes_or_mappers</i>)</b>
+        <div class="docstring">
+    <p>
+    given a list of classes and/or mappers, identifies the foreign key relationships     between the given mappers or corresponding class mappers, and creates relation()
+    objects representing those relationships, including a backreference.  Attempts to find     the &quot;secondary&quot; table in a many-to-many relationship as well.  The names of the relations     will be a lowercase version of the related class.  In the case of one-to-many or many-to-many,
+    the name will be &quot;pluralized&quot;, which currently is based on the English language (i.e. an 's' or      'es' added to it).
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def class_mapper"></a>
+        <b>def class_mapper(<i>class_</i>)</b>
+        <div class="docstring">
+    <p>
+    given a class, returns the primary Mapper associated with the class.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def clear_mappers"></a>
+        <b>def clear_mappers()</b>
+        <div class="docstring">
+    <p>
+    removes all mappers that have been created thus far.  when new mappers are      created, they will be assigned to their classes as their primary mapper.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def defer"></a>
+        <b>def defer(<i>name</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a MapperOption that will convert the column property of the given      name into a deferred load.  Used with mapper.options()
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def deferred"></a>
+        <b>def deferred(<i>*columns</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a DeferredColumnProperty, which indicates this object attributes should only be loaded      from its corresponding table column when first accessed.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def eagerload"></a>
+        <b>def eagerload(<i>name</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a MapperOption that will convert the property of the given name     into an eager load.  Used with mapper.options()
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def extension"></a>
+        <b>def extension(<i>ext</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a MapperOption that will add the given MapperExtension to the      mapper returned by mapper.options().
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def lazyload"></a>
+        <b>def lazyload(<i>name</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a MapperOption that will convert the property of the given name     into a lazy load.  Used with mapper.options()
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def mapper"></a>
+        <b>def mapper(<i>class_</i>, <i>table=None</i>, <i>*args</i>, <i>**params</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a new or already cached Mapper object.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def noload"></a>
+        <b>def noload(<i>name</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a MapperOption that will convert the property of the given name     into a non-load.  Used with mapper.options()
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def object_mapper"></a>
+        <b>def object_mapper(<i>object</i>)</b>
+        <div class="docstring">
+    <p>
+    given an object, returns the primary Mapper associated with the object     or the object's class.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def relation"></a>
+        <b>def relation(<i>*args</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    provides a relationship of a primary Mapper to a secondary Mapper, which corresponds     to a parent-child or associative table relationship.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_modfunc_def undefer"></a>
+        <b>def undefer(<i>name</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    returns a MapperOption that will convert the column property of the given     name into a non-deferred (regular column) load.  Used with mapper.options.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.mapping_MapperExtension"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class MapperExtension(object)</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p></p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_MapperExtension_def __init__"></a>
+        <b>def __init__(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_MapperExtension_def after_insert"></a>
+        <b>def after_insert(<i>self</i>, <i>mapper</i>, <i>instance</i>)</b>
+        <div class="docstring">
+    <p>
+    called after an object instance has been INSERTed
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_MapperExtension_def after_update"></a>
+        <b>def after_update(<i>self</i>, <i>mapper</i>, <i>instance</i>)</b>
+        <div class="docstring">
+    <p>
+    called after an object instnace is UPDATED
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_MapperExtension_def append_result"></a>
+        <b>def append_result(<i>self</i>, <i>mapper</i>, <i>row</i>, <i>imap</i>, <i>result</i>, <i>instance</i>, <i>isnew</i>, <i>populate_existing=False</i>)</b>
+        <div class="docstring">
+    <p>
+    called when an object instance is being appended to a result list.
+                 If it returns True, it is assumed that this method handled the appending itself.</p>
+<p>mapper - the mapper doing the operation                  row - the result row from the database                  imap - a dictionary that is storing the running set of objects collected from the         current result set                  result - an instance of util.HistoryArraySet(), which may be an attribute on an         object if this is a related object load (lazy or eager).  use result.append_nohistory(value)
+        to append objects to this list.
+                 instance - the object instance to be appended to the result                  isnew - indicates if this is the first time we have seen this object instance in the current result         set.  if you are selecting from a join, such as an eager load, you might see the same object instance         many times in the same result set.
+                 populate_existing - usually False, indicates if object instances that were already in the main          identity map, i.e. were loaded by a previous select(), get their attributes overwritten</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_MapperExtension_def before_delete"></a>
+        <b>def before_delete(<i>self</i>, <i>mapper</i>, <i>instance</i>)</b>
+        <div class="docstring">
+    <p>
+    called before an object instance is DELETEed
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_MapperExtension_def before_insert"></a>
+        <b>def before_insert(<i>self</i>, <i>mapper</i>, <i>instance</i>)</b>
+        <div class="docstring">
+    <p>
+    called before an object instance is INSERTed into its table.
+                 this is a good place to set up primary key values and such that arent handled otherwise.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_MapperExtension_def before_update"></a>
+        <b>def before_update(<i>self</i>, <i>mapper</i>, <i>instance</i>)</b>
+        <div class="docstring">
+    <p>
+    called before an object instnace is UPDATED
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping_MapperExtension_def create_instance"></a>
+        <b>def create_instance(<i>self</i>, <i>mapper</i>, <i>row</i>, <i>imap</i>, <i>class_</i>)</b>
+        <div class="docstring">
+    <p>
+    called when a new object instance is about to be created from a row.           the method can choose to create the instance itself, or it can return          None to indicate normal object creation should take place.
+                 mapper - the mapper doing the operation                  row - the result row from the database                  imap - a dictionary that is storing the running set of objects collected from the         current result set                  class_ - the class we are mapping.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.mapping.objectstore"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Module sqlalchemy.mapping.objectstore</span>
+    <div class="sectiontext">
+
+
+<p>
+    maintains all currently loaded objects in memory, using the &quot;identity map&quot; pattern.  Also provides a &quot;unit of work&quot; object which tracks changes to objects so that they may be properly persisted within a transactional scope.
+</p>
+
+
+			
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+
+    </table>
+
+
+    </div>
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.mapping.objectstore_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Module Functions</span>
+    <div class="sectiontext">
+
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_modfunc_def begin"></a>
+        <b>def begin()</b>
+        <div class="docstring">
+    <p>
+    begins a new UnitOfWork transaction.  the next commit will affect only     objects that are created, modified, or deleted following the begin statement.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_modfunc_def clear"></a>
+        <b>def clear()</b>
+        <div class="docstring">
+    <p>
+    removes all current UnitOfWorks and IdentityMaps for this thread and      establishes a new one.  It is probably a good idea to discard all     current mapped object instances, as they are no longer in the Identity Map.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_modfunc_def commit"></a>
+        <b>def commit(<i>*obj</i>)</b>
+        <div class="docstring">
+    <p>
+    commits the current UnitOfWork transaction.  if a transaction was begun      via begin(), commits only those objects that were created, modified, or deleted     since that begin statement.  otherwise commits all objects that have been     changed.
+         if individual objects are submitted, then only those objects are committed, and the      begin/commit cycle is not affected.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_modfunc_def delete"></a>
+        <b>def delete(<i>*obj</i>)</b>
+        <div class="docstring">
+    <p>
+    registers the given objects as to be deleted upon the next commit
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_modfunc_def get_id_key"></a>
+        <b>def get_id_key(<i>ident</i>, <i>class_</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_modfunc_def get_row_key"></a>
+        <b>def get_row_key(<i>row</i>, <i>class_</i>, <i>primary_key</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_modfunc_def has_instance"></a>
+        <b>def has_instance(<i>instance</i>)</b>
+        <div class="docstring">
+    <p>
+    returns True if the current thread-local IdentityMap contains the given instance
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_modfunc_def has_key"></a>
+        <b>def has_key(<i>key</i>)</b>
+        <div class="docstring">
+    <p>
+    returns True if the current thread-local IdentityMap contains the given instance key
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_modfunc_def import_instance"></a>
+        <b>def import_instance(<i>instance</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_modfunc_def instance_key"></a>
+        <b>def instance_key(<i>instance</i>)</b>
+        <div class="docstring">
+    <p>
+    returns the IdentityMap key for the given instance
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_modfunc_def is_dirty"></a>
+        <b>def is_dirty(<i>obj</i>)</b>
+        <div class="docstring">
+    <p>
+    returns True if the given object is in the current UnitOfWork's new or dirty list,
+    or if its a modified list attribute on an object.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.mapping.objectstore_Session"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class Session(object)</span>
+    <div class="sectiontext">
+
+
+<p>
+    Maintains a UnitOfWork instance, including transaction state.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_Session_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>nest_transactions=False</i>, <i>hash_key=None</i>)</b>
+        <div class="docstring">
+    <p>
+    Initialize the objectstore with a UnitOfWork registry.  If called         with no arguments, creates a single UnitOfWork for all operations.
+                 nest_transactions - indicates begin/commit statements can be executed in a         &quot;nested&quot;, defaults to False which indicates &quot;only commit on the outermost begin/commit&quot;
+        hash_key - the hash_key used to identify objects against this session, which          defaults to the id of the Session instance.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_Session_def begin"></a>
+        <b>def begin(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    begins a new UnitOfWork transaction and returns a tranasaction-holding         object.  commit() or rollback() should be called on the returned object.
+        commit() on the Session will do nothing while a transaction is pending, and further         calls to begin() will return no-op transactional objects.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_Session_def clear"></a>
+        <b>def clear(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_Session_def commit"></a>
+        <b>def commit(<i>self</i>, <i>*objects</i>)</b>
+        <div class="docstring">
+    <p>
+    commits the current UnitOfWork transaction.  called with         no arguments, this is only used         for &quot;implicit&quot; transactions when there was no begin().
+        if individual objects are submitted, then only those objects are committed, and the          begin/commit cycle is not affected.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_Session_def delete"></a>
+        <b>def delete(<i>self</i>, <i>*obj</i>)</b>
+        <div class="docstring">
+    <p>
+    registers the given objects as to be deleted upon the next commit
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_Session_def expire"></a>
+        <b>def expire(<i>self</i>, <i>*obj</i>)</b>
+        <div class="docstring">
+    <p>
+    invalidates the data in the given objects and sets them to refresh themselves         the next time they are requested.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_Session_def import_instance"></a>
+        <b>def import_instance(<i>self</i>, <i>instance</i>)</b>
+        <div class="docstring">
+    <p>
+    places the given instance in the current thread's unit of work context,
+        either in the current IdentityMap or marked as &quot;new&quot;.  Returns either the object         or the current corresponding version in the Identity Map.</p>
+<p>this method should be used for any object instance that is coming from a serialized         storage, from another thread (assuming the regular threaded unit of work model), or any         case where the instance was loaded/created corresponding to a different base unitofwork         than the current one.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_Session_def refresh"></a>
+        <b>def refresh(<i>self</i>, <i>*obj</i>)</b>
+        <div class="docstring">
+    <p>
+    reloads the attributes for the given objects from the database, clears         any changes made.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_Session_def register_clean"></a>
+        <b>def register_clean(<i>self</i>, <i>obj</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_Session_def register_new"></a>
+        <b>def register_new(<i>self</i>, <i>obj</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.mapping.objectstore_SessionTrans"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class SessionTrans(object)</span>
+    <div class="sectiontext">
+
+
+<p>
+    returned by Session.begin(), denotes a transactionalized UnitOfWork instance.
+        call commit() on this to commit the transaction.
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_SessionTrans_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>parent</i>, <i>uow</i>, <i>isactive</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_SessionTrans_def begin"></a>
+        <b>def begin(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    calls begin() on the underlying Session object, returning a new no-op SessionTrans object.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_SessionTrans_def commit"></a>
+        <b>def commit(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    commits the transaction noted by this SessionTrans object.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.mapping.objectstore_SessionTrans_isactive = property()"></a>
+           <b>isactive = property()</b></td>
+           <div class="docstring">
+    <p>
+    True if this SessionTrans is the 'active' transaction marker, else its a no-op.
+</p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.mapping.objectstore_SessionTrans_parent = property()"></a>
+           <b>parent = property()</b></td>
+           <div class="docstring">
+    <p>
+    returns the parent Session of this SessionTrans object.
+</p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_SessionTrans_def rollback"></a>
+        <b>def rollback(<i>self</i>)</b>
+        <div class="docstring">
+    <p>
+    rolls back the current UnitOfWork transaction, in the case that begin()
+            has been called.  The changes logged since the begin() call are discarded.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.mapping.objectstore_SessionTrans_uow = property()"></a>
+           <b>uow = property()</b></td>
+           <div class="docstring">
+    <p>
+    returns the parent UnitOfWork corresponding to this transaction.
+</p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class UnitOfWork(object)</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p></p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>identity_map=None</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def commit"></a>
+        <b>def commit(<i>self</i>, <i>*objects</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def get"></a>
+        <b>def get(<i>self</i>, <i>class_</i>, <i>*id</i>)</b>
+        <div class="docstring">
+    <p>
+    given a class and a list of primary key values in their table-order, locates the mapper          for this class and calls get with the given primary key values.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def has_key"></a>
+        <b>def has_key(<i>self</i>, <i>key</i>)</b>
+        <div class="docstring">
+    <p>
+    returns True if the given key is present in this UnitOfWork's identity map.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def is_dirty"></a>
+        <b>def is_dirty(<i>self</i>, <i>obj</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def refresh"></a>
+        <b>def refresh(<i>self</i>, <i>obj</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def register_attribute"></a>
+        <b>def register_attribute(<i>self</i>, <i>class_</i>, <i>key</i>, <i>uselist</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def register_callable"></a>
+        <b>def register_callable(<i>self</i>, <i>obj</i>, <i>key</i>, <i>func</i>, <i>uselist</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def register_clean"></a>
+        <b>def register_clean(<i>self</i>, <i>obj</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def register_deleted"></a>
+        <b>def register_deleted(<i>self</i>, <i>obj</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def register_dirty"></a>
+        <b>def register_dirty(<i>self</i>, <i>obj</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def register_new"></a>
+        <b>def register_new(<i>self</i>, <i>obj</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def rollback_object"></a>
+        <b>def rollback_object(<i>self</i>, <i>obj</i>)</b>
+        <div class="docstring">
+    <p>
+    'rolls back' the attributes that have been changed on an object instance.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def unregister_deleted"></a>
+        <b>def unregister_deleted(<i>self</i>, <i>obj</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.mapping.objectstore_UnitOfWork_def update"></a>
+        <b>def update(<i>self</i>, <i>obj</i>)</b>
+        <div class="docstring">
+    <p>
+    called to add an object to this UnitOfWork as though it were loaded from the DB,
+        but is actually coming from somewhere else, like a web session or similar.
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.exceptions"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Module sqlalchemy.exceptions</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p></p>
+
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+
+    </table>
+
+
+    </div>
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.exceptions_ArgumentError"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ArgumentError</span>
+    <div class="sectiontext">
+
+
+<p>
+    raised for all those conditions where invalid arguments are sent to constructed     objects.  This error generally corresponds to construction time state errors.
+</p>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.exceptions_AssertionError"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class AssertionError</span>
+    <div class="sectiontext">
+
+
+<p>
+    corresponds to internal state being detected in an invalid state
+</p>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.exceptions_CommitError"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class CommitError</span>
+    <div class="sectiontext">
+
+
+<p>
+    raised when an invalid condition is detected upon a commit()
+</p>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.exceptions_DBAPIError"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class DBAPIError</span>
+    <div class="sectiontext">
+
+
+<p>
+    something weird happened with a particular DBAPI version
+</p>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.exceptions_InvalidRequestError"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class InvalidRequestError</span>
+    <div class="sectiontext">
+
+
+<p>
+    sqlalchemy was asked to do something it cant do, return nonexistent data, etc.
+    This error generally corresponds to runtime state errors.
+</p>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.exceptions_SQLAlchemyError"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class SQLAlchemyError</span>
+    <div class="sectiontext">
+
+
+<p>
+    generic error class
+</p>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.exceptions_SQLError"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class SQLError</span>
+    <div class="sectiontext">
+
+
+<p>
+    raised when the execution of a SQL statement fails.  includes accessors     for the underlying exception, as well as the SQL and bind parameters
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.exceptions_SQLError_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>statement</i>, <i>params</i>, <i>orig</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.ext.proxy"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Module sqlalchemy.ext.proxy</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p></p>
+
+
+			
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+      
+        
+
+			
+
+
+
+
+    </table>
+
+
+    </div>
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.ext.proxy_modfunc"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Module Functions</span>
+    <div class="sectiontext">
+
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_modfunc_def create_engine"></a>
+        <b>def create_engine(<i>name</i>, <i>opts=None</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    creates a new SQLEngine instance.  There are two forms of calling this method.
+         In the first, the &quot;name&quot; argument is the type of engine to load, i.e. 'sqlite', 'postgres',      'oracle', 'mysql'.  &quot;opts&quot; is a dictionary of options to be sent to the underlying DBAPI module      to create a connection, usually including a hostname, username, password, etc.
+         In the second, the &quot;name&quot; argument is a URL in the form &lt;enginename&gt;://opt1=val1&amp;opt2=val2.       Where &lt;enginename&gt; is the name as above, and the contents of the option dictionary are      spelled out as a URL encoded string.  The &quot;opts&quot; argument is not used.
+         In both cases, **kwargs represents options to be sent to the SQLEngine itself.  A possibly     partial listing of those options is as follows:
+         pool=None : an instance of sqlalchemy.pool.DBProxy to be used as the underlying source      for connections (DBProxy is described in the previous section).  If None, a default DBProxy      will be created using the engine's own database module with the given arguments.
+         echo=False : if True, the SQLEngine will log all statements as well as a repr() of their      parameter lists to the engines logger, which defaults to sys.stdout.  A SQLEngine instances'      &quot;echo&quot; data member can be modified at any time to turn logging on and off.  If set to the string      'debug', result rows will be printed to the standard output as well.
+         logger=None : a file-like object where logging output can be sent, if echo is set to True.  
+    This defaults to sys.stdout.</p>
+<p>module=None : used by Oracle and Postgres, this is a reference to a DBAPI2 module to be used 
+    instead of the engine's default module.  For Postgres, the default is psycopg2, or psycopg1 if 
+    2 cannot be found.  For Oracle, its cx_Oracle.  For mysql, MySQLdb.</p>
+<p>use_ansi=True : used only by Oracle;  when False, the Oracle driver attempts to support a 
+    particular &quot;quirk&quot; of some Oracle databases, that the LEFT OUTER JOIN SQL syntax is not 
+    supported, and the &quot;Oracle join&quot; syntax of using &lt;column1&gt;(+)=&lt;column2&gt; must be used 
+    in order to achieve a LEFT OUTER JOIN.  Its advised that the Oracle database be configured to 
+    have full ANSI support instead of using this feature.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.ext.proxy_AutoConnectEngine"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class AutoConnectEngine(BaseProxyEngine)</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p>An SQLEngine proxy that automatically connects when necessary.</p>
+<p></p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_AutoConnectEngine_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>dburi</i>, <i>opts=None</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_AutoConnectEngine_def get_engine"></a>
+        <b>def get_engine(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.ext.proxy_BaseProxyEngine"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class BaseProxyEngine(SchemaEngine)</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p>Basis for all proxy engines     
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.ext.proxy_BaseProxyEngine_engine = property()"></a>
+           <b>engine = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_BaseProxyEngine_def get_engine"></a>
+        <b>def get_engine(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_BaseProxyEngine_def hash_key"></a>
+        <b>def hash_key(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_BaseProxyEngine_def oid_column_name"></a>
+        <b>def oid_column_name(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_BaseProxyEngine_def reflecttable"></a>
+        <b>def reflecttable(<i>self</i>, <i>table</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_BaseProxyEngine_def set_engine"></a>
+        <b>def set_engine(<i>self</i>, <i>engine</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_BaseProxyEngine_def type_descriptor"></a>
+        <b>def type_descriptor(<i>self</i>, <i>typeobj</i>)</b>
+        <div class="docstring">
+    <p>
+    Proxy point: return a ProxyTypeEngine          
+</p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.ext.proxy_ProxyEngine"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ProxyEngine(BaseProxyEngine)</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p>SQLEngine proxy. Supports lazy and late initialization by     delegating to a real engine (set with connect()), and using proxy     classes for TypeEngine.</p>
+<p></p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_ProxyEngine_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_ProxyEngine_def connect"></a>
+        <b>def connect(<i>self</i>, <i>uri</i>, <i>opts=None</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p>
+    Establish connection to a real engine.</p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_ProxyEngine_def get_engine"></a>
+        <b>def get_engine(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_ProxyEngine_def set_engine"></a>
+        <b>def set_engine(<i>self</i>, <i>engine</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.ext.proxy_ProxyType"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ProxyType(object)</span>
+    <div class="sectiontext">
+
+
+<p>
+    ProxyType base class; used by ProxyTypeEngine to construct proxying     types         
+</p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_ProxyType_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>engine</i>, <i>typeobj</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.ext.proxy_ProxyTypeEngine"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class ProxyTypeEngine(object)</span>
+    <div class="sectiontext">
+
+
+<p>
+    Proxy type engine; creates dynamic proxy type subclass that is instance     of actual type, but proxies engine-dependant operations through the proxy     engine.         
+</p>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="docstrings_sqlalchemy.ext.proxy_TypeEngine"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Class TypeEngine(object)</span>
+    <div class="sectiontext">
+
+
+<p></p>
+<p></p>
+
+
+    <table cellspacing="0" cellpadding="0" width="100%">
+    
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_TypeEngine_def __init__"></a>
+        <b>def __init__(<i>self</i>, <i>*args</i>, <i>**kwargs</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_TypeEngine_def adapt_args"></a>
+        <b>def adapt_args(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_TypeEngine_def convert_bind_param"></a>
+        <b>def convert_bind_param(<i>self</i>, <i>value</i>, <i>engine</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_TypeEngine_def convert_result_value"></a>
+        <b>def convert_result_value(<i>self</i>, <i>value</i>, <i>engine</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_TypeEngine_def get_col_spec"></a>
+        <b>def get_col_spec(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_TypeEngine_def get_constructor_args"></a>
+        <b>def get_constructor_args(<i>self</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+    
+        
+              <tr>
+       <td>
+           <div class="darkcell">
+           <A name="docstrings_sqlalchemy.ext.proxy_TypeEngine_impl = property()"></a>
+           <b>impl = property()</b></td>
+           <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+           </div>
+       </td>
+       </tr>
+    
+
+    
+            
+    
+        <tr>
+    <td>
+        <div class="darkcell">
+        <A name="docstrings_sqlalchemy.ext.proxy_TypeEngine_def set_impl"></a>
+        <b>def set_impl(<i>self</i>, <i>impltype</i>)</b>
+        <div class="docstring">
+    <p></p>
+<p></p>
+    </div>
+        </div>
+    </td>
+    </tr>
+
+
+
+    </table>
+
+
+
+    </div>
+
+
+    <a href="#docstrings" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+
+    
+<div class="sectionnavblock">
+<div class="sectionnav">
+
+
+        Previous: <a href="types.html">The Types System</a>
+
+
+</div>
+</div>
+
+
+</div>
+
+
+		</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<center>
+</center>
+</body>
+</html>
+
+
+
+

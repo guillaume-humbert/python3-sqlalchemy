@@ -1,0 +1,213 @@
+<html>
+<head>
+	<title>
+    Introduction - SQLAlchemy Documentation
+</title>
+</head>
+<body>
+
+
+
+<link href="style.css" rel="stylesheet" type="text/css"></link>
+<link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
+
+<link href="docs.css" rel="stylesheet" type="text/css"></link>
+<script src="scripts.js"></script>
+
+
+<div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
+
+<div class="doccontainer">
+
+<div class="docheader">
+
+<div class="docheadertext" >Introduction</div>
+<div class="">Version: 0.1.4   Last Updated: 03/13/06 12:39:29</div>
+</div>
+
+
+
+		<A name="intro"></a>
+		
+	
+<div class="topnav">
+
+
+	
+	<div class="topnavcontrol">
+	View: <b>Paged</b> &nbsp;|&nbsp; <a href="documentation.html">One Page</a>
+	</div>
+
+
+
+<div class="topnavsectionlink">
+
+<a href="index.html">Table of Contents</a>
+
+<div class="prevnext">
+
+
+
+Next: <a href="pooling.html">Connection Pooling</a>
+
+</div>
+</div>
+
+
+<div class="topnavmain">
+	<div class="topnavheader">Introduction</div>
+	<div class="topnavitems">
+	
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#intro_trailmap">Trail Map</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+
+	</div>
+</div>
+
+</div>
+
+		<div class="sectioncontent">
+			
+
+
+
+
+<div class="subsection" style="margin-left:10px;">
+
+    <div class="sectiontext">
+
+
+<p>SQLAlchemy features a lot of tools and patterns to help in every area of writing applications that talk to relational databases.  To achieve this, it has a lot of areas of functionality which work together to provide a cohesive package.  Ultimately, just a little bit of familiarity with each concept is all thats needed to get off the ground.</p>
+
+<p>That said, here's two quick links that summarize the two most prominent features of SQLAlchemy:
+<ul>
+	<li><a href="datamapping.html#datamapping" class="trailbold">Basic Data Mapping</a> - a synopsis of how to map objects to database tables (Object Relational Mapping)</li>
+	<li><a href="sqlconstruction.html#sql" class="trailbold">Constructing SQL Queries via Python Expressions</a> - SQLAlchemy's own domain-oriented approach to constructing and executing SQL statements.</li>
+</ul>
+</p>
+
+
+			
+
+    </div>
+
+        
+
+
+
+<A name="intro_trailmap"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Trail Map</span>
+    <div class="sectiontext">
+
+
+<p>For a comprehensive tour through all of SQLAlchemy's components, below is a "Trail Map" of the knowledge dependencies between these components indicating the order in which concepts may be learned.   Concepts marked in bold indicate features that are useful on their own.
+</p>
+<pre>
+Start
+  |
+  |
+  |--- <a href="pooling.html#pooling" class="trailbold">Connection Pooling</a>
+  |              |
+  |              |
+  |              |------ <a href="pooling.html#pooling_configuration" >Connection Pool Configuration</a>
+  |                                         |              
+  |                                         |
+  +--- <a href="dbengine.html#dbengine_establishing" >Establishing a Database Engine</a>       |
+                   |                        |
+                   |                        | 
+                   |--------- <a href="dbengine.html#dbengine_options" >Database Engine Options</a>
+                   |
+                   |
+                   +---- <a href="metadata.html#metadata_tables" >Describing Tables with MetaData</a>
+                                   |
+                                   |
+                                   |---- <a href="metadata.html#metadata_creating" >Creating and Dropping Database Tables</a>
+                                   | 
+                                   |    
+                                   |---- <a href="sqlconstruction.html#sql" class="trailbold">Constructing SQL Queries via Python Expressions</a>
+                                   |                                      |                
+                                   |                                      |                                  
+                                   +---- <a href="datamapping.html#datamapping" class="trailbold">Basic Data Mapping</a>               |                
+                                   |               |                      |  
+                                   |               |                      |  
+                                   |         <a href="unitofwork.html#unitofwork" >Unit of Work</a>                 |              
+                                   |               |                      |              
+                                   |               |                      |              
+                                   |               +----------- <a href="adv_datamapping.html#adv_datamapping" >Advanced Data Mapping</a>
+                                   |                                       
+                                   +----- <a href="types.html#types" >The Types System</a>
+</pre>
+
+    </div>
+
+
+    <a href="#intro" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+    
+<div class="sectionnavblock">
+<div class="sectionnav">
+
+
+
+
+        Next: <a href="pooling.html">Connection Pooling</a>
+
+</div>
+</div>
+
+
+</div>
+
+
+		</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<center>
+</center>
+</body>
+</html>
+
+
+
+

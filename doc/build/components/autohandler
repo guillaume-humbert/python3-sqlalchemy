@@ -1,0 +1,20 @@
+<%flags>inherit =None</%flags>
+<html>
+<head>
+	<title><& REQUEST:title &></title>
+</head>
+<body>
+
+% m.call_next()
+
+<center>
+</center>
+</body>
+</html>
+
+
+<%method title>
+Documentation
+</%method>
+
+

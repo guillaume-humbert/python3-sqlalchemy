@@ -1,0 +1,784 @@
+<html>
+<head>
+	<title>
+    Unit of Work - SQLAlchemy Documentation
+</title>
+</head>
+<body>
+
+
+
+<link href="style.css" rel="stylesheet" type="text/css"></link>
+<link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
+
+<link href="docs.css" rel="stylesheet" type="text/css"></link>
+<script src="scripts.js"></script>
+
+
+<div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
+
+<div class="doccontainer">
+
+<div class="docheader">
+
+<div class="docheadertext" >Unit of Work</div>
+<div class="">Version: 0.1.4   Last Updated: 03/13/06 12:39:29</div>
+</div>
+
+
+
+		<A name="unitofwork"></a>
+		
+	
+<div class="topnav">
+
+
+	
+	<div class="topnavcontrol">
+	View: <b>Paged</b> &nbsp;|&nbsp; <a href="documentation.html">One Page</a>
+	</div>
+
+
+
+<div class="topnavsectionlink">
+
+<a href="index.html">Table of Contents</a>
+
+<div class="prevnext">
+Previous: <a href="datamapping.html">Basic Data Mapping</a>
+
+&nbsp; | &nbsp;
+
+
+Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
+
+</div>
+</div>
+
+
+<div class="topnavmain">
+	<div class="topnavheader">Unit of Work</div>
+	<div class="topnavitems">
+	
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#unitofwork_overview">Overview</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#unitofwork_getting">Accessing UnitOfWork Instances</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#unitofwork_begincommit">Begin/Commit</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#unitofwork_begincommit_begin">Controlling Scope with begin()</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#unitofwork_begincommit_transactionnesting">Nesting UnitOfWork in a Database Transaction</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#unitofwork_identity">The Identity Map</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#unitofwork_import">Bringing External Instances into the UnitOfWork</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#unitofwork_advscope">Advanced UnitOfWork Management</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#unitofwork_advscope_object">Per-Object Sessions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#unitofwork_advscope_scope">Custom Session Objects/Custom Scopes</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#unitofwork_advscope_logging">Analyzing Object Commits</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+
+	</div>
+</div>
+
+</div>
+
+		<div class="sectioncontent">
+			
+
+
+
+
+<div class="subsection" style="margin-left:10px;">
+
+    <div class="sectiontext">
+
+
+    
+			
+    
+			
+    
+			
+    
+			
+    
+			
+
+    
+			
+
+    </div>
+
+        
+
+
+
+<A name="unitofwork_overview"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Overview</span>
+    <div class="sectiontext">
+
+
+    <p>The concept behind Unit of Work is to track modifications to a field of objects, and then be able to commit those changes to the database in a single operation.  Theres a lot of advantages to this, including that your application doesn't need to worry about individual save operations on objects, nor about the required order for those operations, nor about excessive repeated calls to save operations that would be more efficiently aggregated into one step.  It also simplifies database transactions, providing a neat package with which to insert into the traditional database begin/commit phase.
+    </p>
+    <p>SQLAlchemy's unit of work includes these functions:
+    <ul>
+        <li>The ability to monitor scalar and list attributes on object instances, as well as object creates.  This is handled via the attributes package.</li>
+        <li>The ability to maintain and process a list of modified objects, and based on the relationships set up by the mappers for those objects as well as the foreign key relationships of the underlying tables, figure out the proper order of operations so that referential integrity is maintained, and also so that on-the-fly values such as newly created primary keys can be propigated to dependent objects that need them before they are saved.  The central algorithm for this is the <b>topological sort</b>.</li>
+        <li>The ability to "roll back" the attributes that have changed on an object instance since the last commit() operation.  this is also handled by the attributes package.</li>
+        <li>The ability to define custom functionality that occurs within the unit-of-work commit phase, such as "before insert", "after insert", etc.  This is accomplished via MapperExtension.</li>
+        <li>an Identity Map, which is a dictionary storing the one and only instance of an object for a particular table/primary key combination.  This allows many parts of an application to get a handle to a particular object without any chance of modifications going to two different places.</li>
+        <li>Thread-local operation.  the Identity map as well as the Unit of work itself are normally instantiated and accessed in a manner that is local to the current thread.  Another concurrently executing thread will therefore have its own Identity Map/Unit of Work, so unless an application explicitly shares objects between threads, the operation of the object relational mapping is automatically threadsafe.  Unit of Work objects can also be constructed manually to allow any user-defined scoping.</li>
+    </ul></p>
+    
+    </div>
+
+
+    <a href="#unitofwork" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="unitofwork_getting"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Accessing UnitOfWork Instances</span>
+    <div class="sectiontext">
+
+
+    <p>The current unit of work is accessed via the Session interface.  The Session is available in a thread-local context from the objectstore module as follows:</p>
+        
+
+<div class="code">
+<pre><span class="python_comment"># get the current thread's session
+</span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">get_session</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+    <p>The Session object acts as a proxy to an underlying UnitOfWork object.  Common methods include commit(), begin(), clear(), and delete().  Most of these methods are available at the module level in the objectstore module, which operate upon the Session returned by the get_session() function.
+    </p>
+    <p>To clear out the current thread's UnitOfWork, which has the effect of discarding the Identity Map and the lists of all objects that have been modified, just issue a clear:
+    </p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># via module
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">clear</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># or via Session
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">get_session</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">clear</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+    <p>This is the easiest way to "start fresh", as in a web application that wants to have a newly loaded graph of objects on each request.  Any object instances before the clear operation should be discarded.</p>
+    
+    </div>
+
+
+    <a href="#unitofwork" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="unitofwork_begincommit"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Begin/Commit</span>
+    <div class="sectiontext">
+
+
+    <p>The current thread's UnitOfWork object keeps track of objects that are modified.  It maintains the following lists:</p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># new objects that were just constructed
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">get_session</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">new</span><span class="python_operator">
+</span>
+<span class="python_comment"># objects that exist in the database, that were modified
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">get_session</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">dirty</span><span class="python_operator">
+</span>
+<span class="python_comment"># objects that have been marked as deleted via objectstore.delete()
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">get_session</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">deleted</span><span class="python_operator"></span></pre></div>
+
+    <p>To commit the changes stored in those lists, just issue a commit.  This can be called via <span class="codeline">objectstore.session().commit()</span>, or through the module-level convenience method in the objectstore module:</p>
+    
+
+<div class="code">
+<pre><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+    <p>The commit operation takes place within a SQL-level transaction, so any failures that occur will roll back the state of everything to before the commit took place.</p>
+    <p>When mappers are created for classes, new object construction automatically places objects in the "new" list on the UnitOfWork, and object modifications automatically place objects in the "dirty" list.  To mark objects as to be deleted, use the "delete" method on UnitOfWork, or the module level version:</p>
+    
+
+<div class="code">
+<pre><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">delete</span><span class="python_enclosure">(</span><span class="python_name">myobj1</span><span class="python_operator">, </span><span class="python_name">myobj2</span><span class="python_operator">, ...</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+    
+    <p>Commit() can also take a list of objects which narrow its scope to looking at just those objects to save:</p>
+    
+
+<div class="code">
+<pre><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">(</span><span class="python_name">myobj1</span><span class="python_operator">, </span><span class="python_name">myobj2</span><span class="python_operator">, ...</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+    <p>Committing just a subset of instances should be used carefully, as it may result in an inconsistent save state between dependent objects (it should manage to locate loaded dependencies and save those also, but it hasnt been tested much).</p>
+    
+    
+			
+    
+			
+    
+    </div>
+
+        
+
+
+
+<A name="unitofwork_begincommit_begin"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Controlling Scope with begin()</span>
+    <div class="sectiontext">
+
+
+    <p><b>status</b> - release 0.1.1/SVN head</p>
+    <p>The "scope" of the unit of work commit can be controlled further by issuing a begin().  A begin operation constructs a new UnitOfWork object and sets it as the currently used UOW.  It maintains a reference to the original UnitOfWork as its "parent", and shares the same "identity map" of objects that have been loaded from the database within the scope of the parent UnitOfWork.  However, the "new", "dirty", and "deleted" lists are empty.  This has the effect that only changes that take place after the begin() operation get logged to the current UnitOfWork, and therefore those are the only changes that get commit()ted.  When the commit is complete, the "begun" UnitOfWork removes itself and places the parent UnitOfWork as the current one again.</p>
+<p>The begin() method returns a transactional object, upon which you can call commit() or rollback().  <b>Only this transactional object controls the transaction</b> - commit() upon the Session will do nothing until commit() or rollback() is called upon the transactional object.</p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># modify an object
+</span><span class="python_name">myobj1</span><span class="python_operator">.</span><span class="python_name">foo </span><span class="python_operator">= </span><span class="python_literal">"something new"</span><span class="python_operator">
+</span>
+<span class="python_comment"># begin an objectstore scope
+# this is equivalent to objectstore.get_session().begin()
+</span><span class="python_name">trans </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># modify another object
+</span><span class="python_name">myobj2</span><span class="python_operator">.</span><span class="python_name">lala </span><span class="python_operator">= </span><span class="python_literal">"something new"</span><span class="python_operator">
+</span>
+<span class="python_comment"># only 'myobj2' is saved
+</span><span class="python_name">trans</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+    <p>begin/commit supports the same "nesting" behavior as the SQLEngine (note this behavior is not the original "nested" behavior), meaning that many begin() calls can be made, but only the outermost transactional object will actually perform a commit().  Similarly, calls to the commit() method on the Session, which might occur in function calls within the transaction, will not do anything; this allows an external function caller to control the scope of transactions used within the functions.</p>
+    
+    </div>
+
+
+    <a href="#unitofwork" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="unitofwork_begincommit_transactionnesting"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Nesting UnitOfWork in a Database Transaction</span>
+    <div class="sectiontext">
+
+
+    <p>The UOW commit operation places its INSERT/UPDATE/DELETE operations within the scope of a database transaction controlled by a SQLEngine:
+    
+
+<div class="code">
+<pre><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_keyword">try</span><span class="python_operator">:
+    </span><span class="python_comment"># run objectstore update operations
+</span><span class="python_keyword">except</span><span class="python_operator">:
+    </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
+    </span><span class="python_keyword">raise</span><span class="python_operator">
+</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+    <p>If you recall from the <a href="dbengine.html#dbengine_transactions" >Transactions</a> section, the engine's begin()/commit() methods support reentrant behavior.  This means you can nest begin and commits and only have the outermost begin/commit pair actually take effect (rollbacks however, abort the whole operation at any stage).  From this it follows that the UnitOfWork commit operation can be nested within a transaction as well:</p>
+    
+
+<div class="code">
+<pre><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">begin</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_keyword">try</span><span class="python_operator">:
+    </span><span class="python_comment"># perform custom SQL operations
+</span><span class="python_operator">    </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
+    </span><span class="python_comment"># perform custom SQL operations
+</span><span class="python_operator"></span><span class="python_keyword">except</span><span class="python_operator">:
+    </span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">rollback</span><span class="python_enclosure">()</span><span class="python_operator">
+    </span><span class="python_keyword">raise</span><span class="python_operator">
+</span><span class="python_name">engine</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+    
+    
+    </div>
+
+
+    <a href="#unitofwork" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+        
+
+
+
+<A name="unitofwork_identity"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">The Identity Map</span>
+    <div class="sectiontext">
+
+
+    <p>All object instances which are saved to the database, or loaded from the database, are given an identity by the mapper/objectstore.  This identity is available via the _instance_key property attached to each object instance, and is a tuple consisting of the table's class, the SQLAlchemy-specific "hash key" of the table its persisted to, and an additional tuple of primary key values, in the order that they appear within the table definition:</p>
+    
+
+<div class="code">
+<pre><span class="python_operator">>>> </span><span class="python_name">obj</span><span class="python_operator">.</span><span class="python_name">_instance_key </span><span class="python_operator">
+</span><span class="python_enclosure">(</span><span class="python_operator"><</span><span class="python_keyword">class </span><span class="python_literal">'test.tables.User'</span><span class="python_operator">>, </span><span class="python_literal">"Table('users',SQLiteSQLEngine(([':memory:'], {})),schema=None)"</span><span class="python_operator">, </span><span class="python_enclosure">(</span><span class="python_number">7</span><span class="python_operator">,</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
+
+    <p>Note that this identity is a database identity, not an in-memory identity.  An application can have several different objects in different unit-of-work scopes that have the same database identity, or an object can be removed from memory, and constructed again later, with the same database identity.  What can <b>never</b> happen is for two copies of the same object to exist in the same unit-of-work scope with the same database identity; this is guaranteed by the <b>identity map</b>.
+    </p>
+    <p>
+    At the moment that an object is assigned this key, it is also added to the current thread's unit-of-work's identity map.  The identity map is just a WeakValueDictionary which maintains the one and only reference to a particular object within the current unit of work scope.  It is used when result rows are fetched from the database to insure that only one copy of a particular object actually comes from that result set in the case that eager loads or other joins are used, or if the object had already been loaded from a previous result set.  The get() method on a mapper, which retrieves an object based on primary key identity, also checks in the current identity map first to save a database round-trip if possible.  In the case of an object lazy-loading a single child object, the get() method is also used.
+    </p>
+    <p>Methods on mappers and the objectstore module, which are relevant to identity include the following:</p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># assume 'm' is a mapper
+</span><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># get the identity key corresponding to a primary key
+</span><span class="python_name">key </span><span class="python_operator">= </span><span class="python_name">m</span><span class="python_operator">.</span><span class="python_name">identity_key</span><span class="python_enclosure">(</span><span class="python_number">7</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># for composite key, list out the values in the order they
+# appear in the table
+</span><span class="python_name">key </span><span class="python_operator">= </span><span class="python_name">m</span><span class="python_operator">.</span><span class="python_name">identity_key</span><span class="python_enclosure">(</span><span class="python_number">12</span><span class="python_operator">, </span><span class="python_literal">'rev2'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># get the identity key given a primary key 
+# value as a tuple, a class, and a table
+</span><span class="python_name">key </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">get_id_key</span><span class="python_enclosure">((</span><span class="python_number">12</span><span class="python_operator">, </span><span class="python_literal">'rev2'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># get the identity key for an object, whether or not it actually
+# has one attached to it (m is the mapper for obj's class)
+</span><span class="python_name">key </span><span class="python_operator">= </span><span class="python_name">m</span><span class="python_operator">.</span><span class="python_name">instance_key</span><span class="python_enclosure">(</span><span class="python_name">obj</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># same thing, from the objectstore (works for any obj type)
+</span><span class="python_name">key </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">instance_key</span><span class="python_enclosure">(</span><span class="python_name">obj</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># is this key in the current identity map?
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">has_key</span><span class="python_enclosure">(</span><span class="python_name">key</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># is this object in the current identity map?
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">has_instance</span><span class="python_enclosure">(</span><span class="python_name">obj</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># get this object from the current identity map based on 
+# singular/composite primary key, or if not go 
+# and load from the database
+</span><span class="python_name">obj </span><span class="python_operator">= </span><span class="python_name">m</span><span class="python_operator">.</span><span class="python_name">get</span><span class="python_enclosure">(</span><span class="python_number">12</span><span class="python_operator">, </span><span class="python_literal">'rev2'</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+    
+    </div>
+
+
+    <a href="#unitofwork" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="unitofwork_import"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Bringing External Instances into the UnitOfWork</span>
+    <div class="sectiontext">
+
+
+    <p>The _instance_key attribute is designed to work with objects that are serialized into strings and brought back again.  As it contains no references to internal structures or database connections, applications that use caches or session storage which require serialization (i.e. pickling) can store SQLAlchemy-loaded objects.  However, as mentioned earlier, an object with a particular database identity is only allowed to exist uniquely within the current unit-of-work scope.  So, upon deserializing such an object, it has to "check in" with the current unit-of-work/identity map combination, to insure that it is the only unique instance.  This is achieved via the <span class="codeline">import_instance()</span> function in objectstore:</p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># deserialize an object
+</span><span class="python_name">myobj </span><span class="python_operator">= </span><span class="python_name">pickle</span><span class="python_operator">.</span><span class="python_name">loads</span><span class="python_enclosure">(</span><span class="python_name">mystring</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># "import" it.  if the objectstore already had this object in the 
+# identity map, then you get back the one from the current session.
+</span><span class="python_name">myobj </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">import_instance</span><span class="python_enclosure">(</span><span class="python_name">myobj</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+<p>Note that the import_instance() function will either mark the deserialized object as the official copy in the current identity map, which includes updating its _instance_key with the current application's class instance, or it will discard it and return the corresponding object that was already present.</p>
+    
+    </div>
+
+
+    <a href="#unitofwork" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="unitofwork_advscope"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Advanced UnitOfWork Management</span>
+    <div class="sectiontext">
+
+
+
+    
+			
+
+    
+			
+
+    
+			
+    
+    
+    </div>
+
+        
+
+
+
+<A name="unitofwork_advscope_object"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Per-Object Sessions</span>
+    <div class="sectiontext">
+
+
+    <p><b>status</b> - 'using' function not yet released</p>
+    <p>Sessions can be created on an ad-hoc basis and used for individual groups of objects and operations.  This has the effect of bypassing the entire "global"/"threadlocal" UnitOfWork system and explicitly using a particular Session:</p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># make a new Session with a global UnitOfWork
+</span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># make objects bound to this Session
+</span><span class="python_name">x </span><span class="python_operator">= </span><span class="python_name">MyObj</span><span class="python_enclosure">(</span><span class="python_name">_sa_session</span><span class="python_operator">=</span><span class="python_name">s</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># perform mapper operations bound to this Session
+# (this function coming soon)
+</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">MyObj</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">using</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">id</span><span class="python_operator">=</span><span class="python_number">12</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span>
+<span class="python_comment"># get the session that corresponds to an instance
+</span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">get_session</span><span class="python_enclosure">(</span><span class="python_name">x</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># commit 
+</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># perform a block of operations with this session set within the current scope
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">push_session</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_keyword">try</span><span class="python_operator">:
+    </span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">select_by</span><span class="python_enclosure">(</span><span class="python_name">id</span><span class="python_operator">=</span><span class="python_number">12</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">x </span><span class="python_operator">= </span><span class="python_name">new MyObj</span><span class="python_enclosure">()</span><span class="python_operator">
+    </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_keyword">finally</span><span class="python_operator">:
+    </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">pop_session</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+    
+    </div>
+
+
+    <a href="#unitofwork" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="unitofwork_advscope_scope"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Custom Session Objects/Custom Scopes</span>
+    <div class="sectiontext">
+
+
+
+    <p>For users who want to make their own Session subclass, or replace the algorithm used to return scoped Session objects (i.e. the objectstore.get_session() method):</p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># make a new Session
+</span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># set it as the current thread-local session
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">session_registry</span><span class="python_operator">.</span><span class="python_name">set</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># set the objectstore's session registry to a different algorithm
+</span>
+<span class="python_keyword">def </span><span class="python_name">create_session</span><span class="python_enclosure">()</span><span class="python_operator">:
+    </span><span class="python_literal">"""creates new sessions"""</span><span class="python_operator">
+    </span><span class="python_keyword">return </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">Session</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_keyword">def </span><span class="python_name">mykey</span><span class="python_enclosure">()</span><span class="python_operator">:
+    </span><span class="python_literal">"""creates contextual keys to store scoped sessions"""</span><span class="python_operator">
+    </span><span class="python_keyword">return </span><span class="python_literal">"mykey"</span><span class="python_operator">
+    </span>
+<span class="python_operator"></span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">session_registry </span><span class="python_operator">= </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">util</span><span class="python_operator">.</span><span class="python_name">ScopedRegistry</span><span class="python_enclosure">(</span><span class="python_name">createfunc</span><span class="python_operator">=</span><span class="python_name">create_session</span><span class="python_operator">, </span><span class="python_name">scopefunc</span><span class="python_operator">=</span><span class="python_name">mykey</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+    
+    </div>
+
+
+    <a href="#unitofwork" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="unitofwork_advscope_logging"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Analyzing Object Commits</span>
+    <div class="sectiontext">
+
+
+    <p>The objectstore module can log an extensive display of its "commit plans", which is a graph of its internal representation of objects before they are committed to the database.  To turn this logging on:
+    
+
+<div class="code">
+<pre><span class="python_comment"># make an engine with echo_uow
+</span><span class="python_name">engine </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'myengine...'</span><span class="python_operator">, </span><span class="python_name">echo_uow</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># globally turn on echo
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">LOG </span><span class="python_operator">= </span><span class="python_name">True</span><span class="python_operator"></span></pre></div>
+
+    <p>Commits will then dump to the standard output displays like the following:</p>
+    
+
+<div class="code">
+<pre>Task dump:
+ UOWTask(6034768) 'User/users/6015696'
+  |
+  |- Save elements
+  |- Save: UOWTaskElement(6034800): User(6016624) (save)
+  |
+  |- Save dependencies
+  |- UOWDependencyProcessor(6035024) 'addresses' attribute on saved User's (UOWTask(6034768) 'User/users/6015696')
+  |       |-UOWTaskElement(6034800): User(6016624) (save)
+  |
+  |- Delete dependencies
+  |- UOWDependencyProcessor(6035056) 'addresses' attribute on User's to be deleted (UOWTask(6034768) 'User/users/6015696')
+  |       |-(no objects)
+  |
+  |- Child tasks
+  |- UOWTask(6034832) 'Address/email_addresses/6015344'
+  |   |
+  |   |- Save elements
+  |   |- Save: UOWTaskElement(6034864): Address(6034384) (save)
+  |   |- Save: UOWTaskElement(6034896): Address(6034256) (save)
+  |   |----
+  | 
+  |----</pre></div>
+
+    <p>The above graph can be read straight downwards to determine the order of operations.  It indicates "save User 6016624, process each element in the 'addresses' list on User 6016624, save Address 6034384, Address 6034256".
+    
+    </div>
+
+
+    <a href="#unitofwork" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+
+    
+<div class="sectionnavblock">
+<div class="sectionnav">
+
+
+        Previous: <a href="datamapping.html">Basic Data Mapping</a>
+
+                |
+
+        Next: <a href="adv_datamapping.html">Advanced Data Mapping</a>
+
+</div>
+</div>
+
+
+</div>
+
+
+		</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<center>
+</center>
+</body>
+</html>
+
+
+
+

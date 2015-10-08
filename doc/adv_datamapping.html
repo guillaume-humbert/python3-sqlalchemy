@@ -1,0 +1,1489 @@
+<html>
+<head>
+	<title>
+    Advanced Data Mapping - SQLAlchemy Documentation
+</title>
+</head>
+<body>
+
+
+
+<link href="style.css" rel="stylesheet" type="text/css"></link>
+<link href="syntaxhighlight.css" rel="stylesheet" type="text/css"></link>
+
+<link href="docs.css" rel="stylesheet" type="text/css"></link>
+<script src="scripts.js"></script>
+
+
+<div style="position:absolute;left:0px;top:0px;"><a name="top"></a>&nbsp;</div>
+
+<div class="doccontainer">
+
+<div class="docheader">
+
+<div class="docheadertext" >Advanced Data Mapping</div>
+<div class="">Version: 0.1.4   Last Updated: 03/13/06 12:39:29</div>
+</div>
+
+
+
+		<A name="adv_datamapping"></a>
+		
+	
+<div class="topnav">
+
+
+	
+	<div class="topnavcontrol">
+	View: <b>Paged</b> &nbsp;|&nbsp; <a href="documentation.html">One Page</a>
+	</div>
+
+
+
+<div class="topnavsectionlink">
+
+<a href="index.html">Table of Contents</a>
+
+<div class="prevnext">
+Previous: <a href="unitofwork.html">Unit of Work</a>
+
+&nbsp; | &nbsp;
+
+
+Next: <a href="types.html">The Types System</a>
+
+</div>
+</div>
+
+
+<div class="topnavmain">
+	<div class="topnavheader">Advanced Data Mapping</div>
+	<div class="topnavitems">
+	
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_relations">More On Relations</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#adv_datamapping_relations_customjoin">Custom Join Conditions</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#adv_datamapping_relations_multiplejoin">Lazy/Eager Joins Multiple Times to One Table</a>
+    </div>
+
+    </div>
+
+
+        
+        
+    <div class="toclinkcontainer">
+    
+    <div class="smalltoclink">
+    <A href="#adv_datamapping_relations_relationoptions">Relation Options</a>
+    </div>
+
+    </div>
+
+
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_orderby">Controlling Ordering</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_limits">Limiting Rows</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_colname">Overriding Column Names</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_deferred">Deferred Column Loading</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_options">More on Mapper Options</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_inheritance">Mapping a Class with Table Inheritance</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_joins">Mapping a Class against Multiple Tables</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_selects">Mapping a Class against Arbitary Selects</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_multiple">Multiple Mappers for One Class</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_circular">Circular Mapping</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_recursive">Self Referential Mappers</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_resultset">Result-Set Mapping</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_extending">Extending Mapper</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+    
+    
+    <div class="toclink">
+        <A style="" href="#adv_datamapping_class">How Mapper Modifies Mapped Classes</a>
+    </div>
+    
+    <div class="toclinkcontainer">
+    </div>
+
+
+
+	</div>
+</div>
+
+</div>
+
+		<div class="sectioncontent">
+			
+
+
+
+
+<div class="subsection" style="margin-left:10px;">
+
+    <div class="sectiontext">
+
+
+<p>This section details all the options available to Mappers, as well as advanced patterns.</p>
+
+<p>To start, heres the tables we will work with again:</p>
+       
+
+<div class="code">
+<pre><span class="python_keyword">from </span><span class="python_name">sqlalchemy </span><span class="python_keyword">import </span><span class="python_operator">*
+</span><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'sqlite://filename=mydb'</span><span class="python_operator">, </span><span class="python_name">echo</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># a table to store users
+</span><span class="python_name">users </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'users'</span><span class="python_operator">, </span><span class="python_name">db</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key </span><span class="python_operator">= </span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">40</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'password'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">80</span><span class="python_enclosure">))</span>
+<span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># a table that stores mailing addresses associated with a specific user
+</span><span class="python_name">addresses </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">db</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'address_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key </span><span class="python_operator">= </span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">"users.user_id"</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'street'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">100</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'city'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">80</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'state'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">2</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'zip'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">10</span><span class="python_enclosure">))</span>
+<span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># a table that stores keywords
+</span><span class="python_name">keywords </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'keywords'</span><span class="python_operator">, </span><span class="python_name">db</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'keyword_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key </span><span class="python_operator">= </span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'name'</span><span class="python_operator">, </span><span class="python_name">VARCHAR</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">))</span>
+<span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># a table that associates keywords with users
+</span><span class="python_name">userkeywords </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'userkeywords'</span><span class="python_operator">, </span><span class="python_name">db</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'user_id'</span><span class="python_operator">, </span><span class="python_name">INT</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">"users"</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'keyword_id'</span><span class="python_operator">, </span><span class="python_name">INT</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">"keywords"</span><span class="python_enclosure">))</span>
+<span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+
+
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+
+
+
+			
+
+
+			
+
+			
+
+			
+
+			
+
+			
+
+			
+
+
+			
+
+			
+
+    </div>
+
+        
+
+
+
+<A name="adv_datamapping_relations"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">More On Relations</span>
+    <div class="sectiontext">
+
+
+    
+			
+    
+			
+
+    
+			
+
+
+    </div>
+
+        
+
+
+
+<A name="adv_datamapping_relations_customjoin"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Custom Join Conditions</span>
+    <div class="sectiontext">
+
+
+        <p>When creating relations on a mapper, most examples so far have illustrated the mapper and relationship joining up based on the foreign keys of the tables they represent.  in fact, this "automatic" inspection can be completely circumvented using the <span class="codeline">primaryjoin</span> and <span class="codeline">secondaryjoin</span> arguments to <span class="codeline">relation</span>, as in this example which creates a User object which has a relationship to all of its Addresses which are in Boston:
+        
+
+<div class="code">
+<pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'boston_addreses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
+                <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
+                <span class="python_name">Addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_operator">==</span><span class="python_literal">'Boston'</span><span class="python_enclosure">))</span>
+<span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+
+        <P>Many to many relationships can be customized by one or both of <span class="codeline">primaryjoin</span> and <span class="codeline">secondaryjoin</span>, shown below with just the default many-to-many relationship explicitly set:</p>
+        
+
+<div class="code">
+<pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_keyword">class </span><span class="python_name">Keyword</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_name">Keyword</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_operator">, </span><span class="python_name">keywords</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'keywords'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Keyword</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">, </span>
+        <span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">userkeywords</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">,</span>
+        <span class="python_name">secondaryjoin</span><span class="python_operator">=</span><span class="python_name">userkeywords</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">keyword_id</span><span class="python_operator">==</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">keyword_id</span>
+        <span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+
+    
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_relations_multiplejoin"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Lazy/Eager Joins Multiple Times to One Table</span>
+    <div class="sectiontext">
+
+
+
+        <p>The previous example leads in to the idea of joining against the same table multiple times.  Below is a User object that has lists of its Boston and New York addresses, both lazily loaded when they are first accessed:</p>
+        
+
+<div class="code">
+<pre><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'boston_addreses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
+                <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
+                <span class="python_name">Addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_operator">==</span><span class="python_literal">'Boston'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_literal">'newyork_addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
+                <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
+                <span class="python_name">Addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_operator">==</span><span class="python_literal">'New York'</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+<span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+
+        <p>A complication arises with the above pattern if you want the relations to be eager loaded.  Since there will be two separate joins to the addresses table during an eager load, an alias needs to be used to separate them.  You can create an alias of the addresses table to separate them, but then you are in effect creating a brand new mapper for each property, unrelated to the main Address mapper, which can create problems with commit operations.  So an additional argument <span class="codeline">use_alias</span> can be used with an eager relationship to specify the alias to be used just within the eager query:</p>
+        
+
+<div class="code">
+<pre><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'boston_addreses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
+                <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
+                <span class="python_name">Addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_operator">==</span><span class="python_literal">'Boston'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_operator">, </span><span class="python_name">use_alias</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_literal">'newyork_addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">primaryjoin</span><span class="python_operator">=</span>
+                <span class="python_name">and_</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span>
+                <span class="python_name">Addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">city</span><span class="python_operator">==</span><span class="python_literal">'New York'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_operator">, </span><span class="python_name">use_alias</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+</span>
+<span class="python_literal"><a href="javascript:togglePopbox('popbox_81', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">u </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_81_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+        users.password AS users_password, <br/>
+        addresses_EF45.address_id AS addresses_EF45_address_id, addresses_EF45.user_id AS addresses_EF45_user_id, <br/>
+        addresses_EF45.street AS addresses_EF45_street, addresses_EF45.city AS addresses_EF45_city, <br/>
+        addresses_EF45.state AS addresses_EF45_state, addresses_EF45.zip AS addresses_EF45_zip, <br/>
+        addresses_63C5.address_id AS addresses_63C5_address_id, addresses_63C5.user_id AS addresses_63C5_user_id, <br/>
+        addresses_63C5.street AS addresses_63C5_street, addresses_63C5.city AS addresses_63C5_city, <br/>
+        addresses_63C5.state AS addresses_63C5_state, addresses_63C5.zip AS addresses_63C5_zip <br/>
+        FROM users <br/>
+        LEFT OUTER JOIN addresses AS addresses_EF45 ON users.user_id = addresses_EF45.user_id <br/>
+        AND addresses_EF45.city = :addresses_city <br/>
+        LEFT OUTER JOIN addresses AS addresses_63C5 ON users.user_id = addresses_63C5.user_id <br/>
+        AND addresses_63C5.city = :addresses_city_1<br/>
+        ORDER BY users.oid, addresses_EF45.oid, addresses_63C5.oid<br/>
+        {'addresses_city_1': 'New York', 'addresses_city': 'Boston'}</div><pre><span class="python_operator"></span></pre></div>
+
+    
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_relations_relationoptions"></a>
+
+<div class="subsection" style="margin-left:30px;">
+
+    <span class="sectionheadertext">Relation Options</span>
+    <div class="sectiontext">
+
+
+    Keyword options to the <span class="codeline">relation</span> function include:
+    <ul>
+        <li>lazy=(True|False|None) - specifies how the related items should be loaded.  a value of True indicates they should be loaded when the property is first accessed.  A value of False indicates they should be loaded by joining against the parent object query, so parent and child are loaded in one round trip.  A value of None indicates the related items are not loaded by the mapper in any case; the application will manually insert items into the list in some other way.  A relationship with lazy=None is still important; items added to the list or removed will cause the appropriate updates and deletes upon commit().</li>
+        <li>primaryjoin - a ClauseElement that will be used as the primary join of this child object against the parent object, or in a many-to-many relationship the join of the primary object to the association table.  By default, this value is computed based on the foreign key relationships of the parent and child tables (or association table).</li>
+        <li>secondaryjoin - a ClauseElement that will be used as the join of an association table to the child object.  By default, this value is computed based on the foreign key relationships of the association and child tables.</li>
+        <li>foreignkey - specifies which column in this relationship is "foreign", i.e. which column refers to the parent object.  This value is automatically determined in all cases, based on the primary and secondary join conditions, except in the case of a self-referential mapper, where it is needed to indicate the child object's reference back to it's parent.</li>
+        <li>uselist - a boolean that indicates if this property should be loaded as a list or a scalar.  In most cases, this value is determined based on the type and direction of the relationship - one to many forms a list, one to one forms a scalar, many to many is a list.  If a scalar is desired where normally a list would be present, set uselist to False.</li>
+        <li>private - indicates if these child objects are "private" to the parent; removed items will also be deleted, and if the parent item is deleted, all child objects are deleted as well.  See the example in <a href="datamapping.html#datamapping_relations_private" >Useful Feature: Private Relations</a>.</li>
+        <li>backreference - indicates the name of a property to be placed on the related mapper's class that will handle this relationship in the other direction, including synchronizing the object attributes on both sides of the relation.  See the example in <a href="datamapping.html#datamapping_relations_backreferences" >Useful Feature: Backreferences</a>.</li>
+        <li>order_by - indicates the ordering that should be applied when loading these items.  See the section <a href="adv_datamapping.html#adv_datamapping_orderby" >Controlling Ordering</a> for details.</li>
+        <li>association - When specifying a many to many relationship with an association object, this keyword should reference the mapper of the target object of the association.  See the example in <a href="datamapping.html#datamapping_association" >Association Object</a>.</li>
+        <li>post_update - this indicates that the relationship should be handled by a second UPDATE statement after an INSERT, or before a DELETE.  using this flag essentially means the relationship will not incur any "dependency" between parent and child item, as the particular foreign key relationship between them is handled by a second statement.  use this flag when a particular mapping arrangement will incur two rows that are dependent on each other, such as a table that has a one-to-many relationship to a set of child rows, and also has a column that references a single child row within that list (i.e. both tables contain a foreign key to each other).  If a commit() operation returns an error that a "cyclical dependency" was detected, this is a cue that you might want to use post_update.</li>
+    </ul>
+    
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_orderby"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Controlling Ordering</span>
+    <div class="sectiontext">
+
+
+<p>By default, mappers will not supply any ORDER BY clause when selecting rows.  This can be modified in several ways.</p>
+
+<p>A "default ordering" can be supplied by all mappers, by enabling the "default_ordering" flag to the engine, which indicates that table primary keys or object IDs should be used as the default ordering:</p>
+
+
+<div class="code">
+<pre><span class="python_name">db </span><span class="python_operator">= </span><span class="python_name">create_engine</span><span class="python_enclosure">(</span><span class="python_literal">'postgres://username=scott&password=tiger'</span><span class="python_operator">, </span><span class="python_name">default_ordering</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+<p>The "order_by" parameter can be sent to a mapper, overriding the per-engine ordering if any.  A value of None means that the mapper should not use any ordering, even if the engine's default_ordering property is True.  A non-None value, which can be a column, an <span class="codeline">asc</span> or <span class="codeline">desc</span> clause, or an array of either one, indicates the ORDER BY clause that should be added to all select queries:</p>
+
+
+<div class="code">
+<pre><span class="python_comment"># disable all ordering
+</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">None</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># order by a column
+</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># order by multiple items
+</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">desc</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_enclosure">)])</span><span class="python_operator"></span></pre></div>
+
+<p>"order_by" can also be specified to an individual <span class="codeline">select</span> method, overriding all other per-engine/per-mapper orderings:
+
+
+<div class="code">
+<pre><span class="python_comment"># order by a column
+</span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># order by multiple criterion
+</span><span class="python_name">l </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">==</span><span class="python_literal">'fred'</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">desc</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_enclosure">)])</span><span class="python_operator"></span></pre></div>
+
+<p>For relations, the "order_by" property can also be specified to all forms of relation:</p>
+
+
+<div class="code">
+<pre><span class="python_comment"># order address objects by address id
+</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
+    <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">address_id</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+</span>
+<span class="python_comment"># eager load with ordering - the ORDER BY clauses of parent/child will be organized properly
+</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
+    <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">desc</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">eager</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_limits"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Limiting Rows</span>
+    <div class="sectiontext">
+
+
+<p>You can limit rows in a regular SQL query by specifying <span class="codeline">limit</span> and <span class="codeline">offset</span>.  A Mapper can handle the same concepts:</p>
+
+
+<div class="code">
+<pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_literal"><a href="javascript:togglePopbox('popbox_82', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">m</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">limit</span><span class="python_operator">=</span><span class="python_number">20</span><span class="python_operator">, </span><span class="python_name">offset</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div id="popbox_82_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, <br/>
+users.user_name AS users_user_name, users.password AS users_password <br/>
+FROM users ORDER BY users.oid <br/>
+ LIMIT 20 OFFSET 10<br/>
+{}</div><pre><span class="python_operator"></span></pre></div>
+
+However, things get tricky when dealing with eager relationships, since a straight LIMIT of rows does not represent the count of items when joining against other tables to load related items as well.  So here is what SQLAlchemy will do when you use limit or offset with an eager relationship:
+    
+
+<div class="code">
+<pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">m</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">.</span><span class="python_name">like</span><span class="python_enclosure">(</span><span class="python_literal">'F%'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">limit</span><span class="python_operator">=</span><span class="python_number">20</span><span class="python_operator">, </span><span class="python_name">offset</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre><div class="codepop">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, <br/>
+users.password AS users_password, addresses.address_id AS addresses_address_id, <br/>
+addresses.user_id AS addresses_user_id, addresses.street AS addresses_street, <br/>
+addresses.city AS addresses_city, addresses.state AS addresses_state, <br/>
+addresses.zip AS addresses_zip <br/>
+FROM <br/>
+(SELECT users.user_id FROM users WHERE users.user_name LIKE %(users_user_name)s<br/>
+ORDER BY users.oid LIMIT 20 OFFSET 10) AS rowcount, <br/>
+ users LEFT OUTER JOIN addresses ON users.user_id = addresses.user_id <br/>
+WHERE rowcount.user_id = users.user_id ORDER BY users.oid, addresses.oid<br/>
+{'users_user_name': 'F%'}</div><pre><span class="python_operator"></span></pre></div>
+
+    <p>The main WHERE clause as well as the limiting clauses are coerced into a subquery; this subquery represents the desired result of objects.  A containing query, which handles the eager relationships, is joined against the subquery to produce the result.</p>
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_colname"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Overriding Column Names</span>
+    <div class="sectiontext">
+
+
+<p>When mappers are constructed, by default the column names in the Table metadata are used as the names of attributes on the mapped class.  This can be customzed within the properties by stating the key/column combinations explicitly:</p>
+
+
+<div class="code">
+<pre><span class="python_name">user_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'id' </span><span class="python_operator">: </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">,</span>
+    <span class="python_literal">'name' </span><span class="python_operator">: </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_operator">,</span>
+<span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+
+<p>In the situation when column names overlap in a mapper against multiple tables, columns may be referenced together with a list:
+
+
+<div class="code">
+<pre><span class="python_comment"># join users and addresses
+</span><span class="python_name">usersaddresses </span><span class="python_operator">= </span><span class="python_name">sql</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id </span><span class="python_operator">== </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">usersaddresses</span><span class="python_operator">,   </span>
+    <span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
+        <span class="python_literal">'id' </span><span class="python_operator">: </span><span class="python_enclosure">[</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">]</span><span class="python_operator">,</span>
+    <span class="python_enclosure">}</span>
+    <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_deferred"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Deferred Column Loading</span>
+    <div class="sectiontext">
+
+
+<p>This feature allows particular columns of a table to not be loaded by default, instead being loaded later on when first referenced.  It is essentailly "column-level lazy loading".   This feature is useful when one wants to avoid loading a large text or binary field into memory when its not needed.  Individual columns can be lazy loaded by themselves or placed into groups that lazy-load together.</p>
+
+
+<div class="code">
+<pre><span class="python_name">book_excerpts </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'books'</span><span class="python_operator">, </span><span class="python_name">db</span><span class="python_operator">, </span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'book_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'title'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">200</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'summary'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">2000</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'excerpt'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'photo'</span><span class="python_operator">, </span><span class="python_name">Binary</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">Book</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_comment"># define a mapper that will load each of 'excerpt' and 'photo' in 
+# separate, individual-row SELECT statements when each attribute
+# is first referenced on the individual object instance
+</span><span class="python_operator"></span><span class="python_name">book_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Book</span><span class="python_operator">, </span><span class="python_name">book_excerpts</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
+    <span class="python_literal">'excerpt' </span><span class="python_operator">: </span><span class="python_name">deferred</span><span class="python_enclosure">(</span><span class="python_name">book_excerpts</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">excerpt</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_literal">'photo' </span><span class="python_operator">: </span><span class="python_name">deferred</span><span class="python_enclosure">(</span><span class="python_name">book_excerpts</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">photo</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+
+<p>Deferred columns can be placed into groups so that they load together:</p>
+
+
+<div class="code">
+<pre><span class="python_name">book_excerpts </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'books'</span><span class="python_operator">, </span><span class="python_name">db</span><span class="python_operator">, </span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'book_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'title'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">200</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'summary'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">2000</span><span class="python_enclosure">))</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'excerpt'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'photo1'</span><span class="python_operator">, </span><span class="python_name">Binary</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'photo2'</span><span class="python_operator">, </span><span class="python_name">Binary</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'photo3'</span><span class="python_operator">, </span><span class="python_name">Binary</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">Book</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_comment"># define a mapper with a 'photos' deferred group.  when one photo is referenced,
+# all three photos will be loaded in one SELECT statement.  The 'excerpt' will 
+# be loaded separately when it is first referenced.
+</span><span class="python_operator"></span><span class="python_name">book_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Book</span><span class="python_operator">, </span><span class="python_name">book_excerpts</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
+    <span class="python_literal">'excerpt' </span><span class="python_operator">: </span><span class="python_name">deferred</span><span class="python_enclosure">(</span><span class="python_name">book_excerpts</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">excerpt</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_literal">'photo1' </span><span class="python_operator">: </span><span class="python_name">deferred</span><span class="python_enclosure">(</span><span class="python_name">book_excerpts</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">photo1</span><span class="python_operator">, </span><span class="python_name">group</span><span class="python_operator">=</span><span class="python_literal">'photos'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_literal">'photo2' </span><span class="python_operator">: </span><span class="python_name">deferred</span><span class="python_enclosure">(</span><span class="python_name">book_excerpts</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">photo2</span><span class="python_operator">, </span><span class="python_name">group</span><span class="python_operator">=</span><span class="python_literal">'photos'</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_literal">'photo3' </span><span class="python_operator">: </span><span class="python_name">deferred</span><span class="python_enclosure">(</span><span class="python_name">book_excerpts</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">photo3</span><span class="python_operator">, </span><span class="python_name">group</span><span class="python_operator">=</span><span class="python_literal">'photos'</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_options"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">More on Mapper Options</span>
+    <div class="sectiontext">
+
+
+    <p>The <span class="codeline">options</span> method of mapper, first introduced in <a href="datamapping.html#datamapping_relations_options" >Switching Lazy/Eager, No Load</a>, supports the copying of a mapper into a new one, with any number of its relations replaced by new ones.  The method takes a variable number of <span class="codeline">MapperOption</span> objects which know how to change specific things about the mapper.  The five available options are <span class="codeline">eagerload</span>, <span class="codeline">lazyload</span>, <span class="codeline">noload</span>, <span class="codeline">deferred</span> and <span class="codeline">extension</span>.</p>
+    <P>An example of a mapper with a lazy load relationship, upgraded to an eager load relationship:
+        
+
+<div class="code">
+<pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_comment"># a 'lazy' relationship
+</span><span class="python_operator"></span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
+    <span class="python_literal">'addreses'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+    </span>
+<span class="python_comment"># copy the mapper and convert 'addresses' to be eager
+</span><span class="python_name">eagermapper </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
+
+    
+    <p>The load options also can take keyword arguments that apply to the new relationship.  To take the "double" address lazy relationship from the previous section and upgrade it to eager, adding the "selectalias" keywords as well:</p>
+    
+
+<div class="code">
+<pre><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span>
+        <span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'boston_addresses'</span><span class="python_operator">, </span><span class="python_name">selectalias</span><span class="python_operator">=</span><span class="python_literal">'boston_ad'</span><span class="python_enclosure">)</span><span class="python_operator">, </span>
+        <span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'newyork_addresses'</span><span class="python_operator">, </span><span class="python_name">selectalias</span><span class="python_operator">=</span><span class="python_literal">'newyork_ad'</span><span class="python_enclosure">)</span>
+    <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+    <p>The <span class="codeline">defer</span> and <span class="codeline">undefer</span> options can control the deferred loading of attributes:</p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># set the 'excerpt' deferred attribute to load normally
+</span><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">book_mapper</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">undefer</span><span class="python_enclosure">(</span><span class="python_literal">'excerpt'</span><span class="python_enclosure">))</span><span class="python_operator">
+</span>
+<span class="python_comment"># set the referenced mapper 'photos' to defer its loading of the column 'imagedata'
+</span><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">book_mapper</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">defer</span><span class="python_enclosure">(</span><span class="python_literal">'photos.imagedata'</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
+
+    
+     
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_inheritance"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Mapping a Class with Table Inheritance</span>
+    <div class="sectiontext">
+
+
+
+    <p>Table Inheritance indicates the pattern where two tables, in a parent-child relationship, are mapped to an inheritance chain of classes.  If a table "employees" contains additional information about managers in the table "managers", a corresponding object inheritance pattern would have an Employee class and a Manager class.  Loading a Manager object means you are joining managers to employees.  For SQLAlchemy, this pattern is just a special case of a mapper that maps against a joined relationship, and is provided via the <span class="codeline">inherits</span> keyword.
+    
+
+<div class="code">
+<pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_literal">"""a user object."""</span><span class="python_operator">
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_keyword">class </span><span class="python_name">AddressUser</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_literal">"""a user object that also has the users mailing address."""</span><span class="python_operator">
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_comment"># define a mapper for AddressUser that inherits the User.mapper, and joins on the user_id column
+</span><span class="python_operator"></span><span class="python_name">AddressUser</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span>
+<span class="python_name">AddressUser</span><span class="python_operator">,</span>
+        <span class="python_name">addresses</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper</span>
+        <span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">items </span><span class="python_operator">= </span><span class="python_name">AddressUser</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+<P>Above, the join condition is determined via the foreign keys between the users and the addresses table.  To specify the join condition explicitly, use <span class="codeline">inherit_condition</span>:
+
+
+<div class="code">
+<pre><span class="python_name">AddressUser</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span>
+        <span class="python_name">AddressUser</span><span class="python_operator">,</span>
+        <span class="python_name">addresses</span><span class="python_operator">, </span><span class="python_name">inherits</span><span class="python_operator">=</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">, </span>
+        <span class="python_name">inherit_condition</span><span class="python_operator">=</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span>
+    <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+    
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_joins"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Mapping a Class against Multiple Tables</span>
+    <div class="sectiontext">
+
+
+    <P>The more general case of the pattern described in "table inheritance" is a mapper that maps against more than one table.  The <span class="codeline">join</span> keyword from the SQL package creates a neat selectable unit comprised of multiple tables, complete with its own composite primary key, which can be passed in to a mapper as the table.</p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># a class
+</span><span class="python_keyword">class </span><span class="python_name">AddressUser</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_comment"># define a Join
+</span><span class="python_operator"></span><span class="python_name">j </span><span class="python_operator">= </span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># map to it - the identity of an AddressUser object will be 
+# based on (user_id, address_id) since those are the primary keys involved
+</span><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">AddressUser</span><span class="python_operator">, </span><span class="python_name">j</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+    
+
+    A second example:        
+    
+
+<div class="code">
+<pre><span class="python_comment"># many-to-many join on an association table
+</span><span class="python_name">j </span><span class="python_operator">= </span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">userkeywords</span><span class="python_operator">, </span>
+        <span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">userkeywords</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">join</span><span class="python_enclosure">(</span><span class="python_name">keywords</span><span class="python_operator">, </span>
+           <span class="python_name">userkeywords</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">keyword_id</span><span class="python_operator">==</span><span class="python_name">keywords</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">keyword_id</span><span class="python_enclosure">)</span><span class="python_operator">
+ </span>
+<span class="python_comment"># a class 
+</span><span class="python_keyword">class </span><span class="python_name">KeywordUser</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_comment"># map to it - the identity of a KeywordUser object will be
+# (user_id, keyword_id) since those are the primary keys involved
+</span><span class="python_operator"></span><span class="python_name">m </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">KeywordUser</span><span class="python_operator">, </span><span class="python_name">j</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+    
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_selects"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Mapping a Class against Arbitary Selects</span>
+    <div class="sectiontext">
+
+
+<p>Similar to mapping against a join, a plain select() object can be used with a mapper as well.  Below, an example select which contains two aggregate functions and a group_by is mapped to a class:</p>
+    
+
+<div class="code">
+<pre><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">customers</span><span class="python_operator">, </span>
+            <span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">count</span><span class="python_enclosure">(</span><span class="python_name">orders</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">label</span><span class="python_enclosure">(</span><span class="python_literal">'order_count'</span><span class="python_enclosure">)</span><span class="python_operator">, </span>
+            <span class="python_name">func</span><span class="python_operator">.</span><span class="python_name">max</span><span class="python_enclosure">(</span><span class="python_name">orders</span><span class="python_operator">.</span><span class="python_name">price</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">label</span><span class="python_enclosure">(</span><span class="python_literal">'highest_order'</span><span class="python_enclosure">)]</span><span class="python_operator">,</span>
+            <span class="python_name">customers</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">customer_id</span><span class="python_operator">==</span><span class="python_name">orders</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">customer_id</span><span class="python_operator">,</span>
+            <span class="python_name">group_by</span><span class="python_operator">=</span><span class="python_enclosure">[</span><span class="python_name">c </span><span class="python_keyword">for </span><span class="python_name">c </span><span class="python_keyword">in </span><span class="python_name">customers</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_enclosure">]</span>
+            <span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_keyword">class </span><span class="python_name">Customer</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Customer</span><span class="python_operator">, </span><span class="python_name">s</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+<p>Above, the "customers" table is joined against the "orders" table to produce a full row for each customer row, the total count of related rows in the "orders" table, and the highest price in the "orders" table, grouped against the full set of columns in the "customers" table.  That query is then mapped against the Customer class.  New instances of Customer will contain attributes for each column in the "customers" table as well as an "order_count" and "highest_order" attribute.  Updates to the Customer object will only be reflected in the "customers" table and not the "orders" table.  This is because the primary keys of the "orders" table are not represented in this mapper and therefore the table is not affected by save or delete operations.</p>
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_multiple"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Multiple Mappers for One Class</span>
+    <div class="sectiontext">
+
+
+    <p>By now it should be apparent that the mapper defined for a class is in no way the only mapper that exists for that class.  Other mappers can be created at any time; either explicitly or via the <span class="codeline">options</span> method, to provide different loading behavior.</p>
+    
+    <p>However, its not as simple as that.  The mapper serves a dual purpose; one is to generate select statements and load objects from executing those statements; the other is to keep track of the defined dependencies of that object when save and delete operations occur, and to extend the attributes of the object so that they store information about their history and communicate with the unit of work system.  For this reason, it is a good idea to be aware of the behavior of multiple mappers.  When creating dependency relationships between objects, one should insure that only the primary mappers are used in those relationships, else deep object traversal operations will fail to load in the expected properties, and update operations will not take all the dependencies into account.  </p>
+    
+    <p>Generally its as simple as, the <i>first</i> mapper that is defined for a particular class is the one that gets to define that classes' relationships to other mapped classes, and also decorates its attributes and constructors with special behavior.  Any subsequent mappers created for that class will be able to load new instances, but object manipulation operations will still function via the original mapper.  The special keyword <span class="codeline">is_primary</span> will override this behavior, and make any mapper the new "primary" mapper.
+    </p>
+    
+
+<div class="code">
+<pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_comment"># mapper one - mark it as "primary", meaning this mapper will handle
+# saving and class-level properties
+</span><span class="python_operator"></span><span class="python_name">m1 </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">is_primary</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># mapper two - this one will also eager-load address objects in
+</span><span class="python_name">m2 </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+        <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
+    <span class="python_enclosure">})</span><span class="python_operator">
+</span>
+<span class="python_comment"># get a user.  this user will not have an 'addreses' property
+</span><span class="python_name">u1 </span><span class="python_operator">= </span><span class="python_name">m1</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_number">10</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># get another user.  this user will have an 'addreses' property.
+</span><span class="python_name">u2 </span><span class="python_operator">= </span><span class="python_name">m2</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_number">27</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># make some modifications, including adding an Address object.
+</span><span class="python_name">u1</span><span class="python_operator">.</span><span class="python_name">user_name </span><span class="python_operator">= </span><span class="python_literal">'jack'</span><span class="python_operator">
+</span><span class="python_name">u2</span><span class="python_operator">.</span><span class="python_name">user_name </span><span class="python_operator">= </span><span class="python_literal">'jane'</span><span class="python_operator">
+</span><span class="python_name">u2</span><span class="python_operator">.</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_literal">'123 green street'</span><span class="python_enclosure">))</span><span class="python_operator">
+</span>
+<span class="python_comment"># upon commit, the User objects will be saved. 
+# the Address object will not, since the primary mapper for User
+# does not have an 'addresses' relationship defined
+</span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+    
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_circular"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Circular Mapping</span>
+    <div class="sectiontext">
+
+
+<p>Oftentimes it is necessary for two mappers to be related to each other.  With a datamodel that consists of Users that store Addresses, you might have an Address object and want to access the "user" attribute on it, or have a User object and want to get the list of Address objects.  The easiest way to do this is via the <span class="codeline">backreference</span> keyword described in <a href="datamapping.html#datamapping_relations_backreferences" >Useful Feature: Backreferences</a>.  Although even when backreferences are used, it is sometimes necessary to explicitly specify the relations on both mappers pointing to each other.</p>
+<p>To achieve this involves creating the first mapper by itself, then creating the second mapper referencing the first, then adding references to the first mapper to reference the second:</p>
+
+
+<div class="code">
+<pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+    <span class="python_literal">'user'</span><span class="python_operator">:</span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_enclosure">)</span>
+<span class="python_enclosure">})</span><span class="python_operator">
+</span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">add_property</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
+
+<p>Note that with a circular relationship as above, you cannot declare both relationships as "eager" relationships, since that produces a circular query situation which will generate a recursion exception.  So what if you want to load an Address and its User eagerly?  Just make a second mapper using options:
+
+
+<div class="code">
+<pre><span class="python_name">eagermapper </span><span class="python_operator">= </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">eagerload</span><span class="python_enclosure">(</span><span class="python_literal">'user'</span><span class="python_enclosure">))</span><span class="python_operator">
+</span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">eagermapper</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">address_id</span><span class="python_operator">==</span><span class="python_number">12</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_recursive"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Self Referential Mappers</span>
+    <div class="sectiontext">
+
+
+<p>A self-referential mapper is a mapper that is designed to operate with an <b>adjacency list</b> table.  This is a table that contains one or more foreign keys back to itself, and is usually used to create hierarchical tree structures.  SQLAlchemy's default model of saving items based on table dependencies is not sufficient in this case, as an adjacency list table introduces dependencies between individual rows.  Fortunately, SQLAlchemy will automatically detect a self-referential mapper and do the extra lifting to make it work. </p> 
+    
+
+<div class="code">
+<pre><span class="python_comment"># define a self-referential table
+</span><span class="python_name">trees </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'treenodes'</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'node_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'parent_node_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'treenodes.node_id'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'node_name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># treenode class
+</span><span class="python_keyword">class </span><span class="python_name">TreeNode</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_comment"># mapper defines "children" property, pointing back to TreeNode class,
+# with the mapper unspecified.  it will point back to the primary 
+# mapper on the TreeNode class.
+</span><span class="python_operator"></span><span class="python_name">TreeNode</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">TreeNode</span><span class="python_operator">, </span><span class="python_name">trees</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+        <span class="python_literal">'children' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
+                        <span class="python_name">TreeNode</span><span class="python_operator">, </span>
+                        <span class="python_name">private</span><span class="python_operator">=</span><span class="python_name">True</span>
+                     <span class="python_enclosure">)</span><span class="python_operator">,</span>
+        <span class="python_enclosure">}</span>
+    <span class="python_enclosure">)</span><span class="python_operator">
+    </span>
+<span class="python_comment"># or, specify the circular relationship after establishing the original mapper:
+</span><span class="python_name">mymapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">TreeNode</span><span class="python_operator">, </span><span class="python_name">trees</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_name">mymapper</span><span class="python_operator">.</span><span class="python_name">add_property</span><span class="python_enclosure">(</span><span class="python_literal">'children'</span><span class="python_operator">, </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
+                        <span class="python_name">mymapper</span><span class="python_operator">, </span>
+                        <span class="python_name">private</span><span class="python_operator">=</span><span class="python_name">True</span>
+                     <span class="python_enclosure">))</span><span class="python_operator"></span></pre></div>
+    
+    <p>This kind of mapper goes through a lot of extra effort when saving and deleting items, to determine the correct dependency graph of nodes within the tree.</p>
+    
+    <p>A self-referential mapper where there is more than one relationship on the table requires that all join conditions be explicitly spelled out.  Below is a self-referring table that contains a "parent_node_id" column to reference parent/child relationships, and a "root_node_id" column which points child nodes back to the ultimate root node:</p>
+    
+
+<div class="code">
+<pre><span class="python_comment"># define a self-referential table with several relations
+</span><span class="python_name">trees </span><span class="python_operator">= </span><span class="python_name">Table</span><span class="python_enclosure">(</span><span class="python_literal">'treenodes'</span><span class="python_operator">, </span><span class="python_name">engine</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'node_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">primary_key</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'parent_node_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'treenodes.node_id'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'root_node_id'</span><span class="python_operator">, </span><span class="python_name">Integer</span><span class="python_operator">, </span><span class="python_name">ForeignKey</span><span class="python_enclosure">(</span><span class="python_literal">'treenodes.node_id'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_name">Column</span><span class="python_enclosure">(</span><span class="python_literal">'node_name'</span><span class="python_operator">, </span><span class="python_name">String</span><span class="python_enclosure">(</span><span class="python_number">50</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">nullable</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">,</span>
+    <span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># treenode class
+</span><span class="python_keyword">class </span><span class="python_name">TreeNode</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_comment"># define the "children" property as well as the "root" property
+</span><span class="python_operator"></span><span class="python_name">TreeNode</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">TreeNode</span><span class="python_operator">, </span><span class="python_name">trees</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+        <span class="python_literal">'children' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
+                        <span class="python_name">TreeNode</span><span class="python_operator">, </span>
+                        <span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">parent_node_id</span><span class="python_operator">==</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span>
+                        <span class="python_name">private</span><span class="python_operator">=</span><span class="python_name">True</span>
+                     <span class="python_enclosure">)</span><span class="python_operator">,</span>
+        <span class="python_literal">'root' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
+                <span class="python_name">TreeNode</span><span class="python_operator">,</span>
+                <span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">root_node_id</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span><span class="python_operator">, </span>
+                <span class="python_name">foreignkey</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span><span class="python_operator">,</span>
+                <span class="python_name">uselist</span><span class="python_operator">=</span><span class="python_name">False</span>
+            <span class="python_enclosure">)</span>
+        <span class="python_enclosure">}</span>
+    <span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+    
+<p>The "root" property on a TreeNode is a many-to-one relationship.  By default, a self-referential mapper declares relationships as one-to-many, so the extra parameter <span class="codeline">foreignkey</span>, pointing to the "many" side of a relationship, is needed to indicate a "many-to-one" self-referring relationship.</p>
+<p>Both TreeNode examples above are available in functional form in the <span class="codeline">examples/adjacencytree</span> directory of the distribution.</p>    
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_resultset"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Result-Set Mapping</span>
+    <div class="sectiontext">
+
+
+    <p>Take any result set and feed it into a mapper to produce objects.  Multiple mappers can be combined to retrieve unrelated objects from the same row in one step.  The <span class="codeline">instances</span> method on mapper takes a ResultProxy object, which is the result type generated from SQLEngine, and delivers object instances.</p>
+    
+
+<div class="code">
+    <div class="codetitle">single object</div>
+<pre><span class="python_keyword">class </span><span class="python_name">User</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_operator"></span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># select users
+</span><span class="python_name">c </span><span class="python_operator">= </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># get objects
+</span><span class="python_name">userlist </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">c</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+    
+    
+
+<div class="code">
+    <div class="codetitle">multiple objects</div>
+<pre><span class="python_comment"># define a second class/mapper
+</span><span class="python_keyword">class </span><span class="python_name">Address</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+    </span>
+<span class="python_operator"></span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># select users and addresses in one query
+</span><span class="python_name">s </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">addresses</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_name">addresses</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># execute it, and process the results with the User mapper, chained to the Address mapper
+</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">User</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">s</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator">, </span><span class="python_name">Address</span><span class="python_operator">.</span><span class="python_name">mapper</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># result rows are an array of objects, one for each mapper used
+</span><span class="python_keyword">for </span><span class="python_name">entry </span><span class="python_keyword">in </span><span class="python_name">r</span><span class="python_operator">:
+    </span><span class="python_name">user </span><span class="python_operator">= </span><span class="python_name">r</span><span class="python_enclosure">[</span><span class="python_number">0</span><span class="python_enclosure">]</span><span class="python_operator">
+    </span><span class="python_name">address </span><span class="python_operator">= </span><span class="python_name">r</span><span class="python_enclosure">[</span><span class="python_number">1</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre></div>
+    
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_extending"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">Extending Mapper</span>
+    <div class="sectiontext">
+
+
+<p>Mappers can have functionality augmented or replaced at many points in its execution via the usage of the MapperExtension class.  This class is just a series of "hooks" where various functionality takes place.  An application can make its own MapperExtension objects, overriding only the methods it needs.
+        
+
+<div class="code">
+<pre><span class="python_keyword">class </span><span class="python_name">MapperExtension</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">def </span><span class="python_name">create_instance</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">row</span><span class="python_operator">, </span><span class="python_name">imap</span><span class="python_operator">, </span><span class="python_name">class_</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_literal">"""called when a new object instance is about to be created from a row.  
+        the method can choose to create the instance itself, or it can return 
+        None to indicate normal object creation should take place.
+        
+        mapper - the mapper doing the operation
+        row - the result row from the database
+        imap - a dictionary that is storing the running set of objects collected from the
+        current result set
+        class_ - the class we are mapping.
+        """</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">append_result</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">row</span><span class="python_operator">, </span><span class="python_name">imap</span><span class="python_operator">, </span><span class="python_name">result</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_operator">, </span><span class="python_name">isnew</span><span class="python_operator">, </span><span class="python_name">populate_existing</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_literal">"""called when an object instance is being appended to a result list.
+        
+        If it returns True, it is assumed that this method handled the appending itself.
+
+        mapper - the mapper doing the operation
+        row - the result row from the database
+        imap - a dictionary that is storing the running set of objects collected from the
+        current result set
+        result - an instance of util.HistoryArraySet(), which may be an attribute on an
+        object if this is a related object load (lazy or eager).  use result.append_nohistory(value)
+        to append objects to this list.
+        instance - the object instance to be appended to the result
+        isnew - indicates if this is the first time we have seen this object instance in the current result
+        set.  if you are selecting from a join, such as an eager load, you might see the same object instance
+        many times in the same result set.
+        populate_existing - usually False, indicates if object instances that were already in the main 
+        identity map, i.e. were loaded by a previous select(), get their attributes overwritten
+        """</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">before_insert</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_literal">"""called before an object instance is INSERTed into its table.
+        
+        this is a good place to set up primary key values and such that arent handled otherwise."""</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">after_insert</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_literal">"""called after an object instance has been INSERTed"""</span><span class="python_operator">
+    </span><span class="python_keyword">def </span><span class="python_name">before_delete</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">mapper</span><span class="python_operator">, </span><span class="python_name">instance</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_literal">"""called before an object instance is DELETEed"""</span><span class="python_operator"></span></pre></div>
+
+        <p>To use MapperExtension, make your own subclass of it and just send it off to a mapper:</p>
+        
+
+<div class="code">
+<pre><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users</span><span class="python_operator">, </span><span class="python_name">extension</span><span class="python_operator">=</span><span class="python_name">MyExtension</span><span class="python_enclosure">())</span><span class="python_operator"></span></pre></div>
+
+        <p>An existing mapper can create a copy of itself using an extension via the <span class="codeline">extension</span> option:
+        
+
+<div class="code">
+<pre><span class="python_name">extended_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">extension</span><span class="python_enclosure">(</span><span class="python_name">MyExtension</span><span class="python_enclosure">()))</span><span class="python_operator"></span></pre></div>
+
+        
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+        
+
+
+
+<A name="adv_datamapping_class"></a>
+
+<div class="subsection" style="margin-left:20px;">
+
+    <span class="sectionheadertext">How Mapper Modifies Mapped Classes</span>
+    <div class="sectiontext">
+
+
+<p>This section is a quick summary of what's going on when you send a class to the <span class="codeline">mapper()</span> function.  This material, not required to be able to use SQLAlchemy, is a little more dense and should be approached patiently!</p>
+
+<p>The primary changes to a class that is mapped involve attaching property objects to it which represent table columns.  These property objects essentially track changes.  In addition, the __init__ method of the object is decorated to track object creates.</p>
+<p>Here is a quick rundown of all the changes in code form:
+    
+
+<div class="code">
+<pre><span class="python_comment"># step 1 - override __init__ to 'register_new' with the Unit of Work
+</span><span class="python_name">oldinit </span><span class="python_operator">= </span><span class="python_name">myclass</span><span class="python_operator">.</span><span class="python_name">__init__</span><span class="python_operator">
+</span><span class="python_keyword">def </span><span class="python_name">init</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, *</span><span class="python_name">args</span><span class="python_operator">, **</span><span class="python_name">kwargs</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_name">nohist </span><span class="python_operator">= </span><span class="python_name">kwargs</span><span class="python_operator">.</span><span class="python_name">pop</span><span class="python_enclosure">(</span><span class="python_literal">'_mapper_nohistory'</span><span class="python_operator">, </span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_name">oldinit</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, *</span><span class="python_name">args</span><span class="python_operator">, **</span><span class="python_name">kwargs</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span><span class="python_keyword">if not </span><span class="python_name">nohist</span><span class="python_operator">:
+        </span><span class="python_comment"># register_new with Unit Of Work
+</span><span class="python_operator">        </span><span class="python_name">objectstore</span><span class="python_operator">.</span><span class="python_name">uow</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">register_new</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">myclass</span><span class="python_operator">.</span><span class="python_name">__init__ </span><span class="python_operator">= </span><span class="python_name">init</span><span class="python_operator">
+</span>
+<span class="python_comment"># step 2 - set a string identifier that will 
+# locate the classes' primary mapper
+</span><span class="python_name">myclass</span><span class="python_operator">.</span><span class="python_name">_mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">hashkey</span><span class="python_operator">
+</span>
+<span class="python_comment"># step 3 - add column accessor
+</span><span class="python_name">myclass</span><span class="python_operator">.</span><span class="python_name">c </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_operator">.</span><span class="python_name">columns</span><span class="python_operator">
+</span>
+<span class="python_comment"># step 4 - attribute decorating.  
+# this happens mostly within the package sqlalchemy.attributes
+</span>
+<span class="python_comment"># this dictionary will store a series of callables 
+# that generate "history" containers for
+# individual object attributes
+</span><span class="python_name">myclass</span><span class="python_operator">.</span><span class="python_name">_class_managed_attributes </span><span class="python_operator">= </span><span class="python_enclosure">{}</span><span class="python_operator">
+</span>
+<span class="python_comment"># create individual properties for each column - 
+# these objects know how to talk 
+# to the attribute package to create appropriate behavior.
+# the next example examines the attributes package more closely.
+</span><span class="python_name">myclass</span><span class="python_operator">.</span><span class="python_name">column1 </span><span class="python_operator">= </span><span class="python_name">SmartProperty</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">property</span><span class="python_enclosure">(</span><span class="python_literal">'column1'</span><span class="python_operator">, </span><span class="python_name">uselist</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">myclass</span><span class="python_operator">.</span><span class="python_name">column2 </span><span class="python_operator">= </span><span class="python_name">SmartProperty</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">property</span><span class="python_enclosure">(</span><span class="python_literal">'column2'</span><span class="python_operator">, </span><span class="python_name">uselist</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
+
+<p>The attribute package is used when save operations occur to get a handle on modified values.  In the example below,
+a full round-trip attribute tracking operation is illustrated:</p>
+
+
+<div class="code">
+<pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">attributes as attributes</span><span class="python_operator">
+</span>
+<span class="python_comment"># create an attribute manager.  
+# the sqlalchemy.mapping package keeps one of these around as 
+# 'objectstore.global_attributes'
+</span><span class="python_name">manager </span><span class="python_operator">= </span><span class="python_name">attributes</span><span class="python_operator">.</span><span class="python_name">AttributeManager</span><span class="python_enclosure">()</span><span class="python_operator">
+</span>
+<span class="python_comment"># regular old new-style class
+</span><span class="python_keyword">class </span><span class="python_name">MyClass</span><span class="python_enclosure">(</span><span class="python_name">object</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">pass</span><span class="python_operator">
+</span>
+<span class="python_comment"># register a scalar and a list attribute
+</span><span class="python_operator"></span><span class="python_name">manager</span><span class="python_operator">.</span><span class="python_name">register_attribute</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_literal">'column1'</span><span class="python_operator">, </span><span class="python_name">uselist</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">manager</span><span class="python_operator">.</span><span class="python_name">register_attribute</span><span class="python_enclosure">(</span><span class="python_name">MyClass</span><span class="python_operator">, </span><span class="python_literal">'column2'</span><span class="python_operator">, </span><span class="python_name">uselist</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+    </span>
+<span class="python_comment"># create/modify an object
+</span><span class="python_name">obj </span><span class="python_operator">= </span><span class="python_name">MyClass</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_name">obj</span><span class="python_operator">.</span><span class="python_name">column1 </span><span class="python_operator">= </span><span class="python_literal">'this is a new value'</span><span class="python_operator">
+</span><span class="python_name">obj</span><span class="python_operator">.</span><span class="python_name">column2</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_literal">'value 1'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">obj</span><span class="python_operator">.</span><span class="python_name">column2</span><span class="python_operator">.</span><span class="python_name">append</span><span class="python_enclosure">(</span><span class="python_literal">'value 2'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># get history objects
+</span><span class="python_name">col1_history </span><span class="python_operator">= </span><span class="python_name">manager</span><span class="python_operator">.</span><span class="python_name">get_history</span><span class="python_enclosure">(</span><span class="python_name">obj</span><span class="python_operator">, </span><span class="python_literal">'column1'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span><span class="python_name">col2_history </span><span class="python_operator">= </span><span class="python_name">manager</span><span class="python_operator">.</span><span class="python_name">get_history</span><span class="python_enclosure">(</span><span class="python_name">obj</span><span class="python_operator">, </span><span class="python_literal">'column2'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># whats new ?
+</span><span class="python_operator">>>> </span><span class="python_name">col1_history</span><span class="python_operator">.</span><span class="python_name">added_items</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_enclosure">[</span><span class="python_literal">'this is a new value'</span><span class="python_enclosure">]</span><span class="python_operator">
+</span>
+<span class="python_operator">>>> </span><span class="python_name">col2_history</span><span class="python_operator">.</span><span class="python_name">added_items</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_enclosure">[</span><span class="python_literal">'value1'</span><span class="python_operator">, </span><span class="python_literal">'value2'</span><span class="python_enclosure">]</span><span class="python_operator">
+</span>
+<span class="python_comment"># commit changes
+</span><span class="python_name">manager</span><span class="python_operator">.</span><span class="python_name">commit</span><span class="python_enclosure">(</span><span class="python_name">obj</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># the new values become the "unchanged" values
+</span><span class="python_operator">>>> </span><span class="python_name">col1_history</span><span class="python_operator">.</span><span class="python_name">added_items</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_enclosure">[]</span><span class="python_operator">
+</span>
+<span class="python_operator">>>> </span><span class="python_name">col1_history</span><span class="python_operator">.</span><span class="python_name">unchanged_items</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_enclosure">[</span><span class="python_literal">'this is a new value'</span><span class="python_enclosure">]</span><span class="python_operator">
+</span>
+<span class="python_operator">>>> </span><span class="python_name">col2_history</span><span class="python_operator">.</span><span class="python_name">added_items</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_enclosure">[]</span><span class="python_operator">
+</span>
+<span class="python_operator">>>> </span><span class="python_name">col2_history</span><span class="python_operator">.</span><span class="python_name">unchanged_items</span><span class="python_enclosure">()</span><span class="python_operator">
+</span><span class="python_enclosure">[</span><span class="python_literal">'value1'</span><span class="python_operator">, </span><span class="python_literal">'value2'</span><span class="python_enclosure">]</span><span class="python_operator"></span></pre></div>
+
+<p>The above AttributeManager also includes a method <span class="codeline">value_changed</span> which is triggered whenever change events occur on the managed object attributes.  The Unit of Work (objectstore) package overrides this method in order to receive change events; its essentially this:</p>
+
+
+<div class="code">
+<pre><span class="python_keyword">import </span><span class="python_name">sqlalchemy</span><span class="python_operator">.</span><span class="python_name">attributes as attributes</span><span class="python_operator">
+</span><span class="python_keyword">class </span><span class="python_name">UOWAttributeManager</span><span class="python_enclosure">(</span><span class="python_name">attributes</span><span class="python_operator">.</span><span class="python_name">AttributeManager</span><span class="python_enclosure">)</span><span class="python_operator">:
+    </span><span class="python_keyword">def </span><span class="python_name">value_changed</span><span class="python_enclosure">(</span><span class="python_name">self</span><span class="python_operator">, </span><span class="python_name">obj</span><span class="python_operator">, </span><span class="python_name">key</span><span class="python_operator">, </span><span class="python_name">value</span><span class="python_enclosure">)</span><span class="python_operator">:
+        </span><span class="python_keyword">if </span><span class="python_name">hasattr</span><span class="python_enclosure">(</span><span class="python_name">obj</span><span class="python_operator">, </span><span class="python_literal">'_instance_key'</span><span class="python_enclosure">)</span><span class="python_operator">:
+            </span><span class="python_name">uow</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">register_dirty</span><span class="python_enclosure">(</span><span class="python_name">obj</span><span class="python_enclosure">)</span><span class="python_operator">
+        </span><span class="python_keyword">else</span><span class="python_operator">:
+            </span><span class="python_name">uow</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">register_new</span><span class="python_enclosure">(</span><span class="python_name">obj</span><span class="python_enclosure">)</span><span class="python_operator">
+            </span>
+<span class="python_operator"></span><span class="python_name">global_attributes </span><span class="python_operator">= </span><span class="python_name">UOWAttributeManager</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre></div>
+
+<p>Objects that contain the attribute "_instance_key" are already registered with the Identity Map, and are assumed to have come from the database.  They therefore get marked as "dirty" when changes happen.  Objects without an "_instance_key" are not from the database, and get marked as "new" when changes happen, although usually this will already have occured via the object's __init__ method.</p>
+
+    </div>
+
+
+    <a href="#adv_datamapping" class="toclink">back to section top</a>
+
+
+</div>
+
+
+
+
+    
+<div class="sectionnavblock">
+<div class="sectionnav">
+
+
+        Previous: <a href="unitofwork.html">Unit of Work</a>
+
+                |
+
+        Next: <a href="types.html">The Types System</a>
+
+</div>
+</div>
+
+
+</div>
+
+
+		</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<center>
+</center>
+</body>
+</html>
+
+
+
+
