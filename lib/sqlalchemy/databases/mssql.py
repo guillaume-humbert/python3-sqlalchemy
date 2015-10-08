@@ -2,7 +2,7 @@
 
 """
 notes:
-  supports both pymssql and adodbapi interfaces
+  supports the pymssq, adodbapi and pyodbc interfaces
 
   IDENTITY columns are supported by using SA schema.Sequence() objects. In other words:
          Table('test', mss_engine,
@@ -28,7 +28,6 @@ Known issues / TODO:
   no support for more than one IDENTITY column per table
   no support for table reflection of IDENTITY columns with (seed,increment) values other than (1,1)
   no support for GUID type columns (yet)
-  pymssql has problems with transaction control that this module attempts to work around
   pymssql has problems with binary and unicode data that this module does NOT work around
   adodbapi fails testtypes.py unit test on unicode data too -- issue with the test?
 
@@ -44,31 +43,81 @@ import sqlalchemy.ansisql as ansisql
 import sqlalchemy.types as sqltypes
 import sqlalchemy.exceptions as exceptions
 
-try:
+dbmodule = None
+dialect = None
+
+def use_adodbapi():
+    global dbmodule, connect, make_connect_string, do_commit, sane_rowcount, dialect, colspecs, ischema_names
     import adodbapi as dbmodule
     # ADODBAPI has a non-standard Connection method
     connect = dbmodule.Connection
-    make_connect_string = lambda keys: \
-        [["Provider=SQLOLEDB;Data Source=%s;User Id=%s;Password=%s;Initial Catalog=%s" % (
-            keys.get("host"), keys.get("user"), keys.get("password"), keys.get("database"))], {}]
+    def make_connect_string(keys):
+        return  [["Provider=SQLOLEDB;Data Source=%s;User Id=%s;Password=%s;Initial Catalog=%s" % (
+            keys.get("host"), keys.get("user"), keys.get("password", ""), keys.get("database"))], {}]        
     sane_rowcount = True
-except:
-    try:
-        import pymssql as dbmodule
-        connect = dbmodule.connect
-        # pymmsql doesn't have a Binary method.  we use string
-        dbmodule.Binary = lambda st: str(st)
-        def make_connect_string(keys):
-            if keys.get('port'):
-                # pymssql expects port as host:port, not a separate arg
-                keys['host'] = ''.join([keys.get('host', ''), ':', str(keys['port'])])
-                del keys['port'] 
-            return [[], keys]
-    except:
-        dbmodule = None
-        make_connect_string = lambda keys: [[],{}]
-    sane_rowcount = False
+    dialect = MSSQLDialect
+    colspecs[sqltypes.Unicode] = AdoMSUnicode
+    ischema_names['nvarchar'] = AdoMSUnicode
     
+def use_pymssql():
+    global dbmodule, connect, make_connect_string, do_commit, sane_rowcount, dialect, colspecs, ischema_names
+    import pymssql as dbmodule
+    connect = dbmodule.connect
+    # pymmsql doesn't have a Binary method.  we use string
+    dbmodule.Binary = lambda st: str(st)
+    def make_connect_string(keys):
+        if keys.get('port'):
+            # pymssql expects port as host:port, not a separate arg
+            keys['host'] = ''.join([keys.get('host', ''), ':', str(keys['port'])])
+            del keys['port'] 
+        return [[], keys]
+    do_commit = True
+    sane_rowcount = False
+    dialect = PyMSSQLDialect
+    colspecs[sqltypes.Unicode] = MSUnicode
+    ischema_names['nvarchar'] = MSUnicode
+    
+def use_pyodbc():
+    global dbmodule, connect, make_connect_string, do_commit, sane_rowcount, dialect, colspecs, ischema_names
+    import pyodbc as dbmodule
+    connect = dbmodule.connect
+    def make_connect_string(keys):
+        return [["Driver={SQL Server};Server=%s;UID=%s;PWD=%s;Database=%s" % (
+            keys.get("host"), keys.get("user"), keys.get("password", ""), keys.get("database"))], {}]        
+    do_commit = True
+    sane_rowcount = False
+    dialect = MSSQLDialect
+    import warnings
+    warnings.warn('pyodbc support in sqlalchemy.databases.mssql is experimental - use at your own risk.')
+    colspecs[sqltypes.Unicode] = AdoMSUnicode
+    ischema_names['nvarchar'] = AdoMSUnicode
+
+def use_default():
+    import_errors = []
+    def try_use(f):
+        try:
+            f()
+        except ImportError, e:
+            import_errors.append(e)
+            return False
+        else:
+            return True
+    for f in [
+            # XXX - is this the best default ordering? For now, it retains the current (2007-Jan-11) 
+            # default - that is, adodbapi first, pymssql second - and adds pyodbc as a third option.
+            # However, my tests suggest that the exact opposite order may be the best!
+            use_adodbapi,
+            use_pymssql,
+            use_pyodbc,
+            ]:
+        if try_use(f):
+            return dbmodule # informational return, so the user knows what he's using.
+    else:
+        return None
+        # cant raise this right now since all dialects need to be importable/loadable
+        #raise ImportError(import_errors)
+        
+
 class MSNumeric(sqltypes.Numeric):
     def convert_result_value(self, value, dialect):
         return value
@@ -81,7 +130,10 @@ class MSNumeric(sqltypes.Numeric):
             return str(value) 
 
     def get_col_spec(self):
-        return "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length}
+        if self.precision is None:
+            return "NUMERIC"
+        else:
+            return "NUMERIC(%(precision)s, %(length)s)" % {'precision': self.precision, 'length' : self.length}
 
 class MSFloat(sqltypes.Float):
     def get_col_spec(self):
@@ -112,12 +164,14 @@ class MSDateTime(sqltypes.DateTime):
     def convert_bind_param(self, value, dialect):
         if hasattr(value, "isoformat"):
             #return value.isoformat(' ')
-            return value.strftime('%Y-%m-%d %H:%M:%S')            # isoformat() bings on apodbapi -- reported/suggested by Peter Buschman
+            # isoformat() bings on apodbapi -- reported/suggested by Peter Buschman
+            return value.strftime('%Y-%m-%d %H:%M:%S')
         else:
             return value
 
     def convert_result_value(self, value, dialect):
-        # adodbapi will return datetimes with empty time values as datetime.date() objects. Promote them back to full datetime.datetime()
+        # adodbapi will return datetimes with empty time values as datetime.date() objects.
+        # Promote them back to full datetime.datetime()
         if value and not hasattr(value, 'second'):
             return datetime.datetime(value.year, value.month, value.day)
         return value
@@ -131,7 +185,7 @@ class MSDate(sqltypes.Date):
     
     def convert_bind_param(self, value, dialect):
         if value and hasattr(value, "isoformat"):
-            return value.isoformat()
+            return value.strftime('%Y-%m-%d %H:%M:%S')
         return value
 
     def convert_result_value(self, value, dialect):
@@ -146,13 +200,34 @@ class MSText(sqltypes.TEXT):
 class MSString(sqltypes.String):
     def get_col_spec(self):
         return "VARCHAR(%(length)s)" % {'length' : self.length}
+
+
 class MSNVarchar(MSString):
     """NVARCHAR string, does unicode conversion if dialect.convert_encoding is true"""
+    impl = sqltypes.Unicode
     def get_col_spec(self):
-        return "NVARCHAR(%(length)s)" % {'length' : self.length}
+        if self.length:
+            return "NVARCHAR(%(length)s)" % {'length' : self.length}
+        else:
+            return "NTEXT"
+
+class AdoMSNVarchar(MSNVarchar):
+    def convert_bind_param(self, value, dialect):
+        return value
+    def convert_result_value(self, value, dialect):
+        return value        
+
 class MSUnicode(sqltypes.Unicode):
     """Unicode subclass, does unicode conversion in all cases, uses NVARCHAR impl"""
     impl = MSNVarchar
+
+class AdoMSUnicode(MSUnicode):
+    impl = AdoMSNVarchar
+    def convert_bind_param(self, value, dialect):
+        return value
+    def convert_result_value(self, value, dialect):
+        return value        
+
 class MSChar(sqltypes.CHAR):
     def get_col_spec(self):
         return "CHAR(%(length)s)" % {'length' : self.length}
@@ -229,24 +304,36 @@ def descriptor():
 class MSSQLExecutionContext(default.DefaultExecutionContext):
     def __init__(self, dialect):
         self.IINSERT = self.HASIDENT = False
-	super(MSSQLExecutionContext, self).__init__(dialect)
+        super(MSSQLExecutionContext, self).__init__(dialect)
     
     def pre_exec(self, engine, proxy, compiled, parameters, **kwargs):
-        """ MS-SQL has a special mode for inserting non-NULL values into IDENTITY columns. Activate it if the feature is turned on and needed. """
+        """ MS-SQL has a special mode for inserting non-NULL values into IDENTITY columns.
+        Activate it if the feature is turned on and needed. """
         if getattr(compiled, "isinsert", False):
-            self.IINSERT = False
-            self.HASIDENT = False
-            for c in compiled.statement.table.c:
-                if hasattr(c,'sequence'):
-                    self.HASIDENT = True
-                    if engine.dialect.auto_identity_insert:
-                        if  isinstance(parameters, list) and parameters[0].has_key(c.name):
-                            self.IINSERT = True
-                        elif parameters.has_key(c.name):
-                            self.IINSERT = True
-                    break
+            tbl = compiled.statement.table
+            if not hasattr(tbl, 'has_sequence'):                
+                for column in tbl.c:
+                    if column.primary_key and column.autoincrement and \
+                           isinstance(column.type, sqltypes.Integer) and not column.foreign_key:
+                        if column.default is None or (isinstance(column.default, schema.Sequence) and \
+                                                      column.default.optional):
+                            tbl.has_sequence = column
+                            break
+                else:
+                    tbl.has_sequence = False
+
+            self.HASIDENT = bool(tbl.has_sequence)
+            if engine.dialect.auto_identity_insert and self.HASIDENT:
+                if isinstance(parameters, list):
+                    self.IINSERT = parameters[0].has_key(tbl.has_sequence.name)
+                else:
+                    self.IINSERT = parameters.has_key(tbl.has_sequence.name)
+            else:
+                self.IINSERT = False
+
             if self.IINSERT:
                 proxy("SET IDENTITY_INSERT %s ON" % compiled.statement.table.name)
+
         super(MSSQLExecutionContext, self).pre_exec(engine, proxy, compiled, parameters, **kwargs)
 
     def post_exec(self, engine, proxy, compiled, parameters, **kwargs):
@@ -264,8 +351,8 @@ class MSSQLExecutionContext(default.DefaultExecutionContext):
 
 
 class MSSQLDialect(ansisql.ANSIDialect):
-    def __init__(self, module=None, auto_identity_insert=False, **params):
-        self.module = module or dbmodule
+    def __init__(self, module=None, auto_identity_insert=True, **params):
+        self.module = module or dbmodule or use_default()
         self.auto_identity_insert = auto_identity_insert
         ansisql.ANSIDialect.__init__(self, **params)
         self.set_default_schema_name("dbo")
@@ -273,6 +360,10 @@ class MSSQLDialect(ansisql.ANSIDialect):
     def create_connect_args(self, url):
         opts = url.translate_connect_args(['host', 'database', 'user', 'password', 'port'])
         opts.update(url.query)
+        if opts.has_key('auto_identity_insert'):
+            self.auto_identity_insert = bool(opts.pop('auto_identity_insert'))
+        if opts.has_key('query_timeout'):
+            self.query_timeout = int(opts.pop('query_timeout'))
         return make_connect_string(opts)
 
     def create_execution_context(self):
@@ -311,8 +402,15 @@ class MSSQLDialect(ansisql.ANSIDialect):
     def last_inserted_ids(self):
         return self.context.last_inserted_ids
             
+    def do_execute(self, cursor, statement, params, **kwargs):
+        if params == {}:
+            params = ()
+        super(MSSQLDialect, self).do_execute(cursor, statement, params, **kwargs)
+
     def _execute(self, c, statement, parameters):
         try:
+            if parameters == {}:
+                parameters = ()
             c.execute(statement, parameters)
             self.context.rowcount = c.rowcount
             c.DBPROP_COMMITPRESERVE = "Y"
@@ -345,10 +443,10 @@ class MSSQLDialect(ansisql.ANSIDialect):
             c.name = c.name.upper()
         return t
 
-    def has_table(self, connection, tablename):
+    def has_table(self, connection, tablename, schema=None):
         import sqlalchemy.databases.information_schema as ischema
 
-        current_schema = self.get_default_schema_name()
+        current_schema = schema or self.get_default_schema_name()
         columns = self.uppercase_table(ischema.columns)
         s = sql.select([columns],
                    current_schema
@@ -426,8 +524,8 @@ class MSSQLDialect(ansisql.ANSIDialect):
         # Add constraints
         RR = self.uppercase_table(ischema.ref_constraints)    #information_schema.referential_constraints
         TC = self.uppercase_table(ischema.constraints)        #information_schema.table_constraints
-        C  = self.uppercase_table(ischema.column_constraints).alias('C') #information_schema.constraint_column_usage: the constrained column 
-        R  = self.uppercase_table(ischema.column_constraints).alias('R') #information_schema.constraint_column_usage: the referenced column
+        C  = self.uppercase_table(ischema.pg_key_constraints).alias('C') #information_schema.constraint_column_usage: the constrained column 
+        R  = self.uppercase_table(ischema.pg_key_constraints).alias('R') #information_schema.constraint_column_usage: the referenced column
 
         # Primary key constraints
         s = sql.select([C.c.column_name, TC.c.constraint_type], sql.and_(TC.c.constraint_name == C.c.constraint_name,
@@ -443,8 +541,10 @@ class MSSQLDialect(ansisql.ANSIDialect):
                         R.c.table_schema, R.c.table_name, R.c.column_name,
                         RR.c.constraint_name, RR.c.match_option, RR.c.update_rule, RR.c.delete_rule],
                        sql.and_(C.c.table_name == table.name,
+                                C.c.table_schema == current_schema,
                                 C.c.constraint_name == RR.c.constraint_name,
-                                R.c.constraint_name == RR.c.unique_constraint_name
+                                R.c.constraint_name == RR.c.unique_constraint_name,
+                                C.c.ordinal_position == R.c.ordinal_position
                                 ),
                        order_by = [RR.c.constraint_name])
         rows = connection.execute(s).fetchall()
@@ -466,36 +566,50 @@ class MSSQLDialect(ansisql.ANSIDialect):
 
 
 class PyMSSQLDialect(MSSQLDialect):
-    def do_begin(self, connection):
-        """implementations might want to put logic here for turning autocommit on/off, etc."""
-        if do_commit:
-            pass  
-
     def do_rollback(self, connection):
-        """implementations might want to put logic here for turning autocommit on/off, etc."""
+        # pymssql throws an error on repeated rollbacks. Ignore it.
         try:
-            # connection.rollback() for pymmsql failed sometimes--the begin tran doesn't show up
-            # this is a workaround that seems to be handle it.
-            r = self.raw_connection(connection)
-            r.query("if @@trancount > 0 rollback tran")
-            r.fetch_array()
-            r.query("begin tran")
-            r.fetch_array()
+            connection.rollback()
         except:
             pass
 
-    def do_commit(self, connection):
-        """implementations might want to put logic here for turning autocommit on/off, etc.
-            do_commit is set for pymmsql connections--ADO seems to handle transactions without any issue 
-        """
-        # ADO Uses Implicit Transactions.
-        # This is very pymssql specific.  We use this instead of its commit, because it hangs on failed rollbacks.
-        # By using the "if" we don't assume an open transaction--much better.
-        r = self.raw_connection(connection)
-        r.query("if @@trancount > 0 commit tran")
-        r.fetch_array()
-        r.query("begin tran")
-        r.fetch_array()
+    def create_connect_args(self, url):
+        r = super(PyMSSQLDialect, self).create_connect_args(url)
+        if hasattr(self, 'query_timeout'):
+            dbmodule._mssql.set_query_timeout(self.query_timeout)
+        return r
+        
+
+##    This code is leftover from the initial implementation, for reference
+##    def do_begin(self, connection):
+##        """implementations might want to put logic here for turning autocommit on/off, etc."""
+##        pass  
+
+##    def do_rollback(self, connection):
+##        """implementations might want to put logic here for turning autocommit on/off, etc."""
+##        try:
+##            # connection.rollback() for pymmsql failed sometimes--the begin tran doesn't show up
+##            # this is a workaround that seems to be handle it.
+##            r = self.raw_connection(connection)
+##            r.query("if @@trancount > 0 rollback tran")
+##            r.fetch_array()
+##            r.query("begin tran")
+##            r.fetch_array()
+##        except:
+##            pass
+
+##    def do_commit(self, connection):
+##        """implementations might want to put logic here for turning autocommit on/off, etc.
+##            do_commit is set for pymmsql connections--ADO seems to handle transactions without any issue 
+##        """
+##        # ADO Uses Implicit Transactions.
+##        # This is very pymssql specific.  We use this instead of its commit, because it hangs on failed rollbacks.
+##        # By using the "if" we don't assume an open transaction--much better.
+##        r = self.raw_connection(connection)
+##        r.query("if @@trancount > 0 commit tran")
+##        r.fetch_array()
+##        r.query("begin tran")
+##        r.fetch_array()
 
 
 class MSSQLCompiler(ansisql.ANSICompiler):
@@ -524,6 +638,7 @@ class MSSQLCompiler(ansisql.ANSICompiler):
             self.froms[('alias', table)] = self.froms[table]
             for c in alias.c:
                 c.accept_visitor(self)
+            alias.oid_column.accept_visitor(self)
             self.tablealiases[alias] = self.froms[table]
             self.froms[table] = self.froms[alias]
         else:
@@ -544,13 +659,30 @@ class MSSQLCompiler(ansisql.ANSICompiler):
             self.strings[column] = \
                 self.strings[self.tablealiases[column.table].corresponding_column(column)]
 
-        
+    def visit_binary(self, binary):
+        """Move bind parameters to the right-hand side of an operator, where possible."""
+        if isinstance(binary.left, sql._BindParamClause) and binary.operator == '=':
+            binary.left, binary.right = binary.right, binary.left
+        super(MSSQLCompiler, self).visit_binary(binary)
+
+    function_rewrites =  {'current_date': 'getdate',
+                          'length':     'len',
+                          }
+    def visit_function(self, func):
+        func.name = self.function_rewrites.get(func.name, func.name)
+        super(MSSQLCompiler, self).visit_function(func)            
+
+    def for_update_clause(self, select):
+        # "FOR UPDATE" is only allowed on "DECLARE CURSOR" which SQLAlchemy doesn't use
+        return ''
+
 class MSSQLSchemaGenerator(ansisql.ANSISchemaGenerator):
     def get_column_specification(self, column, **kwargs):
         colspec = self.preparer.format_column(column) + " " + column.type.engine_impl(self.engine).get_col_spec()
         
         # install a IDENTITY Sequence if we have an implicit IDENTITY column
-        if column.primary_key and column.autoincrement and isinstance(column.type, sqltypes.Integer) and not column.foreign_key:
+        if (not getattr(column.table, 'has_sequence', False)) and column.primary_key and \
+                column.autoincrement and isinstance(column.type, sqltypes.Integer) and not column.foreign_key:
             if column.default is None or (isinstance(column.default, schema.Sequence) and column.default.optional):
                 column.sequence = schema.Sequence(column.name + '_seq')
 
@@ -558,6 +690,7 @@ class MSSQLSchemaGenerator(ansisql.ANSISchemaGenerator):
             colspec += " NOT NULL"
 
         if hasattr(column, 'sequence'):
+            column.table.has_sequence = column
             colspec += " IDENTITY(%s,%s)" % (column.sequence.start or 1, column.sequence.increment or 1)
         else:
             default = self.get_column_default_string(column)
@@ -585,7 +718,5 @@ class MSSQLIdentifierPreparer(ansisql.ANSIIdentifierPreparer):
         #TODO: determin MSSQL's case folding rules
         return value
 
-if dbmodule and dbmodule.__name__ == 'adodbapi':
-	dialect = MSSQLDialect
-else:
-	dialect = PyMSSQLDialect
+use_default()
+

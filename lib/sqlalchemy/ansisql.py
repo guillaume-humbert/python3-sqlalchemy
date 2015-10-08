@@ -215,7 +215,7 @@ class ANSICompiler(sql.Compiled):
             self.strings[column] = self.preparer.format_column(column)
         else:
             if column.table.oid_column is column:
-                n = self.dialect.oid_column_name()
+                n = self.dialect.oid_column_name(column)
                 if n is not None:
                     self.strings[column] = "%s.%s" % (self.preparer.format_table(column.table, use_schema=False), n)
                 elif len(column.table.primary_key) != 0:
@@ -677,7 +677,7 @@ class ANSISchemaGenerator(ANSISchemaBase):
         raise NotImplementedError()
     
     def visit_metadata(self, metadata):
-        collection = [t for t in metadata.table_iterator(reverse=False, tables=self.tables) if (not self.checkfirst or not self.dialect.has_table(self.connection, t.name))]
+        collection = [t for t in metadata.table_iterator(reverse=False, tables=self.tables) if (not self.checkfirst or not self.dialect.has_table(self.connection, t.name, schema=t.schema))]
         for table in collection:
             table.accept_schema_visitor(self, traverse=False)
         if self.supports_alter():
@@ -742,13 +742,18 @@ class ANSISchemaGenerator(ANSISchemaBase):
         if constraint.name is not None:
             self.append("CONSTRAINT %s " % constraint.name)
         self.append(" CHECK (%s)" % constraint.sqltext)
+
+    def visit_column_check_constraint(self, constraint):
+        self.append(" ")
+        self.append(" CHECK (%s)" % constraint.sqltext)
         
     def visit_primary_key_constraint(self, constraint):
         if len(constraint) == 0:
             return
-        self.append(", \n\tPRIMARY KEY ")
+        self.append(", \n\t")
         if constraint.name is not None:
-            self.append("%s " % constraint.name)
+            self.append("CONSTRAINT %s " % constraint.name)
+        self.append("PRIMARY KEY ")
         self.append("(%s)" % (string.join([self.preparer.format_column(c) for c in constraint],', ')))
     
     def supports_alter(self):
@@ -807,7 +812,7 @@ class ANSISchemaDropper(ANSISchemaBase):
         self.dialect = self.engine.dialect
 
     def visit_metadata(self, metadata):
-        collection = [t for t in metadata.table_iterator(reverse=True, tables=self.tables) if (not self.checkfirst or  self.dialect.has_table(self.connection, t.name))]
+        collection = [t for t in metadata.table_iterator(reverse=True, tables=self.tables) if (not self.checkfirst or  self.dialect.has_table(self.connection, t.name, schema=t.schema))]
         if self.supports_alter():
             for alterable in self.find_alterables(collection):
                 self.drop_foreignkey(alterable)
@@ -932,9 +937,7 @@ class ANSIIdentifierPreparer(object):
     
     def format_column(self, column, use_table=False):
         """Prepare a quoted column name """
-        # TODO: isinstance alert !  get ColumnClause and Column to better
-        # differentiate themselves
-        if isinstance(column, schema.SchemaItem):
+        if not getattr(column, 'is_literal', False):
             if use_table:
                 return self.format_table(column.table, use_schema=False) + "." + self.__generic_obj_format(column, column.name)
             else:
@@ -942,7 +945,7 @@ class ANSIIdentifierPreparer(object):
         else:
             # literal textual elements get stuck into ColumnClause alot, which shouldnt get quoted
             if use_table:
-                return column.table.name + "." + column.name
+                return self.format_table(column.table, use_schema=False) + "." + column.name
             else:
                 return column.name
             

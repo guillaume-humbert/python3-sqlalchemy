@@ -10,7 +10,8 @@ import sqlalchemy.pool as pool
 import re
 import sqlalchemy
 import optparse
-
+from sqlalchemy.schema import BoundMetaData
+from sqlalchemy.orm import clear_mappers
 
 db = None
 metadata = None
@@ -49,17 +50,18 @@ def parse_argv():
     parser.add_option("--nothreadlocal", action="store_true", dest="nothreadlocal", help="dont use thread-local mod")
     parser.add_option("--enginestrategy", action="store", default=None, dest="enginestrategy", help="engine strategy (plain or threadlocal, defaults to plain)")
     parser.add_option("--coverage", action="store_true", dest="coverage", help="Dump a full coverage report after running")
-
+    parser.add_option("--reversetop", action="store_true", dest="topological", help="Reverse the collection ordering for topological sorts (helps reveal dependency issues)")
+    
     (options, args) = parser.parse_args()
     sys.argv[1:] = args
     
     if options.dburi:
         db_uri = param = options.dburi
+        DBTYPE = db_uri[:db_uri.index(':')]
     elif options.db:
         DBTYPE = param = options.db
 
-
-    opts = {} 
+    opts = {}
     if (None == db_uri):
         if DBTYPE == 'sqlite':
             db_uri = 'sqlite:///:memory:'
@@ -102,7 +104,19 @@ def parse_argv():
     else:
         db = engine.create_engine(db_uri, **opts)
     db = EngineAssert(db)
-
+    
+    if options.topological:
+        from sqlalchemy.orm import unitofwork
+        from sqlalchemy import topological
+        class RevQueueDepSort(topological.QueueDependencySorter):
+            def __init__(self, tuples, allitems):
+                self.tuples = list(tuples)
+                self.allitems = list(allitems)
+                self.tuples.reverse()
+                self.allitems.reverse()
+        topological.QueueDependencySorter = RevQueueDepSort
+        unitofwork.DependencySorter = RevQueueDepSort
+            
     import logging
     logging.basicConfig()
     if options.log_info is not None:
@@ -199,6 +213,27 @@ class AssertMixin(PersistTest):
             callable_()
         finally:
             self.assert_(db.sql_count == count, "desired statement count %d does not match %d" % (count, db.sql_count))
+
+class ORMTest(AssertMixin):
+    keep_mappers = False
+    keep_data = False
+    def setUpAll(self):
+        global metadata
+        metadata = BoundMetaData(db)
+        self.define_tables(metadata)
+        metadata.create_all()
+    def define_tables(self, metadata):
+        raise NotImplementedError()
+    def get_metadata(self):
+        return metadata
+    def tearDownAll(self):
+        metadata.drop_all()
+    def tearDown(self):
+        if not self.keep_mappers:
+            clear_mappers()
+        if not self.keep_data:
+            for t in metadata.table_iterator(reverse=True):
+                t.delete().execute().close()
 
 class EngineAssert(proxy.BaseProxyEngine):
     """decorates a SQLEngine object to match the incoming queries against a set of assertions."""
@@ -381,5 +416,6 @@ def main():
 
     result = runTests(suite)
     sys.exit(not result.wasSuccessful())
+
 
 

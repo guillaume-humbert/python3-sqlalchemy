@@ -26,7 +26,7 @@
 <a href="documentation.html">One Page</a>
 </div>
 
-<div class="">Version: 0.3.4   Last Updated: 01/23/07 14:21:19</div>
+<div class="">Version: 0.3.5   Last Updated: 02/21/07 21:18:45</div>
 </div>
 
 
@@ -870,7 +870,7 @@ Next: <a href="datamapping.html">Data Mapping</a>
 
 <div class="code">
 <pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_32', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">c </span><span class="python_operator">= </span><span class="python_name">select</span><span class="python_enclosure">([</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_name</span><span class="python_enclosure">]</span><span class="python_operator">, </span><span class="python_name">distinct</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_32_div" class="codepop" style="display:none;">SELECT DISTINCT users.user_name FROM users</div><pre><span class="python_literal"><a href="javascript:togglePopbox('popbox_33', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">c </span><span class="python_operator">= </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">limit</span><span class="python_operator">=</span><span class="python_number">10</span><span class="python_operator">, </span><span class="python_name">offset</span><span class="python_operator">=</span><span class="python_number">20</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">()</span><span class="python_operator"></span></pre><div id="popbox_33_div" class="codepop" style="display:none;">SELECT users.user_id, users.user_name, users.password FROM users LIMIT 10 OFFSET 20</div><pre><span class="python_operator"></span></pre></div>
-<p>The Oracle driver does not support LIMIT and OFFSET directly, but instead wraps the generated query into a subquery and uses the "rownum" variable to control the rows selected (this is somewhat experimental).
+<p>The Oracle driver does not support LIMIT and OFFSET directly, but instead wraps the generated query into a subquery and uses the "rownum" variable to control the rows selected (this is somewhat experimental).  Similarly, the Firebird and MSSQL drivers convert LIMIT into queries using FIRST and TOP, respectively.
 </p>
 
 

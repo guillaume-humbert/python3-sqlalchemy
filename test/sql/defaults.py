@@ -158,18 +158,61 @@ class AutoIncrementTest(PersistTest):
         finally:
             table.drop()    
 
+    def testfetchid(self):
+        meta = BoundMetaData(testbase.db)
+        table = Table("aitest", meta, 
+            Column('id', Integer, primary_key=True),
+            Column('data', String(20)))
+        table.create()
+
+        try:
+            # simulate working on a table that doesn't already exist
+            meta2 = BoundMetaData(testbase.db)
+            table2 = Table("aitest", meta2,
+                Column('id', Integer, primary_key=True),
+                Column('data', String(20)))
+            class AiTest(object):
+                pass
+            mapper(AiTest, table2)
+        
+            s = create_session()
+            u = AiTest()
+            s.save(u)
+            s.flush()
+            assert u.id is not None
+            s.clear()
+        finally:
+            table.drop()
+        
+
 class SequenceTest(PersistTest):
     @testbase.supported('postgres', 'oracle')
     def setUpAll(self):
-        global cartitems
-        cartitems = Table("cartitems", db, 
+        global cartitems, sometable, metadata
+        metadata = BoundMetaData(testbase.db)
+        cartitems = Table("cartitems", metadata, 
             Column("cart_id", Integer, Sequence('cart_id_seq'), primary_key=True),
             Column("description", String(40)),
             Column("createdate", DateTime())
         )
+        sometable = Table( 'Manager', metadata,
+               Column( 'obj_id', Integer, Sequence('obj_id_seq'), ),
+               Column( 'name', type= String, ),
+               Column( 'id', Integer, primary_key= True, ),
+           )
         
-        cartitems.create()
+        metadata.create_all()
     
+    @testbase.supported('postgres', 'oracle')
+    def testseqnonpk(self):
+        """test sequences fire off as defaults on non-pk columns"""
+        sometable.insert().execute(name="somename")
+        sometable.insert().execute(name="someother")
+        assert sometable.select().execute().fetchall() == [
+            (1, "somename", 1),
+            (2, "someother", 2),
+        ]
+        
     @testbase.supported('postgres', 'oracle')
     def testsequence(self):
         cartitems.insert().execute(description='hi')
@@ -196,7 +239,7 @@ class SequenceTest(PersistTest):
         
     @testbase.supported('postgres', 'oracle')
     def tearDownAll(self): 
-        cartitems.drop()
+        metadata.drop_all()
 
 if __name__ == "__main__":
     testbase.main()

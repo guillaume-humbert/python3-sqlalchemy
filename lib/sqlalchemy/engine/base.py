@@ -52,8 +52,13 @@ class Dialect(sql.AbstractDialect):
         which comes from the types module.  Subclasses will usually use the adapt_type()
         method in the types module to make this job easy."""
         raise NotImplementedError()
-    def oid_column_name(self):
-        """returns the oid column name for this dialect, or None if the dialect cant/wont support OID/ROWID."""
+    def oid_column_name(self, column):
+        """return the oid column name for this dialect, or None if the dialect cant/wont support OID/ROWID.
+        
+        the Column instance which represents OID for the query being compiled is passed, so that the dialect
+        can inspect the column and its parent selectable to determine if OID/ROWID is not selected for a particular
+        selectable (i.e. oracle doesnt support ROWID for UNION, GROUP BY, DISTINCT, etc.)
+        """
         raise NotImplementedError()
     def supports_sane_rowcount(self):
         """Provided to indicate when MySQL is being used, which does not have standard behavior
@@ -86,7 +91,7 @@ class Dialect(sql.AbstractDialect):
     def reflecttable(self, connection, table):
         """given an Connection and a Table object, reflects its columns and properties from the database."""
         raise NotImplementedError()
-    def has_table(self, connection, table_name):
+    def has_table(self, connection, table_name, schema=None):
         raise NotImplementedError()
     def has_sequence(self, connection, sequence_name):
         raise NotImplementedError()
@@ -115,6 +120,9 @@ class Dialect(sql.AbstractDialect):
         raise NotImplementedError()
     def create_cursor(self, connection):
         """return a new cursor generated from the given connection"""
+        raise NotImplementedError()
+    def create_result_proxy_args(self, connection, cursor):
+        """returns a dictionary of arguments that should be passed to ResultProxy()."""
         raise NotImplementedError()
     def compile(self, clauseelement, parameters=None):
         """compile the given ClauseElement using this Dialect.
@@ -252,15 +260,22 @@ class Connection(Connectable):
         self.__connection.close()
         self.__connection = None
         del self.__connection
-    def scalar(self, object, parameters=None, **kwargs):
-        return self.execute(object, parameters, **kwargs).scalar()
+    def scalar(self, object, *multiparams, **params):
+        return self.execute(object, *multiparams, **params).scalar()
     def execute(self, object, *multiparams, **params):
         return Connection.executors[type(object).__mro__[-2]](self, object, *multiparams, **params)
     def execute_default(self, default, **kwargs):
         return default.accept_schema_visitor(self.__engine.dialect.defaultrunner(self.__engine, self.proxy, **kwargs))
-    def execute_text(self, statement, parameters=None):
+    def execute_text(self, statement, *multiparams, **params):
+        if len(multiparams) == 0:
+            parameters = params
+        elif len(multiparams) == 1 and (isinstance(multiparams[0], list) or isinstance(multiparams[0], dict)):
+            parameters = multiparams[0]
+        else:
+            parameters = list(multiparams)
         cursor = self._execute_raw(statement, parameters)
-        return ResultProxy(self.__engine, self, cursor)
+        rpargs = self.__engine.dialect.create_result_proxy_args(self, cursor)
+        return ResultProxy(self.__engine, self, cursor, **rpargs)
     def _params_to_listofdicts(self, *multiparams, **params):
         if len(multiparams) == 0:
             return [params]
@@ -282,6 +297,8 @@ class Connection(Connectable):
         return self.execute_compiled(elem.compile(engine=self.__engine, parameters=param), *multiparams, **params)
     def execute_compiled(self, compiled, *multiparams, **params):
         """executes a sql.Compiled object."""
+        if not compiled.can_execute:
+            raise exceptions.ArgumentError("Not an executeable clause: %s" % (str(compiled)))
         cursor = self.__engine.dialect.create_cursor(self.connection)
         parameters = [compiled.get_params(**m) for m in self._params_to_listofdicts(*multiparams, **params)]
         if len(parameters) == 1:
@@ -297,7 +314,8 @@ class Connection(Connectable):
         context.pre_exec(self.__engine, proxy, compiled, parameters)
         proxy(str(compiled), parameters)
         context.post_exec(self.__engine, proxy, compiled, parameters)
-        return ResultProxy(self.__engine, self, cursor, context, typemap=compiled.typemap, columns=compiled.columns)
+        rpargs = self.__engine.dialect.create_result_proxy_args(self, cursor)
+        return ResultProxy(self.__engine, self, cursor, context, typemap=compiled.typemap, columns=compiled.columns, **rpargs)
         
     # poor man's multimethod/generic function thingy
     executors = {
@@ -509,8 +527,8 @@ class Engine(sql.Executor, Connectable):
         finally:
             if connection is None:
                 conn.close()
-    def has_table(self, table_name):
-        return self.run_callable(lambda c: self.dialect.has_table(c, table_name))
+    def has_table(self, table_name, schema=None):
+        return self.run_callable(lambda c: self.dialect.has_table(c, table_name, schema=schema))
         
     def raw_connection(self):
         """returns a DBAPI connection."""
@@ -544,8 +562,14 @@ class ResultProxy(object):
             return self
         def convert_result_value(self, arg, engine):
             raise exceptions.InvalidRequestError("Ambiguous column name '%s' in result set! try 'use_labels' option on select statement." % (self.key))
+        
+    def __new__(cls, *args, **kwargs):
+        if cls is ResultProxy and kwargs.has_key('should_prefetch') and kwargs['should_prefetch']:
+            return PrefetchingResultProxy(*args, **kwargs)
+        else:
+            return object.__new__(cls, *args, **kwargs)
     
-    def __init__(self, engine, connection, cursor, executioncontext=None, typemap=None, columns=None):
+    def __init__(self, engine, connection, cursor, executioncontext=None, typemap=None, columns=None, should_prefetch=None):
         """ResultProxy objects are constructed via the execute() method on SQLEngine."""
         self.connection = connection
         self.dialect = engine.dialect
@@ -605,6 +629,7 @@ class ResultProxy(object):
         try:
             return self.__key_cache[key]
         except KeyError:
+            # TODO: use has_key on these, too many potential KeyErrors being raised
             if isinstance(key, sql.ColumnElement):
                 try:
                     rec = self.props[key._label.lower()]
@@ -707,9 +732,6 @@ class ResultProxy(object):
         if row is not None:
             return RowProxy(self, row)
         else:
-            # controversy!  can we auto-close the cursor after results are consumed ?
-            # what if the returned rows are still hanging around, and are "live" objects 
-            # and not just plain tuples ?
             self.close()
             return None
 
@@ -723,7 +745,48 @@ class ResultProxy(object):
                 return None
         finally:
             self.close()
+            
+class PrefetchingResultProxy(ResultProxy):
+    """ResultProxy that loads all columns into memory each time fetchone() is
+    called.  If fetchmany() or fetchall() are called, the full grid of results
+    is fetched.
+    """
+    def _get_col(self, row, key):
+        rec = self._convert_key(key)
+        return row[rec[1]]
     
+    def fetchall(self):
+        l = []
+        while True:
+            row = self.fetchone()
+            if row is not None:
+                l.append(row)
+            else:
+                break
+        return l
+            
+    def fetchmany(self, size=None):
+        if size is None:
+            return self.fetchall()
+        l = []
+        for i in xrange(size):
+            row = self.fetchone()
+            if row is not None:
+                l.append(row)
+            else:
+                break
+        return l
+        
+    def fetchone(self):
+        sup = super(PrefetchingResultProxy, self)
+        row = self.cursor.fetchone()
+        if row is not None:
+            row = [sup._get_col(row, i) for i in xrange(len(row))]
+            return RowProxy(self, row)
+        else:
+            self.close()
+            return None
+        
 class RowProxy(object):
     """proxies a single cursor row for a parent ResultProxy.  Mostly follows 
     "ordered dictionary" behavior, mapping result values to the string-based column name,

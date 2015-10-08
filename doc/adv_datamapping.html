@@ -26,7 +26,7 @@
 <a href="documentation.html">One Page</a>
 </div>
 
-<div class="">Version: 0.3.4   Last Updated: 01/23/07 14:21:19</div>
+<div class="">Version: 0.3.5   Last Updated: 02/21/07 21:18:45</div>
 </div>
 
 
@@ -756,7 +756,12 @@ Next: <a href="types.html">The Types System</a>
  </li>
 
  <li>
-     <strong>foreignkey</strong> - deprecated for most uses.  As of 0.3.2, use <code>remote_side</code> to indicate the direction of self-referential relationships.  For <code>ForeignKey</code> specification, this field is only partially functional (i.e. does not work for many-to-many relationships), but is needed in rare cases when both sides of the primaryjoin condition contain foreign keys to either side of the relationship, and <code>relation()</code> cannot determine which side of the relationship is "foreign".  a new field <code>foreign_keys</code> will be added in a future release to fully implement this functionality.
+     <strong>foreign_keys</strong> - a list of columns which are to be used as "foreign key" columns.  this parameter should be used in conjunction with explicit
+<code>primaryjoin</code> and <code>secondaryjoin</code> (if needed) arguments, and the columns within the <code>foreign_keys</code> list should be present within those join conditions.  Normally, <code>relation()</code> will inspect the columns within the join conditions to determine which columns are the "foreign key" columns, based on information in the <code>Table</code> metadata.  Use this argument when no ForeignKey's are present in the join condition, or to override the table-defined foreign keys.
+ </li>
+
+ <li>
+     <strong>foreignkey</strong> - deprecated.  use the <code>foreign_keys</code> argument for foreign key specification, or <code>remote_side</code> for "directional" logic.
  </li>
 
  <li>
@@ -866,7 +871,7 @@ Next: <a href="types.html">The Types System</a>
 </span>
 <span class="python_comment"># eager load with ordering - the ORDER BY clauses of parent/child will be organized properly
 </span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_operator">, </span><span class="python_name">users_table</span><span class="python_operator">, </span><span class="python_name">properties </span><span class="python_operator">= </span><span class="python_enclosure">{</span>
-    <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">desc</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">eager</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span>
+    <span class="python_literal">'addresses' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">Address</span><span class="python_operator">, </span><span class="python_name">addresses_table</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">desc</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">email_address</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">lazy</span><span class="python_operator">=</span><span class="python_name">False</span><span class="python_enclosure">)</span>
 <span class="python_enclosure">}</span><span class="python_operator">, </span><span class="python_name">order_by</span><span class="python_operator">=</span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_enclosure">)</span><span class="python_operator"></span></pre></div>
 
 
@@ -1376,7 +1381,7 @@ Next: <a href="types.html">The Types System</a>
     </span><span class="python_keyword">pass</span><span class="python_operator">
 </span>
 <span class="python_comment"># define the "children" property as well as the "root" property
-</span><span class="python_operator"></span><span class="python_name">TreeNode</span><span class="python_operator">.</span><span class="python_name">mapper </span><span class="python_operator">= </span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">TreeNode</span><span class="python_operator">, </span><span class="python_name">trees</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
+</span><span class="python_operator"></span><span class="python_name">mapper</span><span class="python_enclosure">(</span><span class="python_name">TreeNode</span><span class="python_operator">, </span><span class="python_name">trees</span><span class="python_operator">, </span><span class="python_name">properties</span><span class="python_operator">=</span><span class="python_enclosure">{</span>
         <span class="python_literal">'children' </span><span class="python_operator">: </span><span class="python_name">relation</span><span class="python_enclosure">(</span>
                         <span class="python_name">TreeNode</span><span class="python_operator">, </span>
                         <span class="python_name">primaryjoin</span><span class="python_operator">=</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">parent_node_id</span><span class="python_operator">==</span><span class="python_name">trees</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">node_id</span>
@@ -1478,7 +1483,7 @@ Next: <a href="types.html">The Types System</a>
 </span>
 <span class="python_comment"># get results normally
 </span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">())</span><span class="python_operator"></span></pre></div>
-<p>It is often the case with large queries that some of the tables within the query need to be aliased in order to distinguish them from other occurences of the same table within the query.  A query that attempts to add eagerly loaded child items will often have this condition.  Therefore with a little more effort a decorator function can be used to produce translated rows (in the form of a dictionary which accepts Column instances), in the case that aliasing is used for the relationship tables.
+<p>It is often the case with large queries that some of the tables within the query need to be aliased in order to distinguish them from other occurences of the same table within the query.  A query that attempts to add eagerly loaded child items will often have this condition.  The <code>contains_eager()</code> function takes a keyword argument <code>alias</code> which can either be the string name of an alias, or an actual <code>Alias</code> construct used in constructing the query, which will target the eager loading towards the columns of that alias (new in version 0.3.5):
 </p>
 
 
@@ -1489,22 +1494,30 @@ Next: <a href="types.html">The Types System</a>
 <span class="python_comment"># define a query on USERS with an outer join to adalias
 </span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">users_table</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">adalias</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
 </span>
-<span class="python_comment"># define row-translation function.  this should return 
-# a dictionary-like object that will receive Column instances from the normally expected
-# table (i.e. addreses_table), and produce results from the actual result set
-</span><span class="python_keyword">def </span><span class="python_name">adtranslator</span><span class="python_enclosure">(</span><span class="python_name">row</span><span class="python_enclosure">)</span><span class="python_operator">:
-    </span><span class="python_name">d </span><span class="python_operator">= </span><span class="python_enclosure">{}</span><span class="python_operator">
-    </span><span class="python_keyword">for </span><span class="python_name">c </span><span class="python_keyword">in </span><span class="python_name">addresses_table</span><span class="python_operator">.</span><span class="python_name">columns</span><span class="python_operator">:
-        </span><span class="python_name">d</span><span class="python_enclosure">[</span><span class="python_name">c</span><span class="python_enclosure">] </span><span class="python_operator">= </span><span class="python_name">row</span><span class="python_enclosure">[</span><span class="python_name">adalias</span><span class="python_operator">.</span><span class="python_name">corresponding_column</span><span class="python_enclosure">(</span><span class="python_name">addresses_table</span><span class="python_enclosure">)]</span><span class="python_operator">
-    </span><span class="python_keyword">return </span><span class="python_name">d</span><span class="python_operator">
-</span>
 <span class="python_comment"># construct a Query object which expects the "addresses" results 
-</span><span class="python_operator"></span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">decorator</span><span class="python_operator">=</span><span class="python_name">adtranslator</span><span class="python_enclosure">))</span><span class="python_operator">
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">session</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_operator">, </span><span class="python_name">alias</span><span class="python_operator">=</span><span class="python_name">adalias</span><span class="python_enclosure">))</span><span class="python_operator">
 </span>
 <span class="python_comment"># get results normally
 </span><span class="python_literal"><a href="javascript:togglePopbox('popbox_2', 'show', 'hide')" class="codepoplink">sql</a></span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">())</span><span class="python_operator"></span></pre><div id="popbox_2_div" class="codepop" style="display:none;">SELECT users.user_id AS users_user_id, users.user_name AS users_user_name, adalias.address_id AS adalias_address_id, <br/>
   adalias.user_id AS adalias_user_id, adalias.email_address AS adalias_email_address, (...other columns...)<br/>
   FROM users LEFT OUTER JOIN email_addresses AS adalias ON users.user_id = adalias.user_id</div><pre><span class="python_operator"></span></pre></div>
+<p>In the case that the main table itself is also aliased, the <code>contains_alias()</code> option can be used (new in version 0.3.5):
+</p>
+
+
+<div class="sliding_code">
+<pre><span class="python_comment"># define an aliased UNION called 'ulist'
+</span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">==</span><span class="python_number">7</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">union</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">users</span><span class="python_operator">.</span><span class="python_name">c</span><span class="python_operator">.</span><span class="python_name">user_id</span><span class="python_operator">></span><span class="python_number">7</span><span class="python_enclosure">))</span><span class="python_operator">.</span><span class="python_name">alias</span><span class="python_enclosure">(</span><span class="python_literal">'ulist'</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># add on an eager load of "addresses"
+</span><span class="python_name">statement </span><span class="python_operator">= </span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">outerjoin</span><span class="python_enclosure">(</span><span class="python_name">addresses</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">select</span><span class="python_enclosure">(</span><span class="python_name">use_labels</span><span class="python_operator">=</span><span class="python_name">True</span><span class="python_enclosure">)</span><span class="python_operator">
+</span>
+<span class="python_comment"># create query, indicating "ulist" is an alias for the main table, "addresses" property should
+# be eager loaded
+</span><span class="python_name">query </span><span class="python_operator">= </span><span class="python_name">create_session</span><span class="python_enclosure">()</span><span class="python_operator">.</span><span class="python_name">query</span><span class="python_enclosure">(</span><span class="python_name">User</span><span class="python_enclosure">)</span><span class="python_operator">.</span><span class="python_name">options</span><span class="python_enclosure">(</span><span class="python_name">contains_alias</span><span class="python_enclosure">(</span><span class="python_literal">'ulist'</span><span class="python_enclosure">)</span><span class="python_operator">, </span><span class="python_name">contains_eager</span><span class="python_enclosure">(</span><span class="python_literal">'addresses'</span><span class="python_enclosure">))</span><span class="python_operator">
+</span>
+<span class="python_comment"># results
+</span><span class="python_name">r </span><span class="python_operator">= </span><span class="python_name">query</span><span class="python_operator">.</span><span class="python_name">instances</span><span class="python_enclosure">(</span><span class="python_name">statement</span><span class="python_operator">.</span><span class="python_name">execute</span><span class="python_enclosure">())</span><span class="python_operator"></span></pre></div>
 
 
     </div>

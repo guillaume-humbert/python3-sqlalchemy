@@ -27,6 +27,14 @@ class SelectResults(object):
         self._ops.update(ops)
         self._joinpoint = joinpoint or (self._query.table, self._query.mapper)
 
+    def options(self,*args, **kwargs):
+        """transform the original mapper query form to an alternate form
+
+        See also Query.options
+
+        """
+        self._query = self._query.options(*args, **kwargs)
+
     def count(self):
         """executes the SQL count() function against the SelectResults criterion."""
         return self._query.count(self._clause, **self._ops)
@@ -71,7 +79,10 @@ class SelectResults(object):
 
     def select(self, clause):
         return self.filter(clause)
-        
+    
+    def select_by(self, *args, **kwargs):
+        return self.filter(self._query._join_by(args, kwargs, start=self._joinpoint[1]))
+            
     def order_by(self, order_by):
         """apply an ORDER BY to the query."""
         new = self.clone()
@@ -86,6 +97,12 @@ class SelectResults(object):
         """apply an OFFSET to the query."""
         return self[offset:]
 
+    def distinct(self):
+        """applies a DISTINCT to the query"""
+        new = self.clone()
+        new._ops['distinct'] = True
+        return new
+        
     def list(self):
         """return the results represented by this SelectResults as a list.  
         
@@ -131,9 +148,9 @@ class SelectResults(object):
         for key in keys:
             prop = mapper.props[key]
             if outerjoin:
-                clause = clause.outerjoin(prop.mapper.mapped_table, prop.get_join())
+                clause = clause.outerjoin(prop.select_table, prop.get_join(mapper))
             else:
-                clause = clause.join(prop.mapper.mapped_table, prop.get_join())
+                clause = clause.join(prop.select_table, prop.get_join(mapper))
             mapper = prop.mapper
         return (clause, mapper)
         

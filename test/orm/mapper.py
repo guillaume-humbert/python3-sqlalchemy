@@ -402,15 +402,48 @@ class MapperTest(MapperSuperTest):
         assert u.uname == "some user name"
         assert u.user_name == "some user name"
         assert u in sess.dirty
-    
+
+    def testsynonymoptions(self):
+        sess = create_session()
+        mapper(User, users, properties = dict(
+            addresses = relation(mapper(Address, addresses), lazy = True),
+            adlist = synonym('addresses', proxy=True)
+        ))
+        
+        def go():
+            u = sess.query(User).options(eagerload('adlist')).get_by(user_name='jack')
+            self.assert_result(u.adlist, Address, *(user_address_result[0]['addresses'][1]))
+        self.assert_sql_count(db, go, 1)
+        
     def testextensionoptions(self):
         sess  = create_session()
-        mapper(User, users)
+        class ext1(MapperExtension):
+            def populate_instance(self, mapper, selectcontext, row, instance, identitykey, isnew):
+                """test options at the Mapper._instance level"""
+                instance.TEST = "hello world"
+                return EXT_PASS
+        mapper(User, users, extension=ext1(), properties={
+            'addresses':relation(mapper(Address, addresses), lazy=False)
+        })
         class testext(MapperExtension):
             def select_by(self, *args, **kwargs):
+                """test options at the Query level"""
                 return "HI"
+            def populate_instance(self, mapper, selectcontext, row, instance, identitykey, isnew):
+                """test options at the Mapper._instance level"""
+                instance.TEST_2 = "also hello world"
+                return EXT_PASS
         l = sess.query(User).options(extension(testext())).select_by(x=5)
         assert l == "HI"
+        l = sess.query(User).options(extension(testext())).get(7)
+        assert l.user_id == 7
+        assert l.TEST == "hello world"
+        assert l.TEST_2 == "also hello world"
+        assert not hasattr(l.addresses[0], 'TEST')
+        assert not hasattr(l.addresses[0], 'TEST2')
+        
+        
+        
         
     def testeageroptions(self):
         """tests that a lazy relation can be upgraded to an eager relation via the options method"""
@@ -659,7 +692,36 @@ class DeferredTest(MapperSuperTest):
             ("SELECT orders.order_id AS orders_order_id, orders.user_id AS orders_user_id, orders.isopen AS orders_isopen FROM orders ORDER BY %s" % orderby, {}),
             ("SELECT orders.description AS orders_description FROM orders WHERE orders.order_id = :orders_order_id", {'orders_order_id':3})
         ])
-    
+
+    def testunsaved(self):
+        """test that deferred loading doesnt kick in when just PK cols are set"""
+        m = mapper(Order, orders, properties={
+            'description':deferred(orders.c.description)
+        })
+        
+        sess = create_session()
+        o = Order()
+        sess.save(o)
+        o.order_id = 7
+        def go():
+            o.description = "some description"
+        self.assert_sql_count(testbase.db, go, 0)
+
+    def testunsavedgroup(self):
+        """test that deferred loading doesnt kick in when just PK cols are set"""
+        m = mapper(Order, orders, properties={
+            'description':deferred(orders.c.description, group='primary'),
+            'opened':deferred(orders.c.isopen, group='primary')
+        })
+
+        sess = create_session()
+        o = Order()
+        sess.save(o)
+        o.order_id = 7
+        def go():
+            o.description = "some description"
+        self.assert_sql_count(testbase.db, go, 0)
+        
     def testsave(self):
         m = mapper(Order, orders, properties={
             'description':deferred(orders.c.description)
@@ -997,9 +1059,24 @@ class EagerTest(MapperSuperTest):
             {'user_id' : 9, 'addresses' : (Address, [])}
             )
 
+    def testcustomfromalias(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address, lazy=True)
+        })
+        mapper(Address, addresses)
+        query = users.select(users.c.user_id==7).union(users.select(users.c.user_id>7)).alias('ulist').outerjoin(addresses).select(use_labels=True)
+        q = create_session().query(User)
+        
+        def go():
+            l = q.options(contains_alias('ulist'), contains_eager('addresses')).instances(query.execute())
+            self.assert_result(l, User, *user_address_result)
+        self.assert_sql_count(testbase.db, go, 1)
+        
     def testcustomeagerquery(self):
         mapper(User, users, properties={
-            'addresses':relation(Address, lazy=False)
+            # setting lazy=True - the contains_eager() option below
+            # should imply eagerload()
+            'addresses':relation(Address, lazy=True)
         })
         mapper(Address, addresses)
         
@@ -1008,6 +1085,36 @@ class EagerTest(MapperSuperTest):
         
         def go():
             l = q.options(contains_eager('addresses')).instances(selectquery.execute())
+            self.assert_result(l, User, *user_address_result)
+        self.assert_sql_count(testbase.db, go, 1)
+
+    def testcustomeagerwithstringalias(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address, lazy=False)
+        })
+        mapper(Address, addresses)
+
+        adalias = addresses.alias('adalias')
+        selectquery = users.outerjoin(adalias).select(use_labels=True)
+        q = create_session().query(User)
+
+        def go():
+            l = q.options(contains_eager('addresses', alias="adalias")).instances(selectquery.execute())
+            self.assert_result(l, User, *user_address_result)
+        self.assert_sql_count(testbase.db, go, 1)
+
+    def testcustomeagerwithalias(self):
+        mapper(User, users, properties={
+            'addresses':relation(Address, lazy=False)
+        })
+        mapper(Address, addresses)
+
+        adalias = addresses.alias('adalias')
+        selectquery = users.outerjoin(adalias).select(use_labels=True)
+        q = create_session().query(User)
+
+        def go():
+            l = q.options(contains_eager('addresses', alias=adalias)).instances(selectquery.execute())
             self.assert_result(l, User, *user_address_result)
         self.assert_sql_count(testbase.db, go, 1)
 

@@ -10,7 +10,7 @@ from sqlalchemy import types as sqltypes
 import string, re, random, sets
 
 
-__all__ = ['text', 'table', 'column', 'func', 'select', 'update', 'insert', 'delete', 'join', 'and_', 'or_', 'not_', 'between_', 'case', 'cast', 'union', 'union_all', 'except_', 'except_all', 'intersect', 'intersect_all', 'null', 'desc', 'asc', 'outerjoin', 'alias', 'subquery', 'literal', 'bindparam', 'exists', 'extract','AbstractDialect', 'ClauseParameters', 'ClauseVisitor', 'Executor', 'Compiled', 'ClauseElement', 'ColumnElement', 'ColumnCollection', 'FromClause', 'TableClause', 'Select', 'Alias', 'CompoundSelect','Join', 'Selectable']
+__all__ = ['text', 'table', 'column', 'literal_column', 'func', 'select', 'update', 'insert', 'delete', 'join', 'and_', 'or_', 'not_', 'between_', 'case', 'cast', 'union', 'union_all', 'except_', 'except_all', 'intersect', 'intersect_all', 'null', 'desc', 'asc', 'outerjoin', 'alias', 'subquery', 'literal', 'bindparam', 'exists', 'extract','AbstractDialect', 'ClauseParameters', 'ClauseVisitor', 'Executor', 'Compiled', 'ClauseElement', 'ColumnElement', 'ColumnCollection', 'FromClause', 'TableClause', 'Select', 'Alias', 'CompoundSelect','Join', 'Selectable']
 
 def desc(column):
     """return a descending ORDER BY clause element, e.g.:
@@ -219,11 +219,15 @@ def label(name, obj):
     """returns a _Label object for the given selectable, used in the column list for a select statement."""
     return _Label(name, obj)
     
-def column(text, table=None, type=None):
-    """returns a textual column clause, relative to a table.  this is also the primitive version of
+def column(text, table=None, type=None, **kwargs):
+    """return a textual column clause, relative to a table.  this is also the primitive version of
     a schema.Column which is a subclass. """
-    return _ColumnClause(text, table, type)
+    return _ColumnClause(text, table, type, **kwargs)
 
+def literal_column(text, table=None, type=None, **kwargs):
+    """return a textual column clause with the 'literal' flag set.  this column will not be quoted"""
+    return _ColumnClause(text, table, type, is_literal=True, **kwargs)
+    
 def table(name, *columns):
     """returns a table clause.  this is a primitive version of the schema.Table object, which is a subclass
     of this object."""
@@ -387,7 +391,8 @@ class Compiled(ClauseVisitor):
         self.statement = statement
         self.parameters = parameters
         self.engine = engine
-    
+        self.can_execute = statement.supports_execution()
+        
     def compile(self):
         self.statement.accept_visitor(self)
         self.after_compile()
@@ -439,6 +444,10 @@ class ClauseElement(object):
         """accept a ClauseVisitor and call the appropriate visit_xxx method."""
         raise NotImplementedError(repr(self))
 
+    def supports_execution(self):
+        """return True if this clause element represents a complete executable statement"""
+        return False
+        
     def copy_container(self):
         """return a copy of this ClauseElement, iff this ClauseElement contains other ClauseElements.  
         
@@ -633,7 +642,7 @@ class ColumnElement(Selectable, _CompareMixin):
     may correspond to several TableClause-attached columns)."""
     
     primary_key = property(lambda self:getattr(self, '_primary_key', False), doc="primary key flag.  indicates if this Column represents part or whole of a primary key.")
-    foreign_keys = property(lambda self:getattr(self, '_foreign_keys', []), doc="foreign key accessor.  points to a ForeignKey object which represents a Foreign Key placed on this column's ultimate ancestor.")
+    foreign_keys = property(lambda self:getattr(self, '_foreign_keys', []), doc="foreign key accessor.  points to a list of ForeignKey objects which represents a Foreign Key placed on this column's ultimate ancestor.")
     columns = property(lambda self:[self], doc="Columns accessor which just returns self, to provide compatibility with Selectable objects.")
     def _one_fkey(self):
         if len(self._foreign_keys):
@@ -694,7 +703,12 @@ class ColumnCollection(util.OrderedProperties):
                 if c.shares_lineage(local):
                     l.append(c==local)
         return and_(*l)
-             
+    def contains_column(self, col):
+        # have to use a Set here, because it will compare the identity 
+        # of the column, not just using "==" for comparison which will always return a
+        # "True" value (i.e. a BinaryClause...)
+        return col in util.Set(self)
+        
 class FromClause(Selectable):
     """represents an element that can be used within the FROM clause of a SELECT statement."""
     def __init__(self, name=None):
@@ -732,7 +746,7 @@ class FromClause(Selectable):
         """given a ColumnElement, return the ColumnElement object from this 
         Selectable which corresponds to that original Column via a proxy relationship."""
         if require_exact:
-            if self.columns.get(column.key) is column:
+            if self.columns.get(column.name) is column:
                 return column
             else:
                 if not raiseerr:
@@ -747,7 +761,7 @@ class FromClause(Selectable):
         else:
             if keys_ok:
                 try:
-                    return self.c[column.key]
+                    return self.c[column.name]
                 except KeyError:
                     pass
             if not raiseerr:
@@ -883,7 +897,9 @@ class _TextClause(ClauseElement):
         visitor.visit_textclause(self)
     def _get_from_objects(self):
         return []
-
+    def supports_execution(self):
+        return True
+        
 class _Null(ColumnElement):
     """represents the NULL keyword in a SQL statement. public contstructor is the
     null() function."""
@@ -1187,8 +1203,9 @@ class Alias(FromClause):
                 alias = alias[0:15]
             alias = alias + "_" + hex(random.randint(0, 65535))[2:]
         self.name = alias
-        self.case_sensitive = getattr(baseselectable, "case_sensitive", alias.lower() != alias)
-        
+        self.case_sensitive = getattr(baseselectable, "case_sensitive", True)
+    def supports_execution(self):
+        return self.original.supports_execution()    
     def _locate_oid_column(self):
         if self.selectable.oid_column is not None:
             return self.selectable.oid_column._make_proxy(self)
@@ -1220,7 +1237,7 @@ class _Label(ColumnElement):
         while isinstance(obj, _Label):
             obj = obj.obj
         self.obj = obj
-        self.case_sensitive = getattr(obj, "case_sensitive", name.lower() != name)
+        self.case_sensitive = getattr(obj, "case_sensitive", True)
         self.type = sqltypes.to_instance(type)
         obj.parens=True
     key = property(lambda s: s.name)
@@ -1238,12 +1255,14 @@ legal_characters = util.Set(string.ascii_letters + string.digits + '_')
 class _ColumnClause(ColumnElement):
     """represents a textual column clause in a SQL statement.  May or may not
     be bound to an underlying Selectable."""
-    def __init__(self, text, selectable=None, type=None, _is_oid=False):
+    def __init__(self, text, selectable=None, type=None, _is_oid=False, case_sensitive=True, is_literal=False):
         self.key = self.name = text
         self.table = selectable
         self.type = sqltypes.to_instance(type)
         self._is_oid = _is_oid
         self.__label = None
+        self.case_sensitive = case_sensitive
+        self.is_literal = is_literal
     def _get_label(self):
         if self.__label is None:
             if self.table is not None and self.table.named_with_column():
@@ -1341,6 +1360,8 @@ class TableClause(FromClause):
 
 class _SelectBaseMixin(object):
     """base class for Select and CompoundSelects"""
+    def supports_execution(self):
+        return True
     def order_by(self, *clauses):
         if len(clauses) == 1 and clauses[0] is None:
             self.order_by_clause = ClauseList()
@@ -1508,7 +1529,7 @@ class Select(_SelectBaseMixin, FromClause):
                 
     def append_column(self, column):
         if _is_literal(column):
-            column = _ColumnClause(str(column), self)
+            column = literal_column(str(column), table=self)
 
         self._raw_columns.append(column)
 
@@ -1639,6 +1660,8 @@ class Select(_SelectBaseMixin, FromClause):
 
 class _UpdateBase(ClauseElement):
     """forms the base for INSERT, UPDATE, and DELETE statements."""
+    def supports_execution(self):
+        return True
     def _process_colparams(self, parameters):
         """receives the "values" of an INSERT or UPDATE statement and constructs
         appropriate bind parameters."""
