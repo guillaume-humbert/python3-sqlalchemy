@@ -25,9 +25,14 @@ class ReflectionTest(PersistTest):
         if use_string_defaults:
             deftype2 = String
             defval2 = "im a default"
+            #deftype3 = DateTime
+            # the colon thing isnt working out for PG reflection just yet
+            #defval3 = '1999-09-09 00:00:00'
+            deftype3 = Date
+            defval3 = '1999-09-09'
         else:
-            deftype2 = Integer
-            defval2 = "15"
+            deftype2, deftype3 = Integer, Integer
+            defval2, defval3 = "15", "16"
         
         meta = BoundMetaData(testbase.db)
         
@@ -46,6 +51,7 @@ class ReflectionTest(PersistTest):
             Column('test_passivedefault', deftype, PassiveDefault(defval)),
             Column('test_passivedefault2', Integer, PassiveDefault("5")),
             Column('test_passivedefault3', deftype2, PassiveDefault(defval2)),
+            Column('test_passivedefault4', deftype3, PassiveDefault(defval3)),
             Column('test9', Binary(100)),
             Column('test_numeric', Numeric(None, None)),
             mysql_engine='InnoDB'
@@ -58,7 +64,7 @@ class ReflectionTest(PersistTest):
             mysql_engine='InnoDB'
         )
         meta.drop_all()
-        
+
         users.create()
         addresses.create()
 
@@ -206,14 +212,15 @@ class ReflectionTest(PersistTest):
             Column('num1', mysql.MSInteger(unsigned=True)),
             Column('text1', mysql.MSLongText),
             Column('text2', mysql.MSLongText()),
-             Column('num2', mysql.MSBigInteger),
-             Column('num3', mysql.MSBigInteger()),
-             Column('num4', mysql.MSDouble),
-             Column('num5', mysql.MSDouble()),
-             Column('enum1', mysql.MSEnum('"black"', '"white"')),
+            Column('num2', mysql.MSBigInteger),
+            Column('num3', mysql.MSBigInteger()),
+            Column('num4', mysql.MSDouble),
+            Column('num5', mysql.MSDouble()),
+            Column('enum1', mysql.MSEnum('"black"', '"white"')),
             )
         try:
-            table.create(checkfirst=True)
+            table.drop(checkfirst=True)
+            table.create()
             meta2 = BoundMetaData(testbase.db)
             t2 = Table('mysql_types', meta2, autoload=True)
             assert isinstance(t2.c.num1.type, mysql.MSInteger)
@@ -518,26 +525,26 @@ class SchemaTest(PersistTest):
     
     @testbase.supported('postgres')
     def testpg(self):
-        """note: this test requires that the 'test_schema' schema be separate and accessible by the test user"""
+        """note: this test requires that the 'alt_schema' schema be separate and accessible by the test user"""
         
         meta1 = BoundMetaData(testbase.db)
         users = Table('users', meta1,
             Column('user_id', Integer, primary_key = True),
             Column('user_name', String(30), nullable = False),
-            schema="test_schema"
+            schema="alt_schema"
             )
 
         addresses = Table('email_addresses', meta1,
             Column('address_id', Integer, primary_key = True),
             Column('remote_user_id', Integer, ForeignKey(users.c.user_id)),
             Column('email_address', String(20)),
-            schema="test_schema"
+            schema="alt_schema"
         )
         meta1.create_all()
         try:
             meta2 = BoundMetaData(testbase.db)
-            addresses = Table('email_addresses', meta2, autoload=True, schema="test_schema")
-            users = Table('users', meta2, mustexist=True, schema="test_schema")
+            addresses = Table('email_addresses', meta2, autoload=True, schema="alt_schema")
+            users = Table('users', meta2, mustexist=True, schema="alt_schema")
 
             print users
             print addresses

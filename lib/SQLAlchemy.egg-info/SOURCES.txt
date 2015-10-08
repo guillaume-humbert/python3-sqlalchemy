@@ -32,11 +32,14 @@ doc/sqlalchemy_engine_strategies.html
 doc/sqlalchemy_engine_threadlocal.html
 doc/sqlalchemy_engine_url.html
 doc/sqlalchemy_exceptions.html
+doc/sqlalchemy_ext_associationproxy.html
+doc/sqlalchemy_ext_orderinglist.html
 doc/sqlalchemy_ext_proxy.html
 doc/sqlalchemy_ext_selectresults.html
 doc/sqlalchemy_ext_sessioncontext.html
 doc/sqlalchemy_mods_threadlocal.html
 doc/sqlalchemy_orm.html
+doc/sqlalchemy_orm_interfaces.html
 doc/sqlalchemy_orm_mapper.html
 doc/sqlalchemy_orm_query.html
 doc/sqlalchemy_orm_session.html
@@ -54,7 +57,6 @@ doc/build/README
 doc/build/gen_docstrings.py
 doc/build/genhtml.py
 doc/build/read_markdown.py
-doc/build/runhtml.py
 doc/build/testdocs.py
 doc/build/content/adv_datamapping.txt
 doc/build/content/datamapping.txt
@@ -91,6 +93,9 @@ examples/backref/backref_tree.py
 examples/collections/large_collection.py
 examples/graphs/graph1.py
 examples/pickle/custom_pickler.py
+examples/poly_assoc/poly_assoc.py
+examples/poly_assoc/poly_assoc_fk.py
+examples/poly_assoc/poly_assoc_generic.py
 examples/polymorph/concrete.py
 examples/polymorph/polymorph.py
 examples/polymorph/single.py
@@ -131,6 +136,7 @@ lib/sqlalchemy/ext/__init__.py
 lib/sqlalchemy/ext/activemapper.py
 lib/sqlalchemy/ext/assignmapper.py
 lib/sqlalchemy/ext/associationproxy.py
+lib/sqlalchemy/ext/orderinglist.py
 lib/sqlalchemy/ext/proxy.py
 lib/sqlalchemy/ext/selectresults.py
 lib/sqlalchemy/ext/sessioncontext.py
@@ -164,6 +170,9 @@ test/testbase.py
 test/base/__init__.py
 test/base/alltests.py
 test/base/dependency.py
+test/dialect/__init__.py
+test/dialect/alltests.py
+test/dialect/mysql.py
 test/engine/__init__.py
 test/engine/alltests.py
 test/engine/autoconnect_engine.py
@@ -178,7 +187,9 @@ test/ext/__init__.py
 test/ext/activemapper.py
 test/ext/alltests.py
 test/ext/assignmapper.py
+test/ext/associationproxy.py
 test/ext/legacy_objectstore.py
+test/ext/orderinglist.py
 test/ext/selectresults.py
 test/ext/wsgi_test.py
 test/orm/__init__.py

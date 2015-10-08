@@ -30,7 +30,7 @@
 
 <div id="pagecontrol"><a href="index.html">Multiple Pages</a> | <a href="documentation.html">One Page</a></div>
 
-<div class="versionheader">Version: 0.3.7   Last Updated: 04/30/07 00:08:52</div>
+<div class="versionheader">Version: 0.3.8   Last Updated: 06/02/07 17:01:58</div>
 
 
 
@@ -1070,7 +1070,8 @@ and key/value criterion.</p>
     <A name=""></a>
     <b>def distinct(<i>self</i>)</b>
     <div class="docstring">
-    <p>Apply a <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> to the query.</p>
+    <p>Apply a <tt class="docutils literal"><span class="pre">DISTINCT</span></tt> to the query and return the newly resulting
+<tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 
     </div>
     </div>
@@ -1252,7 +1253,8 @@ mapper.</p>
     <A name=""></a>
     <b>def limit(<i>self</i>, <i>limit</i>)</b>
     <div class="docstring">
-    <p>Apply a <tt class="docutils literal"><span class="pre">LIMIT</span></tt> to the query.</p>
+    <p>Apply a <tt class="docutils literal"><span class="pre">LIMIT</span></tt> to the query and return the newly resulting
+<tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 
     </div>
     </div>
@@ -1314,7 +1316,8 @@ columns.</p>
     <A name=""></a>
     <b>def offset(<i>self</i>, <i>offset</i>)</b>
     <div class="docstring">
-    <p>Apply an <tt class="docutils literal"><span class="pre">OFFSET</span></tt> to the query.</p>
+    <p>Apply an <tt class="docutils literal"><span class="pre">OFFSET</span></tt> to the query and return the newly resulting
+<tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 
     </div>
     </div>
@@ -1396,9 +1399,26 @@ Query.</dd>
     <div class="darkcell">
     
     <A name=""></a>
+    <b>def reset_joinpoint(<i>self</i>)</b>
+    <div class="docstring">
+    <p>return a new Query reset the 'joinpoint' of this Query reset
+back to the starting mapper.  Subsequent generative calls will
+be constructed from the new joinpoint.</p>
+<p>This is an interim method which will not be needed with new behavior
+to be released in 0.4.</p>
+
+    </div>
+    </div>
+
+                    
+    <div class="darkcell">
+    
+    <A name=""></a>
     <b>def scalar(<i>self</i>)</b>
     <div class="docstring">
-    
+    <p>Return the first result of this <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
+<p>This results in an execution of the underlying query.</p>
+
     </div>
     </div>
 
@@ -1462,7 +1482,8 @@ result = usermapper.select_by(user_name = 'fred')
     <A name=""></a>
     <b>def select_from(<i>self</i>, <i>from_obj</i>)</b>
     <div class="docstring">
-    <p>Set the <cite>from_obj</cite> parameter of the query.</p>
+    <p>Set the <cite>from_obj</cite> parameter of the query and return the newly
+resulting <tt class="docutils literal"><span class="pre">Query</span></tt>.</p>
 <p><cite>from_obj</cite> is a list of one or more tables.</p>
 
     </div>

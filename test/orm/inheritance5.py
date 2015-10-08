@@ -672,6 +672,8 @@ class GenerativeTest(testbase.AssertMixin):
         session.save(dead)
         session.flush()
 
+        # TODO: we haven't created assertions for all the data combinations created here
+        
         # creating 5 managers named from M1 to M5 and 5 engineers named from E1 to E5
         # M4, M5, E4 and E5 are dead
         for i in range(1,5):
@@ -694,12 +696,18 @@ class GenerativeTest(testbase.AssertMixin):
         session.save(car2)
         session.flush()
 
-        # test these twice because theres caching involved
+        # test these twice because theres caching involved, as well previous issues that modified the polymorphic union
         for x in range(0, 2):
             r = session.query(Person).filter_by(people.c.name.like('%2')).join('status').filter_by(name="active")
             assert str(list(r)) == "[Manager M2, category YYYYYYYYY, status Status active, Engineer E2, field X, status Status active]"
             r = session.query(Engineer).join('status').filter(people.c.name.in_('E2', 'E3', 'E4', 'M4', 'M2', 'M1') & (status.c.name=="active"))
             assert str(list(r)) == "[Engineer E2, field X, status Status active, Engineer E3, field X, status Status active]"
+            # this test embeds the original polymorphic union (employee_join) fully 
+            # into the WHERE criterion, using a correlated select. ticket #577 tracks 
+            # that Query's adaptation of the WHERE clause does not dig into the 
+            # mapped selectable itself, which permanently breaks the mapped selectable.
+            r = session.query(Person).filter(exists([Car.c.owner], Car.c.owner==employee_join.c.person_id))
+            assert str(list(r)) == "[Engineer E4, field X, status Status dead]"
         
 class MultiLevelTest(testbase.ORMTest):
     def define_tables(self, metadata):
@@ -827,6 +835,54 @@ class ManyToManyPolyTest(testbase.ORMTest):
         mapper(Collection, collection_table)
         
         class_mapper(BaseItem)
+
+class CustomPKTest(testbase.ORMTest):
+    def define_tables(self, metadata):
+        global t1, t2
+        t1 = Table('t1', metadata, 
+            Column('id', Integer, primary_key=True),
+            Column('type', String(30), nullable=False),
+            Column('data', String(30)))
+        t2 = Table('t2', metadata,
+            Column('t2id', Integer, ForeignKey('t1.id'), primary_key=True),
+            Column('t2data', String(30)))
+    def test_custompk(self):
+        """test that the primary_key attribute is propigated to the polymorphic mapper"""
+        
+        class T1(object):pass
+        class T2(T1):pass
+        
+        # create a polymorphic union with the select against the base table first.
+        # with the join being second, the alias of the union will 
+        # pick up two "primary key" columns.  technically the alias should have a
+        # 2-col pk in any case but the leading select has a NULL for the "t2id" column
+        d = util.OrderedDict()
+        d['t1'] = t1.select(t1.c.type=='t1')
+        d['t2'] = t1.join(t2)
+        pjoin = polymorphic_union(d, None, 'pjoin')
+        
+        #print pjoin.original.primary_key
+        #print pjoin.primary_key
+        assert len(pjoin.primary_key) == 2
+        
+        mapper(T1, t1, polymorphic_on=t1.c.type, polymorphic_identity='t1', select_table=pjoin, primary_key=[pjoin.c.id])
+        mapper(T2, t2, inherits=T1, polymorphic_identity='t2')
+        print [str(c) for c in class_mapper(T1).primary_key]
+        ot1 = T1()
+        ot2 = T2()
+        sess = create_session()
+        sess.save(ot1)
+        sess.save(ot2)
+        sess.flush()
+        sess.clear()
+        
+        # query using get(), using only one value.  this requires the select_table mapper
+        # has the same single-col primary key.
+        assert sess.query(T1).get(ot1.id).id == ot1.id
+        
+        ot1 = sess.query(T1).get(ot1.id)
+        ot1.data = 'hi'
+        sess.flush()
         
 if __name__ == "__main__":    
     testbase.main()

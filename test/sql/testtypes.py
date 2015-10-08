@@ -115,10 +115,10 @@ class ColumnsTest(AssertMixin):
     def testcolumns(self):
         expectedResults = { 'int_column': 'int_column INTEGER',
                             'smallint_column': 'smallint_column SMALLINT',
-                                   'varchar_column': 'varchar_column VARCHAR(20)',
-                                   'numeric_column': 'numeric_column NUMERIC(12, 3)',
-                                   'float_column': 'float_column NUMERIC(25, 2)'
-                                 }
+                            'varchar_column': 'varchar_column VARCHAR(20)',
+                            'numeric_column': 'numeric_column NUMERIC(12, 3)',
+                            'float_column': 'float_column NUMERIC(25, 2)'
+                          }
 
         if not db.name=='sqlite' and not db.name=='oracle':
             expectedResults['float_column'] = 'float_column FLOAT(25)'
@@ -372,7 +372,6 @@ class BooleanTest(AssertMixin):
         res2 = bool_table.select(bool_table.c.value==False).execute().fetchall()
         print res2
         assert(res2==[(2, False)])
-        
-        
+
 if __name__ == "__main__":
     testbase.main()

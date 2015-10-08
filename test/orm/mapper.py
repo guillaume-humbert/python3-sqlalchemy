@@ -346,8 +346,8 @@ class MapperTest(MapperSuperTest):
         self.assert_result(k, Keyword, *item_keyword_result[1]['keywords'][1])
 
         
-    def testjoinvia(self):
-        """test the join_via and join_to functions"""
+    def testautojoin(self):
+        """test functions derived from Query's _join_to function."""
         
         m = mapper(User, users, properties={
             'orders':relation(mapper(Order, orders, properties={
@@ -378,18 +378,23 @@ class MapperTest(MapperSuperTest):
 
         l = q.select_by(items=item)
         self.assert_result(l, User, user_result[0])
-    
-    
+        
+        # TODO: this works differently from:
+        #q = sess.query(User).join(['orders', 'items']).select_by(order_id=3)
+        # because select_by() doesnt respect query._joinpoint, whereas filter_by does
+        q = sess.query(User).join(['orders', 'items']).filter_by(order_id=3).list()
+        self.assert_result(l, User, user_result[0])
+        
         try:
             # this should raise AttributeError
             l = q.select_by(items=5)
             assert False
         except AttributeError:
             assert True
-    
         
-    def testjoinviam2m(self):
-        """test the join_via and join_to functions"""
+    def testautojoinm2m(self):
+        """test functions derived from Query's _join_to function."""
+        
         m = mapper(Order, orders, properties = {
             'items' : relation(mapper(Item, orderitems, properties = {
                 'keywords' : relation(mapper(Keyword, keywords), itemkeywords)
@@ -402,10 +407,15 @@ class MapperTest(MapperSuperTest):
         l = q.filter(keywords.c.name=='square').join(['items', 'keywords']).list()
         self.assert_result(l, Order, order_result[1])
 
+        # test comparing to an object instance
+        item = sess.query(Item).selectfirst()
+        l = sess.query(Item).select_by(keywords=item.keywords[0])
+        assert item == l[0]
         
     def testcustomjoin(self):
         """test that the from_obj parameter to query.select() can be used
         to totally replace the FROM parameters of the generated query."""
+
         m = mapper(User, users, properties={
             'orders':relation(mapper(Order, orders, properties={
                 'items':relation(mapper(Item, orderitems))
@@ -1082,6 +1092,22 @@ class LazyTest(MapperSuperTest):
         self.echo(repr(l[0].user))
         self.assert_(l[0].user is not None)
 
+    def testuseget(self):
+        """test that a simple many-to-one lazyload optimizes to use query.get().
+        
+        this is done currently by comparing the 'get' SQL clause of the query
+        to the 'lazy' SQL clause of the lazy loader, so it relies heavily on 
+        ClauseElement.compare()"""
+        
+        m = mapper(Address, addresses, properties = dict(
+            user = relation(mapper(User, users), lazy = True)
+        ))
+        sess = create_session()
+        a1 = sess.query(Address).get_by(email_address = "ed@wood.com")
+        u1 = sess.query(User).get(8)
+        def go():
+            assert a1.user is u1
+        self.assert_sql_count(db, go, 0)
 
     def testdouble(self):
         """tests lazy loading with two relations simulatneously, from the same table, using aliases.  """
@@ -1304,6 +1330,27 @@ class EagerTest(MapperSuperTest):
         
         l = m.instances(s.execute(emailad = 'jack@bean.com'), session)
         self.echo(repr(l))
+    
+    def testonselect(self):
+        """test eager loading of a mapper which is against a select"""
+        
+        s = select([orders], orders.c.isopen==1).alias('openorders')
+        mapper(Order, s, properties={
+            'user':relation(User, lazy=False)
+        })
+        mapper(User, users)
+        
+        q = create_session().query(Order)
+        self.assert_result(q.list(), Order,
+            {'order_id':3, 'user' : (User, {'user_id':7})},
+            {'order_id':4, 'user' : (User, {'user_id':9})},
+        )
+
+        q = q.select_from(s.outerjoin(orderitems)).filter(orderitems.c.item_name != 'item 2')
+        self.assert_result(q.list(), Order,
+            {'order_id':3, 'user' : (User, {'user_id':7})},
+        )
+        
         
     def testmulti(self):
         """tests eager loading with two relations simultaneously"""
@@ -1613,6 +1660,27 @@ class InstancesTest(MapperSuperTest):
             (user7, 1),
             (user8, 3),
             (user9, 0)
+        ]
+        
+    def testmappersplustwocolumns(self):
+        mapper(User, users)
+
+        # Fixme ticket #475!
+        if db.engine.name == 'mysql':
+            col2 = func.concat("Name:", users.c.user_name).label('concat')
+        else:
+            col2 = ("Name:" + users.c.user_name).label('concat')
+        
+        s = select([users, func.count(addresses.c.address_id).label('count'), col2], from_obj=[users.outerjoin(addresses)], group_by=[c for c in users.c], order_by=[users.c.user_id])
+        sess = create_session()
+        (user7, user8, user9) = sess.query(User).select()
+        q = sess.query(User)
+        l = q.instances(s.execute(), "count", "concat")
+        print l
+        assert l == [
+            (user7, 1, "Name:jack"),
+            (user8, 3, "Name:ed"),
+            (user9, 0, "Name:fred")
         ]
 
 

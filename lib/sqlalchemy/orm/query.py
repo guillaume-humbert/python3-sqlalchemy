@@ -736,8 +736,21 @@ class Query(object):
         q._joinpoint = mapper
         return q
 
+    def reset_joinpoint(self):
+        """return a new Query reset the 'joinpoint' of this Query reset 
+        back to the starting mapper.  Subsequent generative calls will
+        be constructed from the new joinpoint.
+        
+        This is an interim method which will not be needed with new behavior
+        to be released in 0.4."""
+        
+        q = self._clone()
+        q._joinpoint = q._mapper
+        return q
+
     def select_from(self, from_obj):
-        """Set the `from_obj` parameter of the query.
+        """Set the `from_obj` parameter of the query and return the newly 
+        resulting ``Query``.
 
         `from_obj` is a list of one or more tables.
         """
@@ -764,14 +777,15 @@ class Query(object):
         if isinstance(item, slice):
             start = item.start
             stop = item.stop
+            # if we slice from the end we need to execute the query
             if (isinstance(start, int) and start < 0) or \
                (isinstance(stop, int) and stop < 0):
                 return list(self)[item]
             else:
                 res = self._clone()
                 if start is not None and stop is not None:
-                    res._offset = (self._offset or 0)+ start
-                    res._limit = stop-start
+                    res._offset = (self._offset or 0) + start
+                    res._limit = stop - start
                 elif start is None and stop is not None:
                     res._limit = stop
                 elif start is not None and stop is None:
@@ -784,17 +798,23 @@ class Query(object):
             return list(self[item:item+1])[0]
 
     def limit(self, limit):
-        """Apply a ``LIMIT`` to the query."""
+        """Apply a ``LIMIT`` to the query and return the newly resulting
+        ``Query``.
+        """
 
         return self[:limit]
 
     def offset(self, offset):
-        """Apply an ``OFFSET`` to the query."""
+        """Apply an ``OFFSET`` to the query and return the newly resulting
+        ``Query``.
+        """
 
         return self[offset:]
 
     def distinct(self):
-        """Apply a ``DISTINCT`` to the query."""
+        """Apply a ``DISTINCT`` to the query and return the newly resulting
+        ``Query``.
+        """
 
         new = self._clone()
         new._distinct = True
@@ -809,6 +829,10 @@ class Query(object):
         return list(self)
 
     def scalar(self):
+        """Return the first result of this ``Query``.
+
+        This results in an execution of the underlying query.
+        """
         if self._col is None or self._func is None: 
             return self[0]
         else:
@@ -870,16 +894,20 @@ class Query(object):
                 if isinstance(m, type):
                     m = mapper.class_mapper(m)
                 if isinstance(m, mapper.Mapper):
-                    appender = []
-                    def proc(context, row):
-                        if not m._instance(context, row, appender):
-                            appender.append(None)
-                    process.append((proc, appender))
+                    def x(m):
+                        appender = []
+                        def proc(context, row):
+                            if not m._instance(context, row, appender):
+                                appender.append(None)
+                        process.append((proc, appender))
+                    x(m)
                 elif isinstance(m, sql.ColumnElement) or isinstance(m, basestring):
-                    res = []
-                    def proc(context, row):
-                        res.append(row[m])
-                    process.append((proc, res))
+                    def y(m):
+                        res = []
+                        def proc(context, row):
+                            res.append(row[m])
+                        process.append((proc, res))
+                    y(m)
             result = []
         else:
             result = util.UniqueAppender([])
@@ -955,7 +983,7 @@ class Query(object):
             # adapt the given WHERECLAUSE to adjust instances of this query's mapped 
             # table to be that of our select_table,
             # which may be the "polymorphic" selectable used by our mapper.
-            sql_util.ClauseAdapter(self.table).traverse(whereclause)
+            sql_util.ClauseAdapter(self.table).traverse(whereclause, stop_on=util.Set([self.table]))
 
             # if extra entities, adapt the criterion to those as well
             for m in self._entities:
@@ -963,7 +991,7 @@ class Query(object):
                     m = mapper.class_mapper(m)
                 if isinstance(m, mapper.Mapper):
                     table = m.select_table
-                    sql_util.ClauseAdapter(m.select_table).traverse(whereclause)
+                    sql_util.ClauseAdapter(m.select_table).traverse(whereclause, stop_on=util.Set([m.select_table]))
         
         # get/create query context.  get the ultimate compile arguments
         # from there
@@ -1038,7 +1066,7 @@ class Query(object):
         # it has no relations() on it.  should we compile those too into the query ?  (i.e. eagerloads)
         for value in self.select_mapper.props.values():
             value.setup(context)
-
+        
         # additional entities/columns, add those to selection criterion
         for m in self._entities:
             if isinstance(m, type):

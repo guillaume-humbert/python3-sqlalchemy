@@ -180,7 +180,9 @@ class OneToManyDP(DependencyProcessor):
         if delete:
             # head object is being deleted, and we manage its list of child objects
             # the child objects have to have their foreign key to the parent set to NULL
-            if not self.cascade.delete_orphan or self.post_update:
+            # this phase can be called safely for any cascade but is unnecessary if delete cascade
+            # is on.
+            if not self.cascade.delete or self.post_update:
                 for obj in deplist:
                     childlist = self.get_object_dependencies(obj, uowcommit, passive=self.passive_deletes)
                     if childlist is not None:
@@ -209,23 +211,7 @@ class OneToManyDP(DependencyProcessor):
         if delete:
             # head object is being deleted, and we manage its list of child objects
             # the child objects have to have their foreign key to the parent set to NULL
-            if self.post_update:
-                pass
-            elif self.cascade.delete_orphan:
-                for obj in deplist:
-                    childlist = self.get_object_dependencies(obj, uowcommit, passive=self.passive_deletes)
-                    if childlist is not None:
-                        for child in childlist.deleted_items():
-                            if child is not None and childlist.hasparent(child) is False:
-                                uowcommit.register_object(child, isdelete=True)
-                                for c in self.mapper.cascade_iterator('delete', child):
-                                    uowcommit.register_object(c, isdelete=True)
-                        for child in childlist.unchanged_items():
-                            if child is not None:
-                                uowcommit.register_object(child, isdelete=True)
-                                for c in self.mapper.cascade_iterator('delete', child):
-                                    uowcommit.register_object(c, isdelete=True)
-            else:
+            if not self.post_update and not self.cascade.delete:
                 for obj in deplist:
                     childlist = self.get_object_dependencies(obj, uowcommit, passive=self.passive_deletes)
                     if childlist is not None:
@@ -376,11 +362,15 @@ class ManyToManyDP(DependencyProcessor):
                     self._synchronize(obj, child, associationrow, False, uowcommit)
                     uowcommit.attributes[(self, "manytomany", obj, child)] = True
                     secondary_delete.append(associationrow)
+
         if len(secondary_delete):
             secondary_delete.sort()
             # TODO: precompile the delete/insert queries?
-            statement = self.secondary.delete(sql.and_(*[c == sql.bindparam(c.key) for c in self.secondary.c if c.key in associationrow]))
-            connection.execute(statement, secondary_delete)
+            statement = self.secondary.delete(sql.and_(*[c == sql.bindparam(c.key, type=c.type) for c in self.secondary.c if c.key in associationrow]))
+            result = connection.execute(statement, secondary_delete)
+            if result.supports_sane_rowcount() and result.rowcount != len(secondary_delete):
+                raise exceptions.ConcurrentModificationError("Deleted rowcount %d does not match number of objects deleted %d" % (result.rowcount, len(secondary_delete)))
+
         if len(secondary_insert):
             statement = self.secondary.insert()
             connection.execute(statement, secondary_insert)

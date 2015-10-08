@@ -258,9 +258,15 @@ class _ConnectionFairy(object):
     is_valid = property(lambda self:self.connection is not None)
     
     def invalidate(self, e=None):
+        """Mark this connection as invalidated.
+        
+        The connection will be immediately closed.  The 
+        containing ConnectionRecord will create a new connection when next used.
+        """
         if self.connection is None:
             raise exceptions.InvalidRequestError("This connection is closed")
-        self._connection_record.invalidate(e=e)
+        if self._connection_record is not None:
+            self._connection_record.invalidate(e=e)
         self.connection = None
         self._cursors = None
         self._close()
@@ -281,6 +287,20 @@ class _ConnectionFairy(object):
             raise exceptions.InvalidRequestError("This connection is closed")
         self.__counter +=1
         return self
+
+    def detach(self):
+        """Separate this Connection from its Pool.
+        
+        This means that the connection will no longer be returned to the 
+        pool when closed, and will instead be literally closed.  The 
+        containing ConnectionRecord is separated from the DBAPI connection, and
+        will create a new connection when next used.
+        """
+        
+        if self._connection_record is not None:
+            self._connection_record.connection = None        
+            self._pool.do_return_conn(self._connection_record)
+            self._connection_record = None
 
     def close_open_cursors(self):
         if self._cursors is not None:
@@ -307,6 +327,9 @@ class _ConnectionFairy(object):
         if self.connection is not None:
             try:
                 self.connection.rollback()
+                # Immediately close detached instances
+                if self._connection_record is None:
+                    self.connection.close()
             except Exception, e:
                 if self._connection_record is not None:
                     self._connection_record.invalidate(e=e)

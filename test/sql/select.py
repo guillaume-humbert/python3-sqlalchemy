@@ -134,8 +134,12 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
     def testdontovercorrelate(self):
         self.runtest(select([table1], from_obj=[table1, table1.select()]), """SELECT mytable.myid, mytable.name, mytable.description FROM mytable, (SELECT mytable.myid AS myid, mytable.name AS name, mytable.description AS description FROM mytable)""")
     
-    def testselectexists(self):
+    def testexistsascolumnclause(self):
         self.runtest(exists([table1.c.myid], table1.c.myid==5).select(), "SELECT EXISTS (SELECT mytable.myid AS myid FROM mytable WHERE mytable.myid = :mytable_myid)", params={'mytable_myid':5})
+
+        self.runtest(select([table1, exists([1], from_obj=[table2])]), "SELECT mytable.myid, mytable.name, mytable.description, EXISTS (SELECT 1 FROM myothertable) FROM mytable", params={})
+
+        self.runtest(select([table1, exists([1], from_obj=[table2]).label('foo')]), "SELECT mytable.myid, mytable.name, mytable.description, EXISTS (SELECT 1 FROM myothertable) AS foo FROM mytable", params={})
         
     def testwheresubquery(self):
         # TODO: this tests that you dont get a "SELECT column" without a FROM but its not working yet.
@@ -218,7 +222,11 @@ sq.myothertable_othername AS sq_myothertable_othername FROM (" + sqstring + ") A
                          order_by = ['dist', places.c.nm]
                          )
         self.runtest(q, "SELECT places.id, places.nm, main_zip.zipcode, latlondist((SELECT zips.latitude FROM zips WHERE zips.zipcode = main_zip.zipcode), (SELECT zips.longitude FROM zips WHERE zips.zipcode = main_zip.zipcode)) AS dist FROM places, zips AS main_zip ORDER BY dist, places.nm")
-            
+    
+    def testlabelcomparison(self):
+        x = func.lala(table1.c.myid).label('foo')
+        self.runtest(select([x], x==5), "SELECT lala(mytable.myid) AS foo FROM mytable WHERE lala(mytable.myid) = :literal")
+        
     def testand(self):
         self.runtest(
             select(['*'], and_(table1.c.myid == 12, table1.c.name=='asdf', table2.c.othername == 'foo', "sysdate() = today()")), 
@@ -418,6 +426,9 @@ WHERE mytable.myid = myothertable.otherid) AS t2view WHERE t2view.mytable_myid =
             "SELECT column1 AS foobar, column2 AS hoho, mytable.myid AS mytable_myid FROM mytable"
         )
         
+        print "---------------------------------------------"
+        s1 = select(["column1 AS foobar", "column2 AS hoho", table1.c.myid], from_obj=[table1])
+        print "---------------------------------------------"
         # test that "auto-labeling of subquery columns" doesnt interfere with literal columns,
         # exported columns dont get quoted
         self.runtest(
@@ -617,6 +628,17 @@ FROM myothertable ORDER BY myid \
  LIMIT 5 OFFSET 10"
             )
             
+            self.runtest(
+                union(
+                    select([table1.c.myid, table1.c.name, func.max(table1.c.description)], table1.c.name=='name2', group_by=[table1.c.myid, table1.c.name]),
+                    table1.select(table1.c.name=='name1')
+                )
+                ,
+                "SELECT mytable.myid, mytable.name, max(mytable.description) FROM mytable \
+WHERE mytable.name = :mytable_name GROUP BY mytable.myid, mytable.name UNION SELECT mytable.myid, mytable.name, mytable.description \
+FROM mytable WHERE mytable.name = :mytable_name_1"
+            )
+            
     def testouterjoin(self):
         # test an outer join.  the oracle module should take the ON clause of the join and
         # move it up to the WHERE clause of its parent select, and append (+) to all right-hand-side columns
@@ -625,7 +647,7 @@ FROM myothertable ORDER BY myid \
         
         query = select(
                 [table1, table2],
-                and_(
+                or_(
                     table1.c.name == 'fred',
                     table1.c.myid == 10,
                     table2.c.othername != 'jack',
@@ -633,12 +655,11 @@ FROM myothertable ORDER BY myid \
                 ),
                 from_obj = [ outerjoin(table1, table2, table1.c.myid == table2.c.otherid) ]
                 )
-                
         self.runtest(query, 
             "SELECT mytable.myid, mytable.name, mytable.description, myothertable.otherid, myothertable.othername \
 FROM mytable LEFT OUTER JOIN myothertable ON mytable.myid = myothertable.otherid \
-WHERE mytable.name = %(mytable_name)s AND mytable.myid = %(mytable_myid)s AND \
-myothertable.othername != %(myothertable_othername)s AND \
+WHERE mytable.name = %(mytable_name)s OR mytable.myid = %(mytable_myid)s OR \
+myothertable.othername != %(myothertable_othername)s OR \
 EXISTS (select yay from foo where boo = lar)",
             dialect=postgres.dialect()
             )
@@ -646,8 +667,8 @@ EXISTS (select yay from foo where boo = lar)",
         self.runtest(query, 
             "SELECT mytable.myid, mytable.name, mytable.description, myothertable.otherid, myothertable.othername \
 FROM mytable, myothertable WHERE mytable.myid = myothertable.otherid(+) AND \
-mytable.name = :mytable_name AND mytable.myid = :mytable_myid AND \
-myothertable.othername != :myothertable_othername AND EXISTS (select yay from foo where boo = lar)",
+(mytable.name = :mytable_name OR mytable.myid = :mytable_myid OR \
+myothertable.othername != :myothertable_othername OR EXISTS (select yay from foo where boo = lar))",
             dialect=oracle.OracleDialect(use_ansi = False))
 
         query = table1.outerjoin(table2, table1.c.myid==table2.c.otherid).outerjoin(table3, table3.c.userid==table2.c.otherid)
@@ -800,6 +821,16 @@ myothertable.othername != :myothertable_othername AND EXISTS (select yay from fo
 
         self.runtest(select([table1], ~table1.c.myid.in_(select([table2.c.otherid]))),
         "SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid NOT IN (SELECT myothertable.otherid FROM myothertable)")
+
+        self.runtest(select([table1], table1.c.myid.in_(
+            union(
+                  select([table1], table1.c.myid == 5),
+                  select([table1], table1.c.myid == 12),
+            )
+        )), "SELECT mytable.myid, mytable.name, mytable.description FROM mytable \
+WHERE mytable.myid IN (\
+SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = :mytable_myid \
+UNION SELECT mytable.myid, mytable.name, mytable.description FROM mytable WHERE mytable.myid = :mytable_myid_1)")
         
         # test that putting a select in an IN clause does not blow away its ORDER BY clause
         self.runtest(
