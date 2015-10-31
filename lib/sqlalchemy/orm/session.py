@@ -630,15 +630,26 @@ class Session(_SessionClassMethods):
            ``False``, objects placed in the :class:`.Session` will be
            strongly referenced until explicitly removed or the
            :class:`.Session` is closed.  **Deprecated** - this option
-           is obsolete.
+           is present to allow compatibility with older applications, but
+           it is recommended that strong references to objects
+           be maintained by the calling application
+           externally to the :class:`.Session` itself,
+           to the extent that is required by the application.
 
         """
 
         if weak_identity_map:
             self._identity_cls = identity.WeakInstanceDict
         else:
-            util.warn_deprecated("weak_identity_map=False is deprecated.  "
-                                 "This feature is not needed.")
+            util.warn_deprecated(
+                "weak_identity_map=False is deprecated.  "
+                "It is present to allow compatibility with older "
+                "applications, but "
+                "it is recommended that strong references to "
+                "objects be maintained by the calling application "
+                "externally to the :class:`.Session` itself, "
+                "to the extent that is required by the application.")
+
             self._identity_cls = identity.StrongInstanceDict
         self.identity_map = self._identity_cls()
 
@@ -1983,7 +1994,7 @@ class Session(_SessionClassMethods):
 
         For ``autocommit`` Sessions with no active manual transaction, flush()
         will create a transaction on the fly that surrounds the entire set of
-        operations int the flush.
+        operations into the flush.
 
         :param objects: Optional; restricts the flush operation to operate
           only on elements that are in the given collection.

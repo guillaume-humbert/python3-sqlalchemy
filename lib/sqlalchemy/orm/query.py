@@ -608,6 +608,16 @@ class Query(object):
         When the `Query` actually issues SQL to load rows, it always
         uses column labeling.
 
+        .. note:: The :meth:`.Query.with_labels` method *only* applies
+           the output of :attr:`.Query.statement`, and *not* to any of
+           the result-row invoking systems of :class:`.Query` itself, e.g.
+           :meth:`.Query.first`, :meth:`.Query.all`, etc.   To execute
+           a query using :meth:`.Query.with_labels`, invoke the
+           :attr:`.Query.statement` using :meth:`.Session.execute`::
+
+                result = session.execute(query.with_labels().statement)
+
+
         """
         self._with_labels = True
 
@@ -1280,7 +1290,9 @@ class Query(object):
 
             session.query(MyClass).filter(MyClass.name == 'some name')
 
-        Multiple criteria are joined together by AND::
+        Multiple criteria may be specified as comma separated; the effect
+        is that they will be joined together using the :func:`.and_`
+        function::
 
             session.query(MyClass).\\
                 filter(MyClass.name == 'some name', MyClass.id > 5)
@@ -1288,9 +1300,6 @@ class Query(object):
         The criterion is any SQL expression object applicable to the
         WHERE clause of a select.   String expressions are coerced
         into SQL expression constructs via the :func:`.text` construct.
-
-        .. versionchanged:: 0.7.5
-            Multiple criteria joined by AND.
 
         .. seealso::
 
@@ -1315,7 +1324,9 @@ class Query(object):
 
             session.query(MyClass).filter_by(name = 'some name')
 
-        Multiple criteria are joined together by AND::
+        Multiple criteria may be specified as comma separated; the effect
+        is that they will be joined together using the :func:`.and_`
+        function::
 
             session.query(MyClass).\\
                 filter_by(name = 'some name', id = 5)
@@ -2323,6 +2334,19 @@ class Query(object):
         """Apply a ``DISTINCT`` to the query and return the newly resulting
         ``Query``.
 
+
+        .. note::
+
+            The :meth:`.distinct` call includes logic that will automatically
+            add columns from the ORDER BY of the query to the columns
+            clause of the SELECT statement, to satisfy the common need
+            of the database backend that ORDER BY columns be part of the
+            SELECT list when DISTINCT is used.   These columns *are not*
+            added to the list of columns actually fetched by the
+            :class:`.Query`, however, so would not affect results.
+            The columns are passed through when using the
+            :attr:`.Query.statement` accessor, however.
+
         :param \*expr: optional column expressions.  When present,
          the Postgresql dialect will render a ``DISTINCT ON (<expressions>>)``
          construct.
@@ -2436,7 +2460,7 @@ class Query(object):
         (note this may consist of multiple result rows if join-loaded
         collections are present).
 
-        Calling ``first()`` results in an execution of the underlying query.
+        Calling :meth:`.Query.first` results in an execution of the underlying query.
 
         """
         if self._statement is not None:
@@ -2448,26 +2472,57 @@ class Query(object):
         else:
             return None
 
+    def one_or_none(self):
+        """Return at most one result or raise an exception.
+
+        Returns ``None`` if the query selects
+        no rows.  Raises ``sqlalchemy.orm.exc.MultipleResultsFound``
+        if multiple object identities are returned, or if multiple
+        rows are returned for a query that returns only scalar values
+        as opposed to full identity-mapped entities.
+
+        Calling :meth:`.Query.one_or_none` results in an execution of the underlying
+        query.
+
+        .. versionadded:: 1.0.9
+
+            Added :meth:`.Query.one_or_none`
+
+        .. seealso::
+
+            :meth:`.Query.first`
+
+            :meth:`.Query.one`
+
+
+        """
+        ret = list(self)
+
+        l = len(ret)
+        if l == 1:
+            return ret[0]
+        elif l == 0:
+            return None
+        else:
+            raise orm_exc.MultipleResultsFound(
+                "Multiple rows were found for one_or_none()")
+
     def one(self):
         """Return exactly one result or raise an exception.
 
         Raises ``sqlalchemy.orm.exc.NoResultFound`` if the query selects
         no rows.  Raises ``sqlalchemy.orm.exc.MultipleResultsFound``
         if multiple object identities are returned, or if multiple
-        rows are returned for a query that does not return object
-        identities.
+        rows are returned for a query that returns only scalar values
+        as opposed to full identity-mapped entities.
 
-        Note that an entity query, that is, one which selects one or
-        more mapped classes as opposed to individual column attributes,
-        may ultimately represent many rows but only one row of
-        unique entity or entities - this is a successful result for one().
+        Calling :meth:`.one` results in an execution of the underlying query.
 
-        Calling ``one()`` results in an execution of the underlying query.
+        .. seealso::
 
-        .. versionchanged:: 0.6
-            ``one()`` fully fetches all results instead of applying
-            any kind of limit, so that the "unique"-ing of entities does not
-            conceal multiple object identities.
+            :meth:`.Query.first`
+
+            :meth:`.Query.one_or_none`
 
         """
         ret = list(self)

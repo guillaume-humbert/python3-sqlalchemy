@@ -795,10 +795,16 @@ Here's a rundown of some of the most common operators used in
     # or chain multiple filter()/filter_by() calls
     query.filter(User.name == 'ed').filter(User.fullname == 'Ed Jones')
 
+ .. note::  Make sure you use :func:`.and_` and **not** the
+    Python ``and`` operator!
+
 * :func:`OR <.sql.expression.or_>`::
 
     from sqlalchemy import or_
     query.filter(or_(User.name == 'ed', User.name == 'wendy'))
+
+ .. note::  Make sure you use :func:`.or_` and **not** the
+    Python ``or`` operator!
 
 * :meth:`MATCH <.ColumnOperators.match>`::
 
@@ -849,7 +855,7 @@ database results.  Here's a brief tour:
       ('%ed', 1, 0)
       {stop}<User(name='ed', fullname='Ed Jones', password='f8s7ccs')>
 
-* :meth:`~.Query.one()`, fully fetches all rows, and if not
+* :meth:`~.Query.one()` fully fetches all rows, and if not
   exactly one object identity or composite row is present in the result, raises
   an error.  With multiple rows found:
 
@@ -892,6 +898,11 @@ database results.  Here's a brief tour:
   web service, which may want to raise a "404 not found" when no results are found,
   but raise an application error when multiple results are found.
 
+* :meth:`~.Query.one_or_none` is like :meth:`~.Query.one`, except that if no
+  results are found, it doesn't raise an error; it just returns ``None``. Like
+  :meth:`~.Query.one`, however, it does raise an error if multiple results are
+  found.
+
 * :meth:`~.Query.scalar` invokes the :meth:`~.Query.one` method, and upon
   success returns the first column of the row:
 
@@ -902,14 +913,13 @@ database results.  Here's a brief tour:
       {sql}>>> query.scalar() #doctest: +NORMALIZE_WHITESPACE
       SELECT users.id AS users_id
       FROM users
-      WHERE users.name LIKE ? ORDER BY users.id
-       LIMIT ? OFFSET ?
-      ('%ed', 1, 0)
-      {stop}7
+      WHERE users.name = ? ORDER BY users.id
+      ('ed',)
+      {stop}1
 
 .. _orm_tutorial_literal_sql:
 
-Using Literal SQL
+Using Textual SQL
 -----------------
 
 Literal strings can be used flexibly with
@@ -969,30 +979,15 @@ mapper (below illustrated using an asterisk):
     ('ed',)
     {stop}[<User(name='ed', fullname='Ed Jones', password='f8s7ccs')>]
 
-You can use :meth:`~sqlalchemy.orm.query.Query.from_statement()` to go
-completely "raw", using string names to identify desired columns:
+.. seealso::
 
-.. sourcecode:: python+sql
-
-    {sql}>>> session.query("id", "name", "thenumber12").\
-    ...         from_statement(text("SELECT id, name, 12 as "
-    ...                 "thenumber12 FROM users where name=:name")).\
-    ...                 params(name='ed').all()
-    SELECT id, name, 12 as thenumber12 FROM users where name=?
-    ('ed',)
-    {stop}[(1, u'ed', 12)]
+    :ref:`sqlexpression_text` - The :func:`.text` construct explained
+    from the perspective of Core-only queries.
 
 .. versionchanged:: 1.0.0
    The :class:`.Query` construct emits warnings when string SQL
    fragments are coerced to :func:`.text`, and :func:`.text` should
    be used explicitly.  See :ref:`migration_2992` for background.
-
-.. seealso::
-
-    :ref:`sqlexpression_text` - Core description of textual segments.  The
-    behavior of the ORM :class:`.Query` object with regards to
-    :func:`.text` and related constructs is very similar to that of the
-    Core :func:`.select` object.
 
 Counting
 --------
@@ -1336,6 +1331,16 @@ As you would expect, the same idea is used for "outer" joins, using the
 The reference documentation for :meth:`~.Query.join` contains detailed information
 and examples of the calling styles accepted by this method; :meth:`~.Query.join`
 is an important method at the center of usage for any SQL-fluent application.
+
+.. topic:: What does :class:`.Query` select from if there's multiple entities?
+
+    The :meth:`.Query.join` method will **typically join from the leftmost
+    item** in the list of entities, when the ON clause is omitted, or if the
+    ON clause is a plain SQL expression.  To control the first entity in the list
+    of JOINs, use the :meth:`.Query.select_from` method::
+
+        query = Session.query(User, Address).select_from(Address).join(User)
+
 
 .. _ormtutorial_aliases:
 
@@ -1736,7 +1741,7 @@ attribute:
     <User(name='jack', fullname='Jack Bean', password='gjffdd')>
 
 For more information on eager loading, including how to configure various forms
-of loading by default, see the section :doc:`/orm/loading`.
+of loading by default, see the section :doc:`/orm/loading_relationships`.
 
 Deleting
 ========
