@@ -4,7 +4,7 @@ from sqlalchemy.orm import mapper, Session, composite
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.orm.instrumentation import ClassManager
 from sqlalchemy.testing.schema import Table, Column
-from sqlalchemy.testing import eq_, assert_raises_message
+from sqlalchemy.testing import eq_, assert_raises_message, assert_raises
 from sqlalchemy.testing.util import picklers
 from sqlalchemy.testing import fixtures
 from sqlalchemy.ext.mutable import MutableComposite
@@ -135,6 +135,53 @@ class _MutableDictTestBase(_MutableDictTestFixture):
         sess.commit()
 
         eq_(f1.data, {'a': 'z'})
+
+    def test_pop(self):
+        sess = Session()
+
+        f1 = Foo(data={'a': 'b', 'c': 'd'})
+        sess.add(f1)
+        sess.commit()
+
+        eq_(f1.data.pop('a'), 'b')
+        sess.commit()
+
+        assert_raises(KeyError, f1.data.pop, 'g')
+
+        eq_(f1.data, {'c': 'd'})
+
+    def test_pop_default(self):
+        sess = Session()
+
+        f1 = Foo(data={'a': 'b', 'c': 'd'})
+        sess.add(f1)
+        sess.commit()
+
+        eq_(f1.data.pop('a', 'q'), 'b')
+        eq_(f1.data.pop('a', 'q'), 'q')
+        sess.commit()
+
+        eq_(f1.data, {'c': 'd'})
+
+    def test_popitem(self):
+        sess = Session()
+
+        orig = {'a': 'b', 'c': 'd'}
+
+        # the orig dict remains unchanged when we assign,
+        # but just making this future-proof
+        data = dict(orig)
+        f1 = Foo(data=data)
+        sess.add(f1)
+        sess.commit()
+
+        k, v = f1.data.popitem()
+        assert k in ('a', 'c')
+        orig.pop(k)
+
+        sess.commit()
+
+        eq_(f1.data, orig)
 
     def test_setdefault(self):
         sess = Session()
