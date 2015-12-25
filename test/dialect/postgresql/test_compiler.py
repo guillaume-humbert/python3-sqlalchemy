@@ -508,6 +508,19 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             '(CAST("Room" AS TEXT) WITH =)'
         )
 
+    def test_exclude_constraint_when(self):
+        m = MetaData()
+        tbl = Table(
+            'testtbl', m,
+            Column('room', String)
+        )
+        cons = ExcludeConstraint(('room', '='), where=tbl.c.room.in_(['12']))
+        tbl.append_constraint(cons)
+        self.assert_compile(schema.AddConstraint(cons),
+                            'ALTER TABLE testtbl ADD EXCLUDE USING gist '
+                            '(room WITH =) WHERE (testtbl.room IN (\'12\'))',
+                            dialect=postgresql.dialect())
+
     def test_substring(self):
         self.assert_compile(func.substring('abc', 1, 2),
                             'SUBSTRING(%(substring_1)s FROM %(substring_2)s '
@@ -577,6 +590,22 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             "FROM mytable AS mytable_1 "
             "WHERE mytable_1.myid = %(myid_1)s FOR UPDATE OF mytable_1"
         )
+
+    def test_for_update_with_schema(self):
+        m = MetaData()
+        table1 = Table(
+            'mytable', m,
+            Column('myid'),
+            Column('name'),
+            schema='testschema'
+        )
+
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).with_for_update(of=table1),
+            "SELECT testschema.mytable.myid, testschema.mytable.name "
+            "FROM testschema.mytable "
+            "WHERE testschema.mytable.myid = %(myid_1)s "
+            "FOR UPDATE OF mytable")
 
     def test_reserved_words(self):
         table = Table("pg_table", MetaData(),

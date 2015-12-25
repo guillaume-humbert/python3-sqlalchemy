@@ -130,6 +130,43 @@ class VersioningTest(fixtures.MappedTest):
             [(f1.id, 'f1rev2', 2), (f2.id, 'f2rev2', 2)]
         )
 
+    def test_bulk_insert(self):
+        Foo = self.classes.Foo
+
+        s1 = self._fixture()
+        s1.bulk_insert_mappings(
+            Foo,
+            [{"id": 1, "value": "f1"}, {"id": 2, "value": "f2"}]
+        )
+        eq_(
+            s1.query(Foo.id, Foo.value, Foo.version_id).order_by(Foo.id).all(),
+            [(1, 'f1', 1), (2, 'f2', 1)]
+        )
+
+    def test_bulk_update(self):
+        Foo = self.classes.Foo
+
+        s1 = self._fixture()
+        f1 = Foo(value='f1')
+        f2 = Foo(value='f2')
+        s1.add_all((f1, f2))
+        s1.commit()
+
+        s1.bulk_update_mappings(
+            Foo,
+            [
+                {"id": f1.id, "value": "f1rev2", "version_id": 1},
+                {"id": f2.id, "value": "f2rev2", "version_id": 1},
+
+            ]
+        )
+        s1.commit()
+
+        eq_(
+            s1.query(Foo.id, Foo.value, Foo.version_id).order_by(Foo.id).all(),
+            [(f1.id, 'f1rev2', 2), (f2.id, 'f2rev2', 2)]
+        )
+
     @testing.emits_warning_on(
         '+zxjdbc', r'.*does not support (update|delete)d rowcount')
     def test_bump_version(self):
@@ -894,19 +931,26 @@ class ServerVersioningTest(fixtures.MappedTest):
         class Bar(cls.Basic):
             pass
 
-    def _fixture(self, expire_on_commit=True):
+    def _fixture(self, expire_on_commit=True, eager_defaults=False):
         Foo, version_table = self.classes.Foo, self.tables.version_table
 
         mapper(
             Foo, version_table, version_id_col=version_table.c.version_id,
             version_id_generator=False,
+            eager_defaults=eager_defaults
         )
 
         s1 = Session(expire_on_commit=expire_on_commit)
         return s1
 
     def test_insert_col(self):
-        sess = self._fixture()
+        self._test_insert_col()
+
+    def test_insert_col_eager_defaults(self):
+        self._test_insert_col(eager_defaults=True)
+
+    def _test_insert_col(self, **kw):
+        sess = self._fixture(**kw)
 
         f1 = self.classes.Foo(value='f1')
         sess.add(f1)
@@ -935,7 +979,13 @@ class ServerVersioningTest(fixtures.MappedTest):
         self.assert_sql_execution(testing.db, sess.flush, *statements)
 
     def test_update_col(self):
-        sess = self._fixture()
+        self._test_update_col()
+
+    def test_update_col_eager_defaults(self):
+        self._test_update_col(eager_defaults=True)
+
+    def _test_update_col(self, **kw):
+        sess = self._fixture(**kw)
 
         f1 = self.classes.Foo(value='f1')
         sess.add(f1)
