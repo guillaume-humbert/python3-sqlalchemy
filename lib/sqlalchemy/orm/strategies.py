@@ -1,5 +1,5 @@
 # orm/strategies.py
-# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2016 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -238,7 +238,7 @@ class DeferredColumnLoader(LoaderStrategy):
             (
                 loadopt and
                 self.group and
-                loadopt.local_opts.get('undefer_group', False) == self.group
+                loadopt.local_opts.get('undefer_group_%s' % self.group, False)
             )
             or
             (

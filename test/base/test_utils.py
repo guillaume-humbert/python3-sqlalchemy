@@ -1,8 +1,9 @@
 import copy
+import sys
 
 from sqlalchemy import util, sql, exc, testing
 from sqlalchemy.testing import assert_raises, assert_raises_message, fixtures
-from sqlalchemy.testing import eq_, is_, ne_, fails_if, mock
+from sqlalchemy.testing import eq_, is_, ne_, fails_if, mock, expect_warnings
 from sqlalchemy.testing.util import picklers, gc_collect
 from sqlalchemy.util import classproperty, WeakSequence, get_callable_argspec
 from sqlalchemy.sql import column
@@ -2063,6 +2064,96 @@ class TestClassHierarchy(fixtures.TestBase):
             eq_(set(util.class_hierarchy(B)), set((A, B, object)))
             eq_(set(util.class_hierarchy(Mixin)), set())
             eq_(set(util.class_hierarchy(A)), set((A, B, object)))
+
+
+class ReraiseTest(fixtures.TestBase):
+    @testing.requires.python3
+    def test_raise_from_cause_same_cause(self):
+        class MyException(Exception):
+            pass
+
+        def go():
+            try:
+                raise MyException("exc one")
+            except Exception as err:
+                util.raise_from_cause(err)
+
+        try:
+            go()
+            assert False
+        except MyException as err:
+            is_(err.__cause__, None)
+
+    def test_reraise_disallow_same_cause(self):
+        class MyException(Exception):
+            pass
+
+        def go():
+            try:
+                raise MyException("exc one")
+            except Exception as err:
+                type_, value, tb = sys.exc_info()
+                util.reraise(type_, err, tb, value)
+
+        assert_raises_message(
+            AssertionError,
+            "Same cause emitted",
+            go
+        )
+
+    def test_raise_from_cause(self):
+        class MyException(Exception):
+            pass
+
+        class MyOtherException(Exception):
+            pass
+
+        me = MyException("exc on")
+
+        def go():
+            try:
+                raise me
+            except Exception:
+                util.raise_from_cause(MyOtherException("exc two"))
+
+        try:
+            go()
+            assert False
+        except MyOtherException as moe:
+            if testing.requires.python3.enabled:
+                is_(moe.__cause__, me)
+
+    @testing.requires.python2
+    def test_safe_reraise_py2k_warning(self):
+        class MyException(Exception):
+            pass
+
+        class MyOtherException(Exception):
+            pass
+
+        m1 = MyException("exc one")
+        m2 = MyOtherException("exc two")
+
+        def go2():
+            raise m2
+
+        def go():
+            try:
+                raise m1
+            except:
+                with util.safe_reraise():
+                    go2()
+
+        with expect_warnings(
+            "An exception has occurred during handling of a previous "
+            "exception.  The previous exception "
+            "is:.*MyException.*exc one"
+        ):
+            try:
+                go()
+                assert False
+            except MyOtherException:
+                pass
 
 
 class TestClassProperty(fixtures.TestBase):
