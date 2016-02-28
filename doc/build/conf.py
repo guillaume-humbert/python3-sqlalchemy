@@ -129,7 +129,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'SQLAlchemy'
-copyright = u'2007-2015, the SQLAlchemy authors and contributors'
+copyright = u'2007-2016, the SQLAlchemy authors and contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -138,9 +138,9 @@ copyright = u'2007-2015, the SQLAlchemy authors and contributors'
 # The short X.Y version.
 version = "1.0"
 # The full version, including alpha/beta/rc tags.
-release = "1.0.11"
+release = "1.0.12"
 
-release_date = "December 12, 2015"
+release_date = "February 15, 2016"
 
 site_base = os.environ.get("RTD_SITE_BASE", "http://www.sqlalchemy.org")
 site_adapter_template = "docs_adapter.mako"

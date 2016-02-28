@@ -346,8 +346,8 @@ used, it retrieves a connection from a pool of connections maintained by the
 session object.
 
 
-Adding New Objects
-==================
+Adding and Updating Objects
+===========================
 
 To persist our ``User`` object, we :meth:`~.Session.add` it to our :class:`~sqlalchemy.orm.session.Session`::
 
@@ -438,7 +438,10 @@ and that three new ``User`` objects are pending:
 
 We tell the :class:`~sqlalchemy.orm.session.Session` that we'd like to issue
 all remaining changes to the database and commit the transaction, which has
-been in progress throughout. We do this via :meth:`~.Session.commit`:
+been in progress throughout. We do this via :meth:`~.Session.commit`.  The
+:class:`~sqlalchemy.orm.session.Session` emits the ``UPDATE`` statement
+for the password change on "ed", as well as ``INSERT`` statements for the
+three new ``User`` objects we've added:
 
 .. sourcecode:: python+sql
 
@@ -861,37 +864,19 @@ database results.  Here's a brief tour:
 
   .. sourcecode:: python+sql
 
-      {sql}>>> from sqlalchemy.orm.exc import MultipleResultsFound
-      >>> try:
-      ...     user = query.one()
-      ... except MultipleResultsFound as e:
-      ...     print(e)
-      SELECT users.id AS users_id,
-              users.name AS users_name,
-              users.fullname AS users_fullname,
-              users.password AS users_password
-      FROM users
-      WHERE users.name LIKE ? ORDER BY users.id
-      ('%ed',)
-      {stop}Multiple rows were found for one()
+      >>> user = query.one()
+      Traceback (most recent call last):
+      ...
+      MultipleResultsFound: Multiple rows were found for one()
 
   With no rows found:
 
   .. sourcecode:: python+sql
 
-      {sql}>>> from sqlalchemy.orm.exc import NoResultFound
-      >>> try:
-      ...     user = query.filter(User.id == 99).one()
-      ... except NoResultFound as e:
-      ...     print(e)
-      SELECT users.id AS users_id,
-              users.name AS users_name,
-              users.fullname AS users_fullname,
-              users.password AS users_password
-      FROM users
-      WHERE users.name LIKE ? AND users.id = ? ORDER BY users.id
-      ('%ed', 99)
-      {stop}No row was found for one()
+      >>> user = query.filter(User.id == 99).one()
+      Traceback (most recent call last):
+      ...
+      NoResultFound: No row was found for one()
 
   The :meth:`~.Query.one` method is great for systems that expect to handle
   "no items found" versus "multiple items found" differently; such as a RESTful

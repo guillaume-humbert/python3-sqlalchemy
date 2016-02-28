@@ -2590,6 +2590,31 @@ class KwargPropagationTest(fixtures.TestBase):
 class CRUDTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
+    def test_insert_literal_binds(self):
+        stmt = table1.insert().values(myid=3, name='jack')
+
+        self.assert_compile(
+            stmt,
+            "INSERT INTO mytable (myid, name) VALUES (3, 'jack')",
+            literal_binds=True)
+
+    def test_update_literal_binds(self):
+        stmt = table1.update().values(name='jack').\
+            where(table1.c.name == 'jill')
+
+        self.assert_compile(
+            stmt,
+            "UPDATE mytable SET name='jack' WHERE mytable.name = 'jill'",
+            literal_binds=True)
+
+    def test_delete_literal_binds(self):
+        stmt = table1.delete().where(table1.c.name == 'jill')
+
+        self.assert_compile(
+            stmt,
+            "DELETE FROM mytable WHERE mytable.name = 'jill'",
+            literal_binds=True)
+
     def test_correlated_update(self):
         # test against a straight text subquery
         u = update(

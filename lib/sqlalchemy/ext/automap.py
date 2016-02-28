@@ -1,5 +1,5 @@
 # ext/automap.py
-# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2016 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -112,7 +112,7 @@ explicit table declaration::
         Base.classes.user_order
 
 Specifying Classes Explicitly
-============================
+=============================
 
 The :mod:`.sqlalchemy.ext.automap` extension allows classes to be defined
 explicitly, in a way similar to that of the :class:`.DeferredReflection` class.

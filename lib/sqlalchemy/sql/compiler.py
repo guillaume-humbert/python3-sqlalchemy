@@ -1,5 +1,5 @@
 # sql/compiler.py
-# Copyright (C) 2005-2015 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2016 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -53,7 +53,7 @@ LEGAL_CHARACTERS = re.compile(r'^[A-Z0-9_$]+$', re.I)
 ILLEGAL_INITIAL_CHARACTERS = set([str(x) for x in range(0, 10)]).union(['$'])
 
 BIND_PARAMS = re.compile(r'(?<![:\w\$\x5c]):([\w\$]+)(?![:\w\$])', re.UNICODE)
-BIND_PARAMS_ESC = re.compile(r'\x5c(:[\w\$]+)(?![:\w\$])', re.UNICODE)
+BIND_PARAMS_ESC = re.compile(r'\x5c(:[\w\$]*)(?![:\w\$])', re.UNICODE)
 
 BIND_TEMPLATES = {
     'pyformat': "%%(%(name)s)s",
@@ -282,6 +282,7 @@ class _CompileLabel(visitors.Visitable):
         return self.element.type
 
 
+
 class SQLCompiler(Compiled):
 
     """Default implementation of Compiled.
@@ -300,6 +301,8 @@ class SQLCompiler(Compiled):
     level to define if this Compiled instance represents
     INSERT/UPDATE/DELETE
     """
+
+    isplaintext = False
 
     returning = None
     """holds the "returning" collection of columns if
@@ -683,6 +686,9 @@ class SQLCompiler(Compiled):
                 return self.process(textclause._bindparams[name], **kw)
             else:
                 return self.bindparam_string(name, **kw)
+
+        if not self.stack:
+            self.isplaintext = True
 
         # un-escape any \:params
         return BIND_PARAMS_ESC.sub(
@@ -1998,7 +2004,7 @@ class SQLCompiler(Compiled):
                 text += " " + extra_from_text
 
         if update_stmt._whereclause is not None:
-            t = self.process(update_stmt._whereclause)
+            t = self.process(update_stmt._whereclause, **kw)
             if t:
                 text += " WHERE " + t
 
@@ -2061,7 +2067,7 @@ class SQLCompiler(Compiled):
                     delete_stmt, delete_stmt._returning)
 
         if delete_stmt._whereclause is not None:
-            t = delete_stmt._whereclause._compiler_dispatch(self)
+            t = delete_stmt._whereclause._compiler_dispatch(self, **kw)
             if t:
                 text += " WHERE " + t
 
