@@ -1,13 +1,12 @@
 #! coding:utf-8
 
 from sqlalchemy import Column, Integer, MetaData, String, Table,\
-    bindparam, exc, func, insert, select, column, text
+    bindparam, exc, func, insert, select, column, text, table
 from sqlalchemy.dialects import mysql, postgresql
 from sqlalchemy.engine import default
 from sqlalchemy.testing import AssertsCompiledSQL,\
     assert_raises_message, fixtures, eq_
 from sqlalchemy.sql import crud
-
 
 class _InsertTestBase(object):
 
@@ -54,6 +53,69 @@ class InsertTest(_InsertTestBase, fixtures.TablesTest, AssertsCompiledSQL):
                     name='jack')),
             'INSERT INTO mytable (myid, name) VALUES (:myid, :name)',
             checkparams=checkparams)
+
+    def test_unconsumed_names_kwargs(self):
+        t = table("t", column("x"), column("y"))
+        assert_raises_message(
+            exc.CompileError,
+            "Unconsumed column names: z",
+            t.insert().values(x=5, z=5).compile,
+        )
+
+    def test_bindparam_name_no_consume_error(self):
+        t = table("t", column("x"), column("y"))
+        # bindparam names don't get counted
+        i = t.insert().values(x=3 + bindparam('x2'))
+        self.assert_compile(
+            i,
+            "INSERT INTO t (x) VALUES ((:param_1 + :x2))"
+        )
+
+        # even if in the params list
+        i = t.insert().values(x=3 + bindparam('x2'))
+        self.assert_compile(
+            i,
+            "INSERT INTO t (x) VALUES ((:param_1 + :x2))",
+            params={"x2": 1}
+        )
+
+    def test_unconsumed_names_values_dict(self):
+        table1 = self.tables.mytable
+
+        checkparams = {
+            'myid': 3,
+            'name': 'jack',
+            'unknowncol': 'oops'
+        }
+
+        stmt = insert(table1, values=checkparams)
+        assert_raises_message(
+            exc.CompileError,
+            'Unconsumed column names: unknowncol',
+            stmt.compile,
+            dialect=postgresql.dialect()
+        )
+
+    def test_unconsumed_names_multi_values_dict(self):
+        table1 = self.tables.mytable
+
+        checkparams = [{
+            'myid': 3,
+            'name': 'jack',
+            'unknowncol': 'oops'
+        }, {
+            'myid': 4,
+            'name': 'someone',
+            'unknowncol': 'oops'
+        }]
+
+        stmt = insert(table1, values=checkparams)
+        assert_raises_message(
+            exc.CompileError,
+            'Unconsumed column names: unknowncol',
+            stmt.compile,
+            dialect=postgresql.dialect()
+        )
 
     def test_insert_with_values_tuple(self):
         table1 = self.tables.mytable

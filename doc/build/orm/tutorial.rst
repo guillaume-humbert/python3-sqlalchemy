@@ -950,7 +950,7 @@ method:
     (224, 'fred')
     {stop}<User(name='fred', fullname='Fred Flinstone', password='blah')>
 
-To use an entirely string-based statement, using
+To use an entirely string-based statement, use
 :meth:`~sqlalchemy.orm.query.Query.from_statement()`; just ensure that the
 columns clause of the statement contains the column names normally used by the
 mapper (below illustrated using an asterisk):
@@ -2002,7 +2002,7 @@ that a single user might have lots of blog posts. When we access
 ``User.posts``, we'd like to be able to filter results further so as not to
 load the entire collection. For this we use a setting accepted by
 :func:`~sqlalchemy.orm.relationship` called ``lazy='dynamic'``, which
-configures an alternate **loader strategy** on the attribute::
+configures an alternate **loader strategy** on the attribute:
 
 .. sourcecode:: python+sql
 
