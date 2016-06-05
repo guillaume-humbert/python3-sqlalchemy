@@ -1572,7 +1572,6 @@ class SQLCompiler(Compiled):
                 select, select._prefixes, **kwargs)
 
         text += self.get_select_precolumns(select, **kwargs)
-
         # the actual list of columns to print in the SELECT column list.
         inner_columns = [
             c for c in [
@@ -1590,15 +1589,14 @@ class SQLCompiler(Compiled):
         if populate_result_map and select_wraps_for is not None:
             # if this select is a compiler-generated wrapper,
             # rewrite the targeted columns in the result map
-            wrapped_inner_columns = set(select_wraps_for.inner_columns)
+
             translate = dict(
-                (outer, inner.pop()) for outer, inner in [
-                    (
-                        outer,
-                        outer.proxy_set.intersection(wrapped_inner_columns))
-                    for outer in select.inner_columns
-                ] if inner
+                zip(
+                    [name for (key, name) in select._columns_plus_names],
+                    [name for (key, name) in
+                     select_wraps_for._columns_plus_names])
             )
+
             self._result_columns = [
                 (key, name, tuple(translate.get(o, o) for o in obj), type_)
                 for key, name, obj, type_ in self._result_columns

@@ -1,5 +1,5 @@
 # -*- encoding: utf-8
-from sqlalchemy.testing import eq_
+from sqlalchemy.testing import eq_, is_
 from sqlalchemy import schema
 from sqlalchemy.sql import table, column
 from sqlalchemy.databases import mssql
@@ -521,6 +521,30 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         assert t.c.x in set(c._create_result_map()['x'][1])
         assert t.c.y in set(c._create_result_map()['y'][1])
 
+    def test_limit_offset_w_ambiguous_cols(self):
+        t = table('t', column('x', Integer), column('y', Integer))
+
+        cols = [t.c.x, t.c.x.label('q'), t.c.x.label('p'), t.c.y]
+        s = select(cols).where(t.c.x == 5).order_by(t.c.y).limit(10).offset(20)
+
+        self.assert_compile(
+            s,
+            "SELECT anon_1.x, anon_1.q, anon_1.p, anon_1.y "
+            "FROM (SELECT t.x AS x, t.x AS q, t.x AS p, t.y AS y, "
+            "ROW_NUMBER() OVER (ORDER BY t.y) AS mssql_rn "
+            "FROM t "
+            "WHERE t.x = :x_1) AS anon_1 "
+            "WHERE mssql_rn > :param_1 AND mssql_rn <= :param_2 + :param_1",
+            checkparams={'param_1': 20, 'param_2': 10, 'x_1': 5}
+        )
+        c = s.compile(dialect=mssql.MSDialect())
+        eq_(len(c._result_columns), 4)
+
+        result_map = c._create_result_map()
+
+        for col in cols:
+            is_(result_map[col.key][1][0], col)
+
     def test_limit_offset_with_correlated_order_by(self):
         t1 = table('t1', column('x', Integer), column('y', Integer))
         t2 = table('t2', column('x', Integer), column('y', Integer))
@@ -546,6 +570,31 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         eq_(len(c._result_columns), 2)
         assert t1.c.x in set(c._create_result_map()['x'][1])
         assert t1.c.y in set(c._create_result_map()['y'][1])
+
+    def test_offset_dont_misapply_labelreference(self):
+        m = MetaData()
+
+        t = Table('t', m, Column('x', Integer))
+
+        expr1 = func.foo(t.c.x).label('x')
+        expr2 = func.foo(t.c.x).label('y')
+
+        stmt1 = select([expr1]).order_by(expr1.desc()).offset(1)
+        stmt2 = select([expr2]).order_by(expr2.desc()).offset(1)
+
+        self.assert_compile(
+            stmt1,
+            "SELECT anon_1.x FROM (SELECT foo(t.x) AS x, "
+            "ROW_NUMBER() OVER (ORDER BY foo(t.x) DESC) AS mssql_rn FROM t) "
+            "AS anon_1 WHERE mssql_rn > :param_1"
+        )
+
+        self.assert_compile(
+            stmt2,
+            "SELECT anon_1.y FROM (SELECT foo(t.x) AS y, "
+            "ROW_NUMBER() OVER (ORDER BY foo(t.x) DESC) AS mssql_rn FROM t) "
+            "AS anon_1 WHERE mssql_rn > :param_1"
+        )
 
     def test_limit_zero_offset_using_window(self):
         t = table('t', column('x', Integer), column('y', Integer))

@@ -420,7 +420,7 @@ class RawSelectTest(QueryTest, AssertsCompiledSQL):
         self.assert_compile(
             select([Foo]).where(Foo.foob == 'somename').order_by(Foo.foob),
             "SELECT users.id, users.name FROM users "
-            "WHERE coalesce(users.name) = :coalesce_1 "
+            "WHERE coalesce(users.name) = :param_1 "
             "ORDER BY coalesce(users.name)"
         )
 
@@ -1493,6 +1493,63 @@ class ColumnPropertyTest(_fixtures.FixtureTest, AssertsCompiledSQL):
             "ead": column_property(stmt)
         }, with_polymorphic="*" if polymorphic else None)
         mapper(Address, addresses)
+
+    def _func_fixture(self, label=False):
+        User = self.classes.User
+        users = self.tables.users
+
+        if label:
+            mapper(User, users, properties={
+                "foobar": column_property(
+                    func.foob(users.c.name).label(None)
+                )
+            })
+        else:
+            mapper(User, users, properties={
+                "foobar": column_property(
+                    func.foob(users.c.name)
+                )
+            })
+
+    def test_anon_label_function_auto(self):
+        self._func_fixture()
+        User = self.classes.User
+
+        s = Session()
+
+        u1 = aliased(User)
+        self.assert_compile(
+            s.query(User.foobar, u1.foobar),
+            "SELECT foob(users.name) AS foob_1, foob(users_1.name) AS foob_2 "
+            "FROM users, users AS users_1"
+        )
+
+    def test_anon_label_function_manual(self):
+        self._func_fixture(label=True)
+        User = self.classes.User
+
+        s = Session()
+
+        u1 = aliased(User)
+        self.assert_compile(
+            s.query(User.foobar, u1.foobar),
+            "SELECT foob(users.name) AS foob_1, foob(users_1.name) AS foob_2 "
+            "FROM users, users AS users_1"
+        )
+
+    def test_anon_label_ad_hoc_labeling(self):
+        self._func_fixture()
+        User = self.classes.User
+
+        s = Session()
+
+        u1 = aliased(User)
+        self.assert_compile(
+            s.query(User.foobar.label('x'), u1.foobar.label('y')),
+            "SELECT foob(users.name) AS x, foob(users_1.name) AS y "
+            "FROM users, users AS users_1"
+        )
+
 
     def test_order_by_column_prop_string(self):
         User, Address = self.classes("User", "Address")
@@ -2919,6 +2976,25 @@ class TextTest(QueryTest, AssertsCompiledSQL):
                 text("select * from users").columns(id=Integer, name=String)
             ).order_by(User.id).all(),
             [User(id=7), User(id=8), User(id=9), User(id=10)]
+        )
+
+    def test_group_by_accepts_text(self):
+        User = self.classes.User
+        s = create_session()
+
+        q = s.query(User).group_by(text("name"))
+        self.assert_compile(
+            q,
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users GROUP BY name"
+        )
+
+    def test_orm_columns_accepts_text(self):
+        from sqlalchemy.orm.base import _orm_columns
+        t = text("x")
+        eq_(
+            _orm_columns(t),
+            [t]
         )
 
     def test_order_by_w_eager_one(self):

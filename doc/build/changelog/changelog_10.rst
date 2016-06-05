@@ -16,6 +16,154 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.0.13
+    :released: May 16, 2016
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3700
+
+        Fixed bug in "evaluate" strategy of :meth:`.Query.update` and
+        :meth:`.Query.delete` which would fail to accommodate a bound
+        parameter with a "callable" value, as which occurs when filtering
+        by a many-to-one equality expression along a relationship.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 3715
+
+        Added disconnect detection support for the error string
+        "SSL error: decryption failed or bad record mac".  Pull
+        request courtesy Iuri de Silvio.
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 3711
+
+        Fixed bug where by ROW_NUMBER OVER clause applied for OFFSET
+        selects in SQL Server would inappropriately substitute a plain column
+        from the local statement that overlaps with a label name used by
+        the ORDER BY criteria of the statement.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3710
+
+        Fixed bug whereby the event listeners used for backrefs could
+        be inadvertently applied multiple times, when using a deep class
+        inheritance hierarchy in conjunction with mutiple mapper configuration
+        steps.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3706
+
+        Fixed bug whereby passing a :func:`.text` construct to the
+        :meth:`.Query.group_by` method would raise an error, instead
+        of intepreting the object as a SQL fragment.
+
+    .. change::
+        :tags: bug, oracle
+        :tickets: 3705
+
+        Fixed a bug in the cx_Oracle connect process that caused a TypeError
+        when the either the user, password or dsn was empty. This prevented
+        external authentication to Oracle databases, and prevented connecting
+        to the default dsn.  The connect string oracle:// now logs into the
+        default dsn using the Operating System username, equivalent to
+        connecting using '/' with sqlplus.
+
+    .. change::
+        :tags: bug, oracle
+        :tickets: 3699
+
+        Fixed a bug in the result proxy used mainly by Oracle when binary and
+        other LOB types are in play, such that when query / statement caching
+        were used, the type-level result processors, notably that required by
+        the binary type itself but also any other processor, would become lost
+        after the first run of the statement due to it being removed from the
+        cached result metadata.
+
+    .. change::
+        :tags: bug, examples
+        :tickets: 3698
+
+        Changed the "directed graph" example to no longer consider
+        integer identifiers of nodes as significant; the "higher" / "lower"
+        references now allow mutual edges in both directions.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3690
+
+        Fixed bug where when using ``case_sensitive=False`` with an
+        :class:`.Engine`, the result set would fail to correctly accomodate
+        for duplicate column names in the result set, causing an error
+        when the statement is executed in 1.0, and preventing the
+        "ambiguous column" exception from functioning in 1.1.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3682
+
+        Fixed bug where the negation of an EXISTS expression would not
+        be properly typed as boolean in the result, and also would fail to be
+        anonymously aliased in a SELECT list as is the case with a
+        non-negated EXISTS construct.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3666
+
+        Fixed bug where "unconsumed column names" exception would fail to
+        be raised in the case where :meth:`.Insert.values` were called
+        with a list of parameter mappings, instead of a single mapping
+        of parameters.  Pull request courtesy Athena Yao.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3663
+
+        Anonymous labeling is applied to a :attr:`.func` construct that is
+        passed to :func:`.column_property`, so that if the same attribute
+        is referred to as a column expression twice the names are de-duped,
+        thus avoiding "ambiguous column" errors.   Previously, the
+        ``.label(None)`` would need to be applied in order for the name
+        to be de-anonymized.
+
+    .. change::
+        :tags: bug, py3k
+        :tickets: 3660
+
+        Fixed bug in "to_list" conversion where a single bytes object
+        would be turned into a list of individual characters.  This would
+        impact among other things using the :meth:`.Query.get` method
+        on a primary key that's a bytes object.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3658
+
+        Fixed regression appearing in the 1.0 series in ORM loading where the
+        exception raised for an expected column missing would incorrectly
+        be a ``NoneType`` error, rather than the expected
+        :class:`.NoSuchColumnError`.
+
+    .. change::
+        :tags: bug, mssql, oracle
+        :tickets: 3657
+
+        Fixed regression appearing in the 1.0 series which would cause the Oracle
+        and SQL Server dialects to incorrectly account for result set columns
+        when these dialects would wrap a SELECT in a subquery in order to
+        provide LIMIT/OFFSET behavior, and the original SELECT statement
+        referred to the same column multiple times, such as a column and
+        a label of that same column.  This issue is related
+        to :ticket:`3658` in that when the error occurred, it would also
+        cause a ``NoneType`` error, rather than reporting that it couldn't
+        locate a column.
+
+.. changelog::
     :version: 1.0.12
     :released: February 15, 2016
 

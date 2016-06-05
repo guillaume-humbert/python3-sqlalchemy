@@ -60,7 +60,7 @@ Glossary
         ``__delete__()`` methods.   The :class:`.InstrumentedAttribute`
         will generate a SQL expression when used at the class level::
 
-            >>> print MyClass.data == 5
+            >>> print(MyClass.data == 5)
             data = :data_1
 
         and at the instance level, keeps track of changes to values,
@@ -103,7 +103,7 @@ Glossary
         Instrumentation refers to the process of augmenting the functionality
         and attribute set of a particular class.   Ideally, the
         behavior of the class should remain close to a regular
-        class, except that additional behviors and features are
+        class, except that additional behaviors and features are
         made available.  The SQLAlchemy :term:`mapping` process,
         among other things, adds database-enabled :term:`descriptors`
         to a mapped
@@ -246,7 +246,7 @@ Glossary
         transactional resources", to indicate more explicitly that
         what we are actually "releasing" is any transactional
         state which as accumulated upon the connection.  In most
-        situations, the proces of selecting from tables, emitting
+        situations, the process of selecting from tables, emitting
         updates, etc. acquires :term:`isolated` state upon
         that connection as well as potential row or table locks.
         This state is all local to a particular transaction
@@ -360,7 +360,7 @@ Glossary
         comprises the WHERE clause of the ``SELECT``.
 
     FROM clause
-        The portion of the ``SELECT`` statement which incicates the initial
+        The portion of the ``SELECT`` statement which indicates the initial
         source of rows.
 
         A simple ``SELECT`` will feature one or more table names in its

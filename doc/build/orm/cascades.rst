@@ -17,7 +17,7 @@ the :ref:`cascade_delete` and :ref:`cascade_delete_orphan` options;
 these settings are appropriate for related objects which only exist as
 long as they are attached to their parent, and are otherwise deleted.
 
-Cascade behavior is configured using the by changing the
+Cascade behavior is configured using the
 :paramref:`~.relationship.cascade` option on
 :func:`~sqlalchemy.orm.relationship`::
 
@@ -341,7 +341,7 @@ easily described through demonstration; it means that, given a mapping such as t
     })
 
 If an ``Order`` is already in the session, and is assigned to the ``order``
-attribute of an ``Item``, the backref appends the ``Order`` to the ``items``
+attribute of an ``Item``, the backref appends the ``Item`` to the ``items``
 collection of that ``Order``, resulting in the ``save-update`` cascade taking
 place::
 
