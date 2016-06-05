@@ -5,6 +5,7 @@ sqlalchemy (1.0.13+ds1-1) unstable; urgency=medium
 
   [ Piotr Ożarowski ]
   * New upstream release
+  * Standards-Version bumped to 3.9.8 (no changes needed)
 
  -- Piotr Ożarowski <piotr@debian.org>  Sun, 05 Jun 2016 22:53:44 +0200
 
