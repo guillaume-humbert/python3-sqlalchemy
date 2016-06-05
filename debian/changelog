@@ -1,8 +1,12 @@
-sqlalchemy (1.0.12+ds1-2) UNRELEASED; urgency=medium
+sqlalchemy (1.0.13+ds1-1) unstable; urgency=medium
 
+  [ Ondřej Nový ]
   * Fixed VCS URL (https)
 
- -- Ondřej Nový <novy@ondrej.org>  Tue, 29 Mar 2016 22:33:51 +0200
+  [ Piotr Ożarowski ]
+  * New upstream release
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 05 Jun 2016 22:53:44 +0200
 
 sqlalchemy (1.0.12+ds1-1) unstable; urgency=medium
 
