@@ -7,7 +7,7 @@ from sqlalchemy import Integer, String, UniqueConstraint, \
     CheckConstraint, ForeignKey, MetaData, Sequence, \
     ForeignKeyConstraint, PrimaryKeyConstraint, ColumnDefault, Index, event,\
     events, Unicode, types as sqltypes, bindparam, \
-    Table, Column, Boolean, Enum, func, text
+    Table, Column, Boolean, Enum, func, text, BLANK_SCHEMA
 from sqlalchemy import schema, exc
 from sqlalchemy.sql import elements, naming
 import sqlalchemy as tsa
@@ -20,18 +20,6 @@ from sqlalchemy import util
 
 
 class MetaDataTest(fixtures.TestBase, ComparesTables):
-
-    def test_metadata_connect(self):
-        metadata = MetaData()
-        t1 = Table('table1', metadata,
-                   Column('col1', Integer, primary_key=True),
-                   Column('col2', String(20)))
-        metadata.bind = testing.db
-        metadata.create_all()
-        try:
-            assert t1.count().scalar() == 0
-        finally:
-            metadata.drop_all()
 
     def test_metadata_contains(self):
         metadata = MetaData()
@@ -445,6 +433,7 @@ class MetaDataTest(fixtures.TestBase, ComparesTables):
                     ('t2', m1, 'sch2', None, 'sch2', None),
                     ('t3', m1, 'sch2', True, 'sch2', True),
                     ('t4', m1, 'sch1', None, 'sch1', None),
+                    ('t5', m1, BLANK_SCHEMA, None, None, None),
                     ('t1', m2, None, None, 'sch1', True),
                     ('t2', m2, 'sch2', None, 'sch2', None),
                     ('t3', m2, 'sch2', True, 'sch2', True),
@@ -457,6 +446,7 @@ class MetaDataTest(fixtures.TestBase, ComparesTables):
                     ('t2', m4, 'sch2', None, 'sch2', None),
                     ('t3', m4, 'sch2', True, 'sch2', True),
                     ('t4', m4, 'sch1', None, 'sch1', None),
+                    ('t5', m4, BLANK_SCHEMA, None, None, None),
                 ]):
             kw = {}
             if schema is not None:
@@ -1108,6 +1098,34 @@ class ToMetaDataTest(fixtures.TestBase, ComparesTables):
                                                       == table2_c.c.myid))
         eq_(str(table_c.join(table2_c).onclause),
             'mytable.myid = othertable.myid')
+
+    def test_unique_true_flag(self):
+        meta = MetaData()
+
+        table = Table('mytable', meta, Column('x', Integer, unique=True))
+
+        m2 = MetaData()
+
+        t2 = table.tometadata(m2)
+
+        eq_(
+            len([
+                const for const
+                in t2.constraints
+                if isinstance(const, UniqueConstraint)]),
+            1
+        )
+
+    def test_index_true_flag(self):
+        meta = MetaData()
+
+        table = Table('mytable', meta, Column('x', Integer, index=True))
+
+        m2 = MetaData()
+
+        t2 = table.tometadata(m2)
+
+        eq_(len(t2.indexes), 1)
 
 
 class InfoTest(fixtures.TestBase):

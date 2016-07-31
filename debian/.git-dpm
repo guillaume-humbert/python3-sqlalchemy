@@ -1,11 +1,11 @@
 # see git-dpm(1) from git-dpm package
-b5ead0dbb4a6c7d6dd5cc8dd999698017dd2782b
-b5ead0dbb4a6c7d6dd5cc8dd999698017dd2782b
-b5ead0dbb4a6c7d6dd5cc8dd999698017dd2782b
-b5ead0dbb4a6c7d6dd5cc8dd999698017dd2782b
-sqlalchemy_1.0.13+ds1.orig.tar.gz
-c95cb466c263ac88a4d925dfe19e4d4a8caaf5a7
-2568042
+796dc5659d53dd9ffcd94d6b0b5089a52c97b516
+796dc5659d53dd9ffcd94d6b0b5089a52c97b516
+796dc5659d53dd9ffcd94d6b0b5089a52c97b516
+796dc5659d53dd9ffcd94d6b0b5089a52c97b516
+sqlalchemy_1.0.14+ds1.orig.tar.gz
+b1c59a0b539ca04aa87ddba0eda5e4d2e3e54bb5
+2571702
 debianTag="debian/%e%v"
 patchedTag="patched/%e%v"
 upstreamTag="upstream/%e%u"

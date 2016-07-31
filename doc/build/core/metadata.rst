@@ -243,7 +243,7 @@ database schemas in relation to application code using schema migration tools.
 
 There are two major migration tools available for SQLAlchemy:
 
-* `Alembic <http://alembic.readthedocs.org>`_ - Written by the author of SQLAlchemy,
+* `Alembic <http://alembic.zzzcomputing.com>`_ - Written by the author of SQLAlchemy,
   Alembic features a highly customizable environment and a minimalistic usage pattern,
   supporting such features as transactional DDL, automatic generation of "candidate"
   migrations, an "offline" mode which generates SQL scripts, and support for branch
@@ -302,6 +302,23 @@ described in the individual documentation sections for each dialect.
 
 Column, Table, MetaData API
 ---------------------------
+
+.. attribute:: sqlalchemy.schema.BLANK_SCHEMA
+
+    Symbol indicating that a :class:`.Table` or :class:`.Sequence`
+    should have 'None' for its schema, even if the parent
+    :class:`.MetaData` has specified a schema.
+
+    .. seealso::
+
+        :paramref:`.MetaData.schema`
+
+        :paramref:`.Table.schema`
+
+        :paramref:`.Sequence.schema`
+
+    .. versionadded:: 1.0.14
+
 
 .. autoclass:: Column
     :members:

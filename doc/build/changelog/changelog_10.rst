@@ -16,6 +16,99 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.0.14
+    :released: July 6, 2016
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 3739
+        :versions: 1.1.0b3
+
+        Fixed bug whereby :class:`.TypeDecorator` and :class:`.Variant`
+        types were not deeply inspected enough by the Postgresql dialect
+        to determine if SMALLSERIAL or BIGSERIAL needed to be rendered
+        rather than SERIAL.
+
+    .. change::
+        :tags: bug, oracle
+        :tickets: 3741
+        :versions: 1.1.0b3
+
+        Fixed bug in :paramref:`.Select.with_for_update.of`, where the Oracle
+        "rownum" approach to LIMIT/OFFSET would fail to accomodate for the
+        expressions inside the "OF" clause, which must be stated at the topmost
+        level referring to expression within the subquery.  The expressions are
+        now added to the subquery if needed.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3735
+        :versions: 1.1.0b2
+
+        Fixed issue in SQL math negation operator where the type of the
+        expression would no longer be the numeric type of the original.
+        This would cause issues where the type determined result set
+        behaviors.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3728
+        :versions: 1.1.0b2
+
+        Fixed bug whereby the ``__getstate__`` / ``__setstate__``
+        methods for sqlalchemy.util.Properties were
+        non-working due to the transition in the 1.0 series to ``__slots__``.
+        The issue potentially impacted some third-party applications.
+        Pull request courtesy Pieter Mulder.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3724
+
+        :meth:`.FromClause.count` is pending deprecation for 1.1.  This function
+        makes use of an arbitrary column in the table and is not reliable;
+        for Core use, ``func.count()`` should be preferred.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3722
+
+        Fixed bug in :class:`.CTE` structure which would cause it to not
+        clone properly when a union was used, as is common in a recursive
+        CTE.  The improper cloning would cause errors when the CTE is used
+        in various ORM contexts such as that of a :func:`.column_property`.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3721
+
+        Fixed bug whereby :meth:`.Table.tometadata` would make a duplicate
+        :class:`.UniqueConstraint` for each :class:`.Column` object that
+        featured the ``unique=True`` parameter.
+
+    .. change::
+        :tags: bug, engine, postgresql
+        :tickets: 3716
+
+        Fixed bug in cross-schema foreign key reflection in conjunction
+        with the :paramref:`.MetaData.schema` argument, where a referenced
+        table that is present in the "default" schema would fail since there
+        would be no way to indicate a :class:`.Table` that has "blank" for
+        a schema.  The special symbol :attr:`.schema.BLANK_SCHEMA` has been
+        added as an available value for :paramref:`.Table.schema` and
+        :paramref:`.Sequence.schema`, indicating that the schema name
+        should be forced to be ``None`` even if :paramref:`.MetaData.schema`
+        is specified.
+
+    .. change::
+        :tags: bug, examples
+        :tickets: 3704
+
+        Fixed a regression that occurred in the
+        examples/vertical/dictlike-polymorphic.py example which prevented it
+        from running.
+
+.. changelog::
     :version: 1.0.13
     :released: May 16, 2016
 
