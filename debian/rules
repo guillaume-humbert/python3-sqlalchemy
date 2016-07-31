@@ -38,7 +38,7 @@ build-indep: build-docs
 build-docs:
 	dh_testdir
 	dh_installdirs -i
-	cd doc/build && sphinx-build -N -q -E -b html . \
+	cd doc/build && sphinx-build -N -E -b html . \
 	 $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/html/
 	rm -rf $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/html/.doctrees
 	touch $@
