@@ -13,25 +13,6 @@
 
 import sys
 import os
-import traceback
-
-def force_install_reqs():
-    import logging
-
-    log = logging.getLogger("pip")
-    handler = logging.StreamHandler(sys.stderr)
-    handler.setFormatter(logging.Formatter("[pip] %(message)s"))
-    log.addHandler(handler)
-    log.setLevel(logging.INFO)
-
-    log.info("READTHEDOCS is set, force-installing requirements.txt")
-
-    from pip.commands import install
-    req = os.path.join(os.path.dirname(__file__), "requirements.txt")
-    cmd = install.InstallCommand()
-    options, args = cmd.parse_args(["-v", "-U", "-r", req])
-    cmd.run(options, args)
-
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -41,18 +22,6 @@ sys.path.insert(0, os.path.abspath('../..')) # examples
 sys.path.insert(0, os.path.abspath('.'))
 
 import sqlalchemy
-
-# attempt to force pip to definitely get the latest
-# versions of libraries, see
-# https://github.com/rtfd/readthedocs.org/issues/1293
-rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if rtd:
-    try:
-        force_install_reqs()
-    except:
-        traceback.print_exc()
-
-
 
 
 # -- General configuration -----------------------------------------------------
@@ -138,9 +107,9 @@ copyright = u'2007-2016, the SQLAlchemy authors and contributors'
 # The short X.Y version.
 version = "1.0"
 # The full version, including alpha/beta/rc tags.
-release = "1.0.13"
+release = "1.0.14"
 
-release_date = "May 16, 2016"
+release_date = "July 6, 2016"
 
 site_base = os.environ.get("RTD_SITE_BASE", "http://www.sqlalchemy.org")
 site_adapter_template = "docs_adapter.mako"
@@ -373,7 +342,7 @@ epub_copyright = u'2007-2015, SQLAlchemy authors'
 #epub_tocdup = True
 
 intersphinx_mapping = {
-    'alembic': ('http://alembic.readthedocs.org/en/latest/', None),
+    'alembic': ('http://alembic.zzzcomputing.com/en/latest/', None),
     'psycopg2': ('http://pythonhosted.org/psycopg2', None),
 }
 
