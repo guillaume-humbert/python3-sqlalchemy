@@ -500,7 +500,7 @@ can be loaded::
 
     manager_and_engineer = with_polymorphic(
                                 Employee, [Manager, Engineer],
-                                aliased=True)
+                                flat=True)
 
     session.query(Company).\
         options(
@@ -508,12 +508,19 @@ can be loaded::
             )
         )
 
-.. versionadded:: 0.8
-    :func:`.joinedload`, :func:`.subqueryload`, :func:`.contains_eager`
-    and related loader options support
-    paths that are qualified with
-    :func:`~sqlalchemy.orm.interfaces.PropComparator.of_type`, supporting
-    single target types as well as :func:`.orm.with_polymorphic` targets.
+Note that once :meth:`~PropComparator.of_type` is the target of the eager load,
+that's the entity we would use for subsequent chaining, not the original class
+or derived class.  If we wanted to further eager load a collection on the
+eager-loaded ``Engineer`` class, we access this class from the namespace of the
+:func:`.orm.with_polymorphic` object::
+
+    session.query(Company).\
+        options(
+            joinedload(Company.employees.of_type(manager_and_engineer)).\
+            subqueryload(manager_and_engineer.Engineer.computers)
+            )
+        )
+
 
 Another option for the above query is to state the two subtypes separately;
 the :func:`.joinedload` directive should detect this and create the

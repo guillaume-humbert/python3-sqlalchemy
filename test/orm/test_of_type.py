@@ -13,6 +13,7 @@ from .inheritance._poly_fixtures import Company, Person, Engineer, Manager, Boss
     Machine, Paperwork, _PolymorphicFixtureBase, _Polymorphic,\
     _PolymorphicPolymorphic, _PolymorphicUnions, _PolymorphicJoins,\
     _PolymorphicAliasedJoins
+from sqlalchemy.testing.assertsql import AllOf, CompiledSQL
 
 
 class _PolymorphicTestBase(object):
@@ -313,6 +314,8 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
             id = Column(Integer, primary_key=True,
                                         test_needs_autoincrement=True)
             type = Column(String(10))
+            widget_id = Column(ForeignKey('widget.id'))
+            widget = relationship("Widget")
             container_id = Column(Integer, ForeignKey('data_container.id'))
             __mapper_args__ = {"polymorphic_on": type}
 
@@ -337,6 +340,13 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
             name = Column(String(10))
             jobs = relationship(Job, order_by=Job.id)
 
+        class Widget(ComparableEntity, Base):
+            __tablename__ = "widget"
+
+            id = Column(Integer, primary_key=True,
+                                        test_needs_autoincrement=True)
+            name = Column(String(10))
+
     @classmethod
     def insert_data(cls):
         s = Session(testing.db)
@@ -346,23 +356,24 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
 
     @classmethod
     def _fixture(cls):
-        ParentThing, DataContainer, SubJob = \
+        ParentThing, DataContainer, SubJob, Widget = \
             cls.classes.ParentThing,\
             cls.classes.DataContainer,\
-            cls.classes.SubJob
+            cls.classes.SubJob,\
+            cls.classes.Widget
         return [
             ParentThing(
                 container=DataContainer(name="d1",
                     jobs=[
-                        SubJob(attr="s1"),
-                        SubJob(attr="s2")
+                        SubJob(attr="s1", widget=Widget(name='w1')),
+                        SubJob(attr="s2", widget=Widget(name='w2'))
                     ])
             ),
             ParentThing(
                 container=DataContainer(name="d2",
                     jobs=[
-                        SubJob(attr="s3"),
-                        SubJob(attr="s4")
+                        SubJob(attr="s3", widget=Widget(name='w3')),
+                        SubJob(attr="s4", widget=Widget(name='w4'))
                     ])
             ),
         ]
@@ -389,7 +400,7 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
                 q.all(),
                 self._dc_fixture()
             )
-        self.assert_sql_count(testing.db, go, 1)
+        self.assert_sql_count(testing.db, go, 5)
 
     def test_joinedload_wpoly(self):
         ParentThing, DataContainer, Job, SubJob = \
@@ -408,7 +419,7 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
                 q.all(),
                 self._dc_fixture()
             )
-        self.assert_sql_count(testing.db, go, 1)
+        self.assert_sql_count(testing.db, go, 5)
 
     def test_joinedload_wsubclass(self):
         ParentThing, DataContainer, Job, SubJob = \
@@ -424,7 +435,7 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
                 q.all(),
                 self._dc_fixture()
             )
-        self.assert_sql_count(testing.db, go, 1)
+        self.assert_sql_count(testing.db, go, 5)
 
     def test_lazyload(self):
         DataContainer = self.classes.DataContainer
@@ -438,7 +449,8 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
         # SELECT data container
         # SELECT job * 2 container rows
         # SELECT subjob * 4 rows
-        self.assert_sql_count(testing.db, go, 7)
+        # SELECT widget * 4 rows
+        self.assert_sql_count(testing.db, go, 11)
 
     def test_subquery_wsubclass(self):
         ParentThing, DataContainer, Job, SubJob = \
@@ -454,7 +466,7 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
                 q.all(),
                 self._dc_fixture()
             )
-        self.assert_sql_count(testing.db, go, 2)
+        self.assert_sql_count(testing.db, go, 6)
 
     def test_twolevel_subqueryload_wsubclass(self):
         ParentThing, DataContainer, Job, SubJob = \
@@ -473,6 +485,25 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
             eq_(
                 q.all(),
                 self._fixture()
+            )
+        self.assert_sql_count(testing.db, go, 7)
+
+    def test_twolevel_subqueryload_wsubclass_mapper_term(self):
+        DataContainer, SubJob = \
+            self.classes.DataContainer,\
+            self.classes.SubJob
+        s = Session(testing.db)
+        sj_alias = aliased(SubJob)
+        q = s.query(DataContainer).\
+                        options(
+                            subqueryload_all(
+                                DataContainer.jobs.of_type(sj_alias),
+                                sj_alias.widget
+                        ))
+        def go():
+            eq_(
+                q.all(),
+                self._dc_fixture()
             )
         self.assert_sql_count(testing.db, go, 3)
 
@@ -494,7 +525,7 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
                 q.all(),
                 self._fixture()
             )
-        self.assert_sql_count(testing.db, go, 1)
+        self.assert_sql_count(testing.db, go, 5)
 
     def test_any_wpoly(self):
         ParentThing, DataContainer, Job, SubJob = \
@@ -514,6 +545,7 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
 
         self.assert_compile(q,
             "SELECT job.id AS job_id, job.type AS job_type, "
+            "job.widget_id AS job_widget_id, "
             "job.container_id "
             "AS job_container_id "
             "FROM data_container "
@@ -542,6 +574,7 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
                         )
         self.assert_compile(q,
             "SELECT job.id AS job_id, job.type AS job_type, "
+            "job.widget_id AS job_widget_id, "
             "job.container_id AS job_container_id "
             "FROM data_container JOIN job ON data_container.id = job.container_id "
             "WHERE EXISTS (SELECT 1 "
@@ -680,9 +713,168 @@ class SubclassRelationshipTest(testing.AssertsCompiledSQL, fixtures.DeclarativeM
             "data_container.name AS data_container_name "
             "FROM data_container JOIN "
             "(SELECT job.id AS job_id, job.type AS job_type, "
+                "job.widget_id AS job_widget_id, "
                 "job.container_id AS job_container_id, "
                 "subjob.id AS subjob_id, subjob.attr AS subjob_attr "
                 "FROM job LEFT OUTER JOIN subjob ON job.id = subjob.id) "
                 "AS anon_1 ON data_container.id = anon_1.job_container_id"
         )
 
+
+class SubclassRelationshipTest2(
+        testing.AssertsCompiledSQL, fixtures.DeclarativeMappedTest):
+
+    run_setup_classes = 'once'
+    run_setup_mappers = 'once'
+    run_inserts = 'once'
+    run_deletes = None
+    __dialect__ = 'default'
+
+    @classmethod
+    def setup_classes(cls):
+        Base = cls.DeclarativeBasic
+
+        class A(Base):
+            __tablename__ = 't_a'
+
+            id = Column(Integer, primary_key=True,
+                        test_needs_autoincrement=True)
+
+        class B(Base):
+            __tablename__ = 't_b'
+
+            type = Column(String(2))
+            __mapper_args__ = {
+                'polymorphic_identity': 'b',
+                'polymorphic_on': type
+            }
+
+            id = Column(Integer, primary_key=True,
+                        test_needs_autoincrement=True)
+
+            # Relationship to A
+            a_id = Column(Integer, ForeignKey('t_a.id'))
+            a = relationship('A', backref='bs')
+
+        class B2(B):
+            __tablename__ = 't_b2'
+
+            __mapper_args__ = {
+                'polymorphic_identity': 'b2',
+            }
+
+            id = Column(Integer, ForeignKey('t_b.id'), primary_key=True)
+
+        class C(Base):
+            __tablename__ = 't_c'
+
+            type = Column(String(2))
+            __mapper_args__ = {
+                'polymorphic_identity': 'c',
+                'polymorphic_on': type
+            }
+
+            id = Column(Integer, primary_key=True,
+                        test_needs_autoincrement=True)
+
+            # Relationship to B
+            b_id = Column(Integer, ForeignKey('t_b.id'))
+            b = relationship('B', backref='cs')
+
+        class C2(C):
+            __tablename__ = 't_c2'
+
+            __mapper_args__ = {
+                'polymorphic_identity': 'c2',
+            }
+
+            id = Column(Integer, ForeignKey('t_c.id'), primary_key=True)
+
+        class D(Base):
+            __tablename__ = 't_d'
+
+            id = Column(Integer, primary_key=True,
+                        test_needs_autoincrement=True)
+
+            # Relationship to B
+            c_id = Column(Integer, ForeignKey('t_c.id'))
+            c = relationship('C', backref='ds')
+
+    @classmethod
+    def insert_data(cls):
+        s = Session(testing.db)
+
+        s.add_all(cls._fixture())
+        s.commit()
+
+    @classmethod
+    def _fixture(cls):
+        A, B, B2, C, C2, D = cls.classes('A', 'B', 'B2', 'C', 'C2', 'D')
+
+        return [
+            A(bs=[B2(cs=[C2(ds=[D()])])]),
+            A(bs=[B2(cs=[C2(ds=[D()])])]),
+        ]
+
+    def test_all_subq_query(self):
+        A, B, B2, C, C2, D = self.classes('A', 'B', 'B2', 'C', 'C2', 'D')
+
+        session = Session(testing.db)
+
+        b_b2 = with_polymorphic(B, [B2], flat=True)
+        c_c2 = with_polymorphic(C, [C2], flat=True)
+
+        q = session.query(
+            A
+        ).options(
+            subqueryload(
+                A.bs.of_type(b_b2)
+            ).subqueryload(
+                b_b2.cs.of_type(c_c2)
+            ).subqueryload(
+                c_c2.ds
+            )
+        )
+
+        self.assert_sql_execution(
+            testing.db,
+            q.all,
+            CompiledSQL(
+                "SELECT t_a.id AS t_a_id FROM t_a",
+                {}
+            ),
+            CompiledSQL(
+                "SELECT t_b_1.type AS t_b_1_type, t_b_1.id AS t_b_1_id, "
+                "t_b_1.a_id AS t_b_1_a_id, t_b2_1.id AS t_b2_1_id, "
+                "anon_1.t_a_id AS anon_1_t_a_id FROM "
+                "(SELECT t_a.id AS t_a_id FROM t_a) AS anon_1 "
+                "JOIN (t_b AS t_b_1 LEFT OUTER JOIN t_b2 AS t_b2_1 "
+                "ON t_b_1.id = t_b2_1.id) ON anon_1.t_a_id = t_b_1.a_id "
+                "ORDER BY anon_1.t_a_id",
+                {}
+            ),
+            CompiledSQL(
+                "SELECT t_c_1.type AS t_c_1_type, t_c_1.id AS t_c_1_id, "
+                "t_c_1.b_id AS t_c_1_b_id, t_c2_1.id AS t_c2_1_id, "
+                "t_b_1.id AS t_b_1_id FROM (SELECT t_a.id AS t_a_id FROM t_a) "
+                "AS anon_1 JOIN (t_b AS t_b_1 LEFT OUTER JOIN t_b2 AS t_b2_1 "
+                "ON t_b_1.id = t_b2_1.id) ON anon_1.t_a_id = t_b_1.a_id "
+                "JOIN (t_c AS t_c_1 LEFT OUTER JOIN t_c2 AS t_c2_1 ON "
+                "t_c_1.id = t_c2_1.id) ON t_b_1.id = t_c_1.b_id "
+                "ORDER BY t_b_1.id",
+                {}
+            ),
+            CompiledSQL(
+                "SELECT t_d.id AS t_d_id, t_d.c_id AS t_d_c_id, "
+                "t_c_1.id AS t_c_1_id "
+                "FROM (SELECT t_a.id AS t_a_id FROM t_a) AS anon_1 "
+                "JOIN (t_b AS t_b_1 LEFT OUTER JOIN t_b2 AS t_b2_1 "
+                "ON t_b_1.id = t_b2_1.id) "
+                "ON anon_1.t_a_id = t_b_1.a_id "
+                "JOIN (t_c AS t_c_1 LEFT OUTER JOIN t_c2 AS t_c2_1 "
+                "ON t_c_1.id = t_c2_1.id) "
+                "ON t_b_1.id = t_c_1.b_id "
+                "JOIN t_d ON t_c_1.id = t_d.c_id ORDER BY t_c_1.id",
+                {}
+            )
+        )
