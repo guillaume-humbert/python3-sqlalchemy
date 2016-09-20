@@ -34,7 +34,7 @@ import sqlalchemy
 
 extensions = [
             'sphinx.ext.autodoc',
-            'sphinx.ext.intersphinx',
+#            'sphinx.ext.intersphinx',
                 'zzzeeksphinx',
                 'changelog',
                 'sphinx_paramlinks',
