@@ -16,6 +16,52 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.0.15
+    :released: September 1, 2016
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 3787
+        :versions: 1.1.0
+
+        Added support for parsing MySQL/Connector boolean and integer
+        arguments within the URL query string: connection_timeout,
+        connect_timeout, pool_size, get_warnings,
+        raise_on_warnings, raw, consume_results, ssl_verify_cert, force_ipv6,
+        pool_reset_session, compress, allow_local_infile, use_pure.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3773, 3774
+        :versions: 1.1.0
+
+        Fixed bug in subquery eager loading where a subqueryload
+        of an "of_type()" object linked to a second subqueryload of a plain
+        mapped class, or a longer chain of several "of_type()" attributes,
+        would fail to link the joins correctly.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3755
+        :versions: 1.1.0
+
+        Fixed bug in :class:`.Table` where the internal method
+        ``_reset_exported()`` would corrupt the state of the object.  This
+        method is intended for selectable objects and is called by the ORM
+        in some cases; an erroneous mapper configuration would could lead the
+        ORM to call this on on a :class:`.Table` object.
+
+    .. change::
+        :tags: bug, ext
+        :tickets: 3743
+        :versions: 1.1.0b3
+
+        Fixed bug in ``sqlalchemy.ext.baked`` where the unbaking of a
+        subquery eager loader query would fail due to a variable scoping
+        issue, when multiple subquery loaders were involved.  Pull request
+        courtesy Mark Hahnenberg.
+
+.. changelog::
     :version: 1.0.14
     :released: July 6, 2016
 
