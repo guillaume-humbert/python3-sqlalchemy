@@ -3,7 +3,8 @@
 from sqlalchemy.testing import assert_raises, assert_raises_message
 import sqlalchemy as sa
 from sqlalchemy import testing
-from sqlalchemy import MetaData, Integer, String, ForeignKey, func, util
+from sqlalchemy import MetaData, Integer, String, \
+    ForeignKey, func, util, select
 from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.engine import default
 from sqlalchemy.orm import mapper, relationship, backref, \
@@ -152,10 +153,12 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
 
         for i in range(3):
             assert_raises_message(sa.exc.InvalidRequestError,
-                                  "^One or more mappers failed to "
-                                  "initialize - can't proceed with "
-                                  "initialization of other mappers.  "
-                                  "Original exception was: Class "
+                                  "^One or more "
+                                  "mappers failed to initialize - can't "
+                                  "proceed with initialization of other "
+                                  r"mappers. Triggering mapper\: "
+                                  r"'Mapper\|Address\|addresses'."
+                                  " Original exception was: Class "
                                   "'test.orm._fixtures.User' is not mapped$",
                                   configure_mappers)
 
@@ -1070,8 +1073,10 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         sess.add(a)
         sess.flush()
 
-        eq_(addresses.count().scalar(), 6)
-        eq_(email_bounces.count().scalar(), 5)
+        eq_(
+            select([func.count('*')]).select_from(addresses).scalar(), 6)
+        eq_(
+            select([func.count('*')]).select_from(email_bounces).scalar(), 5)
 
     def test_mapping_to_outerjoin(self):
         """Mapping to an outer join with a nullable composite primary key."""
@@ -1165,6 +1170,7 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
 
         eq_(l, [self.static.user_result[0]])
 
+    @testing.uses_deprecated("Mapper.order_by")
     def test_cancel_order_by(self):
         users, User = self.tables.users, self.classes.User
 
@@ -1205,9 +1211,9 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
                       users.c.id == addresses.c.user_id,
                       group_by=[c for c in users.c]).alias('myselect')
 
-        mapper(User, s, order_by=s.c.id)
+        mapper(User, s)
         sess = create_session()
-        l = sess.query(User).all()
+        l = sess.query(User).order_by(s.c.id).all()
 
         for idx, total in enumerate((14, 16)):
             eq_(l[idx].concat, l[idx].id * 2)
@@ -2159,7 +2165,7 @@ class DeepOptionsTest(_fixtures.FixtureTest):
             items=relationship(Item, order_items,
                                order_by=items.c.id)))
 
-        mapper(User, users, order_by=users.c.id, properties=dict(
+        mapper(User, users, properties=dict(
             orders=relationship(Order, order_by=orders.c.id)))
 
     def test_deep_options_1(self):
@@ -2168,7 +2174,7 @@ class DeepOptionsTest(_fixtures.FixtureTest):
         sess = create_session()
 
         # joinedload nothing.
-        u = sess.query(User).all()
+        u = sess.query(User).order_by(User.id).all()
 
         def go():
             u[0].orders[1].items[0].keywords[1]
@@ -2182,6 +2188,7 @@ class DeepOptionsTest(_fixtures.FixtureTest):
         sess = create_session()
 
         l = (sess.query(User).
+             order_by(User.id).
              options(sa.orm.joinedload_all('orders.items.keywords'))).all()
 
         def go():
@@ -2204,6 +2211,7 @@ class DeepOptionsTest(_fixtures.FixtureTest):
 
         # same thing, with separate options calls
         q2 = (sess.query(User).
+              order_by(User.id).
               options(sa.orm.joinedload('orders')).
               options(sa.orm.joinedload('orders.items')).
               options(sa.orm.joinedload('orders.items.keywords')))
@@ -2229,7 +2237,7 @@ class DeepOptionsTest(_fixtures.FixtureTest):
         # joinedload "keywords" on items.  it will lazy load "orders", then
         # lazy load the "items" on the order, but on "items" it will eager
         # load the "keywords"
-        q3 = sess.query(User).options(
+        q3 = sess.query(User).order_by(User.id).options(
             sa.orm.joinedload('orders.items.keywords'))
         u = q3.all()
 
@@ -2238,7 +2246,7 @@ class DeepOptionsTest(_fixtures.FixtureTest):
         self.sql_count_(2, go)
 
         sess = create_session()
-        q3 = sess.query(User).options(
+        q3 = sess.query(User).order_by(User.id).options(
             sa.orm.joinedload(User.orders, Order.items, Item.keywords))
         u = q3.all()
 
@@ -2758,6 +2766,172 @@ class NoLoadTest(_fixtures.FixtureTest):
         self.sql_count_(0, go)
 
 
+class RaiseLoadTest(_fixtures.FixtureTest):
+    run_inserts = 'once'
+    run_deletes = None
+
+    def test_o2m_raiseload_mapper(self):
+        Address, addresses, users, User = (
+            self.classes.Address,
+            self.tables.addresses,
+            self.tables.users,
+            self.classes.User)
+
+        mapper(Address, addresses)
+        mapper(User, users, properties=dict(
+            addresses=relationship(Address, lazy='raise')
+        ))
+        q = create_session().query(User)
+        l = [None]
+
+        def go():
+            x = q.filter(User.id == 7).all()
+            assert_raises_message(
+                sa.exc.InvalidRequestError,
+                "'User.addresses' is not available due to lazy='raise'",
+                lambda: x[0].addresses)
+            l[0] = x
+        self.assert_sql_count(testing.db, go, 1)
+
+        self.assert_result(
+            l[0], User,
+            {'id': 7},
+        )
+
+    def test_o2m_raiseload_option(self):
+        Address, addresses, users, User = (
+            self.classes.Address,
+            self.tables.addresses,
+            self.tables.users,
+            self.classes.User)
+
+        mapper(Address, addresses)
+        mapper(User, users, properties=dict(
+            addresses=relationship(Address)
+        ))
+        q = create_session().query(User)
+        l = [None]
+
+        def go():
+            x = q.options(
+                sa.orm.raiseload(User.addresses)).filter(User.id == 7).all()
+            assert_raises_message(
+                sa.exc.InvalidRequestError,
+                "'User.addresses' is not available due to lazy='raise'",
+                lambda: x[0].addresses)
+            l[0] = x
+        self.assert_sql_count(testing.db, go, 1)
+
+        self.assert_result(
+            l[0], User,
+            {'id': 7},
+        )
+
+    def test_o2m_raiseload_lazyload_option(self):
+        Address, addresses, users, User = (
+            self.classes.Address,
+            self.tables.addresses,
+            self.tables.users,
+            self.classes.User)
+
+        mapper(Address, addresses)
+        mapper(User, users, properties=dict(
+            addresses=relationship(Address, lazy='raise')
+        ))
+        q = create_session().query(User).options(sa.orm.lazyload('addresses'))
+        l = [None]
+
+        def go():
+            x = q.filter(User.id == 7).all()
+            x[0].addresses
+            l[0] = x
+        self.sql_count_(2, go)
+
+        self.assert_result(
+            l[0], User,
+            {'id': 7, 'addresses': (Address, [{'id': 1}])},
+        )
+
+    def test_m2o_raiseload_option(self):
+        Address, addresses, users, User = (
+            self.classes.Address,
+            self.tables.addresses,
+            self.tables.users,
+            self.classes.User)
+        mapper(Address, addresses, properties={
+            'user': relationship(User)
+        })
+        mapper(User, users)
+        s = Session()
+        a1 = s.query(Address).filter_by(id=1).options(
+            sa.orm.raiseload('user')).first()
+
+        def go():
+            assert_raises_message(
+                sa.exc.InvalidRequestError,
+                "'Address.user' is not available due to lazy='raise'",
+                lambda: a1.user)
+
+        self.sql_count_(0, go)
+
+    def test_m2o_raise_on_sql_option(self):
+        Address, addresses, users, User = (
+            self.classes.Address,
+            self.tables.addresses,
+            self.tables.users,
+            self.classes.User)
+        mapper(Address, addresses, properties={
+            'user': relationship(User)
+        })
+        mapper(User, users)
+        s = Session()
+        a1 = s.query(Address).filter_by(id=1).options(
+            sa.orm.raiseload('user', sql_only=True)).first()
+
+        def go():
+            assert_raises_message(
+                sa.exc.InvalidRequestError,
+                "'Address.user' is not available due to lazy='raise_on_sql'",
+                lambda: a1.user)
+
+        self.sql_count_(0, go)
+
+        s.close()
+
+        u1 = s.query(User).first()
+        a1 = s.query(Address).filter_by(id=1).options(
+            sa.orm.raiseload('user', sql_only=True)).first()
+        assert 'user' not in a1.__dict__
+        is_(a1.user, u1)
+
+    def test_m2o_non_use_get_raise_on_sql_option(self):
+        Address, addresses, users, User = (
+            self.classes.Address,
+            self.tables.addresses,
+            self.tables.users,
+            self.classes.User)
+        mapper(Address, addresses, properties={
+            'user': relationship(
+                User,
+                primaryjoin=sa.and_(
+                    addresses.c.user_id == users.c.id ,
+                    users.c.name != None
+                )
+            )
+        })
+        mapper(User, users)
+        s = Session()
+        u1 = s.query(User).first()
+        a1 = s.query(Address).filter_by(id=1).options(
+            sa.orm.raiseload('user', sql_only=True)).first()
+
+        def go():
+            assert_raises_message(
+                sa.exc.InvalidRequestError,
+                "'Address.user' is not available due to lazy='raise_on_sql'",
+                lambda: a1.user)
+
+
 class RequirementsTest(fixtures.MappedTest):
 
     """Tests the contract for user classes."""
@@ -2884,7 +3058,9 @@ class RequirementsTest(fixtures.MappedTest):
         h1.h1s.append(H1())
 
         s.flush()
-        eq_(ht1.count().scalar(), 4)
+        eq_(
+            select([func.count('*')]).select_from(ht1)
+                .scalar(), 4)
 
         h6 = H6()
         h6.h1a = h1

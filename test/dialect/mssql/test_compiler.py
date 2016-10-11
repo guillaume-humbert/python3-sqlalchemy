@@ -9,10 +9,10 @@ from sqlalchemy import sql
 from sqlalchemy import Integer, String, Table, Column, select, MetaData,\
     update, delete, insert, extract, union, func, PrimaryKeyConstraint, \
     UniqueConstraint, Index, Sequence, literal
-
+from sqlalchemy import testing
 
 class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
-    __dialect__ = mssql.dialect(legacy_schema_aliasing=False)
+    __dialect__ = mssql.dialect()
 
     def test_true_false(self):
         self.assert_compile(
@@ -244,6 +244,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
                             '(SELECT sometable.somecolumn FROM '
                             'sometable)')
 
+    @testing.uses_deprecated
     def test_count(self):
         t = table('sometable', column('somecolumn'))
         self.assert_compile(t.count(),
@@ -648,6 +649,44 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             schema.CreateTable(tbl),
             "CREATE TABLE test (x INTEGER NOT NULL, y INTEGER NOT NULL, "
             "PRIMARY KEY CLUSTERED (x, y))"
+        )
+
+    def test_table_pkc_explicit_nonclustered(self):
+        metadata = MetaData()
+        tbl = Table('test', metadata,
+                    Column('x', Integer, autoincrement=False),
+                    Column('y', Integer, autoincrement=False),
+                    PrimaryKeyConstraint("x", "y", mssql_clustered=False))
+        self.assert_compile(
+            schema.CreateTable(tbl),
+            "CREATE TABLE test (x INTEGER NOT NULL, y INTEGER NOT NULL, "
+            "PRIMARY KEY NONCLUSTERED (x, y))"
+        )
+
+    def test_table_idx_explicit_nonclustered(self):
+        metadata = MetaData()
+        tbl = Table(
+            'test', metadata,
+            Column('x', Integer, autoincrement=False),
+            Column('y', Integer, autoincrement=False)
+        )
+
+        idx = Index("myidx", tbl.c.x, tbl.c.y, mssql_clustered=False)
+        self.assert_compile(
+            schema.CreateIndex(idx),
+            "CREATE NONCLUSTERED INDEX myidx ON test (x, y)"
+        )
+
+    def test_table_uc_explicit_nonclustered(self):
+        metadata = MetaData()
+        tbl = Table('test', metadata,
+                    Column('x', Integer, autoincrement=False),
+                    Column('y', Integer, autoincrement=False),
+                    UniqueConstraint("x", "y", mssql_clustered=False))
+        self.assert_compile(
+            schema.CreateTable(tbl),
+            "CREATE TABLE test (x INTEGER NULL, y INTEGER NULL, "
+            "UNIQUE NONCLUSTERED (x, y))"
         )
 
     def test_table_uc_clustering(self):

@@ -12,6 +12,8 @@ from sqlalchemy import Table, MetaData, Column, select, String, \
 
 from sqlalchemy.dialects.mysql import base as mysql
 from sqlalchemy.testing import fixtures, AssertsCompiledSQL
+from sqlalchemy.testing import mock
+from sqlalchemy import testing
 from sqlalchemy.sql import table, column
 import re
 
@@ -414,6 +416,39 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(
             cast(t.c.col, type_), "CAST(t.col AS SIGNED INTEGER)")
 
+    def test_cast_literal_bind(self):
+        expr = cast(column('foo', Integer) + 5, Integer())
+
+        self.assert_compile(
+            expr,
+            "CAST(foo + 5 AS SIGNED INTEGER)",
+            literal_binds=True
+        )
+
+    def test_unsupported_cast_literal_bind(self):
+        expr = cast(column('foo', Integer) + 5, Float)
+
+        with expect_warnings(
+            "Datatype FLOAT does not support CAST on MySQL;"
+        ):
+            self.assert_compile(
+                expr,
+                "(foo + 5)",
+                literal_binds=True
+            )
+
+        dialect = mysql.MySQLDialect()
+        dialect.server_version_info = (3, 9, 8)
+        with expect_warnings(
+            "Current MySQL version does not support CAST"
+        ):
+            eq_(
+                str(expr.compile(
+                    dialect=dialect,
+                    compile_kwargs={"literal_binds": True})),
+                "(foo + 5)"
+            )
+
     def test_unsupported_casts(self):
 
         t = sql.table('t', sql.column('col'))
@@ -517,9 +552,8 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(schema.CreateTable(t1),
                             'CREATE TABLE sometable (assigned_id '
                             'INTEGER NOT NULL, id INTEGER NOT NULL '
-                            'AUTO_INCREMENT, PRIMARY KEY (assigned_id, '
-                            'id), KEY idx_autoinc_id (id))ENGINE=Inn'
-                            'oDB')
+                            'AUTO_INCREMENT, PRIMARY KEY (id, assigned_id)'
+                            ')ENGINE=InnoDB')
 
         t1 = Table('sometable', MetaData(),
                    Column('assigned_id', Integer(), primary_key=True,
@@ -543,8 +577,7 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
             'CREATE TABLE sometable ('
             'id INTEGER NOT NULL, '
             '`order` INTEGER NOT NULL AUTO_INCREMENT, '
-            'PRIMARY KEY (id, `order`), '
-            'KEY idx_autoinc_order (`order`)'
+            'PRIMARY KEY (`order`, id)'
             ')ENGINE=InnoDB')
 
     def test_create_table_with_partition(self):
@@ -577,4 +610,31 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
             'other_id INTEGER NOT NULL, '
             'PRIMARY KEY (id, other_id)'
             ')PARTITION BY HASH(other_id) PARTITIONS 2'
+        )
+
+    def test_inner_join(self):
+        t1 = table('t1', column('x'))
+        t2 = table('t2', column('y'))
+
+        self.assert_compile(
+            t1.join(t2, t1.c.x == t2.c.y),
+            "t1 INNER JOIN t2 ON t1.x = t2.y"
+        )
+
+    def test_outer_join(self):
+        t1 = table('t1', column('x'))
+        t2 = table('t2', column('y'))
+
+        self.assert_compile(
+            t1.outerjoin(t2, t1.c.x == t2.c.y),
+            "t1 LEFT OUTER JOIN t2 ON t1.x = t2.y"
+        )
+
+    def test_full_outer_join(self):
+        t1 = table('t1', column('x'))
+        t2 = table('t2', column('y'))
+
+        self.assert_compile(
+            t1.outerjoin(t2, t1.c.x == t2.c.y, full=True),
+            "t1 FULL OUTER JOIN t2 ON t1.x = t2.y"
         )

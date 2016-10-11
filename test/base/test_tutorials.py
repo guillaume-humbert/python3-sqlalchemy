@@ -52,7 +52,8 @@ class DocTest(fixtures.TestBase):
 
     def _run_doctest_for_content(self, name, content):
         optionflags = (
-            doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE |
+            doctest.ELLIPSIS |
+            doctest.NORMALIZE_WHITESPACE |
             doctest.IGNORE_EXCEPTION_DETAIL |
             _get_allow_unicode_flag()
         )

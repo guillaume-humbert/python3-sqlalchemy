@@ -23,6 +23,8 @@ elements are themselves :class:`.ColumnElement` subclasses).
 
 .. autofunction:: join
 
+.. autofunction:: lateral
+
 .. autofunction:: outerjoin
 
 .. autofunction:: select
@@ -30,6 +32,8 @@ elements are themselves :class:`.ColumnElement` subclasses).
 .. autofunction:: subquery
 
 .. autofunction:: sqlalchemy.sql.expression.table
+
+.. autofunction:: tablesample
 
 .. autofunction:: union
 
@@ -57,6 +61,9 @@ elements are themselves :class:`.ColumnElement` subclasses).
    :members:
    :inherited-members:
 
+.. autoclass:: HasCTE
+   :members:
+
 .. autoclass:: HasPrefixes
    :members:
 
@@ -64,6 +71,10 @@ elements are themselves :class:`.ColumnElement` subclasses).
    :members:
 
 .. autoclass:: Join
+   :members:
+   :inherited-members:
+
+.. autoclass:: Lateral
    :members:
    :inherited-members:
 
@@ -84,5 +95,10 @@ elements are themselves :class:`.ColumnElement` subclasses).
    :members:
    :inherited-members:
 
+.. autoclass:: TableSample
+   :members:
+   :inherited-members:
+
 .. autoclass:: TextAsFrom
    :members:
+   :inherited-members:

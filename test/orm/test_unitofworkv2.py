@@ -6,7 +6,7 @@ from test.orm import _fixtures
 from sqlalchemy import exc, util
 from sqlalchemy.testing import fixtures, config
 from sqlalchemy import Integer, String, ForeignKey, func, \
-    literal, FetchedValue, text
+    literal, FetchedValue, text, select
 from sqlalchemy.orm import mapper, relationship, backref, \
     create_session, unitofwork, attributes,\
     Session, exc as orm_exc
@@ -1306,7 +1306,9 @@ class RowswitchAccountingTest(fixtures.MappedTest):
         eq_(p1.id, 5)
         sess.flush()
 
-        eq_(sess.scalar(self.tables.parent.count()), 0)
+        eq_(
+            select([func.count('*')]).select_from(self.tables.parent).scalar(),
+            0)
 
 
 class RowswitchM2OTest(fixtures.MappedTest):
@@ -1393,7 +1395,7 @@ class RowswitchM2OTest(fixtures.MappedTest):
 
     def test_set_none_replaces_scalar(self):
         # this case worked before #3060, because a straight scalar
-        # set of None shows up.  Howver, as test_set_none_w_get
+        # set of None shows up.  However, as test_set_none_w_get
         # shows, we can't rely on this - the get of None will blow
         # away the history.
         A, B, C = self._fixture()
@@ -2398,4 +2400,216 @@ class TypeWoBoolTest(fixtures.MappedTest, testing.AssertsExecutionResults):
 
         eq_(
             s.query(Thing.value).scalar().text, "foo"
+        )
+
+
+class NullEvaluatingTest(fixtures.MappedTest, testing.AssertsExecutionResults):
+    @classmethod
+    def define_tables(cls, metadata):
+        from sqlalchemy import TypeDecorator
+
+        class EvalsNull(TypeDecorator):
+            impl = String(50)
+
+            should_evaluate_none = True
+
+            def process_bind_param(self, value, dialect):
+                if value is None:
+                    value = 'nothing'
+                return value
+
+        Table(
+            'test', metadata,
+            Column('id', Integer, primary_key=True,
+                   test_needs_autoincrement=True),
+            Column('evals_null_no_default', EvalsNull()),
+            Column('evals_null_default', EvalsNull(), default='default_val'),
+            Column('no_eval_null_no_default', String(50)),
+            Column('no_eval_null_default', String(50), default='default_val'),
+            Column(
+                'builtin_evals_null_no_default', String(50).evaluates_none()),
+            Column(
+                'builtin_evals_null_default',
+                String(50).evaluates_none(), default='default_val'),
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class Thing(cls.Basic):
+            pass
+
+    @classmethod
+    def setup_mappers(cls):
+        Thing = cls.classes.Thing
+
+        mapper(Thing, cls.tables.test)
+
+    def _assert_col(self, name, value):
+        Thing = self.classes.Thing
+        s = Session()
+
+        col = getattr(Thing, name)
+        obj = s.query(col).filter(col == value).one()
+        eq_(obj[0], value)
+
+    def _test_insert(self, attr, expected):
+        Thing = self.classes.Thing
+
+        s = Session()
+        t1 = Thing(**{attr: None})
+        s.add(t1)
+        s.commit()
+
+        self._assert_col(attr, expected)
+
+    def _test_bulk_insert(self, attr, expected):
+        Thing = self.classes.Thing
+
+        s = Session()
+        s.bulk_insert_mappings(
+            Thing, [{attr: None}]
+        )
+        s.commit()
+
+        self._assert_col(attr, expected)
+
+    def _test_insert_novalue(self, attr, expected):
+        Thing = self.classes.Thing
+
+        s = Session()
+        t1 = Thing()
+        s.add(t1)
+        s.commit()
+
+        self._assert_col(attr, expected)
+
+    def _test_bulk_insert_novalue(self, attr, expected):
+        Thing = self.classes.Thing
+
+        s = Session()
+        s.bulk_insert_mappings(
+            Thing, [{}]
+        )
+        s.commit()
+
+        self._assert_col(attr, expected)
+
+    def test_evalnull_nodefault_insert(self):
+        self._test_insert(
+            "evals_null_no_default", 'nothing'
+        )
+
+    def test_evalnull_nodefault_bulk_insert(self):
+        self._test_bulk_insert(
+            "evals_null_no_default", 'nothing'
+        )
+
+    def test_evalnull_nodefault_insert_novalue(self):
+        self._test_insert_novalue(
+            "evals_null_no_default", None
+        )
+
+    def test_evalnull_nodefault_bulk_insert_novalue(self):
+        self._test_bulk_insert_novalue(
+            "evals_null_no_default", None
+        )
+
+    def test_evalnull_default_insert(self):
+        self._test_insert(
+            "evals_null_default", 'nothing'
+        )
+
+    def test_evalnull_default_bulk_insert(self):
+        self._test_bulk_insert(
+            "evals_null_default", 'nothing'
+        )
+
+    def test_evalnull_default_insert_novalue(self):
+        self._test_insert_novalue(
+            "evals_null_default", 'default_val'
+        )
+
+    def test_evalnull_default_bulk_insert_novalue(self):
+        self._test_bulk_insert_novalue(
+            "evals_null_default", 'default_val'
+        )
+
+    def test_no_evalnull_nodefault_insert(self):
+        self._test_insert(
+            "no_eval_null_no_default", None
+        )
+
+    def test_no_evalnull_nodefault_bulk_insert(self):
+        self._test_bulk_insert(
+            "no_eval_null_no_default", None
+        )
+
+    def test_no_evalnull_nodefault_insert_novalue(self):
+        self._test_insert_novalue(
+            "no_eval_null_no_default", None
+        )
+
+    def test_no_evalnull_nodefault_bulk_insert_novalue(self):
+        self._test_bulk_insert_novalue(
+            "no_eval_null_no_default", None
+        )
+
+    def test_no_evalnull_default_insert(self):
+        self._test_insert(
+            "no_eval_null_default", 'default_val'
+        )
+
+    def test_no_evalnull_default_bulk_insert(self):
+        self._test_bulk_insert(
+            "no_eval_null_default", 'default_val'
+        )
+
+    def test_no_evalnull_default_insert_novalue(self):
+        self._test_insert_novalue(
+            "no_eval_null_default", 'default_val'
+        )
+
+    def test_no_evalnull_default_bulk_insert_novalue(self):
+        self._test_bulk_insert_novalue(
+            "no_eval_null_default", 'default_val'
+        )
+
+    def test_builtin_evalnull_nodefault_insert(self):
+        self._test_insert(
+            "builtin_evals_null_no_default", None
+        )
+
+    def test_builtin_evalnull_nodefault_bulk_insert(self):
+        self._test_bulk_insert(
+            "builtin_evals_null_no_default", None
+        )
+
+    def test_builtin_evalnull_nodefault_insert_novalue(self):
+        self._test_insert_novalue(
+            "builtin_evals_null_no_default", None
+        )
+
+    def test_builtin_evalnull_nodefault_bulk_insert_novalue(self):
+        self._test_bulk_insert_novalue(
+            "builtin_evals_null_no_default", None
+        )
+
+    def test_builtin_evalnull_default_insert(self):
+        self._test_insert(
+            "builtin_evals_null_default", None
+        )
+
+    def test_builtin_evalnull_default_bulk_insert(self):
+        self._test_bulk_insert(
+            "builtin_evals_null_default", None
+        )
+
+    def test_builtin_evalnull_default_insert_novalue(self):
+        self._test_insert_novalue(
+            "builtin_evals_null_default", 'default_val'
+        )
+
+    def test_builtin_evalnull_default_bulk_insert_novalue(self):
+        self._test_bulk_insert_novalue(
+            "builtin_evals_null_default", 'default_val'
         )

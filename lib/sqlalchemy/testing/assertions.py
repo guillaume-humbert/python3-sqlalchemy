@@ -197,11 +197,16 @@ def _assert_no_stray_pool_connections():
         # so the error doesn't at least keep happening.
         pool._refs.clear()
         _STRAY_CONNECTION_FAILURES = 0
-        assert False, "Stray connection refused to leave "\
-            "after gc.collect(): %s" % err
+        warnings.warn(
+            "Stray connection refused to leave "
+            "after gc.collect(): %s" % err)
     elif _STRAY_CONNECTION_FAILURES > 10:
         assert False, "Encountered more than 10 stray connections"
         _STRAY_CONNECTION_FAILURES = 0
+
+
+def eq_regex(a, b, msg=None):
+    assert re.match(b, a), msg or "%r !~ %r" % (a, b)
 
 
 def eq_(a, b, msg=None):
@@ -217,6 +222,14 @@ def ne_(a, b, msg=None):
 def le_(a, b, msg=None):
     """Assert a <= b, with repr messaging on failure."""
     assert a <= b, msg or "%r != %r" % (a, b)
+
+
+def is_true(a, msg=None):
+    is_(a, True, msg=msg)
+
+
+def is_false(a, msg=None):
+    is_(a, False, msg=msg)
 
 
 def is_(a, b, msg=None):
@@ -243,6 +256,15 @@ def startswith_(a, fragment, msg=None):
     """Assert a.startswith(fragment), with repr messaging on failure."""
     assert a.startswith(fragment), msg or "%r does not start with %r" % (
         a, fragment)
+
+
+def eq_ignore_whitespace(a, b, msg=None):
+    a = re.sub(r'^\s+?|\n', "", a)
+    a = re.sub(r' {2,}', " ", a)
+    b = re.sub(r'^\s+?|\n', "", b)
+    b = re.sub(r' {2,}', " ", b)
+
+    assert a == b, msg or "%r != %r" % (a, b)
 
 
 def assert_raises(except_cls, callable_, *args, **kw):
@@ -273,7 +295,8 @@ class AssertsCompiledSQL(object):
                        check_prefetch=None,
                        use_default_dialect=False,
                        allow_dialect_select=False,
-                       literal_binds=False):
+                       literal_binds=False,
+                       schema_translate_map=None):
         if use_default_dialect:
             dialect = default.DefaultDialect()
         elif allow_dialect_select:
@@ -286,11 +309,16 @@ class AssertsCompiledSQL(object):
                 dialect = config.db.dialect
             elif dialect == 'default':
                 dialect = default.DefaultDialect()
+            elif dialect == 'default_enhanced':
+                dialect = default.StrCompileDialect()
             elif isinstance(dialect, util.string_types):
                 dialect = url.URL(dialect).get_dialect()()
 
         kw = {}
         compile_kwargs = {}
+
+        if schema_translate_map:
+            kw['schema_translate_map'] = schema_translate_map
 
         if params is not None:
             kw['column_keys'] = list(params)

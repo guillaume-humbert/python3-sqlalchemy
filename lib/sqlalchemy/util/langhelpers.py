@@ -1026,7 +1026,9 @@ def constructor_copy(obj, cls, *args, **kw):
     """
 
     names = get_cls_kwargs(cls)
-    kw.update((k, obj.__dict__[k]) for k in names if k in obj.__dict__)
+    kw.update(
+        (k, obj.__dict__[k]) for k in names.difference(kw)
+        if k in obj.__dict__)
     return cls(*args, **kw)
 
 
@@ -1382,3 +1384,25 @@ class EnsureKWArgType(type):
             return fn(*arg)
         return update_wrapper(wrap, fn)
 
+
+def wrap_callable(wrapper, fn):
+    """Augment functools.update_wrapper() to work with objects with
+    a ``__call__()`` method.
+
+    :param fn:
+      object with __call__ method
+
+    """
+    if hasattr(fn, '__name__'):
+        return update_wrapper(wrapper, fn)
+    else:
+        _f = wrapper
+        _f.__name__ = fn.__class__.__name__
+        _f.__module__ = fn.__module__
+
+        if hasattr(fn.__call__, '__doc__') and fn.__call__.__doc__:
+            _f.__doc__ = fn.__call__.__doc__
+        elif fn.__doc__:
+            _f.__doc__ = fn.__doc__
+
+        return _f

@@ -320,7 +320,7 @@ from ...sql import expression
 from ... import types as sqltypes
 from .base import PGDialect, PGCompiler, \
     PGIdentifierPreparer, PGExecutionContext, \
-    ENUM, ARRAY, _DECIMAL_TYPES, _FLOAT_TYPES,\
+    ENUM, _DECIMAL_TYPES, _FLOAT_TYPES,\
     _INT_TYPES, UUID
 from .hstore import HSTORE
 from .json import JSON, JSONB
@@ -534,6 +534,7 @@ class PGDialect_psycopg2(PGDialect):
             sqltypes.Enum: _PGEnum,  # needs force_unicode
             HSTORE: _PGHStore,
             JSON: _PGJSON,
+            sqltypes.JSON: _PGJSON,
             JSONB: _PGJSONB,
             UUID: _PGUUID
         }

@@ -7,11 +7,11 @@ from sqlalchemy import testing
 import datetime
 from sqlalchemy import Table, MetaData, Column, Integer, Enum, Float, select, \
     func, DateTime, Numeric, exc, String, cast, REAL, TypeDecorator, Unicode, \
-    Text, null, text
+    Text, null, text, column, ARRAY, any_, all_
 from sqlalchemy.sql import operators
 from sqlalchemy import types
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import base as postgresql
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import HSTORE, hstore, array, \
     INT4RANGE, INT8RANGE, NUMRANGE, DATERANGE, TSRANGE, TSTZRANGE, \
     JSON, JSONB
@@ -20,6 +20,8 @@ from sqlalchemy import util
 from sqlalchemy.testing.util import round_decimal
 from sqlalchemy import inspect
 from sqlalchemy import event
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session
 
 tztable = notztable = metadata = table = None
 
@@ -168,7 +170,7 @@ class EnumTest(fixtures.TestBase, AssertsExecutionResults):
         t2 = Table('table', m2, autoload=True)
         eq_(
             t2.c.value.type.enums,
-            (util.u('réveillé'), util.u('drôle'), util.u('S’il'))
+            [util.u('réveillé'), util.u('drôle'), util.u('S’il')]
         )
 
     @testing.provide_metadata
@@ -443,8 +445,9 @@ class EnumTest(fixtures.TestBase, AssertsExecutionResults):
         e.connect()
         assert not dialect.supports_native_enum
 
+    @testing.provide_metadata
     def test_reflection(self):
-        metadata = MetaData(testing.db)
+        metadata = self.metadata
         etype = Enum('four', 'five', 'six', name='fourfivesixtype',
                      metadata=metadata)
         t1 = Table(
@@ -456,18 +459,16 @@ class EnumTest(fixtures.TestBase, AssertsExecutionResults):
                     'one', 'two', 'three', name='onetwothreetype')),
             Column('value2', etype))
         metadata.create_all()
-        try:
-            m2 = MetaData(testing.db)
-            t2 = Table('table', m2, autoload=True)
-            assert t2.c.value.type.enums == ('one', 'two', 'three')
-            assert t2.c.value.type.name == 'onetwothreetype'
-            assert t2.c.value2.type.enums == ('four', 'five', 'six')
-            assert t2.c.value2.type.name == 'fourfivesixtype'
-        finally:
-            metadata.drop_all()
+        m2 = MetaData(testing.db)
+        t2 = Table('table', m2, autoload=True)
+        eq_(t2.c.value.type.enums, ['one', 'two', 'three'])
+        eq_(t2.c.value.type.name, 'onetwothreetype')
+        eq_(t2.c.value2.type.enums, ['four', 'five', 'six'])
+        eq_(t2.c.value2.type.name, 'fourfivesixtype')
 
+    @testing.provide_metadata
     def test_schema_reflection(self):
-        metadata = MetaData(testing.db)
+        metadata = self.metadata
         etype = Enum(
             'four',
             'five',
@@ -476,7 +477,7 @@ class EnumTest(fixtures.TestBase, AssertsExecutionResults):
             schema='test_schema',
             metadata=metadata,
         )
-        t1 = Table(
+        Table(
             'table', metadata,
             Column(
                 'id', Integer, primary_key=True),
@@ -486,16 +487,41 @@ class EnumTest(fixtures.TestBase, AssertsExecutionResults):
                     name='onetwothreetype', schema='test_schema')),
             Column('value2', etype))
         metadata.create_all()
-        try:
-            m2 = MetaData(testing.db)
-            t2 = Table('table', m2, autoload=True)
-            assert t2.c.value.type.enums == ('one', 'two', 'three')
-            assert t2.c.value.type.name == 'onetwothreetype'
-            assert t2.c.value2.type.enums == ('four', 'five', 'six')
-            assert t2.c.value2.type.name == 'fourfivesixtype'
-            assert t2.c.value2.type.schema == 'test_schema'
-        finally:
-            metadata.drop_all()
+        m2 = MetaData(testing.db)
+        t2 = Table('table', m2, autoload=True)
+        eq_(t2.c.value.type.enums, ['one', 'two', 'three'])
+        eq_(t2.c.value.type.name, 'onetwothreetype')
+        eq_(t2.c.value2.type.enums, ['four', 'five', 'six'])
+        eq_(t2.c.value2.type.name, 'fourfivesixtype')
+        eq_(t2.c.value2.type.schema, 'test_schema')
+
+    @testing.provide_metadata
+    def test_custom_subclass(self):
+        class MyEnum(TypeDecorator):
+            impl = Enum('oneHI', 'twoHI', 'threeHI', name='myenum')
+
+            def process_bind_param(self, value, dialect):
+                if value is not None:
+                    value += "HI"
+                return value
+
+            def process_result_value(self, value, dialect):
+                if value is not None:
+                    value += "THERE"
+                return value
+
+        t1 = Table(
+            'table1', self.metadata,
+            Column('data', MyEnum())
+        )
+        self.metadata.create_all(testing.db)
+
+        with testing.db.connect() as conn:
+            conn.execute(t1.insert(), {"data": "two"})
+            eq_(
+                conn.scalar(select([t1.c.data])),
+                "twoHITHERE"
+            )
 
 
 class OIDTest(fixtures.TestBase):
@@ -518,11 +544,11 @@ class NumericInterpretationTest(fixtures.TestBase):
     __backend__ = True
 
     def test_numeric_codes(self):
-        from sqlalchemy.dialects.postgresql import psycopg2cffi, pg8000, \
-            psycopg2, base
+        from sqlalchemy.dialects.postgresql import pg8000, pygresql, \
+            psycopg2, psycopg2cffi, base
 
-        dialects = (pg8000.dialect(), psycopg2.dialect(),
-                    psycopg2cffi.dialect())
+        dialects = (pg8000.dialect(), pygresql.dialect(),
+                psycopg2.dialect(), psycopg2cffi.dialect())
         for dialect in dialects:
             typ = Numeric().dialect_impl(dialect)
             for code in base._INT_TYPES + base._FLOAT_TYPES + \
@@ -706,7 +732,188 @@ class TimePrecisionTest(fixtures.TestBase, AssertsCompiledSQL):
         eq_(t2.c.c6.type.timezone, True)
 
 
-class ArrayTest(fixtures.TablesTest, AssertsExecutionResults):
+class ArrayTest(AssertsCompiledSQL, fixtures.TestBase):
+    __dialect__ = 'postgresql'
+
+    def test_array_int_index(self):
+        col = column('x', postgresql.ARRAY(Integer))
+        self.assert_compile(
+            select([col[3]]),
+            "SELECT x[%(x_1)s] AS anon_1",
+            checkparams={'x_1': 3}
+        )
+
+    def test_array_any(self):
+        col = column('x', postgresql.ARRAY(Integer))
+        self.assert_compile(
+            select([col.any(7, operator=operators.lt)]),
+            "SELECT %(param_1)s < ANY (x) AS anon_1",
+            checkparams={'param_1': 7}
+        )
+
+    def test_array_all(self):
+        col = column('x', postgresql.ARRAY(Integer))
+        self.assert_compile(
+            select([col.all(7, operator=operators.lt)]),
+            "SELECT %(param_1)s < ALL (x) AS anon_1",
+            checkparams={'param_1': 7}
+        )
+
+    def test_array_contains(self):
+        col = column('x', postgresql.ARRAY(Integer))
+        self.assert_compile(
+            select([col.contains(array([4, 5, 6]))]),
+            "SELECT x @> ARRAY[%(param_1)s, %(param_2)s, %(param_3)s] "
+            "AS anon_1",
+            checkparams={'param_1': 4, 'param_3': 6, 'param_2': 5}
+        )
+
+    def test_contains_override_raises(self):
+        col = column('x', postgresql.ARRAY(Integer))
+
+        assert_raises_message(
+            NotImplementedError,
+            "Operator 'contains' is not supported on this expression",
+            lambda: 'foo' in col
+        )
+
+    def test_array_contained_by(self):
+        col = column('x', postgresql.ARRAY(Integer))
+        self.assert_compile(
+            select([col.contained_by(array([4, 5, 6]))]),
+            "SELECT x <@ ARRAY[%(param_1)s, %(param_2)s, %(param_3)s] "
+            "AS anon_1",
+            checkparams={'param_1': 4, 'param_3': 6, 'param_2': 5}
+        )
+
+    def test_array_overlap(self):
+        col = column('x', postgresql.ARRAY(Integer))
+        self.assert_compile(
+            select([col.overlap(array([4, 5, 6]))]),
+            "SELECT x && ARRAY[%(param_1)s, %(param_2)s, %(param_3)s] "
+            "AS anon_1",
+            checkparams={'param_1': 4, 'param_3': 6, 'param_2': 5}
+        )
+
+    def test_array_slice_index(self):
+        col = column('x', postgresql.ARRAY(Integer))
+        self.assert_compile(
+            select([col[5:10]]),
+            "SELECT x[%(x_1)s:%(x_2)s] AS anon_1",
+            checkparams={'x_2': 10, 'x_1': 5}
+        )
+
+    def test_array_dim_index(self):
+        col = column('x', postgresql.ARRAY(Integer, dimensions=2))
+        self.assert_compile(
+            select([col[3][5]]),
+            "SELECT x[%(x_1)s][%(param_1)s] AS anon_1",
+            checkparams={'x_1': 3, 'param_1': 5}
+        )
+
+    def test_array_concat(self):
+        col = column('x', postgresql.ARRAY(Integer))
+        literal = array([4, 5])
+
+        self.assert_compile(
+            select([col + literal]),
+            "SELECT x || ARRAY[%(param_1)s, %(param_2)s] AS anon_1",
+            checkparams={'param_1': 4, 'param_2': 5}
+        )
+
+    def test_array_index_map_dimensions(self):
+        col = column('x', postgresql.ARRAY(Integer, dimensions=3))
+        is_(
+            col[5].type._type_affinity, ARRAY
+        )
+        assert isinstance(
+            col[5].type, postgresql.ARRAY
+        )
+        eq_(
+            col[5].type.dimensions, 2
+        )
+        is_(
+            col[5][6].type._type_affinity, ARRAY
+        )
+        assert isinstance(
+            col[5][6].type, postgresql.ARRAY
+        )
+        eq_(
+            col[5][6].type.dimensions, 1
+        )
+        is_(
+            col[5][6][7].type._type_affinity, Integer
+        )
+
+    def test_array_getitem_single_type(self):
+        m = MetaData()
+        arrtable = Table(
+            'arrtable', m,
+            Column('intarr', postgresql.ARRAY(Integer)),
+            Column('strarr', postgresql.ARRAY(String)),
+        )
+        is_(arrtable.c.intarr[1].type._type_affinity, Integer)
+        is_(arrtable.c.strarr[1].type._type_affinity, String)
+
+    def test_array_getitem_slice_type(self):
+        m = MetaData()
+        arrtable = Table(
+            'arrtable', m,
+            Column('intarr', postgresql.ARRAY(Integer)),
+            Column('strarr', postgresql.ARRAY(String)),
+        )
+
+        # type affinity is Array...
+        is_(arrtable.c.intarr[1:3].type._type_affinity, ARRAY)
+        is_(arrtable.c.strarr[1:3].type._type_affinity, ARRAY)
+
+        # but the slice returns the actual type
+        assert isinstance(arrtable.c.intarr[1:3].type, postgresql.ARRAY)
+        assert isinstance(arrtable.c.strarr[1:3].type, postgresql.ARRAY)
+
+    def test_array_functions_plus_getitem(self):
+        """test parenthesizing of functions plus indexing, which seems
+        to be required by Postgresql.
+
+        """
+        stmt = select([
+            func.array_cat(
+                array([1, 2, 3]),
+                array([4, 5, 6]),
+                type_=postgresql.ARRAY(Integer)
+            )[2:5]
+        ])
+        self.assert_compile(
+            stmt,
+            "SELECT (array_cat(ARRAY[%(param_1)s, %(param_2)s, %(param_3)s], "
+            "ARRAY[%(param_4)s, %(param_5)s, %(param_6)s]))"
+            "[%(param_7)s:%(param_8)s] AS anon_1"
+        )
+
+        self.assert_compile(
+            func.array_cat(
+                array([1, 2, 3]),
+                array([4, 5, 6]),
+                type_=postgresql.ARRAY(Integer)
+            )[3],
+            "(array_cat(ARRAY[%(param_1)s, %(param_2)s, %(param_3)s], "
+            "ARRAY[%(param_4)s, %(param_5)s, %(param_6)s]))[%(array_cat_1)s]"
+        )
+
+    def test_array_agg_generic(self):
+        expr = func.array_agg(column('q', Integer))
+        is_(expr.type.__class__, types.ARRAY)
+        is_(expr.type.item_type.__class__, Integer)
+
+    def test_array_agg_specific(self):
+        from sqlalchemy.dialects.postgresql import array_agg
+        expr = array_agg(column('q', Integer))
+        is_(expr.type.__class__, postgresql.ARRAY)
+        is_(expr.type.item_type.__class__, Integer)
+
+
+class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
+
     __only_on__ = 'postgresql'
     __backend__ = True
     __unsupported_on__ = 'postgresql+pg8000', 'postgresql+zxjdbc'
@@ -761,6 +968,89 @@ class ArrayTest(fixtures.TablesTest, AssertsExecutionResults):
         assert isinstance(tbl.c.intarr.type.item_type, Integer)
         assert isinstance(tbl.c.strarr.type.item_type, String)
 
+    @testing.provide_metadata
+    def test_array_agg(self):
+        values_table = Table('values', self.metadata, Column('value', Integer))
+        self.metadata.create_all(testing.db)
+        testing.db.execute(
+            values_table.insert(),
+            [{'value': i} for i in range(1, 10)]
+        )
+
+        stmt = select([func.array_agg(values_table.c.value)])
+        eq_(
+            testing.db.execute(stmt).scalar(),
+            list(range(1, 10))
+        )
+
+        stmt = select([func.array_agg(values_table.c.value)[3]])
+        eq_(
+            testing.db.execute(stmt).scalar(),
+            3
+        )
+
+        stmt = select([func.array_agg(values_table.c.value)[2:4]])
+        eq_(
+            testing.db.execute(stmt).scalar(),
+            [2, 3, 4]
+        )
+
+    def test_array_index_slice_exprs(self):
+        """test a variety of expressions that sometimes need parenthesizing"""
+
+        stmt = select([array([1, 2, 3, 4])[2:3]])
+        eq_(
+            testing.db.execute(stmt).scalar(),
+            [2, 3]
+        )
+
+        stmt = select([array([1, 2, 3, 4])[2]])
+        eq_(
+            testing.db.execute(stmt).scalar(),
+            2
+        )
+
+        stmt = select([(array([1, 2]) + array([3, 4]))[2:3]])
+        eq_(
+            testing.db.execute(stmt).scalar(),
+            [2, 3]
+        )
+
+        stmt = select([array([1, 2]) + array([3, 4])[2:3]])
+        eq_(
+            testing.db.execute(stmt).scalar(),
+            [1, 2, 4]
+        )
+
+        stmt = select([array([1, 2])[2:3] + array([3, 4])])
+        eq_(
+            testing.db.execute(stmt).scalar(),
+            [2, 3, 4]
+        )
+
+        stmt = select([
+            func.array_cat(
+                array([1, 2, 3]),
+                array([4, 5, 6]),
+                type_=postgresql.ARRAY(Integer)
+            )[2:5]
+        ])
+        eq_(
+            testing.db.execute(stmt).scalar(), [2, 3, 4, 5]
+        )
+
+    def test_any_all_exprs(self):
+        stmt = select([
+            3 == any_(func.array_cat(
+                array([1, 2, 3]),
+                array([4, 5, 6]),
+                type_=postgresql.ARRAY(Integer)
+            ))
+        ])
+        eq_(
+            testing.db.execute(stmt).scalar(), True
+        )
+
     def test_insert_array(self):
         arrtable = self.tables.arrtable
         arrtable.insert().execute(intarr=[1, 2, 3], strarr=[util.u('abc'),
@@ -802,15 +1092,6 @@ class ArrayTest(fixtures.TablesTest, AssertsExecutionResults):
         eq_(len(results), 1)
         eq_(results[0][0], 5)
 
-    def test_contains_override_raises(self):
-        col = Column('x', postgresql.ARRAY(Integer))
-
-        assert_raises_message(
-            NotImplementedError,
-            "Operator 'contains' is not supported on this expression",
-            lambda: 'foo' in col
-        )
-
     def test_array_subtype_resultprocessor(self):
         arrtable = self.tables.arrtable
         arrtable.insert().execute(intarr=[4, 5, 6],
@@ -843,16 +1124,6 @@ class ArrayTest(fixtures.TablesTest, AssertsExecutionResults):
                 ])
                 ), True
         )
-
-    def test_array_getitem_single_type(self):
-        arrtable = self.tables.arrtable
-        is_(arrtable.c.intarr[1].type._type_affinity, Integer)
-        is_(arrtable.c.strarr[1].type._type_affinity, String)
-
-    def test_array_getitem_slice_type(self):
-        arrtable = self.tables.arrtable
-        is_(arrtable.c.intarr[1:3].type._type_affinity, postgresql.ARRAY)
-        is_(arrtable.c.strarr[1:3].type._type_affinity, postgresql.ARRAY)
 
     def test_array_getitem_single_exec(self):
         arrtable = self.tables.arrtable
@@ -941,6 +1212,14 @@ class ArrayTest(fixtures.TablesTest, AssertsExecutionResults):
         self._test_dim_array_contains_typed_exec(
             lambda elem: (
                 x for x in elem))
+
+    def test_multi_dim_roundtrip(self):
+        arrtable = self.tables.arrtable
+        testing.db.execute(arrtable.insert(), dimarr=[[1, 2, 3], [4, 5, 6]])
+        eq_(
+            testing.db.scalar(select([arrtable.c.dimarr])),
+            [[-1, 0, 1], [2, 3, 4]]
+        )
 
     def test_array_contained_by_exec(self):
         arrtable = self.tables.arrtable
@@ -1046,12 +1325,98 @@ class ArrayTest(fixtures.TablesTest, AssertsExecutionResults):
             set([('1', '2', '3'), ('4', '5', '6'), (('4', '5'), ('6', '7'))])
         )
 
-    def test_dimension(self):
-        arrtable = self.tables.arrtable
-        testing.db.execute(arrtable.insert(), dimarr=[[1, 2, 3], [4, 5, 6]])
+    def test_array_plus_native_enum_create(self):
+        m = MetaData()
+        t = Table(
+            't', m,
+            Column(
+                'data_1',
+                postgresql.ARRAY(
+                    postgresql.ENUM('a', 'b', 'c', name='my_enum_1')
+                )
+            ),
+            Column(
+                'data_2',
+                postgresql.ARRAY(
+                    types.Enum('a', 'b', 'c', name='my_enum_2')
+                )
+            )
+        )
+
+        t.create(testing.db)
         eq_(
-            testing.db.scalar(select([arrtable.c.dimarr])),
-            [[-1, 0, 1], [2, 3, 4]]
+            set(e['name'] for e in inspect(testing.db).get_enums()),
+            set(['my_enum_1', 'my_enum_2'])
+        )
+        t.drop(testing.db)
+        eq_(inspect(testing.db).get_enums(), [])
+
+
+class HashableFlagORMTest(fixtures.TestBase):
+    """test the various 'collection' types that they flip the 'hashable' flag
+    appropriately.  [ticket:3499]"""
+
+    __only_on__ = 'postgresql'
+
+    def _test(self, type_, data):
+        Base = declarative_base(metadata=self.metadata)
+
+        class A(Base):
+            __tablename__ = 'a1'
+            id = Column(Integer, primary_key=True)
+            data = Column(type_)
+        Base.metadata.create_all(testing.db)
+        s = Session(testing.db)
+        s.add_all([
+            A(data=elem) for elem in data
+        ])
+        s.commit()
+
+        eq_(
+            [(obj.A.id, obj.data) for obj in
+             s.query(A, A.data).order_by(A.id)],
+            list(enumerate(data, 1))
+        )
+
+    @testing.provide_metadata
+    def test_array(self):
+        self._test(
+            postgresql.ARRAY(Text()),
+            [['a', 'b', 'c'], ['d', 'e', 'f']]
+        )
+
+    @testing.requires.hstore
+    @testing.provide_metadata
+    def test_hstore(self):
+        self._test(
+            postgresql.HSTORE(),
+            [
+                {'a': '1', 'b': '2', 'c': '3'},
+                {'d': '4', 'e': '5', 'f': '6'}
+            ]
+        )
+
+    @testing.provide_metadata
+    def test_json(self):
+        self._test(
+            postgresql.JSON(),
+            [
+                {'a': '1', 'b': '2', 'c': '3'},
+                {'d': '4', 'e': {'e1': '5', 'e2': '6'},
+                 'f': {'f1': [9, 10, 11]}}
+            ]
+        )
+
+    @testing.requires.postgresql_jsonb
+    @testing.provide_metadata
+    def test_jsonb(self):
+        self._test(
+            postgresql.JSONB(),
+            [
+                {'a': '1', 'b': '2', 'c': '3'},
+                {'d': '4', 'e': {'e1': '5', 'e2': '6'},
+                 'f': {'f1': [9, 10, 11]}}
+            ]
         )
 
 
@@ -1398,6 +1763,19 @@ class HStoreTest(AssertsCompiledSQL, fixtures.TestBase):
             {"key1": "value1", "key2": "value2"}
         )
 
+    def test_ret_type_text(self):
+        col = column('x', HSTORE())
+
+        is_(col['foo'].type.__class__, Text)
+
+    def test_ret_type_custom(self):
+        class MyType(types.UserDefinedType):
+            pass
+
+        col = column('x', HSTORE(text_type=MyType))
+
+        is_(col['foo'].type.__class__, MyType)
+
     def test_where_has_key(self):
         self._test_where(
             # hide from 2to3
@@ -1420,7 +1798,7 @@ class HStoreTest(AssertsCompiledSQL, fixtures.TestBase):
     def test_where_defined(self):
         self._test_where(
             self.hashcol.defined('foo'),
-            "defined(test_table.hash, %(param_1)s)"
+            "defined(test_table.hash, %(defined_1)s)"
         )
 
     def test_where_contains(self):
@@ -1451,7 +1829,7 @@ class HStoreTest(AssertsCompiledSQL, fixtures.TestBase):
     def test_cols_delete_single_key(self):
         self._test_cols(
             self.hashcol.delete('foo'),
-            "delete(test_table.hash, %(param_1)s) AS delete_1",
+            "delete(test_table.hash, %(delete_2)s) AS delete_1",
             True
         )
 
@@ -1466,7 +1844,7 @@ class HStoreTest(AssertsCompiledSQL, fixtures.TestBase):
     def test_cols_delete_matching_pairs(self):
         self._test_cols(
             self.hashcol.delete(hstore('1', '2')),
-            ("delete(test_table.hash, hstore(%(param_1)s, %(param_2)s)) "
+            ("delete(test_table.hash, hstore(%(hstore_1)s, %(hstore_2)s)) "
              "AS delete_1"),
             True
         )
@@ -1482,7 +1860,7 @@ class HStoreTest(AssertsCompiledSQL, fixtures.TestBase):
     def test_cols_hstore_pair_text(self):
         self._test_cols(
             hstore('foo', '3')['foo'],
-            "hstore(%(param_1)s, %(param_2)s) -> %(hstore_1)s AS anon_1",
+            "hstore(%(hstore_1)s, %(hstore_2)s) -> %(hstore_3)s AS anon_1",
             False
         )
 
@@ -1507,21 +1885,27 @@ class HStoreTest(AssertsCompiledSQL, fixtures.TestBase):
         self._test_cols(
             self.hashcol.concat(hstore(cast(self.test_table.c.id, Text), '3')),
             ("test_table.hash || hstore(CAST(test_table.id AS TEXT), "
-             "%(param_1)s) AS anon_1"),
+             "%(hstore_1)s) AS anon_1"),
             True
         )
 
     def test_cols_concat_op(self):
         self._test_cols(
             hstore('foo', 'bar') + self.hashcol,
-            "hstore(%(param_1)s, %(param_2)s) || test_table.hash AS anon_1",
+            "hstore(%(hstore_1)s, %(hstore_2)s) || test_table.hash AS anon_1",
             True
         )
 
     def test_cols_concat_get(self):
         self._test_cols(
             (self.hashcol + self.hashcol)['foo'],
-            "test_table.hash || test_table.hash -> %(param_1)s AS anon_1"
+            "(test_table.hash || test_table.hash) -> %(param_1)s AS anon_1"
+        )
+
+    def test_cols_against_is(self):
+        self._test_cols(
+            self.hashcol['foo'] != None,
+            "(test_table.hash -> %(hash_1)s) IS NOT NULL AS anon_1"
         )
 
     def test_cols_keys(self):
@@ -1606,6 +1990,21 @@ class HStoreRoundTripTest(fixtures.TablesTest):
         insp = inspect(testing.db)
         cols = insp.get_columns('data_table')
         assert isinstance(cols[2]['type'], HSTORE)
+
+    def test_literal_round_trip(self):
+        # in particular, this tests that the array index
+        # operator against the function is handled by PG; with some
+        # array functions it requires outer parenthezisation on the left and
+        # we may not be doing that here
+        expr = hstore(
+            postgresql.array(['1', '2']),
+            postgresql.array(['3', None]))['1']
+        eq_(
+            testing.db.scalar(
+                select([expr])
+            ),
+            "3"
+        )
 
     @testing.requires.psycopg2_native_hstore
     def test_insert_native(self):
@@ -2038,73 +2437,6 @@ class JSONTest(AssertsCompiledSQL, fixtures.TestBase):
             ) % expected
         )
 
-    def test_bind_serialize_default(self):
-        dialect = postgresql.dialect()
-        proc = self.test_table.c.test_column.type._cached_bind_processor(
-            dialect)
-        eq_(
-            proc({"A": [1, 2, 3, True, False]}),
-            '{"A": [1, 2, 3, true, false]}'
-        )
-
-    def test_bind_serialize_None(self):
-        dialect = postgresql.dialect()
-        proc = self.test_table.c.test_column.type._cached_bind_processor(
-            dialect)
-        eq_(
-            proc(None),
-            'null'
-        )
-
-    def test_bind_serialize_none_as_null(self):
-        dialect = postgresql.dialect()
-        proc = JSON(none_as_null=True)._cached_bind_processor(
-            dialect)
-        eq_(
-            proc(None),
-            None
-        )
-        eq_(
-            proc(null()),
-            None
-        )
-
-    def test_bind_serialize_null(self):
-        dialect = postgresql.dialect()
-        proc = self.test_table.c.test_column.type._cached_bind_processor(
-            dialect)
-        eq_(
-            proc(null()),
-            None
-        )
-
-    def test_result_deserialize_default(self):
-        dialect = postgresql.dialect()
-        proc = self.test_table.c.test_column.type._cached_result_processor(
-            dialect, None)
-        eq_(
-            proc('{"A": [1, 2, 3, true, false]}'),
-            {"A": [1, 2, 3, True, False]}
-        )
-
-    def test_result_deserialize_null(self):
-        dialect = postgresql.dialect()
-        proc = self.test_table.c.test_column.type._cached_result_processor(
-            dialect, None)
-        eq_(
-            proc('null'),
-            None
-        )
-
-    def test_result_deserialize_None(self):
-        dialect = postgresql.dialect()
-        proc = self.test_table.c.test_column.type._cached_result_processor(
-            dialect, None)
-        eq_(
-            proc(None),
-            None
-        )
-
     # This test is a bit misleading -- in real life you will need to cast to
     # do anything
     def test_where_getitem(self):
@@ -2119,16 +2451,56 @@ class JSONTest(AssertsCompiledSQL, fixtures.TestBase):
             "(test_table.test_column #> %(test_column_1)s) IS NULL"
         )
 
+    def test_path_typing(self):
+        col = column('x', JSON())
+        is_(
+            col['q'].type._type_affinity, types.JSON
+        )
+        is_(
+            col[('q', )].type._type_affinity, types.JSON
+        )
+        is_(
+            col['q']['p'].type._type_affinity, types.JSON
+        )
+        is_(
+            col[('q', 'p')].type._type_affinity, types.JSON
+        )
+
+    def test_custom_astext_type(self):
+        class MyType(types.UserDefinedType):
+            pass
+
+        col = column('x', JSON(astext_type=MyType))
+
+        is_(
+            col['q'].astext.type.__class__, MyType
+        )
+
+        is_(
+            col[('q', 'p')].astext.type.__class__, MyType
+        )
+
+        is_(
+            col['q']['p'].astext.type.__class__, MyType
+        )
+
     def test_where_getitem_as_text(self):
         self._test_where(
             self.jsoncol['bar'].astext == None,
             "(test_table.test_column ->> %(test_column_1)s) IS NULL"
         )
 
-    def test_where_getitem_as_cast(self):
+    def test_where_getitem_astext_cast(self):
+        self._test_where(
+            self.jsoncol['bar'].astext.cast(Integer) == 5,
+            "CAST((test_table.test_column ->> %(test_column_1)s) AS INTEGER) "
+            "= %(param_1)s"
+        )
+
+    def test_where_getitem_json_cast(self):
         self._test_where(
             self.jsoncol['bar'].cast(Integer) == 5,
-            "CAST(test_table.test_column ->> %(test_column_1)s AS INTEGER) "
+            "CAST((test_table.test_column -> %(test_column_1)s) AS INTEGER) "
             "= %(param_1)s"
         )
 
@@ -2170,6 +2542,7 @@ class JSONRoundTripTest(fixtures.TablesTest):
             {'name': 'r3', 'data': {"k1": "r3v1", "k2": "r3v2"}},
             {'name': 'r4', 'data': {"k1": "r4v1", "k2": "r4v2"}},
             {'name': 'r5', 'data': {"k1": "r5v1", "k2": "r5v2", "k3": 5}},
+            {'name': 'r6', 'data': {"k1": {"r6v1": {'subr': [1, 2, 3]}}}},
         )
 
     def _assert_data(self, compare, column='data'):
@@ -2187,6 +2560,15 @@ class JSONRoundTripTest(fixtures.TablesTest):
         data = testing.db.execute(
             select([col]).
             where(col.is_(null()))
+        ).fetchall()
+        eq_([d for d, in data], [None])
+
+    def _assert_column_is_JSON_NULL(self, column='data'):
+        col = self.tables.data_table.c[column]
+
+        data = testing.db.execute(
+            select([col]).
+            where(cast(col, String) == "null")
         ).fetchall()
         eq_([d for d, in data], [None])
 
@@ -2210,6 +2592,13 @@ class JSONRoundTripTest(fixtures.TablesTest):
             {'name': 'r1', 'nulldata': None}
         )
         self._assert_column_is_NULL(column='nulldata')
+
+    def _test_insert_nulljson_into_none_as_null(self, engine):
+        engine.execute(
+            self.tables.data_table.insert(),
+            {'name': 'r1', 'nulldata': JSON.NULL}
+        )
+        self._assert_column_is_JSON_NULL(column='nulldata')
 
     def _non_native_engine(self, json_serializer=None, json_deserializer=None):
         if json_serializer is not None or json_deserializer is not None:
@@ -2259,6 +2648,11 @@ class JSONRoundTripTest(fixtures.TablesTest):
         engine = testing.db
         self._test_insert_none_as_null(engine)
 
+    @testing.requires.psycopg2_native_json
+    def test_insert_native_nulljson_into_none_as_null(self):
+        engine = testing.db
+        self._test_insert_nulljson_into_none_as_null(engine)
+
     def test_insert_python(self):
         engine = self._non_native_engine()
         self._test_insert(engine)
@@ -2270,6 +2664,10 @@ class JSONRoundTripTest(fixtures.TablesTest):
     def test_insert_python_none_as_null(self):
         engine = self._non_native_engine()
         self._test_insert_none_as_null(engine)
+
+    def test_insert_python_nulljson_into_none_as_null(self):
+        engine = self._non_native_engine()
+        self._test_insert_nulljson_into_none_as_null(engine)
 
     def _test_custom_serialize_deserialize(self, native):
         import json
@@ -2335,12 +2733,28 @@ class JSONRoundTripTest(fixtures.TablesTest):
         engine = testing.db
         self._fixture_data(engine)
         data_table = self.tables.data_table
+
         result = engine.execute(
-            select([data_table.c.data]).where(
-                data_table.c.data[('k1',)].astext == 'r3v1'
+            select([data_table.c.name]).where(
+                data_table.c.data[('k1', 'r6v1', 'subr')].astext == "[1, 2, 3]"
             )
-        ).first()
-        eq_(result, ({'k1': 'r3v1', 'k2': 'r3v2'},))
+        )
+        eq_(result.scalar(), 'r6')
+
+    @testing.fails_on(
+        "postgresql < 9.4",
+        "Improvement in Postgresql behavior?")
+    def test_multi_index_query(self):
+        engine = testing.db
+        self._fixture_data(engine)
+        data_table = self.tables.data_table
+
+        result = engine.execute(
+            select([data_table.c.name]).where(
+                data_table.c.data['k1']['r6v1']['subr'].astext == "[1, 2, 3]"
+            )
+        )
+        eq_(result.scalar(), 'r6')
 
     def test_query_returned_as_text(self):
         engine = testing.db
@@ -2349,14 +2763,17 @@ class JSONRoundTripTest(fixtures.TablesTest):
         result = engine.execute(
             select([data_table.c.data['k1'].astext])
         ).first()
-        assert isinstance(result[0], util.text_type)
+        if engine.dialect.returns_unicode_strings:
+            assert isinstance(result[0], util.text_type)
+        else:
+            assert isinstance(result[0], util.string_types)
 
     def test_query_returned_as_int(self):
         engine = testing.db
         self._fixture_data(engine)
         data_table = self.tables.data_table
         result = engine.execute(
-            select([data_table.c.data['k3'].cast(Integer)]).where(
+            select([data_table.c.data['k3'].astext.cast(Integer)]).where(
                 data_table.c.name == 'r5')
         ).first()
         assert isinstance(result[0], int)
@@ -2366,6 +2783,13 @@ class JSONRoundTripTest(fixtures.TablesTest):
         result = engine.execute(
             select([data_table.c.data]).where(
                 data_table.c.data['k1'].astext == 'r3v1'
+            )
+        ).first()
+        eq_(result, ({'k1': 'r3v1', 'k2': 'r3v2'},))
+
+        result = engine.execute(
+            select([data_table.c.data]).where(
+                data_table.c.data['k1'].astext.cast(String) == 'r3v1'
             )
         ).first()
         eq_(result, ({'k1': 'r3v1', 'k2': 'r3v2'},))
@@ -2424,6 +2848,36 @@ class JSONRoundTripTest(fixtures.TablesTest):
         engine = testing.db
         self._test_unicode_round_trip(engine)
 
+    def test_eval_none_flag_orm(self):
+        Base = declarative_base()
+
+        class Data(Base):
+            __table__ = self.tables.data_table
+
+        s = Session(testing.db)
+
+        d1 = Data(name='d1', data=None, nulldata=None)
+        s.add(d1)
+        s.commit()
+
+        s.bulk_insert_mappings(
+            Data, [{"name": "d2", "data": None, "nulldata": None}]
+        )
+        eq_(
+            s.query(
+                cast(self.tables.data_table.c.data, String),
+                cast(self.tables.data_table.c.nulldata, String)
+            ).filter(self.tables.data_table.c.name == 'd1').first(),
+            ("null", None)
+        )
+        eq_(
+            s.query(
+                cast(self.tables.data_table.c.data, String),
+                cast(self.tables.data_table.c.nulldata, String)
+            ).filter(self.tables.data_table.c.name == 'd2').first(),
+            ("null", None)
+        )
+
 
 class JSONBTest(JSONTest):
 
@@ -2470,7 +2924,6 @@ class JSONBTest(JSONTest):
 
 
 class JSONBRoundTripTest(JSONRoundTripTest):
-    __only_on__ = ('postgresql >= 9.4',)
     __requires__ = ('postgresql_jsonb', )
 
     test_type = JSONB

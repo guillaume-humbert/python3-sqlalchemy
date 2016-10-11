@@ -7,8 +7,10 @@ from sqlalchemy import Integer, String, UniqueConstraint, \
     CheckConstraint, ForeignKey, MetaData, Sequence, \
     ForeignKeyConstraint, PrimaryKeyConstraint, ColumnDefault, Index, event,\
     events, Unicode, types as sqltypes, bindparam, \
-    Table, Column, Boolean, Enum, func, text, BLANK_SCHEMA
+    Table, Column, Boolean, Enum, func, text, TypeDecorator, \
+    BLANK_SCHEMA
 from sqlalchemy import schema, exc
+from sqlalchemy.engine import default
 from sqlalchemy.sql import elements, naming
 import sqlalchemy as tsa
 from sqlalchemy.testing import fixtures
@@ -1413,6 +1415,123 @@ class TableTest(fixtures.TestBase, AssertsCompiledSQL):
         assert not t1.c.x.nullable
 
 
+class PKAutoIncrementTest(fixtures.TestBase):
+    def test_multi_integer_no_autoinc(self):
+        pk = PrimaryKeyConstraint(
+            Column('a', Integer),
+            Column('b', Integer)
+        )
+        t = Table('t', MetaData())
+        t.append_constraint(pk)
+
+        is_(pk._autoincrement_column, None)
+
+    def test_multi_integer_multi_autoinc(self):
+        pk = PrimaryKeyConstraint(
+            Column('a', Integer, autoincrement=True),
+            Column('b', Integer, autoincrement=True)
+        )
+        t = Table('t', MetaData())
+        t.append_constraint(pk)
+
+        assert_raises_message(
+            exc.ArgumentError,
+            "Only one Column may be marked",
+            lambda: pk._autoincrement_column
+        )
+
+    def test_single_integer_no_autoinc(self):
+        pk = PrimaryKeyConstraint(
+            Column('a', Integer),
+        )
+        t = Table('t', MetaData())
+        t.append_constraint(pk)
+
+        is_(pk._autoincrement_column, pk.columns['a'])
+
+    def test_single_string_no_autoinc(self):
+        pk = PrimaryKeyConstraint(
+            Column('a', String),
+        )
+        t = Table('t', MetaData())
+        t.append_constraint(pk)
+
+        is_(pk._autoincrement_column, None)
+
+    def test_single_string_illegal_autoinc(self):
+        t = Table('t', MetaData(), Column('a', String, autoincrement=True))
+        pk = PrimaryKeyConstraint(
+            t.c.a
+        )
+        t.append_constraint(pk)
+
+        assert_raises_message(
+            exc.ArgumentError,
+            "Column type VARCHAR on column 't.a'",
+            lambda: pk._autoincrement_column
+        )
+
+    def test_single_integer_default(self):
+        t = Table(
+            't', MetaData(),
+            Column('a', Integer, autoincrement=True, default=lambda: 1))
+        pk = PrimaryKeyConstraint(
+            t.c.a
+        )
+        t.append_constraint(pk)
+
+        is_(pk._autoincrement_column, t.c.a)
+
+    def test_single_integer_server_default(self):
+        # new as of 1.1; now that we have three states for autoincrement,
+        # if the user puts autoincrement=True with a server_default, trust
+        # them on it
+        t = Table(
+            't', MetaData(),
+            Column('a', Integer,
+                   autoincrement=True, server_default=func.magic()))
+        pk = PrimaryKeyConstraint(
+            t.c.a
+        )
+        t.append_constraint(pk)
+
+        is_(pk._autoincrement_column, t.c.a)
+
+    def test_implicit_autoinc_but_fks(self):
+        m = MetaData()
+        Table('t1', m, Column('id', Integer, primary_key=True))
+        t2 = Table(
+            't2', MetaData(),
+            Column('a', Integer, ForeignKey('t1.id')))
+        pk = PrimaryKeyConstraint(
+            t2.c.a
+        )
+        t2.append_constraint(pk)
+        is_(pk._autoincrement_column, None)
+
+    def test_explicit_autoinc_but_fks(self):
+        m = MetaData()
+        Table('t1', m, Column('id', Integer, primary_key=True))
+        t2 = Table(
+            't2', MetaData(),
+            Column('a', Integer, ForeignKey('t1.id'), autoincrement=True))
+        pk = PrimaryKeyConstraint(
+            t2.c.a
+        )
+        t2.append_constraint(pk)
+        is_(pk._autoincrement_column, t2.c.a)
+
+        t3 = Table(
+            't3', MetaData(),
+            Column('a', Integer,
+                   ForeignKey('t1.id'), autoincrement='ignore_fk'))
+        pk = PrimaryKeyConstraint(
+            t3.c.a
+        )
+        t3.append_constraint(pk)
+        is_(pk._autoincrement_column, t3.c.a)
+
+
 class SchemaTypeTest(fixtures.TestBase):
 
     class MyType(sqltypes.SchemaType, sqltypes.TypeEngine):
@@ -1481,6 +1600,20 @@ class SchemaTypeTest(fixtures.TestBase):
 
         # our test type sets table, though
         is_(t2.c.y.type.table, t2)
+
+    def test_tometadata_copy_decorated(self):
+
+        class MyDecorated(TypeDecorator):
+            impl = self.MyType
+
+        m1 = MetaData()
+
+        type_ = MyDecorated(schema="z")
+        t1 = Table('x', m1, Column("y", type_))
+
+        m2 = MetaData()
+        t2 = t1.tometadata(m2)
+        eq_(t2.c.y.type.schema, "z")
 
     def test_tometadata_independent_schema(self):
         m1 = MetaData()
@@ -1922,74 +2055,6 @@ class UseExistingTest(fixtures.TablesTest):
         assert "foo" in users.c
 
 
-class IndexTest(fixtures.TestBase):
-
-    def _assert(self, t, i, columns=True):
-        eq_(t.indexes, set([i]))
-        if columns:
-            eq_(list(i.columns), [t.c.x])
-        else:
-            eq_(list(i.columns), [])
-        assert i.table is t
-
-    def test_separate_decl_columns(self):
-        m = MetaData()
-        t = Table('t', m, Column('x', Integer))
-        i = Index('i', t.c.x)
-        self._assert(t, i)
-
-    def test_separate_decl_columns_functional(self):
-        m = MetaData()
-        t = Table('t', m, Column('x', Integer))
-        i = Index('i', func.foo(t.c.x))
-        self._assert(t, i)
-
-    def test_inline_decl_columns(self):
-        m = MetaData()
-        c = Column('x', Integer)
-        i = Index('i', c)
-        t = Table('t', m, c, i)
-        self._assert(t, i)
-
-    def test_inline_decl_columns_functional(self):
-        m = MetaData()
-        c = Column('x', Integer)
-        i = Index('i', func.foo(c))
-        t = Table('t', m, c, i)
-        self._assert(t, i)
-
-    def test_inline_decl_string(self):
-        m = MetaData()
-        i = Index('i', "x")
-        t = Table('t', m, Column('x', Integer), i)
-        self._assert(t, i)
-
-    def test_inline_decl_textonly(self):
-        m = MetaData()
-        i = Index('i', text("foobar(x)"))
-        t = Table('t', m, Column('x', Integer), i)
-        self._assert(t, i, columns=False)
-
-    def test_separate_decl_textonly(self):
-        m = MetaData()
-        i = Index('i', text("foobar(x)"))
-        t = Table('t', m, Column('x', Integer))
-        t.append_constraint(i)
-        self._assert(t, i, columns=False)
-
-    def test_unnamed_column_exception(self):
-        # this can occur in some declarative situations
-        c = Column(Integer)
-        idx = Index('q', c)
-        m = MetaData()
-        t = Table('t', m, Column('q'))
-        assert_raises_message(
-            exc.ArgumentError,
-            "Can't add unnamed column to column collection",
-            t.append_constraint, idx
-        )
-
-
 class ConstraintTest(fixtures.TestBase):
 
     def _single_fixture(self):
@@ -2008,6 +2073,114 @@ class ConstraintTest(fixtures.TestBase):
                    Column('a', Integer)
                    )
         return t1, t2, t3
+
+    def _assert_index_col_x(self, t, i, columns=True):
+        eq_(t.indexes, set([i]))
+        if columns:
+            eq_(list(i.columns), [t.c.x])
+        else:
+            eq_(list(i.columns), [])
+        assert i.table is t
+
+
+    def test_separate_decl_columns(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer))
+        i = Index('i', t.c.x)
+        self._assert_index_col_x(t, i)
+
+    def test_separate_decl_columns_functional(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer))
+        i = Index('i', func.foo(t.c.x))
+        self._assert_index_col_x(t, i)
+
+    def test_inline_decl_columns(self):
+        m = MetaData()
+        c = Column('x', Integer)
+        i = Index('i', c)
+        t = Table('t', m, c, i)
+        self._assert_index_col_x(t, i)
+
+    def test_inline_decl_columns_functional(self):
+        m = MetaData()
+        c = Column('x', Integer)
+        i = Index('i', func.foo(c))
+        t = Table('t', m, c, i)
+        self._assert_index_col_x(t, i)
+
+    def test_inline_decl_string(self):
+        m = MetaData()
+        i = Index('i', "x")
+        t = Table('t', m, Column('x', Integer), i)
+        self._assert_index_col_x(t, i)
+
+    def test_inline_decl_textonly(self):
+        m = MetaData()
+        i = Index('i', text("foobar(x)"))
+        t = Table('t', m, Column('x', Integer), i)
+        self._assert_index_col_x(t, i, columns=False)
+
+    def test_separate_decl_textonly(self):
+        m = MetaData()
+        i = Index('i', text("foobar(x)"))
+        t = Table('t', m, Column('x', Integer))
+        t.append_constraint(i)
+        self._assert_index_col_x(t, i, columns=False)
+
+    def test_unnamed_column_exception(self):
+        # this can occur in some declarative situations
+        c = Column(Integer)
+        idx = Index('q', c)
+        m = MetaData()
+        t = Table('t', m, Column('q'))
+        assert_raises_message(
+            exc.ArgumentError,
+            "Can't add unnamed column to column collection",
+            t.append_constraint, idx
+        )
+
+    def test_column_associated_w_lowercase_table(self):
+        from sqlalchemy import table
+        c = Column('x', Integer)
+        table('foo', c)
+        idx = Index('q', c)
+        is_(idx.table, None)  # lower-case-T table doesn't have indexes
+
+    def test_clauseelement_extraction_one(self):
+        t = Table('t', MetaData(), Column('x', Integer), Column('y', Integer))
+
+        class MyThing(object):
+            def __clause_element__(self):
+                return t.c.x + 5
+
+        idx = Index('foo', MyThing())
+        self._assert_index_col_x(t, idx)
+
+    def test_clauseelement_extraction_two(self):
+        t = Table('t', MetaData(), Column('x', Integer), Column('y', Integer))
+
+        class MyThing(object):
+            def __clause_element__(self):
+                return t.c.x + 5
+
+        idx = Index('bar', MyThing(), t.c.y)
+
+        eq_(set(t.indexes), set([idx]))
+
+    def test_clauseelement_extraction_three(self):
+        t = Table('t', MetaData(), Column('x', Integer), Column('y', Integer))
+
+        expr1 = t.c.x + 5
+
+        class MyThing(object):
+            def __clause_element__(self):
+                return expr1
+
+        idx = Index('bar', MyThing(), t.c.y)
+
+        is_(idx.expressions[0], expr1)
+        is_(idx.expressions[1], t.c.y)
 
     def test_table_references(self):
         t1, t2, t3 = self._single_fixture()
@@ -2434,6 +2607,350 @@ class ConstraintTest(fixtures.TestBase):
 
         # remove twice OK
         metadata.remove(t2)
+
+    def test_double_fk_usage_raises(self):
+        f = ForeignKey('b.id')
+
+        Column('x', Integer, f)
+        assert_raises(exc.InvalidRequestError, Column, "y", Integer, f)
+
+    def test_auto_append_constraint(self):
+        m = MetaData()
+
+        t = Table('tbl', m,
+                  Column('a', Integer),
+                  Column('b', Integer)
+                  )
+
+        t2 = Table('t2', m,
+                   Column('a', Integer),
+                   Column('b', Integer)
+                   )
+
+        for c in (
+            UniqueConstraint(t.c.a),
+            CheckConstraint(t.c.a > 5),
+            ForeignKeyConstraint([t.c.a], [t2.c.a]),
+            PrimaryKeyConstraint(t.c.a)
+        ):
+            assert c in t.constraints
+            t.append_constraint(c)
+            assert c in t.constraints
+
+        c = Index('foo', t.c.a)
+        assert c in t.indexes
+
+    def test_auto_append_lowercase_table(self):
+        from sqlalchemy import table, column
+
+        t = table('t', column('a'))
+        t2 = table('t2', column('a'))
+        for c in (
+            UniqueConstraint(t.c.a),
+            CheckConstraint(t.c.a > 5),
+            ForeignKeyConstraint([t.c.a], [t2.c.a]),
+            PrimaryKeyConstraint(t.c.a),
+            Index('foo', t.c.a)
+        ):
+            assert True
+
+    def test_tometadata_ok(self):
+        m = MetaData()
+
+        t = Table('tbl', m,
+                  Column('a', Integer),
+                  Column('b', Integer)
+                  )
+
+        t2 = Table('t2', m,
+                   Column('a', Integer),
+                   Column('b', Integer)
+                   )
+
+        UniqueConstraint(t.c.a)
+        CheckConstraint(t.c.a > 5)
+        ForeignKeyConstraint([t.c.a], [t2.c.a])
+        PrimaryKeyConstraint(t.c.a)
+
+        m2 = MetaData()
+
+        t3 = t.tometadata(m2)
+
+        eq_(len(t3.constraints), 4)
+
+        for c in t3.constraints:
+            assert c.table is t3
+
+    def test_check_constraint_copy(self):
+        m = MetaData()
+        t = Table('tbl', m,
+                  Column('a', Integer),
+                  Column('b', Integer)
+                  )
+        ck = CheckConstraint(t.c.a > 5)
+        ck2 = ck.copy()
+        assert ck in t.constraints
+        assert ck2 not in t.constraints
+
+    def test_ambig_check_constraint_auto_append(self):
+        m = MetaData()
+
+        t = Table('tbl', m,
+                  Column('a', Integer),
+                  Column('b', Integer)
+                  )
+
+        t2 = Table('t2', m,
+                   Column('a', Integer),
+                   Column('b', Integer)
+                   )
+        c = CheckConstraint(t.c.a > t2.c.b)
+        assert c not in t.constraints
+        assert c not in t2.constraints
+
+    def test_auto_append_ck_on_col_attach_one(self):
+        m = MetaData()
+
+        a = Column('a', Integer)
+        b = Column('b', Integer)
+        ck = CheckConstraint(a > b)
+
+        t = Table('tbl', m, a, b)
+        assert ck in t.constraints
+
+    def test_auto_append_ck_on_col_attach_two(self):
+        m = MetaData()
+
+        a = Column('a', Integer)
+        b = Column('b', Integer)
+        c = Column('c', Integer)
+        ck = CheckConstraint(a > b + c)
+
+        t = Table('tbl', m, a)
+        assert ck not in t.constraints
+
+        t.append_column(b)
+        assert ck not in t.constraints
+
+        t.append_column(c)
+        assert ck in t.constraints
+
+    def test_auto_append_ck_on_col_attach_three(self):
+        m = MetaData()
+
+        a = Column('a', Integer)
+        b = Column('b', Integer)
+        c = Column('c', Integer)
+        ck = CheckConstraint(a > b + c)
+
+        t = Table('tbl', m, a)
+        assert ck not in t.constraints
+
+        t.append_column(b)
+        assert ck not in t.constraints
+
+        t2 = Table('t2', m)
+        t2.append_column(c)
+
+        # two different tables, so CheckConstraint does nothing.
+        assert ck not in t.constraints
+
+    def test_auto_append_uq_on_col_attach_one(self):
+        m = MetaData()
+
+        a = Column('a', Integer)
+        b = Column('b', Integer)
+        uq = UniqueConstraint(a, b)
+
+        t = Table('tbl', m, a, b)
+        assert uq in t.constraints
+
+    def test_auto_append_uq_on_col_attach_two(self):
+        m = MetaData()
+
+        a = Column('a', Integer)
+        b = Column('b', Integer)
+        c = Column('c', Integer)
+        uq = UniqueConstraint(a, b, c)
+
+        t = Table('tbl', m, a)
+        assert uq not in t.constraints
+
+        t.append_column(b)
+        assert uq not in t.constraints
+
+        t.append_column(c)
+        assert uq in t.constraints
+
+    def test_auto_append_uq_on_col_attach_three(self):
+        m = MetaData()
+
+        a = Column('a', Integer)
+        b = Column('b', Integer)
+        c = Column('c', Integer)
+        uq = UniqueConstraint(a, b, c)
+
+        t = Table('tbl', m, a)
+        assert uq not in t.constraints
+
+        t.append_column(b)
+        assert uq not in t.constraints
+
+        t2 = Table('t2', m)
+
+        # two different tables, so UniqueConstraint raises
+        assert_raises_message(
+            exc.ArgumentError,
+            r"Column\(s\) 't2\.c' are not part of table 'tbl'\.",
+            t2.append_column, c
+        )
+
+    def test_auto_append_uq_on_col_attach_four(self):
+        """Test that a uniqueconstraint that names Column and string names
+        won't autoattach using deferred column attachment.
+
+        """
+        m = MetaData()
+
+        a = Column('a', Integer)
+        b = Column('b', Integer)
+        c = Column('c', Integer)
+        uq = UniqueConstraint(a, 'b', 'c')
+
+        t = Table('tbl', m, a)
+        assert uq not in t.constraints
+
+        t.append_column(b)
+        assert uq not in t.constraints
+
+        t.append_column(c)
+
+        # we don't track events for previously unknown columns
+        # named 'c' to be attached
+        assert uq not in t.constraints
+
+        t.append_constraint(uq)
+
+        assert uq in t.constraints
+
+        eq_(
+            [cn for cn in t.constraints if isinstance(cn, UniqueConstraint)],
+            [uq]
+        )
+
+    def test_auto_append_uq_on_col_attach_five(self):
+        """Test that a uniqueconstraint that names Column and string names
+        *will* autoattach if the table has all those names up front.
+
+        """
+        m = MetaData()
+
+        a = Column('a', Integer)
+        b = Column('b', Integer)
+        c = Column('c', Integer)
+
+        t = Table('tbl', m, a, c, b)
+
+        uq = UniqueConstraint(a, 'b', 'c')
+
+        assert uq in t.constraints
+
+        t.append_constraint(uq)
+
+        assert uq in t.constraints
+
+        eq_(
+            [cn for cn in t.constraints if isinstance(cn, UniqueConstraint)],
+            [uq]
+        )
+
+    def test_index_asserts_cols_standalone(self):
+        metadata = MetaData()
+
+        t1 = Table('t1', metadata,
+                   Column('x', Integer)
+                   )
+        t2 = Table('t2', metadata,
+                   Column('y', Integer)
+                   )
+        assert_raises_message(
+            exc.ArgumentError,
+            r"Column\(s\) 't2.y' are not part of table 't1'.",
+            Index,
+            "bar", t1.c.x, t2.c.y
+        )
+
+    def test_index_asserts_cols_inline(self):
+        metadata = MetaData()
+
+        t1 = Table('t1', metadata,
+                   Column('x', Integer)
+                   )
+        assert_raises_message(
+            exc.ArgumentError,
+            "Index 'bar' is against table 't1', and "
+            "cannot be associated with table 't2'.",
+            Table, 't2', metadata,
+            Column('y', Integer),
+            Index('bar', t1.c.x)
+        )
+
+    def test_raise_index_nonexistent_name(self):
+        m = MetaData()
+        # the KeyError isn't ideal here, a nicer message
+        # perhaps
+        assert_raises(
+            KeyError,
+            Table, 't', m, Column('x', Integer), Index("foo", "q")
+        )
+
+    def test_raise_not_a_column(self):
+        assert_raises(
+            exc.ArgumentError,
+            Index, "foo", 5
+        )
+
+    def test_raise_expr_no_column(self):
+        idx = Index('foo', func.lower(5))
+
+        assert_raises_message(
+            exc.CompileError,
+            "Index 'foo' is not associated with any table.",
+            schema.CreateIndex(idx).compile, dialect=testing.db.dialect
+        )
+        assert_raises_message(
+            exc.CompileError,
+            "Index 'foo' is not associated with any table.",
+            schema.CreateIndex(idx).compile
+        )
+
+    def test_no_warning_w_no_columns(self):
+        idx = Index(name="foo")
+
+        assert_raises_message(
+            exc.CompileError,
+            "Index 'foo' is not associated with any table.",
+            schema.CreateIndex(idx).compile, dialect=testing.db.dialect
+        )
+        assert_raises_message(
+            exc.CompileError,
+            "Index 'foo' is not associated with any table.",
+            schema.CreateIndex(idx).compile
+        )
+
+    def test_raise_clauseelement_not_a_column(self):
+        m = MetaData()
+        t2 = Table('t2', m, Column('x', Integer))
+
+        class SomeClass(object):
+
+            def __clause_element__(self):
+                return t2
+        assert_raises_message(
+            exc.ArgumentError,
+            "Element Table\('t2', .* is not a string name or column element",
+            Index, "foo", SomeClass()
+        )
 
 
 class ColumnDefinitionTest(AssertsCompiledSQL, fixtures.TestBase):
@@ -3596,7 +4113,7 @@ class NamingConventionTest(fixtures.TestBase, AssertsCompiledSQL):
             exc.InvalidRequestError,
             "Naming convention including \%\(constraint_name\)s token "
             "requires that constraint is explicitly named.",
-            schema.CreateTable(u1).compile
+            schema.CreateTable(u1).compile, dialect=default.DefaultDialect()
         )
 
     def test_schematype_no_ck_name_boolean_no_name(self):

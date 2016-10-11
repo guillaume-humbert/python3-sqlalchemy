@@ -103,6 +103,7 @@ class Query(object):
     _orm_only_adapt = True
     _orm_only_from_obj_alias = True
     _current_path = _path_registry
+    _has_mapper_entities = False
 
     def __init__(self, entities, session=None):
         self.session = session
@@ -114,6 +115,7 @@ class Query(object):
             entity_wrapper = _QueryEntity
         self._entities = []
         self._primary_entity = None
+        self._has_mapper_entities = False
         for ent in util.to_list(entities):
             entity_wrapper(self, ent)
 
@@ -283,15 +285,22 @@ class Query(object):
             replace
         )
 
-    def _entity_zero(self):
+    def _query_entity_zero(self):
+        """Return the first QueryEntity."""
         return self._entities[0]
 
     def _mapper_zero(self):
-        # TODO: self._select_from_entity is not a mapper
-        # so this method is misnamed
+        """return the Mapper associated with the first QueryEntity."""
+        return self._entities[0].mapper
+
+    def _entity_zero(self):
+        """Return the 'entity' (mapper or AliasedClass) associated
+        with the first QueryEntity, or alternatively the 'select from'
+        entity if specified."""
+
         return self._select_from_entity \
             if self._select_from_entity is not None \
-            else self._entity_zero().entity_zero
+            else self._query_entity_zero().entity_zero
 
     @property
     def _mapper_entities(self):
@@ -302,26 +311,17 @@ class Query(object):
     def _joinpoint_zero(self):
         return self._joinpoint.get(
             '_joinpoint_entity',
-            self._mapper_zero()
+            self._entity_zero()
         )
 
     def _bind_mapper(self):
-        ezero = self._mapper_zero()
+        ezero = self._entity_zero()
         if ezero is not None:
             insp = inspect(ezero)
             if not insp.is_clause_element:
                 return insp.mapper
 
         return None
-
-    def _only_mapper_zero(self, rationale=None):
-        if len(self._entities) > 1:
-            raise sa_exc.InvalidRequestError(
-                rationale or
-                "This operation requires a Query "
-                "against a single mapper."
-            )
-        return self._mapper_zero()
 
     def _only_full_mapper_zero(self, methname):
         if self._entities != [self._primary_entity]:
@@ -476,8 +476,6 @@ class Query(object):
         """Return the full SELECT statement represented by this
         :class:`.Query` represented as a common table expression (CTE).
 
-        .. versionadded:: 0.7.6
-
         Parameters and usage are the same as those of the
         :meth:`.SelectBase.cte` method; see that method for
         further details.
@@ -526,7 +524,7 @@ class Query(object):
 
         .. seealso::
 
-            :meth:`.SelectBase.cte`
+            :meth:`.HasCTE.cte`
 
         """
         return self.enable_eagerloads(False).\
@@ -882,12 +880,15 @@ class Query(object):
         a subquery as returned by :meth:`.Query.subquery` is
         embedded in another :func:`~.expression.select` construct.
 
-         """
+        """
 
-        self._correlate = self._correlate.union(
-            _interpret_as_from(s)
-            if s is not None else None
-            for s in args)
+        for s in args:
+            if s is None:
+                self._correlate = self._correlate.union([None])
+            else:
+                self._correlate = self._correlate.union(
+                    sql_util.surface_selectables(_interpret_as_from(s))
+                )
 
     @_generative()
     def autoflush(self, setting):
@@ -942,7 +943,7 @@ class Query(object):
         """
 
         if property is None:
-            mapper_zero = inspect(self._mapper_zero()).mapper
+            mapper_zero = self._mapper_zero()
 
             mapper = object_mapper(instance)
 
@@ -1155,7 +1156,7 @@ class Query(object):
             statement.correlate(None)
         q = self._from_selectable(fromclause)
         q._enable_single_crit = False
-        q._select_from_entity = self._mapper_zero()
+        q._select_from_entity = self._entity_zero()
         if entities:
             q._set_entities(entities)
         return q
@@ -1396,7 +1397,8 @@ class Query(object):
         self._for_update_arg = LockmodeArg.parse_legacy_query(mode)
 
     @_generative()
-    def with_for_update(self, read=False, nowait=False, of=None):
+    def with_for_update(self, read=False, nowait=False, of=None,
+                        skip_locked=False, key_share=False):
         """return a new :class:`.Query` with the specified options for the
         ``FOR UPDATE`` clause.
 
@@ -1424,7 +1426,9 @@ class Query(object):
             full argument and behavioral description.
 
         """
-        self._for_update_arg = LockmodeArg(read=read, nowait=nowait, of=of)
+        self._for_update_arg = LockmodeArg(read=read, nowait=nowait, of=of,
+                                           skip_locked=skip_locked,
+                                           key_share=key_share)
 
     @_generative()
     def params(self, *args, **kwargs):
@@ -1519,17 +1523,16 @@ class Query(object):
         passing ``None`` - this will suppress any ORDER BY configured
         on mappers as well.
 
-        Alternatively, an existing ORDER BY setting on the Query
-        object can be entirely cancelled by passing ``False``
-        as the value - use this before calling methods where
-        an ORDER BY is invalid.
+        Alternatively, passing False will reset ORDER BY and additionally
+        re-allow default mapper.order_by to take place.   Note mapper.order_by
+        is deprecated.
 
         """
 
         if len(criterion) == 1:
             if criterion[0] is False:
                 if '_order_by' in self.__dict__:
-                    del self._order_by
+                    self._order_by = False
                 return
             if criterion[0] is None:
                 self._order_by = None
@@ -1545,7 +1548,21 @@ class Query(object):
     @_generative(_no_statement_condition, _no_limit_offset)
     def group_by(self, *criterion):
         """apply one or more GROUP BY criterion to the query and return
-        the newly resulting :class:`.Query`"""
+        the newly resulting :class:`.Query`
+
+        All existing GROUP BY settings can be suppressed by
+        passing ``None`` - this will suppress any GROUP BY configured
+        on mappers as well.
+
+        .. versionadded:: 1.1 GROUP BY can be cancelled by passing None,
+           in the same way as ORDER BY.
+
+        """
+
+        if len(criterion) == 1:
+            if criterion[0] is None:
+                self._group_by = False
+                return
 
         criterion = list(chain(*[_orm_columns(c) for c in criterion]))
         criterion = self._adapt_col_list(criterion)
@@ -1918,6 +1935,10 @@ class Query(object):
 
          .. versionadded:: 1.0.0
 
+        :param full=False: render FULL OUTER JOIN; implies ``isouter``.
+
+         .. versionadded:: 1.1
+
         :param from_joinpoint=False: When using ``aliased=True``, a setting
          of True here will cause the join to be from the most recent
          joined target, rather than starting back from the original
@@ -1935,14 +1956,16 @@ class Query(object):
             SQLAlchemy versions was the primary ORM-level joining interface.
 
         """
-        aliased, from_joinpoint, isouter = kwargs.pop('aliased', False),\
+        aliased, from_joinpoint, isouter, full = kwargs.pop('aliased', False),\
             kwargs.pop('from_joinpoint', False),\
-            kwargs.pop('isouter', False)
+            kwargs.pop('isouter', False),\
+            kwargs.pop('full', False)
         if kwargs:
             raise TypeError("unknown arguments: %s" %
                             ', '.join(sorted(kwargs)))
         return self._join(props,
-                          outerjoin=isouter, create_aliases=aliased,
+                          outerjoin=isouter, full=full,
+                          create_aliases=aliased,
                           from_joinpoint=from_joinpoint)
 
     def outerjoin(self, *props, **kwargs):
@@ -1952,13 +1975,14 @@ class Query(object):
         Usage is the same as the ``join()`` method.
 
         """
-        aliased, from_joinpoint = kwargs.pop('aliased', False), \
-            kwargs.pop('from_joinpoint', False)
+        aliased, from_joinpoint, full = kwargs.pop('aliased', False), \
+            kwargs.pop('from_joinpoint', False), \
+            kwargs.pop('full', False)
         if kwargs:
             raise TypeError("unknown arguments: %s" %
                             ', '.join(sorted(kwargs)))
         return self._join(props,
-                          outerjoin=True, create_aliases=aliased,
+                          outerjoin=True, full=full, create_aliases=aliased,
                           from_joinpoint=from_joinpoint)
 
     def _update_joinpoint(self, jp):
@@ -1974,7 +1998,7 @@ class Query(object):
         self._joinpath = jp
 
     @_generative(_no_statement_condition, _no_limit_offset)
-    def _join(self, keys, outerjoin, create_aliases, from_joinpoint):
+    def _join(self, keys, outerjoin, full, create_aliases, from_joinpoint):
         """consumes arguments from join() or outerjoin(), places them into a
         consistent format with which to form the actual JOIN constructs.
 
@@ -2086,10 +2110,10 @@ class Query(object):
             self._join_left_to_right(
                 left_entity,
                 right_entity, onclause,
-                outerjoin, create_aliases, prop)
+                outerjoin, full, create_aliases, prop)
 
     def _join_left_to_right(self, left, right,
-                            onclause, outerjoin, create_aliases, prop):
+                            onclause, outerjoin, full, create_aliases, prop):
         """append a JOIN to the query's from clause."""
 
         self._polymorphic_adapters = self._polymorphic_adapters.copy()
@@ -2101,10 +2125,15 @@ class Query(object):
                 left = self._entities[0].entity_zero_or_selectable
 
         if left is None:
+            if self._entities:
+                problem = "Don't know how to join from %s" % self._entities[0]
+            else:
+                problem = "No entities to join from"
+
             raise sa_exc.InvalidRequestError(
-                "Don't know how to join from %s; please use "
+                "%s; please use "
                 "select_from() to establish the left "
-                "entity/selectable of this join" % self._entities[0])
+                "entity/selectable of this join" % problem)
 
         if left is right and \
                 not create_aliases:
@@ -2154,7 +2183,7 @@ class Query(object):
         else:
             self._joinpoint = {'_joinpoint_entity': right}
 
-        self._join_to_left(l_info, left, right, onclause, outerjoin)
+        self._join_to_left(l_info, left, right, onclause, outerjoin, full)
 
     def _prepare_right_side(self, r_info, right, onclause, create_aliases,
                             prop, overlap):
@@ -2241,7 +2270,7 @@ class Query(object):
 
         return right, onclause
 
-    def _join_to_left(self, l_info, left, right, onclause, outerjoin):
+    def _join_to_left(self, l_info, left, right, onclause, outerjoin, full):
         info = l_info
         left_mapper = getattr(info, 'mapper', None)
         left_selectable = info.selectable
@@ -2254,7 +2283,7 @@ class Query(object):
                 try:
                     clause = orm_join(clause,
                                       right,
-                                      onclause, isouter=outerjoin)
+                                      onclause, isouter=outerjoin, full=full)
                 except sa_exc.ArgumentError as ae:
                     raise sa_exc.InvalidRequestError(
                         "Could not find a FROM clause to join from.  "
@@ -2278,7 +2307,8 @@ class Query(object):
 
         assert clause is not None
         try:
-            clause = orm_join(clause, right, onclause, isouter=outerjoin)
+            clause = orm_join(
+                clause, right, onclause, isouter=outerjoin, full=full)
         except sa_exc.ArgumentError as ae:
             raise sa_exc.InvalidRequestError(
                 "Could not find a FROM clause to join from.  "
@@ -2652,6 +2682,12 @@ class Query(object):
 
         Calling :meth:`.Query.first` results in an execution of the underlying query.
 
+        .. seealso::
+
+            :meth:`.Query.one`
+
+            :meth:`.Query.one_or_none`
+
         """
         if self._statement is not None:
             ret = list(self)[0:1]
@@ -2671,8 +2707,8 @@ class Query(object):
         rows are returned for a query that returns only scalar values
         as opposed to full identity-mapped entities.
 
-        Calling :meth:`.Query.one_or_none` results in an execution of the underlying
-        query.
+        Calling :meth:`.Query.one_or_none` results in an execution of the
+        underlying query.
 
         .. versionadded:: 1.0.9
 
@@ -2683,7 +2719,6 @@ class Query(object):
             :meth:`.Query.first`
 
             :meth:`.Query.one`
-
 
         """
         ret = list(self)
@@ -2715,16 +2750,15 @@ class Query(object):
             :meth:`.Query.one_or_none`
 
         """
-        ret = list(self)
-
-        l = len(ret)
-        if l == 1:
-            return ret[0]
-        elif l == 0:
-            raise orm_exc.NoResultFound("No row was found for one()")
-        else:
+        try:
+            ret = self.one_or_none()
+        except orm_exc.MultipleResultsFound:
             raise orm_exc.MultipleResultsFound(
                 "Multiple rows were found for one()")
+        else:
+            if ret is None:
+                raise orm_exc.NoResultFound("No row was found for one()")
+            return ret
 
     def scalar(self):
         """Return the first element of the first result or None
@@ -2760,21 +2794,36 @@ class Query(object):
             self.session._autoflush()
         return self._execute_and_instances(context)
 
+    def __str__(self):
+        context = self._compile_context()
+        try:
+            bind = self._get_bind_args(
+                context, self.session.get_bind) if self.session else None
+        except sa_exc.UnboundExecutionError:
+            bind = None
+        return str(context.statement.compile(bind))
+
     def _connection_from_session(self, **kw):
-        conn = self.session.connection(
-            **kw)
+        conn = self.session.connection(**kw)
         if self._execution_options:
             conn = conn.execution_options(**self._execution_options)
         return conn
 
     def _execute_and_instances(self, querycontext):
-        conn = self._connection_from_session(
-            mapper=self._bind_mapper(),
-            clause=querycontext.statement,
+        conn = self._get_bind_args(
+            querycontext,
+            self._connection_from_session,
             close_with_result=True)
 
         result = conn.execute(querycontext.statement, self._params)
         return loading.instances(querycontext.query, result, querycontext)
+
+    def _get_bind_args(self, querycontext, fn, **kw):
+        return fn(
+            mapper=self._bind_mapper(),
+            clause=querycontext.statement,
+            **kw
+        )
 
     @property
     def column_descriptions(self):
@@ -3024,6 +3073,37 @@ class Query(object):
 
         .. warning:: **Additional Caveats for bulk query deletes**
 
+            * This method does **not work for joined
+              inheritance mappings**, since the **multiple table
+              deletes are not supported by SQL** as well as that the
+              **join condition of an inheritance mapper is not
+              automatically rendered**.  Care must be taken in any
+              multiple-table delete to first accomodate via some other means
+              how the related table will be deleted, as well as to
+              explicitly include the joining
+              condition between those tables, even in mappings where
+              this is normally automatic. E.g. if a class ``Engineer``
+              subclasses ``Employee``, a DELETE against the ``Employee``
+              table would look like::
+
+                    session.query(Engineer).\\
+                        filter(Engineer.id == Employee.id).\\
+                        filter(Employee.name == 'dilbert').\\
+                        delete()
+
+              However the above SQL will not delete from the Engineer table,
+              unless an ON DELETE CASCADE rule is established in the database
+              to handle it.
+
+              Short story, **do not use this method for joined inheritance
+              mappings unless you have taken the additional steps to make
+              this feasible**.
+
+            * The polymorphic identity WHERE criteria is **not** included
+              for single- or
+              joined- table updates - this must be added **manually** even
+              for single table inheritance.
+
             * The method does **not** offer in-Python cascading of
               relationships - it is assumed that ON DELETE CASCADE/SET
               NULL/etc. is configured for any foreign key references
@@ -3181,6 +3261,11 @@ class Query(object):
                         filter(Employee.name == 'dilbert').\\
                         update({"engineer_type": "programmer"})
 
+            * The polymorphic identity WHERE criteria is **not** included
+              for single- or
+              joined- table updates - this must be added **manually**, even
+              for single table inheritance.
+
             * The :meth:`.MapperEvents.before_update` and
               :meth:`.MapperEvents.after_update`
               events **are not invoked from this method**.  Instead, the
@@ -3258,12 +3343,11 @@ class Query(object):
         # then append eager joins onto that
 
         if context.order_by:
-            order_by_col_expr = list(
-                chain(*[
-                    sql_util.unwrap_order_by(o)
-                    for o in context.order_by
-                ])
-            )
+            order_by_col_expr = \
+                sql_util.expand_column_list_from_order_by(
+                    context.primary_columns,
+                    context.order_by
+                )
         else:
             context.order_by = None
             order_by_col_expr = []
@@ -3323,15 +3407,12 @@ class Query(object):
         if not context.order_by:
             context.order_by = None
 
-        if self._distinct and context.order_by:
-            order_by_col_expr = list(
-                chain(*[
-                    sql_util.unwrap_order_by(o)
-                    for o in context.order_by
-                ])
-            )
-            context.primary_columns += order_by_col_expr
-
+        if self._distinct is True and context.order_by:
+            context.primary_columns += \
+                sql_util.expand_column_list_from_order_by(
+                    context.primary_columns,
+                    context.order_by
+                )
         context.froms += tuple(context.eager_joins.values())
 
         statement = sql.select(
@@ -3377,8 +3458,6 @@ class Query(object):
                     sql.True_._ifnone(context.whereclause),
                     single_crit)
 
-    def __str__(self):
-        return str(self._compile_context().statement)
 
 from ..sql.selectable import ForUpdateArg
 
@@ -3432,11 +3511,13 @@ class _MapperEntity(_QueryEntity):
         if not query._primary_entity:
             query._primary_entity = self
         query._entities.append(self)
-
+        query._has_mapper_entities = True
         self.entities = [entity]
         self.expr = entity
 
     supports_single_entity = True
+
+    use_id_for_hash = True
 
     def setup_entity(self, ext_info, aliased_adapter):
         self.mapper = ext_info.mapper
@@ -3482,8 +3563,6 @@ class _MapperEntity(_QueryEntity):
         query._mapper_loads_polymorphically_with(
             self.mapper, sql_util.ColumnAdapter(
                 from_obj, self.mapper._equivalent_columns))
-
-    filter_fn = id
 
     @property
     def type(self):
@@ -3713,6 +3792,8 @@ class Bundle(InspectionAttr):
 
 
 class _BundleEntity(_QueryEntity):
+    use_id_for_hash = False
+
     def __init__(self, query, bundle, setup_entities=True):
         query._entities.append(self)
         self.bundle = self.expr = bundle
@@ -3728,8 +3809,6 @@ class _BundleEntity(_QueryEntity):
                     _ColumnEntity(self, expr, namespace=self)
 
         self.entities = ()
-
-        self.filter_fn = lambda item: item
 
         self.supports_single_entity = self.bundle.single_entity
 
@@ -3833,11 +3912,7 @@ class _ColumnEntity(_QueryEntity):
             search_entities = True
 
         self.type = type_ = column.type
-        if type_.hashable:
-            self.filter_fn = lambda item: item
-        else:
-            counter = util.counter()
-            self.filter_fn = lambda item: counter()
+        self.use_id_for_hash = not type_.hashable
 
         # If the Column is unnamed, give it a
         # label() so that mutable column expressions
@@ -3870,7 +3945,7 @@ class _ColumnEntity(_QueryEntity):
             self._from_entities = set(self.entities)
         else:
             all_elements = [
-                elem for elem in visitors.iterate(column, {})
+                elem for elem in sql_util.surface_column_elements(column)
                 if 'parententity' in elem._annotations
             ]
 

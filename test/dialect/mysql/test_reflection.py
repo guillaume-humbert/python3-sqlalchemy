@@ -9,6 +9,7 @@ from sqlalchemy import event
 from sqlalchemy import sql
 from sqlalchemy import inspect
 from sqlalchemy.dialects.mysql import base as mysql
+from sqlalchemy.dialects.mysql import reflection as _reflection
 from sqlalchemy.testing import fixtures, AssertsExecutionResults
 from sqlalchemy import testing
 
@@ -325,49 +326,55 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
         meta = MetaData(testing.db)
         try:
             Table('ai_1', meta,
-                  Column('int_y', Integer, primary_key=True),
+                  Column('int_y', Integer, primary_key=True,
+                         autoincrement=True),
                   Column('int_n', Integer, DefaultClause('0'),
                          primary_key=True),
-                         mysql_engine='MyISAM')
+                  mysql_engine='MyISAM')
             Table('ai_2', meta,
-                  Column('int_y', Integer, primary_key=True),
+                  Column('int_y', Integer, primary_key=True,
+                         autoincrement=True),
                   Column('int_n', Integer, DefaultClause('0'),
                          primary_key=True),
-                         mysql_engine='MyISAM')
+                  mysql_engine='MyISAM')
             Table('ai_3', meta,
                   Column('int_n', Integer, DefaultClause('0'),
                          primary_key=True, autoincrement=False),
-                  Column('int_y', Integer, primary_key=True),
-                         mysql_engine='MyISAM')
+                  Column('int_y', Integer, primary_key=True,
+                         autoincrement=True),
+                  mysql_engine='MyISAM')
             Table('ai_4', meta,
                   Column('int_n', Integer, DefaultClause('0'),
                          primary_key=True, autoincrement=False),
                   Column('int_n2', Integer, DefaultClause('0'),
                          primary_key=True, autoincrement=False),
-                         mysql_engine='MyISAM')
+                  mysql_engine='MyISAM')
             Table('ai_5', meta,
-                  Column('int_y', Integer, primary_key=True),
+                  Column('int_y', Integer, primary_key=True,
+                         autoincrement=True),
                   Column('int_n', Integer, DefaultClause('0'),
                          primary_key=True, autoincrement=False),
-                         mysql_engine='MyISAM')
+                  mysql_engine='MyISAM')
             Table('ai_6', meta,
                   Column('o1', String(1), DefaultClause('x'),
                          primary_key=True),
-                  Column('int_y', Integer, primary_key=True),
-                         mysql_engine='MyISAM')
+                  Column('int_y', Integer, primary_key=True,
+                         autoincrement=True),
+                  mysql_engine='MyISAM')
             Table('ai_7', meta,
                   Column('o1', String(1), DefaultClause('x'),
                          primary_key=True),
                   Column('o2', String(1), DefaultClause('x'),
                          primary_key=True),
-                  Column('int_y', Integer, primary_key=True),
-                         mysql_engine='MyISAM')
+                  Column('int_y', Integer, primary_key=True,
+                         autoincrement=True),
+                  mysql_engine='MyISAM')
             Table('ai_8', meta,
                   Column('o1', String(1), DefaultClause('x'),
                          primary_key=True),
                   Column('o2', String(1), DefaultClause('x'),
                          primary_key=True),
-                         mysql_engine='MyISAM')
+                  mysql_engine='MyISAM')
             meta.create_all()
 
             table_names = ['ai_1', 'ai_2', 'ai_3', 'ai_4',
@@ -525,7 +532,7 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
 class RawReflectionTest(fixtures.TestBase):
     def setup(self):
         dialect = mysql.dialect()
-        self.parser = mysql.MySQLTableDefinitionParser(
+        self.parser = _reflection.MySQLTableDefinitionParser(
             dialect, dialect.identifier_preparer)
 
     def test_key_reflection(self):

@@ -5,10 +5,10 @@ import os
 import datetime
 
 from sqlalchemy.testing import eq_, assert_raises, \
-    assert_raises_message, is_
+    assert_raises_message, is_, expect_warnings
 from sqlalchemy import Table, select, bindparam, Column,\
     MetaData, func, extract, ForeignKey, text, DefaultClause, and_, \
-    create_engine, UniqueConstraint, Index
+    create_engine, UniqueConstraint, Index, PrimaryKeyConstraint
 from sqlalchemy.types import Integer, String, Boolean, DateTime, Date, Time
 from sqlalchemy import types as sqltypes
 from sqlalchemy import event, inspect
@@ -20,7 +20,7 @@ from sqlalchemy.engine.url import make_url
 from sqlalchemy.testing import fixtures, AssertsCompiledSQL, \
     AssertsExecutionResults, engines
 from sqlalchemy import testing
-from sqlalchemy.schema import CreateTable
+from sqlalchemy.schema import CreateTable, FetchedValue
 from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.testing import mock
 
@@ -567,6 +567,23 @@ class AttachedDBTest(fixtures.TestBase):
         insp = inspect(self.conn)
         eq_(insp.get_table_names("test_schema"), ["created"])
 
+    def test_table_names_system(self):
+        self._fixture()
+        insp = inspect(self.conn)
+        eq_(insp.get_table_names("test_schema"), ["created"])
+
+    def test_schema_names(self):
+        self._fixture()
+        insp = inspect(self.conn)
+        eq_(insp.get_schema_names(), ["main", "test_schema"])
+
+        # implicitly creates a "temp" schema
+        self.conn.execute("select * from sqlite_temp_master")
+
+        # we're not including it
+        insp = inspect(self.conn)
+        eq_(insp.get_schema_names(), ["main", "test_schema"])
+
     def test_reflect_system_table(self):
         meta = MetaData(self.conn)
         alt_master = Table(
@@ -653,6 +670,17 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
             "1"
         )
 
+    def test_is_distinct_from(self):
+        self.assert_compile(
+            sql.column('x').is_distinct_from(None),
+            "x IS NOT NULL"
+        )
+
+        self.assert_compile(
+            sql.column('x').isnot_distinct_from(False),
+            "x IS 0"
+        )
+
     def test_localtime(self):
         self.assert_compile(
             func.localtimestamp(),
@@ -734,6 +762,17 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
                             "WHERE data > 'a' AND data < 'b''s'",
                             dialect=sqlite.dialect())
 
+    def test_no_autoinc_on_composite_pk(self):
+        m = MetaData()
+        t = Table(
+            't', m,
+            Column('x', Integer, primary_key=True, autoincrement=True),
+            Column('y', Integer, primary_key=True))
+        assert_raises_message(
+            exc.CompileError,
+            "SQLite does not support autoincrement for composite",
+            CreateTable(t).compile, dialect=sqlite.dialect()
+        )
 
 
 class InsertTest(fixtures.TestBase, AssertsExecutionResults):
@@ -764,20 +803,56 @@ class InsertTest(fixtures.TestBase, AssertsExecutionResults):
 
     @testing.exclude('sqlite', '<', (3, 3, 8), 'no database support')
     def test_empty_insert_pk2(self):
+        # now warns due to [ticket:3216]
+
+        with expect_warnings(
+            "Column 'b.x' is marked as a member of the "
+            "primary key for table 'b'",
+            "Column 'b.y' is marked as a member of the "
+            "primary key for table 'b'",
+        ):
+            assert_raises(
+                exc.IntegrityError, self._test_empty_insert,
+                Table(
+                    'b', MetaData(testing.db),
+                    Column('x', Integer, primary_key=True),
+                    Column('y', Integer, primary_key=True)))
+
+    @testing.exclude('sqlite', '<', (3, 3, 8), 'no database support')
+    def test_empty_insert_pk2_fv(self):
         assert_raises(
             exc.DBAPIError, self._test_empty_insert,
             Table(
                 'b', MetaData(testing.db),
-                Column('x', Integer, primary_key=True),
-                Column('y', Integer, primary_key=True)))
+                Column('x', Integer, primary_key=True,
+                       server_default=FetchedValue()),
+                Column('y', Integer, primary_key=True,
+                       server_default=FetchedValue())))
 
     @testing.exclude('sqlite', '<', (3, 3, 8), 'no database support')
     def test_empty_insert_pk3(self):
+        # now warns due to [ticket:3216]
+        with expect_warnings(
+            "Column 'c.x' is marked as a member of the primary key for table"
+        ):
+            assert_raises(
+                exc.IntegrityError,
+                self._test_empty_insert,
+                Table(
+                    'c', MetaData(testing.db),
+                    Column('x', Integer, primary_key=True),
+                    Column('y', Integer,
+                           DefaultClause('123'), primary_key=True))
+            )
+
+    @testing.exclude('sqlite', '<', (3, 3, 8), 'no database support')
+    def test_empty_insert_pk3_fv(self):
         assert_raises(
             exc.DBAPIError, self._test_empty_insert,
             Table(
                 'c', MetaData(testing.db),
-                Column('x', Integer, primary_key=True),
+                Column('x', Integer, primary_key=True,
+                       server_default=FetchedValue()),
                 Column('y', Integer, DefaultClause('123'), primary_key=True)))
 
     @testing.exclude('sqlite', '<', (3, 3, 8), 'no database support')
@@ -1079,10 +1154,41 @@ class ConstraintReflectionTest(fixtures.TestBase):
                 prefixes=['TEMPORARY']
             )
 
+            Table(
+                'p', meta,
+                Column('id', Integer),
+                PrimaryKeyConstraint('id', name='pk_name'),
+            )
+
+            Table(
+                'q', meta,
+                Column('id', Integer),
+                PrimaryKeyConstraint('id'),
+            )
+
             meta.create_all(conn)
 
             # will contain an "autoindex"
             conn.execute("create table o (foo varchar(20) primary key)")
+            conn.execute(
+                "CREATE TABLE onud_test (id INTEGER PRIMARY KEY, "
+                "c1 INTEGER, c2 INTEGER, c3 INTEGER, c4 INTEGER, "
+                "CONSTRAINT fk1 FOREIGN KEY (c1) REFERENCES a1(id) "
+                "ON DELETE SET NULL, "
+                "CONSTRAINT fk2 FOREIGN KEY (c2) REFERENCES a1(id) "
+                "ON UPDATE CASCADE, "
+                "CONSTRAINT fk3 FOREIGN KEY (c3) REFERENCES a2(id) "
+                "ON DELETE CASCADE ON UPDATE SET NULL,"
+                "CONSTRAINT fk4 FOREIGN KEY (c4) REFERENCES a2(id) "
+                "ON UPDATE NO ACTION)"
+            )
+
+            conn.execute(
+                "CREATE TABLE cp ("
+                "q INTEGER check (q > 1 AND q < 6),\n"
+                "CONSTRAINT cq CHECK (q == 1 OR (q > 2 AND q < 5))\n"
+                ")"
+            )
 
     @classmethod
     def teardown_class(cls):
@@ -1090,7 +1196,10 @@ class ConstraintReflectionTest(fixtures.TestBase):
             for name in [
                 "m", "main.l", "k", "j", "i", "h", "g", "f", "e", "e1",
                     "d", "d1", "d2", "c", "b", "a1", "a2"]:
-                conn.execute("drop table %s" % name)
+                try:
+                    conn.execute("drop table %s" % name)
+                except:
+                    pass
 
     def test_legacy_quoted_identifiers_unit(self):
         dialect = sqlite.dialect()
@@ -1123,7 +1232,8 @@ class ConstraintReflectionTest(fixtures.TestBase):
                             'referred_columns': ['id'],
                             'referred_schema': None,
                             'name': None,
-                            'constrained_columns': ['tid']
+                            'constrained_columns': ['tid'],
+                            'options': {}
                         }])
 
     def test_foreign_key_name_is_none(self):
@@ -1135,10 +1245,12 @@ class ConstraintReflectionTest(fixtures.TestBase):
             [
                 {'referred_table': 'a1', 'referred_columns': ['id'],
                  'referred_schema': None, 'name': None,
-                 'constrained_columns': ['id']},
+                 'constrained_columns': ['id'],
+                 'options': {}},
                 {'referred_table': 'a2', 'referred_columns': ['id'],
                  'referred_schema': None, 'name': None,
-                 'constrained_columns': ['id']},
+                 'constrained_columns': ['id'],
+                 'options': {}},
             ]
         )
 
@@ -1151,11 +1263,13 @@ class ConstraintReflectionTest(fixtures.TestBase):
                 {
                     'referred_table': 'a1', 'referred_columns': ['id'],
                     'referred_schema': None, 'name': 'foo1',
-                    'constrained_columns': ['id']},
+                    'constrained_columns': ['id'],
+                    'options': {}},
                 {
                     'referred_table': 'a2', 'referred_columns': ['id'],
                     'referred_schema': None, 'name': 'foo2',
-                    'constrained_columns': ['id']},
+                    'constrained_columns': ['id'],
+                    'options': {}},
             ]
         )
 
@@ -1167,13 +1281,12 @@ class ConstraintReflectionTest(fixtures.TestBase):
             [{
                 'referred_table': 'a2', 'referred_columns': ['id'],
                 'referred_schema': None,
-                'name': None, 'constrained_columns': ['x']
+                'name': None, 'constrained_columns': ['x'],
+                'options': {}
             }]
         )
 
     def test_unnamed_inline_foreign_key_quoted(self):
-        inspector = Inspector(testing.db)
-
         inspector = Inspector(testing.db)
         fks = inspector.get_foreign_keys('e1')
         eq_(
@@ -1182,6 +1295,7 @@ class ConstraintReflectionTest(fixtures.TestBase):
                 'referred_table': 'a2',
                 'referred_columns': ['some ( STUPID n,ame'],
                 'referred_schema': None,
+                'options': {},
                 'name': None, 'constrained_columns': ['some ( STUPID n,ame']
             }]
         )
@@ -1192,6 +1306,7 @@ class ConstraintReflectionTest(fixtures.TestBase):
                 'referred_table': 'a2',
                 'referred_columns': ['some ( STUPID n,ame'],
                 'referred_schema': None,
+                'options': {},
                 'name': None, 'constrained_columns': ['some ( STUPID n,ame']
             }]
         )
@@ -1205,15 +1320,69 @@ class ConstraintReflectionTest(fixtures.TestBase):
                 'referred_table': 'i',
                 'referred_columns': ['x', 'y'],
                 'referred_schema': None, 'name': None,
-                'constrained_columns': ['q', 'p']}]
+                'constrained_columns': ['q', 'p'],
+                'options': {}}]
         )
         fks = inspector.get_foreign_keys('k')
         eq_(
             fks,
-            [{'referred_table': 'i', 'referred_columns': ['x', 'y'],
-             'referred_schema': None, 'name': 'my_fk',
-             'constrained_columns': ['q', 'p']}]
+            [
+                {'referred_table': 'i', 'referred_columns': ['x', 'y'],
+                 'referred_schema': None, 'name': 'my_fk',
+                 'constrained_columns': ['q', 'p'],
+                 'options': {}}]
         )
+
+    def test_foreign_key_ondelete_onupdate(self):
+        inspector = Inspector(testing.db)
+        fks = inspector.get_foreign_keys('onud_test')
+        eq_(
+            fks,
+            [
+                {
+                    'referred_table': 'a1', 'referred_columns': ['id'],
+                    'referred_schema': None, 'name': 'fk1',
+                    'constrained_columns': ['c1'],
+                    'options': {'ondelete': 'SET NULL'}
+                },
+                {
+                    'referred_table': 'a1', 'referred_columns': ['id'],
+                    'referred_schema': None, 'name': 'fk2',
+                    'constrained_columns': ['c2'],
+                    'options': {'onupdate': 'CASCADE'}
+                },
+                {
+                    'referred_table': 'a2', 'referred_columns': ['id'],
+                    'referred_schema': None, 'name': 'fk3',
+                    'constrained_columns': ['c3'],
+                    'options': {'ondelete': 'CASCADE', 'onupdate': 'SET NULL'}
+                },
+                {
+                    'referred_table': 'a2', 'referred_columns': ['id'],
+                    'referred_schema': None, 'name': 'fk4',
+                    'constrained_columns': ['c4'],
+                    'options': {'onupdate': 'NO ACTION'}
+                },
+            ]
+        )
+
+    def test_foreign_key_options_unnamed_inline(self):
+        with testing.db.connect() as conn:
+            conn.execute(
+                "create table foo (id integer, "
+                "foreign key (id) references bar (id) on update cascade)")
+
+            insp = inspect(conn)
+            eq_(
+                insp.get_foreign_keys('foo'),
+                [{
+                    'name': None,
+                    'referred_columns': ['id'],
+                    'referred_table': 'bar',
+                    'constrained_columns': ['id'],
+                    'referred_schema': None,
+                    'options': {'onupdate': 'CASCADE'}}]
+            )
 
     def test_dont_reflect_autoindex(self):
         inspector = Inspector(testing.db)
@@ -1289,6 +1458,35 @@ class ConstraintReflectionTest(fixtures.TestBase):
         eq_(
             inspector.get_unique_constraints("n"),
             [{'column_names': ['x'], 'name': None}]
+        )
+
+    def test_primary_key_constraint_named(self):
+        inspector = Inspector(testing.db)
+        eq_(
+            inspector.get_pk_constraint("p"),
+            {'constrained_columns': ['id'], 'name': 'pk_name'}
+        )
+
+    def test_primary_key_constraint_unnamed(self):
+        inspector = Inspector(testing.db)
+        eq_(
+            inspector.get_pk_constraint("q"),
+            {'constrained_columns': ['id'], 'name': None}
+        )
+
+    def test_primary_key_constraint_no_pk(self):
+        inspector = Inspector(testing.db)
+        eq_(
+            inspector.get_pk_constraint("d"),
+            {'constrained_columns': [], 'name': None}
+        )
+
+    def test_check_constraint(self):
+        inspector = Inspector(testing.db)
+        eq_(
+            inspector.get_check_constraints("cp"),
+            [{'sqltext': 'q > 1 AND q < 6', 'name': None},
+             {'sqltext': 'q == 1 OR (q > 2 AND q < 5)', 'name': 'cq'}]
         )
 
 

@@ -112,6 +112,7 @@ class Mapper(InspectionAttr):
                  include_properties=None,
                  exclude_properties=None,
                  passive_updates=True,
+                 passive_deletes=False,
                  confirm_deleted_rows=True,
                  eager_defaults=False,
                  legacy_is_orphan=False,
@@ -319,6 +320,44 @@ class Mapper(InspectionAttr):
            ordering for entities.  By default mappers have no pre-defined
            ordering.
 
+           .. deprecated:: 1.1 The :paramref:`.Mapper.order_by` parameter
+              is deprecated.   Use :meth:`.Query.order_by` to determine the
+              ordering of a result set.
+
+        :param passive_deletes: Indicates DELETE behavior of foreign key
+           columns when a joined-table inheritance entity is being deleted.
+           Defaults to ``False`` for a base mapper; for an inheriting mapper,
+           defaults to ``False`` unless the value is set to ``True``
+           on the superclass mapper.
+
+           When ``True``, it is assumed that ON DELETE CASCADE is configured
+           on the foreign key relationships that link this mapper's table
+           to its superclass table, so that when the unit of work attempts
+           to delete the entity, it need only emit a DELETE statement for the
+           superclass table, and not this table.
+
+           When ``False``, a DELETE statement is emitted for this mapper's
+           table individually.  If the primary key attributes local to this
+           table are unloaded, then a SELECT must be emitted in order to
+           validate these attributes; note that the primary key columns
+           of a joined-table subclass are not part of the "primary key" of
+           the object as a whole.
+
+           Note that a value of ``True`` is **always** forced onto the
+           subclass mappers; that is, it's not possible for a superclass
+           to specify passive_deletes without this taking effect for
+           all subclass mappers.
+
+           .. versionadded:: 1.1
+
+           .. seealso::
+
+               :ref:`passive_deletes` - description of similar feature as
+               used with :func:`.relationship`
+
+               :paramref:`.mapper.passive_updates` - supporting ON UPDATE
+               CASCADE for joined-table inheritance mappers
+
         :param passive_updates: Indicates UPDATE behavior of foreign key
            columns when a primary key column changes on a joined-table
            inheritance mapping.   Defaults to ``True``.
@@ -338,6 +377,9 @@ class Mapper(InspectionAttr):
 
                :ref:`passive_updates` - description of a similar feature as
                used with :func:`.relationship`
+
+               :paramref:`.mapper.passive_deletes` - supporting ON DELETE
+               CASCADE for joined-table inheritance mappers
 
         :param polymorphic_on: Specifies the column, attribute, or
           SQL expression used to determine the target class for an
@@ -526,6 +568,11 @@ class Mapper(InspectionAttr):
 
         if order_by is not False:
             self.order_by = util.to_list(order_by)
+            util.warn_deprecated(
+                "Mapper.order_by is deprecated."
+                "Use Query.order_by() in order to affect the ordering of ORM "
+                "result sets.")
+
         else:
             self.order_by = order_by
 
@@ -559,6 +606,7 @@ class Mapper(InspectionAttr):
         self._dependency_processors = []
         self.validators = util.immutabledict()
         self.passive_updates = passive_updates
+        self.passive_deletes = passive_deletes
         self.legacy_is_orphan = legacy_is_orphan
         self._clause_adapter = None
         self._requires_row_aliasing = False
@@ -971,6 +1019,8 @@ class Mapper(InspectionAttr):
             self.inherits._inheriting_mappers.append(self)
             self.base_mapper = self.inherits.base_mapper
             self.passive_updates = self.inherits.passive_updates
+            self.passive_deletes = self.inherits.passive_deletes or \
+                self.passive_deletes
             self._all_tables = self.inherits._all_tables
 
             if self.polymorphic_identity is not None:
@@ -982,7 +1032,7 @@ class Mapper(InspectionAttr):
                         (self.polymorphic_identity,
                          self.polymorphic_map[self.polymorphic_identity],
                          self, self.polymorphic_identity)
-                )
+                    )
                 self.polymorphic_map[self.polymorphic_identity] = self
 
         else:
@@ -1154,6 +1204,11 @@ class Mapper(InspectionAttr):
                 elif hasattr(method, '__sa_validators__'):
                     validation_opts = method.__sa_validation_opts__
                     for name in method.__sa_validators__:
+                        if name in self.validators:
+                            raise sa_exc.InvalidRequestError(
+                                "A validation function for mapped "
+                                "attribute %r on mapper %s already exists." %
+                                (name, self))
                         self.validators = self.validators.union(
                             {name: (method, validation_opts)}
                         )
@@ -1346,9 +1401,6 @@ class Mapper(InspectionAttr):
                 # polymorphic_on is a column that is already mapped
                 # to a ColumnProperty
                 prop = self._columntoproperty[self.polymorphic_on]
-                polymorphic_key = prop.key
-                self.polymorphic_on = prop.columns[0]
-                polymorphic_key = prop.key
             elif isinstance(self.polymorphic_on, MapperProperty):
                 # polymorphic_on is directly a MapperProperty,
                 # ensure it's a ColumnProperty
@@ -1359,8 +1411,6 @@ class Mapper(InspectionAttr):
                         "property or SQL expression "
                         "can be passed for polymorphic_on")
                 prop = self.polymorphic_on
-                self.polymorphic_on = prop.columns[0]
-                polymorphic_key = prop.key
             elif not expression._is_column(self.polymorphic_on):
                 # polymorphic_on is not a Column and not a ColumnProperty;
                 # not supported right now.
@@ -1422,12 +1472,14 @@ class Mapper(InspectionAttr):
                         col.label("_sa_polymorphic_on")
                     key = col.key
 
-                self._configure_property(
-                    key,
-                    properties.ColumnProperty(col,
-                                              _instrument=instrument),
-                    init=init, setparent=True)
-                polymorphic_key = key
+                prop = properties.ColumnProperty(col, _instrument=instrument)
+                self._configure_property(key, prop, init=init, setparent=True)
+
+            # the actual polymorphic_on should be the first public-facing
+            # column in the property
+            self.polymorphic_on = prop.columns[0]
+            polymorphic_key = prop.key
+
         else:
             # no polymorphic_on was set.
             # check inheriting mappers for one.
@@ -1589,7 +1641,12 @@ class Mapper(InspectionAttr):
 
         if key in self._props and \
                 not isinstance(prop, properties.ColumnProperty) and \
-                not isinstance(self._props[key], properties.ColumnProperty):
+                not isinstance(
+                    self._props[key],
+                    (
+                        properties.ColumnProperty,
+                        properties.ConcreteInheritedProperty)
+                ):
             util.warn("Property %s on %s being replaced with new "
                       "property %s; the old property will be discarded" % (
                           self._props[key],
@@ -1913,6 +1970,19 @@ class Mapper(InspectionAttr):
     """
 
     @_memoized_configured_property
+    def _insert_cols_evaluating_none(self):
+        return dict(
+            (
+                table,
+                frozenset(
+                    col.key for col in columns
+                    if col.type.should_evaluate_none
+                )
+            )
+            for table, columns in self._cols_by_table.items()
+        )
+
+    @_memoized_configured_property
     def _insert_cols_as_none(self):
         return dict(
             (
@@ -1920,7 +1990,8 @@ class Mapper(InspectionAttr):
                 frozenset(
                     col.key for col in columns
                     if not col.primary_key and
-                    not col.server_default and not col.default)
+                    not col.server_default and not col.default
+                    and not col.type.should_evaluate_none)
             )
             for table, columns in self._cols_by_table.items()
         )
@@ -2759,8 +2830,9 @@ def configure_mappers():
                     e = sa_exc.InvalidRequestError(
                         "One or more mappers failed to initialize - "
                         "can't proceed with initialization of other "
-                        "mappers.  Original exception was: %s"
-                        % mapper._configure_failed)
+                        "mappers. Triggering mapper: '%s'. "
+                        "Original exception was: %s"
+                        % (mapper, mapper._configure_failed))
                     e._configure_failed = mapper._configure_failed
                     raise e
                 if not mapper.configured:

@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from sqlalchemy.testing import AssertsExecutionResults, eq_, \
-    assert_raises_message, AssertsCompiledSQL
+    assert_raises_message, AssertsCompiledSQL, expect_warnings, assert_raises
 from sqlalchemy import Table, Column, MetaData, Integer, String, bindparam, \
     Sequence, ForeignKey, text, select, func, extract, literal_column, \
     tuple_, DateTime, Time, literal, and_, Date, or_
@@ -69,9 +69,13 @@ class InsertTest(fixtures.TestBase, AssertsExecutionResults):
             engines.testing_engine(options={'implicit_returning': False}),
             engines.testing_engine(options={'implicit_returning': True})
         ]:
-            assert_raises_message(exc.DBAPIError,
-                                  'violates not-null constraint',
-                                  eng.execute, t2.insert())
+            with expect_warnings(
+                ".*has no Python-side or server-side default.*"
+            ):
+                assert_raises(
+                    (exc.IntegrityError, exc.ProgrammingError),
+                    eng.execute, t2.insert()
+                )
 
     def test_sequence_insert(self):
         table = Table(
@@ -517,29 +521,37 @@ class InsertTest(fixtures.TestBase, AssertsExecutionResults):
     def _assert_data_noautoincrement(self, table):
         engine = \
             engines.testing_engine(options={'implicit_returning': False})
+
         with engine.connect() as conn:
             conn.execute(table.insert(), {'id': 30, 'data': 'd1'})
-            if engine.driver == 'pg8000':
-                exception_cls = exc.ProgrammingError
-            elif engine.driver == 'pypostgresql':
-                exception_cls = Exception
-            else:
-                exception_cls = exc.IntegrityError
-            assert_raises_message(exception_cls,
-                                  'violates not-null constraint',
-                                  conn.execute, table.insert(), {'data': 'd2'})
-            assert_raises_message(exception_cls,
-                                  'violates not-null constraint',
-                                  conn.execute, table.insert(), {'data': 'd2'},
-                                  {'data': 'd3'})
-            assert_raises_message(exception_cls,
-                                  'violates not-null constraint',
-                                  conn.execute, table.insert(), {'data': 'd2'})
-            assert_raises_message(
-                exception_cls,
-                'violates not-null constraint',
-                conn.execute, table.insert(), {'data': 'd2'},
-                {'data': 'd3'})
+
+            with expect_warnings(
+                    ".*has no Python-side or server-side default.*",
+            ):
+                assert_raises(
+                    (exc.IntegrityError, exc.ProgrammingError),
+                    conn.execute, table.insert(), {'data': 'd2'})
+            with expect_warnings(
+                    ".*has no Python-side or server-side default.*",
+            ):
+                assert_raises(
+                    (exc.IntegrityError, exc.ProgrammingError),
+                    conn.execute, table.insert(), {'data': 'd2'},
+                    {'data': 'd3'})
+            with expect_warnings(
+                    ".*has no Python-side or server-side default.*",
+            ):
+                assert_raises(
+                    (exc.IntegrityError, exc.ProgrammingError),
+                    conn.execute, table.insert(), {'data': 'd2'})
+            with expect_warnings(
+                    ".*has no Python-side or server-side default.*",
+            ):
+                assert_raises(
+                    (exc.IntegrityError, exc.ProgrammingError),
+                    conn.execute, table.insert(), {'data': 'd2'},
+                    {'data': 'd3'})
+
             conn.execute(
                 table.insert(),
                 {'id': 31, 'data': 'd2'}, {'id': 32, 'data': 'd3'})
@@ -558,13 +570,20 @@ class InsertTest(fixtures.TestBase, AssertsExecutionResults):
         table = Table(table.name, m2, autoload=True)
         with engine.connect() as conn:
             conn.execute(table.insert(), {'id': 30, 'data': 'd1'})
-            assert_raises_message(exception_cls,
-                                  'violates not-null constraint',
-                                  conn.execute, table.insert(), {'data': 'd2'})
-            assert_raises_message(exception_cls,
-                                  'violates not-null constraint',
-                                  conn.execute, table.insert(), {'data': 'd2'},
-                                  {'data': 'd3'})
+
+            with expect_warnings(
+                    ".*has no Python-side or server-side default.*",
+            ):
+                assert_raises(
+                    (exc.IntegrityError, exc.ProgrammingError),
+                    conn.execute, table.insert(), {'data': 'd2'})
+            with expect_warnings(
+                    ".*has no Python-side or server-side default.*",
+            ):
+                assert_raises(
+                    (exc.IntegrityError, exc.ProgrammingError),
+                    conn.execute, table.insert(), {'data': 'd2'},
+                    {'data': 'd3'})
             conn.execute(
                 table.insert(),
                 {'id': 31, 'data': 'd2'}, {'id': 32, 'data': 'd3'})
@@ -685,28 +704,28 @@ class ServerSideCursorsTest(fixtures.TestBase, AssertsExecutionResults):
         result = engine.execute(s)
         assert result.cursor.name
 
+    @testing.provide_metadata
     def test_roundtrip(self):
+        md = self.metadata
+
         engine = self._fixture(True)
-        test_table = Table('test_table', MetaData(engine),
+        test_table = Table('test_table', md,
                            Column('id', Integer, primary_key=True),
                            Column('data', String(50)))
         test_table.create(checkfirst=True)
-        try:
-            test_table.insert().execute(data='data1')
-            nextid = engine.execute(Sequence('test_table_id_seq'))
-            test_table.insert().execute(id=nextid, data='data2')
-            eq_(test_table.select().execute().fetchall(), [(1, 'data1'
-                                                            ), (2, 'data2')])
-            test_table.update().where(
-                test_table.c.id == 2).values(
-                data=test_table.c.data +
-                ' updated').execute()
-            eq_(test_table.select().execute().fetchall(),
-                [(1, 'data1'), (2, 'data2 updated')])
-            test_table.delete().execute()
-            eq_(test_table.count().scalar(), 0)
-        finally:
-            test_table.drop(checkfirst=True)
+        test_table.insert().execute(data='data1')
+        nextid = engine.execute(Sequence('test_table_id_seq'))
+        test_table.insert().execute(id=nextid, data='data2')
+        eq_(test_table.select().execute().fetchall(), [(1, 'data1'
+                                                        ), (2, 'data2')])
+        test_table.update().where(
+            test_table.c.id == 2).values(
+            data=test_table.c.data +
+            ' updated').execute()
+        eq_(test_table.select().execute().fetchall(),
+            [(1, 'data1'), (2, 'data2 updated')])
+        test_table.delete().execute()
+        eq_(select([func.count('*')]).select_from(test_table).scalar(), 0)
 
 
 class MatchTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -757,6 +776,7 @@ class MatchTest(fixtures.TestBase, AssertsCompiledSQL):
 
     @testing.fails_on('postgresql+psycopg2', 'uses pyformat')
     @testing.fails_on('postgresql+pypostgresql', 'uses pyformat')
+    @testing.fails_on('postgresql+pygresql', 'uses pyformat')
     @testing.fails_on('postgresql+zxjdbc', 'uses qmark')
     @testing.fails_on('postgresql+psycopg2cffi', 'uses pyformat')
     def test_expression_positional(self):

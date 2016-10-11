@@ -144,7 +144,6 @@ class InheritedJoinTest(fixtures.MappedTest, AssertsCompiledSQL):
         mapper(Person, people,
             polymorphic_on=people.c.type,
             polymorphic_identity='person',
-            order_by=people.c.person_id,
             properties={
                 'paperwork':relationship(Paperwork, order_by=paperwork.c.paperwork_id)
             })
@@ -220,6 +219,7 @@ class InheritedJoinTest(fixtures.MappedTest, AssertsCompiledSQL):
 
         self.assert_compile(
             sess.query(Person).with_polymorphic(Manager).
+                    order_by(Person.person_id).
                     join('paperwork').filter(Paperwork.description.like('%review%')),
                 "SELECT people.person_id AS people_person_id, people.company_id AS"
                 " people_company_id, "
@@ -243,6 +243,7 @@ class InheritedJoinTest(fixtures.MappedTest, AssertsCompiledSQL):
 
         self.assert_compile(
             sess.query(Person).with_polymorphic(Manager).
+                    order_by(Person.person_id).
                     join('paperwork', aliased=True).
                     filter(Paperwork.description.like('%review%')),
             "SELECT people.person_id AS people_person_id, people.company_id AS people_company_id, "
@@ -446,6 +447,19 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             sess.query(literal_column('x'), User).join, Address
         )
 
+    def test_left_is_none_and_query_has_no_entities(self):
+        User = self.classes.User
+        Address = self.classes.Address
+
+        sess = create_session()
+
+        assert_raises_message(
+            sa_exc.InvalidRequestError,
+            "No entities to join from; please use select_from\(\) to "
+            "establish the left entity/selectable of this join",
+            sess.query().join, Address
+        )
+
     def test_isouter_flag(self):
         User = self.classes.User
 
@@ -453,6 +467,15 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
             create_session().query(User).join('orders', isouter=True),
             "SELECT users.id AS users_id, users.name AS users_name "
             "FROM users LEFT OUTER JOIN orders ON users.id = orders.user_id"
+        )
+
+    def test_full_flag(self):
+        User = self.classes.User
+
+        self.assert_compile(
+            create_session().query(User).outerjoin('orders', full=True),
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users FULL OUTER JOIN orders ON users.id = orders.user_id"
         )
 
 

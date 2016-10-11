@@ -1,5 +1,5 @@
 from sqlalchemy.testing import eq_, assert_raises_message, \
-    assert_raises, AssertsCompiledSQL
+    assert_raises, AssertsCompiledSQL, expect_warnings
 import datetime
 from sqlalchemy.schema import CreateSequence, DropSequence, CreateTable
 from sqlalchemy.sql import select, text, literal_column
@@ -24,11 +24,22 @@ class DDLTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = 'default'
 
     def test_string(self):
+        # note: that the datatype is an Integer here doesn't matter,
+        # the server_default is interpreted independently of the
+        # column's datatype.
         m = MetaData()
         t = Table('t', m, Column('x', Integer, server_default='5'))
         self.assert_compile(
             CreateTable(t),
             "CREATE TABLE t (x INTEGER DEFAULT '5')"
+        )
+
+    def test_string_w_quotes(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer, server_default="5'6"))
+        self.assert_compile(
+            CreateTable(t),
+            "CREATE TABLE t (x INTEGER DEFAULT '5''6')"
         )
 
     def test_text(self):
@@ -37,6 +48,23 @@ class DDLTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(
             CreateTable(t),
             "CREATE TABLE t (x INTEGER DEFAULT 5 + 8)"
+        )
+
+    def test_text_w_quotes(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer, server_default=text("5 ' 8")))
+        self.assert_compile(
+            CreateTable(t),
+            "CREATE TABLE t (x INTEGER DEFAULT 5 ' 8)"
+        )
+
+    def test_literal_binds_w_quotes(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer,
+                  server_default=literal("5 ' 8")))
+        self.assert_compile(
+            CreateTable(t),
+            """CREATE TABLE t (x INTEGER DEFAULT '5 '' 8')"""
         )
 
     def test_text_literal_binds(self):
@@ -301,6 +329,7 @@ class DefaultTest(fixtures.TestBase):
             c = sa.ColumnDefault(fn)
             c.arg("context")
 
+
     @testing.fails_on('firebird', 'Data type unknown')
     def test_standalone(self):
         c = testing.db.engine.contextual_connect()
@@ -538,6 +567,93 @@ class DefaultTest(fixtures.TestBase):
         eq_(55, l['col3'])
 
 
+class CTEDefaultTest(fixtures.TablesTest):
+    __requires__ = ('ctes',)
+    __backend__ = True
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table(
+            'q', metadata,
+            Column('x', Integer, default=2),
+            Column('y', Integer, onupdate=5),
+            Column('z', Integer)
+        )
+
+        Table(
+            'p', metadata,
+            Column('s', Integer),
+            Column('t', Integer),
+            Column('u', Integer, onupdate=1)
+        )
+
+    def _test_a_in_b(self, a, b):
+        q = self.tables.q
+        p = self.tables.p
+
+        with testing.db.connect() as conn:
+            if a == 'delete':
+                conn.execute(q.insert().values(y=10, z=1))
+                cte = q.delete().\
+                    where(q.c.z == 1).returning(q.c.z).cte('c')
+                expected = None
+            elif a == "insert":
+                cte = q.insert().values(z=1, y=10).returning(q.c.z).cte('c')
+                expected = (2, 10)
+            elif a == "update":
+                conn.execute(q.insert().values(x=5, y=10, z=1))
+                cte = q.update().\
+                    where(q.c.z == 1).values(x=7).returning(q.c.z).cte('c')
+                expected = (7, 5)
+            elif a == "select":
+                conn.execute(q.insert().values(x=5, y=10, z=1))
+                cte = sa.select([q.c.z]).cte('c')
+                expected = (5, 10)
+
+            if b == "select":
+                conn.execute(p.insert().values(s=1))
+                stmt = select([p.c.s, cte.c.z])
+            elif b == "insert":
+                sel = select([1, cte.c.z, ])
+                stmt = p.insert().from_select(['s', 't'], sel).returning(
+                    p.c.s, p.c.t)
+            elif b == "delete":
+                stmt = p.insert().values(s=1, t=cte.c.z).returning(
+                    p.c.s, cte.c.z)
+            elif b == "update":
+                conn.execute(p.insert().values(s=1))
+                stmt = p.update().values(t=5).\
+                    where(p.c.s == cte.c.z).\
+                    returning(p.c.u, cte.c.z)
+            eq_(
+                conn.execute(stmt).fetchall(),
+                [(1, 1)]
+            )
+
+            eq_(
+                conn.execute(select([q.c.x, q.c.y])).fetchone(),
+                expected
+            )
+
+    def test_update_in_select(self):
+        self._test_a_in_b("update", "select")
+
+    def test_delete_in_select(self):
+        self._test_a_in_b("update", "select")
+
+    def test_insert_in_select(self):
+        self._test_a_in_b("update", "select")
+
+    def test_select_in_update(self):
+        self._test_a_in_b("select", "update")
+
+    def test_select_in_insert(self):
+        self._test_a_in_b("select", "insert")
+
+    # TODO: updates / inserts can be run in one statement w/ CTE ?
+    # deletes?
+
+
 class PKDefaultTest(fixtures.TablesTest):
     __requires__ = ('subqueries',)
     __backend__ = True
@@ -732,7 +848,7 @@ class AutoIncrementTest(fixtures.TablesTest):
         )
         assert x._autoincrement_column is None
 
-    @testing.fails_on('sqlite', 'FIXME: unknown')
+    @testing.only_on("sqlite")
     def test_non_autoincrement(self):
         # sqlite INT primary keys can be non-unique! (only for ints)
         nonai = Table(
@@ -746,12 +862,12 @@ class AutoIncrementTest(fixtures.TablesTest):
             # mysql in legacy mode fails on second row
             nonai.insert().execute(data='row 1')
             nonai.insert().execute(data='row 2')
-        assert_raises(
-            sa.exc.DBAPIError,
-            go
-        )
 
-        nonai.insert().execute(id=1, data='row 1')
+        # just testing SQLite for now, it passes
+        with expect_warnings(
+            ".*has no Python-side or server-side default.*",
+        ):
+            go()
 
     def test_col_w_sequence_non_autoinc_no_firing(self):
         metadata = self.metadata
@@ -1080,6 +1196,23 @@ class SequenceTest(fixtures.TestBase, testing.AssertsCompiledSQL):
         metadata.drop_all(testing.db)
         assert not self._has_sequence('s1')
         assert not self._has_sequence('s2')
+
+    @testing.requires.returning
+    @testing.provide_metadata
+    def test_freestanding_sequence_via_autoinc(self):
+        t = Table(
+            'some_table', self.metadata,
+            Column(
+                'id', Integer,
+                autoincrement=True,
+                primary_key=True,
+                default=Sequence(
+                    'my_sequence', metadata=self.metadata).next_value())
+        )
+        self.metadata.create_all(testing.db)
+
+        result = testing.db.execute(t.insert())
+        eq_(result.inserted_primary_key, [1])
 
 cartitems = sometable = metadata = None
 

@@ -50,13 +50,13 @@ Version Check
 =============
 
 
-A quick check to verify that we are on at least **version 1.0** of SQLAlchemy:
+A quick check to verify that we are on at least **version 1.1** of SQLAlchemy:
 
 .. sourcecode:: pycon+sql
 
     >>> import sqlalchemy
-    >>> sqlalchemy.__version__ # doctest:+SKIP
-    1.0.0
+    >>> sqlalchemy.__version__  # doctest: +SKIP
+    1.1.0
 
 Connecting
 ==========
@@ -791,35 +791,127 @@ Above, we can see that bound parameters are specified in
 :func:`~.expression.text` using the named colon format; this format is
 consistent regardless of database backend.  To send values in for the
 parameters, we passed them into the :meth:`~.Connection.execute` method
-as additional arguments.  Depending on how we are working, we can also
-send values to be associated directly with the :func:`~.expression.text`
-construct using the :meth:`~.TextClause.bindparams` method; if we are
-using datatypes that need special handling as they are received in Python,
-or we'd like to compose our :func:`~.expression.text` object into a larger
-expression, we may also wish to use the :meth:`~.TextClause.columns` method
-in order to specify column return types and names:
+as additional arguments.
+
+Specifying Bound Parameter Behaviors
+------------------------------------------
+
+The :func:`~.expression.text` construct supports pre-established bound values
+using the :meth:`.TextClause.bindparams` method::
+
+    stmt = text("SELECT * FROM users WHERE users.name BETWEEN :x AND :y")
+    stmt = stmt.bindparams(x="m", y="z")
+
+The parameters can also be explicitly typed::
+
+    stmt = stmt.bindparams(bindparam("x", String), bindparam("y", String))
+    result = conn.execute(stmt, {"x": "m", "y": "z"})
+
+Typing for bound parameters is necessary when the type requires Python-side
+or special SQL-side processing provided by the datatype.
+
+.. seealso::
+
+    :meth:`.TextClause.bindparams` - full method description
+
+.. _sqlexpression_text_columns:
+
+Specifying Result-Column Behaviors
+----------------------------------------------
+
+We may also specify information about the result columns using the
+:meth:`.TextClause.columns` method; this method can be used to specify
+the return types, based on name::
+
+    stmt = stmt.columns(id=Integer, name=String)
+
+or it can be passed full column expressions positionally, either typed
+or untyped.  In this case it's a good idea to list out the columns
+explicitly within our textual SQL, since the correlation of our column
+expressions to the SQL will be done positionally::
+
+    stmt = text("SELECT id, name FROM users")
+    stmt = stmt.columns(users.c.id, users.c.name)
+
+When we call the :meth:`.TextClause.columns` method, we get back a
+:class:`.TextAsFrom` object that supports the full suite of
+:attr:`.TextAsFrom.c` and other "selectable" operations::
+
+    j = stmt.join(addresses, stmt.c.id == addresses.c.user_id)
+
+    new_stmt = select([stmt.c.id, addresses.c.id]).\
+        select_from(j).where(stmt.c.name == 'x')
+
+The positional form of :meth:`.TextClause.columns` is particularly useful
+when relating textual SQL to existing Core or ORM models, because we can use
+column expressions directly without worrying about name conflicts or other issues with the
+result column names in the textual SQL:
 
 .. sourcecode:: pycon+sql
 
-    >>> s = text(
-    ...     "SELECT users.fullname || ', ' || addresses.email_address AS title "
-    ...         "FROM users, addresses "
-    ...         "WHERE users.id = addresses.user_id "
-    ...         "AND users.name BETWEEN :x AND :y "
-    ...         "AND (addresses.email_address LIKE :e1 "
-    ...             "OR addresses.email_address LIKE :e2)")
-    >>> s = s.columns(title=String)
-    >>> s = s.bindparams(x='m', y='z', e1='%@aol.com', e2='%@msn.com')
-    >>> conn.execute(s).fetchall()
-    SELECT users.fullname || ', ' || addresses.email_address AS title
-    FROM users, addresses
-    WHERE users.id = addresses.user_id AND users.name BETWEEN ? AND ? AND
-    (addresses.email_address LIKE ? OR addresses.email_address LIKE ?)
-    ('m', 'z', '%@aol.com', '%@msn.com')
-    {stop}[(u'Wendy Williams, wendy@aol.com',)]
+    >>> stmt = text("SELECT users.id, addresses.id, users.id, "
+    ...     "users.name, addresses.email_address AS email "
+    ...     "FROM users JOIN addresses ON users.id=addresses.user_id "
+    ...     "WHERE users.id = 1").columns(
+    ...        users.c.id,
+    ...        addresses.c.id,
+    ...        addresses.c.user_id,
+    ...        users.c.name,
+    ...        addresses.c.email_address
+    ...     )
+    {sql}>>> result = conn.execute(stmt)
+    SELECT users.id, addresses.id, users.id, users.name,
+        addresses.email_address AS email
+    FROM users JOIN addresses ON users.id=addresses.user_id WHERE users.id = 1
+    ()
+    {stop}
+
+Above, there's three columns in the result that are named "id", but since
+we've associated these with column expressions positionally, the names aren't an issue
+when the result-columns are fetched using the actual column object as a key.
+Fetching the ``email_address`` column would be::
+
+    >>> row = result.fetchone()
+    >>> row[addresses.c.email_address]
+    'jack@yahoo.com'
+
+If on the other hand we used a string column key, the usual rules of name-
+based matching still apply, and we'd get an ambiguous column error for
+the ``id`` value::
+
+    >>> row["id"]
+    Traceback (most recent call last):
+    ...
+    InvalidRequestError: Ambiguous column name 'id' in result set column descriptions
+
+It's important to note that while accessing columns from a result set using
+:class:`.Column` objects may seem unusual, it is in fact the only system
+used by the ORM, which occurs transparently beneath the facade of the
+:class:`~.orm.query.Query` object; in this way, the :meth:`.TextClause.columns` method
+is typically very applicable to textual statements to be used in an ORM
+context.   The example at :ref:`orm_tutorial_literal_sql` illustrates
+a simple usage.
+
+.. versionadded:: 1.1
+
+    The :meth:`.TextClause.columns` method now accepts column expressions
+    which will be matched positionally to a plain text SQL result set,
+    eliminating the need for column names to match or even be unique in the
+    SQL statement when matching table metadata or ORM models to textual SQL.
+
+.. seealso::
+
+    :meth:`.TextClause.columns` - full method description
+
+    :ref:`orm_tutorial_literal_sql` - integrating ORM-level queries with
+    :func:`.text`
 
 
-:func:`~.expression.text` can also be used freely within a
+Using text() fragments inside bigger statements
+-----------------------------------------------
+
+:func:`~.expression.text` can also be used to produce fragments of SQL
+that can be freely within a
 :func:`~.expression.select` object, which accepts :func:`~.expression.text`
 objects as an argument for most of its builder functions.
 Below, we combine the usage of :func:`~.expression.text` within a
@@ -850,29 +942,12 @@ need to refer to any pre-established :class:`.Table` metadata:
     ('%@aol.com', '%@msn.com')
     {stop}[(u'Wendy Williams, wendy@aol.com',)]
 
-.. topic:: Why not use strings everywhere?
-
-    When we use literal strings, the Core can't adapt our SQL to work
-    on different database backends.  Above, our expression won't work
-    with MySQL since MySQL doesn't have the ``||`` construct.
-    If we only use :func:`.text` to specify columns, our :func:`.select`
-    construct will have an empty ``.c`` collection
-    that we'd normally use to create subqueries.
-    We also lose typing information about result columns and bound parameters,
-    which is often needed to correctly translate data values between
-    Python and the database.  Overall, the more :func:`.text` we use,
-    the less flexibility and ability for manipulation/transformation
-    the statement will have.
-
-.. seealso::
-
-    :ref:`orm_tutorial_literal_sql` - integrating ORM-level queries with
-    :func:`.text`
-
 .. versionchanged:: 1.0.0
    The :func:`.select` construct emits warnings when string SQL
    fragments are coerced to :func:`.text`, and :func:`.text` should
    be used explicitly.  See :ref:`migration_2992` for background.
+
+
 
 .. _sqlexpression_literal_column:
 
@@ -1245,7 +1320,7 @@ generates functions using attribute access:
     now()
 
     >>> print(func.concat('x', 'y'))
-    concat(:param_1, :param_2)
+    concat(:concat_1, :concat_2)
 
 By "generates", we mean that **any** SQL function is created based on the word
 you choose::
@@ -1334,14 +1409,14 @@ of our selectable:
 
     :data:`.func`
 
+.. _window_functions:
+
 Window Functions
 -----------------
 
 Any :class:`.FunctionElement`, including functions generated by
 :data:`~.expression.func`, can be turned into a "window function", that is an
-OVER clause, using the :meth:`.FunctionElement.over` method:
-
-.. sourcecode:: pycon+sql
+OVER clause, using the :meth:`.FunctionElement.over` method::
 
     >>> s = select([
     ...         users.c.id,
@@ -1350,6 +1425,29 @@ OVER clause, using the :meth:`.FunctionElement.over` method:
     >>> print(s)
     SELECT users.id, row_number() OVER (ORDER BY users.name) AS anon_1
     FROM users
+
+:meth:`.FunctionElement.over` also supports range specification using
+either the :paramref:`.expression.over.rows` or
+:paramref:`.expression.over.range` parameters::
+
+    >>> s = select([
+    ...         users.c.id,
+    ...         func.row_number().over(
+    ...                 order_by=users.c.name,
+    ...                 rows=(-2, None))
+    ...     ])
+    >>> print(s)
+    SELECT users.id, row_number() OVER
+    (ORDER BY users.name ROWS BETWEEN :param_1 PRECEDING AND UNBOUNDED FOLLOWING) AS anon_1
+    FROM users
+
+:paramref:`.expression.over.rows` and :paramref:`.expression.over.range` each
+accept a two-tuple which contains a combination of negative and positive
+integers for ranges, zero to indicate "CURRENT ROW" and ``None`` to
+indicate "UNBOUNDED".  See the examples at :func:`.over` for more detail.
+
+.. versionadded:: 1.1 support for "rows" and "range" specification for
+   window functions
 
 .. seealso::
 
@@ -1614,6 +1712,74 @@ by telling it to correlate all FROM clauses except for ``users``:
      WHERE users.id = addresses.user_id AND users.name = ?)
      ('jack',)
      {stop}[(u'jack', u'jack@yahoo.com'), (u'jack', u'jack@msn.com')]
+
+.. _lateral_selects:
+
+LATERAL correlation
+^^^^^^^^^^^^^^^^^^^
+
+LATERAL correlation is a special sub-category of SQL correlation which
+allows a selectable unit to refer to another selectable unit within a
+single FROM clause.  This is an extremely special use case which, while
+part of the SQL standard, is only known to be supported by recent
+versions of Postgresql.
+
+Normally, if a SELECT statement refers to
+``table1 JOIN (some SELECT) AS subquery`` in its FROM clause, the subquery
+on the right side may not refer to the "table1" expression from the left side;
+correlation may only refer to a table that is part of another SELECT that
+entirely encloses this SELECT.  The LATERAL keyword allows us to turn this
+behavior around, allowing an expression such as:
+
+.. sourcecode:: sql
+
+    SELECT people.people_id, people.age, people.name
+    FROM people JOIN LATERAL (SELECT books.book_id AS book_id
+    FROM books WHERE books.owner_id = people.people_id)
+    AS book_subq ON true
+
+Where above, the right side of the JOIN contains a subquery that refers not
+just to the "books" table but also the "people" table, correlating
+to the left side of the JOIN.   SQLAlchemy Core supports a statement
+like the above using the :meth:`.Select.lateral` method as follows::
+
+    >>> from sqlalchemy import table, column, select, true
+    >>> people = table('people', column('people_id'), column('age'), column('name'))
+    >>> books = table('books', column('book_id'), column('owner_id'))
+    >>> subq = select([books.c.book_id]).\
+    ...      where(books.c.owner_id == people.c.people_id).lateral("book_subq")
+    >>> print(select([people]).select_from(people.join(subq, true())))
+    SELECT people.people_id, people.age, people.name
+    FROM people JOIN LATERAL (SELECT books.book_id AS book_id
+    FROM books WHERE books.owner_id = people.people_id)
+    AS book_subq ON true
+
+Above, we can see that the :meth:`.Select.lateral` method acts a lot like
+the :meth:`.Select.alias` method, including that we can specify an optional
+name.  However the construct is the :class:`.Lateral` construct instead of
+an :class:`.Alias` which provides for the LATERAL keyword as well as special
+instructions to allow correlation from inside the FROM clause of the
+enclosing statement.
+
+The :meth:`.Select.lateral` method interacts normally with the
+:meth:`.Select.correlate` and :meth:`.Select.correlate_except` methods, except
+that the correlation rules also apply to any other tables present in the
+enclosing statement's FROM clause.   Correlation is "automatic" to these
+tables by default, is explicit if the table is specified to
+:meth:`.Select.correlate`, and is explicit to all tables except those
+specified to :meth:`.Select.correlate_except`.
+
+
+.. versionadded:: 1.1
+
+    Support for the LATERAL keyword and lateral correlation.
+
+.. seealso::
+
+    :class:`.Lateral`
+
+    :meth:`.Select.lateral`
+
 
 Ordering, Grouping, Limiting, Offset...ing...
 ---------------------------------------------

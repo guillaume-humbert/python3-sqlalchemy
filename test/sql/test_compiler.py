@@ -10,7 +10,8 @@ styling and coherent test organization.
 
 """
 
-from sqlalchemy.testing import eq_, is_, assert_raises, assert_raises_message
+from sqlalchemy.testing import eq_, is_, assert_raises, \
+    assert_raises_message, eq_ignore_whitespace
 from sqlalchemy import testing
 from sqlalchemy.testing import fixtures, AssertsCompiledSQL
 from sqlalchemy import Integer, String, MetaData, Table, Column, select, \
@@ -1552,6 +1553,26 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             "mytable.myid = :myid_1 OR myothertable.othername != :othername_1 "
             "OR EXISTS (select yay from foo where boo = lar)", )
 
+    def test_full_outer_join(self):
+        for spec in [
+            join(table1, table2, table1.c.myid == table2.c.otherid, full=True),
+            outerjoin(
+                table1, table2,
+                table1.c.myid == table2.c.otherid, full=True),
+            table1.join(
+                table2,
+                table1.c.myid == table2.c.otherid, full=True),
+            table1.outerjoin(
+                table2,
+                table1.c.myid == table2.c.otherid, full=True),
+        ]:
+            stmt = select([table1]).select_from(spec)
+        self.assert_compile(
+            stmt,
+            "SELECT mytable.myid, mytable.name, mytable.description FROM "
+            "mytable FULL OUTER JOIN myothertable "
+            "ON mytable.myid = myothertable.otherid")
+
     def test_compound_selects(self):
         assert_raises_message(
             exc.ArgumentError,
@@ -1658,14 +1679,12 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
 
         s = select([column('foo'), column('bar')])
 
-        # ORDER BY's even though not supported by
-        # all DB's, are rendered if requested
         self.assert_compile(
             union(
                 s.order_by("foo"),
                 s.order_by("bar")),
-            "SELECT foo, bar ORDER BY foo UNION SELECT foo, bar ORDER BY bar")
-        # self_group() is honored
+            "(SELECT foo, bar ORDER BY foo) UNION "
+            "(SELECT foo, bar ORDER BY bar)")
         self.assert_compile(
             union(s.order_by("foo").self_group(),
                   s.order_by("bar").limit(10).self_group()),
@@ -1772,6 +1791,67 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             "(SELECT foo, bar FROM bat INTERSECT SELECT foo, bar FROM bat) "
             "UNION (SELECT foo, bar FROM bat INTERSECT "
             "SELECT foo, bar FROM bat)"
+        )
+
+        # tests for [ticket:2528]
+        # sqlite hates all of these.
+        self.assert_compile(
+            union(
+                s.limit(1),
+                s.offset(2)
+            ),
+            "(SELECT foo, bar FROM bat LIMIT :param_1) "
+            "UNION (SELECT foo, bar FROM bat LIMIT -1 OFFSET :param_2)"
+        )
+
+        self.assert_compile(
+            union(
+                s.order_by(column('bar')),
+                s.offset(2)
+            ),
+            "(SELECT foo, bar FROM bat ORDER BY bar) "
+            "UNION (SELECT foo, bar FROM bat LIMIT -1 OFFSET :param_1)"
+        )
+
+        self.assert_compile(
+            union(
+                s.limit(1).alias('a'),
+                s.limit(2).alias('b')
+            ),
+            "(SELECT foo, bar FROM bat LIMIT :param_1) "
+            "UNION (SELECT foo, bar FROM bat LIMIT :param_2)"
+        )
+
+        self.assert_compile(
+            union(
+                s.limit(1).self_group(),
+                s.limit(2).self_group()
+            ),
+            "(SELECT foo, bar FROM bat LIMIT :param_1) "
+            "UNION (SELECT foo, bar FROM bat LIMIT :param_2)"
+        )
+
+        self.assert_compile(
+            union(s.limit(1), s.limit(2).offset(3)).alias().select(),
+            "SELECT anon_1.foo, anon_1.bar FROM "
+            "((SELECT foo, bar FROM bat LIMIT :param_1) "
+            "UNION (SELECT foo, bar FROM bat LIMIT :param_2 OFFSET :param_3)) "
+            "AS anon_1"
+        )
+
+        # this version works for SQLite
+        self.assert_compile(
+            union(
+                s.limit(1).alias().select(),
+                s.offset(2).alias().select(),
+            ),
+            "SELECT anon_1.foo, anon_1.bar "
+            "FROM (SELECT foo, bar FROM bat"
+            " LIMIT :param_1) AS anon_1 "
+            "UNION SELECT anon_2.foo, anon_2.bar "
+            "FROM (SELECT foo, bar "
+            "FROM bat"
+            " LIMIT -1 OFFSET :param_2) AS anon_2"
         )
 
     def test_binds(self):
@@ -2067,7 +2147,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
                 'CAST(%s AS %s)' % (literal, expected_results[4]))
 
             # fixme: shoving all of this dialect-specific stuff in one test
-            # is now officialy completely ridiculous AND non-obviously omits
+            # is now officially completely ridiculous AND non-obviously omits
             # coverage on other dialects.
             sel = select([tbl, cast(tbl.c.v1, Numeric)]).compile(
                 dialect=dialect)
@@ -2249,6 +2329,73 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             "(ORDER BY mytable.myid + :myid_1) AS anon_1 FROM mytable"
         )
 
+    def test_over_framespec(self):
+
+        expr = table1.c.myid
+        self.assert_compile(
+            select([func.row_number().over(order_by=expr, rows=(0, None))]),
+            "SELECT row_number() OVER "
+            "(ORDER BY mytable.myid ROWS BETWEEN CURRENT "
+            "ROW AND UNBOUNDED FOLLOWING)"
+            " AS anon_1 FROM mytable"
+        )
+
+        self.assert_compile(
+            select([func.row_number().over(order_by=expr, rows=(None, None))]),
+            "SELECT row_number() OVER "
+            "(ORDER BY mytable.myid ROWS BETWEEN UNBOUNDED "
+            "PRECEDING AND UNBOUNDED FOLLOWING)"
+            " AS anon_1 FROM mytable"
+        )
+
+        self.assert_compile(
+            select([func.row_number().over(order_by=expr, range_=(None, 0))]),
+            "SELECT row_number() OVER "
+            "(ORDER BY mytable.myid RANGE BETWEEN "
+            "UNBOUNDED PRECEDING AND CURRENT ROW)"
+            " AS anon_1 FROM mytable"
+        )
+
+        self.assert_compile(
+            select([func.row_number().over(order_by=expr, range_=(-5, 10))]),
+            "SELECT row_number() OVER "
+            "(ORDER BY mytable.myid RANGE BETWEEN "
+            ":param_1 PRECEDING AND :param_2 FOLLOWING)"
+            " AS anon_1 FROM mytable",
+            {'param_1': 5, 'param_2': 10}
+        )
+
+    def test_over_invalid_framespecs(self):
+        assert_raises_message(
+            exc.ArgumentError,
+            "Preceding value must be a negative integer, zero, or None",
+            func.row_number().over, range_=(5, 10)
+        )
+
+        assert_raises_message(
+            exc.ArgumentError,
+            "Following value must be a positive integer, zero, or None",
+            func.row_number().over, range_=(-5, -8)
+        )
+
+        assert_raises_message(
+            exc.ArgumentError,
+            "Integer or None expected for preceding value",
+            func.row_number().over, range_=("foo", 8)
+        )
+
+        assert_raises_message(
+            exc.ArgumentError,
+            "Integer or None expected for following value",
+            func.row_number().over, range_=(-5, "foo")
+        )
+
+        assert_raises_message(
+            exc.ArgumentError,
+            "'range_' and 'rows' are mutually exclusive",
+            func.row_number().over, range_=(-5, 8), rows=(-2, 5)
+        )
+
     def test_date_between(self):
         import datetime
         table = Table('dt', metadata,
@@ -2285,14 +2432,16 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
         assert_raises_message(
             exc.CompileError,
             "Cannot compile Column object until its 'name' is assigned.",
-            str, sel2
+            sel2.compile,
+            dialect=default.DefaultDialect()
         )
 
         sel3 = select([my_str]).as_scalar()
         assert_raises_message(
             exc.CompileError,
             "Cannot compile Column object until its 'name' is assigned.",
-            str, sel3
+            sel3.compile,
+            dialect=default.DefaultDialect()
         )
 
         my_str.name = 'foo'
@@ -2518,7 +2667,7 @@ class UnsupportedTest(fixtures.TestBase):
 
         assert_raises_message(
             exc.UnsupportedCompilationError,
-            r"Compiler <sqlalchemy.sql.compiler.SQLCompiler .*"
+            r"Compiler <sqlalchemy.sql.compiler.StrSQLCompiler .*"
             r"can't render element of type <class '.*SomeElement'>",
             SomeElement().compile
         )
@@ -2534,7 +2683,7 @@ class UnsupportedTest(fixtures.TestBase):
 
         assert_raises_message(
             exc.UnsupportedCompilationError,
-            r"Compiler <sqlalchemy.sql.compiler.SQLCompiler .*"
+            r"Compiler <sqlalchemy.sql.compiler.StrSQLCompiler .*"
             r"can't render element of type <class '.*SomeElement'>",
             SomeElement().compile
         )
@@ -2547,9 +2696,80 @@ class UnsupportedTest(fixtures.TestBase):
         binary = BinaryExpression(column("foo"), column("bar"), myop)
         assert_raises_message(
             exc.UnsupportedCompilationError,
-            r"Compiler <sqlalchemy.sql.compiler.SQLCompiler .*"
+            r"Compiler <sqlalchemy.sql.compiler.StrSQLCompiler .*"
             r"can't render element of type <function.*",
             binary.compile
+        )
+
+
+class StringifySpecialTest(fixtures.TestBase):
+    def test_basic(self):
+        stmt = select([table1]).where(table1.c.myid == 10)
+        eq_ignore_whitespace(
+            str(stmt),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1"
+        )
+
+    def test_unnamed_column(self):
+        stmt = Column(Integer) == 5
+        eq_ignore_whitespace(
+            str(stmt),
+            '"<name unknown>" = :param_1'
+        )
+
+    def test_cte(self):
+        # stringify of these was supported anyway by defaultdialect.
+        stmt = select([table1.c.myid]).cte()
+        stmt = select([stmt])
+        eq_ignore_whitespace(
+            str(stmt),
+            "WITH anon_1 AS (SELECT mytable.myid AS myid FROM mytable) "
+            "SELECT anon_1.myid FROM anon_1"
+        )
+
+    def test_returning(self):
+        stmt = table1.insert().returning(table1.c.myid)
+
+        eq_ignore_whitespace(
+            str(stmt),
+            "INSERT INTO mytable (myid, name, description) "
+            "VALUES (:myid, :name, :description) RETURNING mytable.myid"
+        )
+
+    def test_array_index(self):
+        stmt = select([column('foo', types.ARRAY(Integer))[5]])
+
+        eq_ignore_whitespace(
+            str(stmt),
+            "SELECT foo[:foo_1] AS anon_1"
+        )
+
+    def test_unknown_type(self):
+        class MyType(types.TypeEngine):
+            __visit_name__ = 'mytype'
+
+        stmt = select([cast(table1.c.myid, MyType)])
+
+        eq_ignore_whitespace(
+            str(stmt),
+            "SELECT CAST(mytable.myid AS MyType) AS anon_1 FROM mytable"
+        )
+
+    def test_within_group(self):
+        # stringify of these was supported anyway by defaultdialect.
+        from sqlalchemy import within_group
+        stmt = select([
+            table1.c.myid,
+            within_group(
+                func.percentile_cont(0.5),
+                table1.c.name.desc()
+            )
+        ])
+        eq_ignore_whitespace(
+            str(stmt),
+            "SELECT mytable.myid, percentile_cont(:percentile_cont_1) "
+            "WITHIN GROUP (ORDER BY mytable.name DESC) AS anon_1 FROM mytable"
         )
 
 
@@ -2600,6 +2820,39 @@ class KwargPropagationTest(fixtures.TestBase):
     def test_cast(self):
         c = cast(self.column, Integer)
         self._do_test(c)
+
+
+class ExecutionOptionsTest(fixtures.TestBase):
+    def test_non_dml(self):
+        stmt = table1.select()
+        compiled = stmt.compile()
+
+        eq_(compiled.execution_options, {})
+
+    def test_dml(self):
+        stmt = table1.insert()
+        compiled = stmt.compile()
+
+        eq_(compiled.execution_options, {"autocommit": True})
+
+    def test_embedded_element_true_to_none(self):
+        stmt = table1.insert().cte()
+        eq_(stmt._execution_options, {"autocommit": True})
+        s2 = select([table1]).select_from(stmt)
+        eq_(s2._execution_options, {})
+
+        compiled = s2.compile()
+        eq_(compiled.execution_options, {"autocommit": True})
+
+    def test_embedded_element_true_to_false(self):
+        stmt = table1.insert().cte()
+        eq_(stmt._execution_options, {"autocommit": True})
+        s2 = select([table1]).select_from(stmt).\
+            execution_options(autocommit=False)
+        eq_(s2._execution_options, {"autocommit": False})
+
+        compiled = s2.compile()
+        eq_(compiled.execution_options, {"autocommit": False})
 
 
 class CRUDTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -2855,6 +3108,53 @@ class DDLTest(fixtures.TestBase, AssertsCompiledSQL):
             "CREATE TABLE t (x INTEGER, z INTEGER)"
         )
 
+    def test_composite_pk_constraint_autoinc_first_implicit(self):
+        m = MetaData()
+        t = Table(
+            't', m,
+            Column('a', Integer, primary_key=True),
+            Column('b', Integer, primary_key=True, autoincrement=True)
+        )
+        self.assert_compile(
+            schema.CreateTable(t),
+            "CREATE TABLE t ("
+            "a INTEGER NOT NULL, "
+            "b INTEGER NOT NULL, "
+            "PRIMARY KEY (b, a))"
+        )
+
+    def test_composite_pk_constraint_maintains_order_explicit(self):
+        m = MetaData()
+        t = Table(
+            't', m,
+            Column('a', Integer),
+            Column('b', Integer, autoincrement=True),
+            schema.PrimaryKeyConstraint('a', 'b')
+        )
+        self.assert_compile(
+            schema.CreateTable(t),
+            "CREATE TABLE t ("
+            "a INTEGER NOT NULL, "
+            "b INTEGER NOT NULL, "
+            "PRIMARY KEY (a, b))"
+        )
+
+    def test_create_table_suffix(self):
+        class MyDialect(default.DefaultDialect):
+            class MyCompiler(compiler.DDLCompiler):
+                def create_table_suffix(self, table):
+                    return 'SOME SUFFIX'
+
+            ddl_compiler = MyCompiler
+
+        m = MetaData()
+        t1 = Table('t1', m, Column('q', Integer))
+        self.assert_compile(
+            schema.CreateTable(t1),
+            "CREATE TABLE t1 SOME SUFFIX (q INTEGER)",
+            dialect=MyDialect()
+        )
+
     def test_table_no_cols(self):
         m = MetaData()
         t1 = Table('t1', m)
@@ -2877,6 +3177,57 @@ class DDLTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(
             schema.CreateTable(t1),
             "CREATE TABLE t1 (q INTEGER, CHECK (a = 1))"
+        )
+
+    def test_schema_translate_map_table(self):
+        m = MetaData()
+        t1 = Table('t1', m, Column('q', Integer))
+        t2 = Table('t2', m, Column('q', Integer), schema='foo')
+        t3 = Table('t3', m, Column('q', Integer), schema='bar')
+
+        schema_translate_map = {None: "z", "bar": None, "foo": "bat"}
+
+        self.assert_compile(
+            schema.CreateTable(t1),
+            "CREATE TABLE z.t1 (q INTEGER)",
+            schema_translate_map=schema_translate_map
+        )
+
+        self.assert_compile(
+            schema.CreateTable(t2),
+            "CREATE TABLE bat.t2 (q INTEGER)",
+            schema_translate_map=schema_translate_map
+        )
+
+        self.assert_compile(
+            schema.CreateTable(t3),
+            "CREATE TABLE t3 (q INTEGER)",
+            schema_translate_map=schema_translate_map
+        )
+
+    def test_schema_translate_map_sequence(self):
+        s1 = schema.Sequence('s1')
+        s2 = schema.Sequence('s2', schema='foo')
+        s3 = schema.Sequence('s3', schema='bar')
+
+        schema_translate_map = {None: "z", "bar": None, "foo": "bat"}
+
+        self.assert_compile(
+            schema.CreateSequence(s1),
+            "CREATE SEQUENCE z.s1",
+            schema_translate_map=schema_translate_map
+        )
+
+        self.assert_compile(
+            schema.CreateSequence(s2),
+            "CREATE SEQUENCE bat.s2",
+            schema_translate_map=schema_translate_map
+        )
+
+        self.assert_compile(
+            schema.CreateSequence(s3),
+            "CREATE SEQUENCE s3",
+            schema_translate_map=schema_translate_map
         )
 
 
@@ -2972,6 +3323,82 @@ class SchemaTest(fixtures.TestBase, AssertsCompiledSQL):
                             'dbo_remote_owner_remotetable_value FROM'
                             ' "dbo.remote_owner".remotetable'
                             )
+
+    def test_schema_translate_select(self):
+        schema_translate_map = {"remote_owner": "foob", None: 'bar'}
+
+        self.assert_compile(
+            table1.select().where(table1.c.name == 'hi'),
+            "SELECT bar.mytable.myid, bar.mytable.name, "
+            "bar.mytable.description FROM bar.mytable "
+            "WHERE bar.mytable.name = :name_1",
+            schema_translate_map=schema_translate_map
+        )
+
+        self.assert_compile(
+            table4.select().where(table4.c.value == 'hi'),
+            "SELECT foob.remotetable.rem_id, foob.remotetable.datatype_id, "
+            "foob.remotetable.value FROM foob.remotetable "
+            "WHERE foob.remotetable.value = :value_1",
+            schema_translate_map=schema_translate_map
+        )
+
+        schema_translate_map = {"remote_owner": "foob"}
+        self.assert_compile(
+            select([
+                table1, table4
+            ]).select_from(
+                join(table1, table4, table1.c.myid == table4.c.rem_id)
+            ),
+            "SELECT mytable.myid, mytable.name, mytable.description, "
+            "foob.remotetable.rem_id, foob.remotetable.datatype_id, "
+            "foob.remotetable.value FROM mytable JOIN foob.remotetable "
+            "ON foob.remotetable.rem_id = mytable.myid",
+            schema_translate_map=schema_translate_map
+        )
+
+    def test_schema_translate_crud(self):
+        schema_translate_map = {"remote_owner": "foob", None: 'bar'}
+
+        self.assert_compile(
+            table1.insert().values(description='foo'),
+            "INSERT INTO bar.mytable (description) VALUES (:description)",
+            schema_translate_map=schema_translate_map
+        )
+
+        self.assert_compile(
+            table1.update().where(table1.c.name == 'hi').
+            values(description='foo'),
+            "UPDATE bar.mytable SET description=:description "
+            "WHERE bar.mytable.name = :name_1",
+            schema_translate_map=schema_translate_map
+        )
+        self.assert_compile(
+            table1.delete().where(table1.c.name == 'hi'),
+            "DELETE FROM bar.mytable WHERE bar.mytable.name = :name_1",
+            schema_translate_map=schema_translate_map
+        )
+
+        self.assert_compile(
+            table4.insert().values(value='there'),
+            "INSERT INTO foob.remotetable (value) VALUES (:value)",
+            schema_translate_map=schema_translate_map
+        )
+
+        self.assert_compile(
+            table4.update().where(table4.c.value == 'hi').
+            values(value='there'),
+            "UPDATE foob.remotetable SET value=:value "
+            "WHERE foob.remotetable.value = :value_1",
+            schema_translate_map=schema_translate_map
+        )
+
+        self.assert_compile(
+            table4.delete().where(table4.c.value == 'hi'),
+            "DELETE FROM foob.remotetable WHERE "
+            "foob.remotetable.value = :value_1",
+            schema_translate_map=schema_translate_map
+        )
 
     def test_alias(self):
         a = alias(table4, 'remtable')
@@ -3447,13 +3874,15 @@ class ResultMapTest(fixtures.TestBase):
         tc = type_coerce(t.c.a, String)
         stmt = select([t.c.a, l1, tc])
         comp = stmt.compile()
-        tc_anon_label = comp._create_result_map()['a_1'][1][0]
+        tc_anon_label = comp._create_result_map()['anon_1'][1][0]
         eq_(
             comp._create_result_map(),
             {
                 'a': ('a', (t.c.a, 'a', 'a'), t.c.a.type),
                 'bar': ('bar', (l1, 'bar'), l1.type),
-                'a_1': ('%%(%d a)s' % id(tc), (tc_anon_label, 'a_1'), tc.type),
+                'anon_1': (
+                    '%%(%d anon)s' % id(tc),
+                    (tc_anon_label, 'anon_1', tc), tc.type),
             },
         )
 

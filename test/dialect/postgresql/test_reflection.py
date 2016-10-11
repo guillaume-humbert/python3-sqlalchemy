@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from sqlalchemy.engine import reflection
+from sqlalchemy.sql.schema import CheckConstraint
 from sqlalchemy.testing.assertions import eq_, assert_raises, \
     AssertsExecutionResults
 from sqlalchemy.testing import fixtures
@@ -13,6 +14,7 @@ from sqlalchemy import exc
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import base as postgresql
 from sqlalchemy.dialects.postgresql import ARRAY
+import re
 
 
 class ForeignTableReflectionTest(fixtures.TablesTest, AssertsExecutionResults):
@@ -128,7 +130,36 @@ class MaterializedViewReflectionTest(
 
     def test_get_view_names(self):
         insp = inspect(testing.db)
-        eq_(set(insp.get_view_names()), set(['test_mview', 'test_regview']))
+        eq_(set(insp.get_view_names()), set(['test_regview', 'test_mview']))
+
+    def test_get_view_names_plain(self):
+        insp = inspect(testing.db)
+        eq_(
+            set(insp.get_view_names(include=('plain',))),
+            set(['test_regview']))
+
+    def test_get_view_names_plain_string(self):
+        insp = inspect(testing.db)
+        eq_(set(insp.get_view_names(include='plain')), set(['test_regview']))
+
+    def test_get_view_names_materialized(self):
+        insp = inspect(testing.db)
+        eq_(
+            set(insp.get_view_names(include=('materialized',))),
+            set(['test_mview']))
+
+    def test_get_view_names_empty(self):
+        insp = inspect(testing.db)
+        assert_raises(ValueError, insp.get_view_names, include=())
+
+    def test_get_view_definition(self):
+        insp = inspect(testing.db)
+        eq_(
+            re.sub(
+                r'[\n\t ]+', ' ',
+                insp.get_view_definition("test_mview").strip()),
+            "SELECT testtable.id, testtable.data FROM testtable;"
+        )
 
 
 class DomainReflectionTest(fixtures.TestBase, AssertsExecutionResults):
@@ -192,7 +223,7 @@ class DomainReflectionTest(fixtures.TestBase, AssertsExecutionResults):
         table = Table('enum_test', metadata, autoload=True)
         eq_(
             table.c.data.type.enums,
-            ('test', )
+            ['test']
         )
 
     def test_table_is_reflected_test_schema(self):
@@ -954,6 +985,29 @@ class ReflectionTest(fixtures.TestBase):
         self.assert_('ix_a' in indexes)
         assert indexes['ix_a'].unique
         self.assert_('ix_a' not in constraints)
+
+    @testing.provide_metadata
+    def test_reflect_check_constraint(self):
+        meta = self.metadata
+
+        cc_table = Table(
+            'pgsql_cc', meta,
+            Column('a', Integer()),
+            CheckConstraint('a > 1 AND a < 5', name='cc1'),
+            CheckConstraint('a = 1 OR (a > 2 AND a < 5)', name='cc2'))
+
+        cc_table.create()
+
+        reflected = Table('pgsql_cc', MetaData(testing.db), autoload=True)
+
+        check_constraints = dict((uc.name, uc.sqltext.text)
+                                 for uc in reflected.constraints
+                                 if isinstance(uc, CheckConstraint))
+
+        eq_(check_constraints, {
+            u'cc1': u'(a > 1) AND (a < 5)',
+            u'cc2': u'(a = 1) OR ((a > 2) AND (a < 5))'
+        })
 
 
 class CustomTypeReflectionTest(fixtures.TestBase):

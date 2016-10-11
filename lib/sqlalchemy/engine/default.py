@@ -16,7 +16,7 @@ as the base class for their own corresponding classes.
 import re
 import random
 from . import reflection, interfaces, result
-from ..sql import compiler, expression
+from ..sql import compiler, expression, schema
 from .. import types as sqltypes
 from .. import exc, util, pool, processors
 import codecs
@@ -398,9 +398,21 @@ class DefaultDialect(interfaces.Dialect):
                 if not branch:
                     self._set_connection_isolation(connection, isolation_level)
 
+        if 'schema_translate_map' in opts:
+            getter = schema._schema_getter(opts['schema_translate_map'])
+            engine.schema_for_object = getter
+
+            @event.listens_for(engine, "engine_connect")
+            def set_schema_translate_map(connection, branch):
+                connection.schema_for_object = getter
+
     def set_connection_execution_options(self, connection, opts):
         if 'isolation_level' in opts:
             self._set_connection_isolation(connection, opts['isolation_level'])
+
+        if 'schema_translate_map' in opts:
+            getter = schema._schema_getter(opts['schema_translate_map'])
+            connection.schema_for_object = getter
 
     def _set_connection_isolation(self, connection, level):
         if connection.in_transaction():
@@ -462,6 +474,23 @@ class DefaultDialect(interfaces.Dialect):
         self.set_isolation_level(dbapi_conn, self.default_isolation_level)
 
 
+class StrCompileDialect(DefaultDialect):
+
+    statement_compiler = compiler.StrSQLCompiler
+    ddl_compiler = compiler.DDLCompiler
+    type_compiler = compiler.StrSQLTypeCompiler
+    preparer = compiler.IdentifierPreparer
+
+    supports_sequences = True
+    sequences_optional = True
+    preexecute_autoincrement_sequences = False
+    implicit_returning = False
+
+    supports_native_boolean = True
+
+    supports_simple_order_by_label = True
+
+
 class DefaultExecutionContext(interfaces.ExecutionContext):
     isinsert = False
     isupdate = False
@@ -473,6 +502,7 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
     compiled = None
     statement = None
     result_column_struct = None
+    returned_defaults = None
     _is_implicit_returning = False
     _is_explicit_returning = False
 
@@ -492,7 +522,7 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
         self.compiled = compiled = compiled_ddl
         self.isddl = True
 
-        self.execution_options = compiled.statement._execution_options
+        self.execution_options = compiled.execution_options
         if connection._execution_options:
             self.execution_options = dict(self.execution_options)
             self.execution_options.update(connection._execution_options)
@@ -525,14 +555,16 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
 
         self.compiled = compiled
 
-        if not compiled.can_execute:
-            raise exc.ArgumentError("Not an executable clause")
+        # this should be caught in the engine before
+        # we get here
+        assert compiled.can_execute
 
-        self.execution_options = compiled.statement._execution_options.union(
+        self.execution_options = compiled.execution_options.union(
             connection._execution_options)
 
         self.result_column_struct = (
-            compiled._result_columns, compiled._ordered_columns)
+            compiled._result_columns, compiled._ordered_columns,
+            compiled._textual_ordered_columns)
 
         self.unicode_statement = util.text_type(compiled)
         if not dialect.supports_unicode_statements:
@@ -563,12 +595,11 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
             self._is_implicit_returning = bool(
                 compiled.returning and not compiled.statement._returning)
 
-            if not self.isdelete:
-                if self.compiled.prefetch:
-                    if self.executemany:
-                        self._process_executemany_defaults()
-                    else:
-                        self._process_executesingle_defaults()
+        if self.compiled.insert_prefetch or self.compiled.update_prefetch:
+            if self.executemany:
+                self._process_executemany_defaults()
+            else:
+                self._process_executesingle_defaults()
 
         processors = compiled._bind_processors
 
@@ -682,7 +713,12 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
 
     @util.memoized_property
     def prefetch_cols(self):
-        return self.compiled.prefetch
+        if self.isinsert:
+            return self.compiled.insert_prefetch
+        elif self.isupdate:
+            return self.compiled.update_prefetch
+        else:
+            return ()
 
     @util.memoized_property
     def returning_cols(self):
@@ -882,10 +918,13 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
         ]
 
     def _setup_ins_pk_from_implicit_returning(self, row):
+        if row is None:
+            self.inserted_primary_key = None
+            return
+
         key_getter = self.compiled._key_getters_for_crud_column[2]
         table = self.compiled.statement.table
         compiled_params = self.compiled_parameters[0]
-
         self.inserted_primary_key = [
             row[col] if value is None else value
             for col, value in [
@@ -926,7 +965,7 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
                     inputsizes.append(dbtype)
             try:
                 self.cursor.setinputsizes(*inputsizes)
-            except Exception as e:
+            except BaseException as e:
                 self.root_connection._handle_dbapi_exception(
                     e, None, None, None, self)
         else:
@@ -944,7 +983,7 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
                     inputsizes[key] = dbtype
             try:
                 self.cursor.setinputsizes(**inputsizes)
-            except Exception as e:
+            except BaseException as e:
                 self.root_connection._handle_dbapi_exception(
                     e, None, None, None, self)
 
@@ -977,46 +1016,57 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
     def _process_executemany_defaults(self):
         key_getter = self.compiled._key_getters_for_crud_column[2]
 
-        prefetch = self.compiled.prefetch
         scalar_defaults = {}
+
+        insert_prefetch = self.compiled.insert_prefetch
+        update_prefetch = self.compiled.update_prefetch
 
         # pre-determine scalar Python-side defaults
         # to avoid many calls of get_insert_default()/
         # get_update_default()
-        for c in prefetch:
-            if self.isinsert and c.default and c.default.is_scalar:
+        for c in insert_prefetch:
+            if c.default and c.default.is_scalar:
                 scalar_defaults[c] = c.default.arg
-            elif self.isupdate and c.onupdate and c.onupdate.is_scalar:
+        for c in update_prefetch:
+            if c.onupdate and c.onupdate.is_scalar:
                 scalar_defaults[c] = c.onupdate.arg
 
         for param in self.compiled_parameters:
             self.current_parameters = param
-            for c in prefetch:
+            for c in insert_prefetch:
                 if c in scalar_defaults:
                     val = scalar_defaults[c]
-                elif self.isinsert:
+                else:
                     val = self.get_insert_default(c)
+                if val is not None:
+                    param[key_getter(c)] = val
+            for c in update_prefetch:
+                if c in scalar_defaults:
+                    val = scalar_defaults[c]
                 else:
                     val = self.get_update_default(c)
                 if val is not None:
                     param[key_getter(c)] = val
+
         del self.current_parameters
 
     def _process_executesingle_defaults(self):
         key_getter = self.compiled._key_getters_for_crud_column[2]
-        prefetch = self.compiled.prefetch
         self.current_parameters = compiled_parameters = \
             self.compiled_parameters[0]
 
-        for c in prefetch:
-            if self.isinsert:
-                if c.default and \
-                        not c.default.is_sequence and c.default.is_scalar:
-                    val = c.default.arg
-                else:
-                    val = self.get_insert_default(c)
+        for c in self.compiled.insert_prefetch:
+            if c.default and \
+                    not c.default.is_sequence and c.default.is_scalar:
+                val = c.default.arg
             else:
-                val = self.get_update_default(c)
+                val = self.get_insert_default(c)
+
+            if val is not None:
+                compiled_parameters[key_getter(c)] = val
+
+        for c in self.compiled.update_prefetch:
+            val = self.get_update_default(c)
 
             if val is not None:
                 compiled_parameters[key_getter(c)] = val

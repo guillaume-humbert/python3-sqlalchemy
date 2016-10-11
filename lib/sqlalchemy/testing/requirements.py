@@ -15,6 +15,8 @@ to provide specific inclusion/exclusions.
 
 """
 
+import sys
+
 from . import exclusions
 from .. import util
 
@@ -108,6 +110,32 @@ class SuiteRequirements(Requirements):
         parameter
         """
 
+        return exclusions.open()
+
+    @property
+    def parens_in_union_contained_select_w_limit_offset(self):
+        """Target database must support parenthesized SELECT in UNION
+        when LIMIT/OFFSET is specifically present.
+
+        E.g. (SELECT ...) UNION (SELECT ..)
+
+        This is known to fail on SQLite.
+
+        """
+        return exclusions.open()
+
+    @property
+    def parens_in_union_contained_select_wo_limit_offset(self):
+        """Target database must support parenthesized SELECT in UNION
+        when OFFSET/LIMIT is specifically not present.
+
+        E.g. (SELECT ... LIMIT ..) UNION (SELECT .. OFFSET ..)
+
+        This is known to fail on SQLite.  It also fails on Oracle
+        because without LIMIT/OFFSET, there is currently no step that
+        creates an additional subquery.
+
+        """
         return exclusions.open()
 
     @property
@@ -314,6 +342,10 @@ class SuiteRequirements(Requirements):
         return exclusions.open()
 
     @property
+    def foreign_key_constraint_option_reflection(self):
+        return exclusions.closed()
+
+    @property
     def temp_table_reflection(self):
         return exclusions.open()
 
@@ -459,6 +491,19 @@ class SuiteRequirements(Requirements):
         """
 
         return exclusions.open()
+
+    @property
+    def json_type(self):
+        """target platform implements a native JSON type."""
+
+        return exclusions.closed()
+
+    @property
+    def json_array_indexes(self):
+        """"target platform supports numeric array indexes
+        within a JSON structure"""
+
+        return self.json_type
 
     @property
     def precision_numerics_general(self):
@@ -663,6 +708,44 @@ class SuiteRequirements(Requirements):
             lambda config: util.py3k and config.options.has_coverage,
             "Stability issues with coverage + py3k"
         )
+
+    @property
+    def python2(self):
+        return exclusions.skip_if(
+            lambda: sys.version_info >= (3,),
+            "Python version 2.xx is required."
+        )
+
+    @property
+    def python3(self):
+        return exclusions.skip_if(
+            lambda: sys.version_info < (3,),
+            "Python version 3.xx is required."
+        )
+
+    @property
+    def cpython(self):
+        return exclusions.only_if(
+            lambda: util.cpython,
+            "cPython interpreter needed"
+        )
+
+    @property
+    def non_broken_pickle(self):
+        from sqlalchemy.util import pickle
+        return exclusions.only_if(
+            lambda: not util.pypy and pickle.__name__ == 'cPickle'
+                or sys.version_info >= (3, 2),
+            "Needs cPickle+cPython or newer Python 3 pickle"
+        )
+
+    @property
+    def predictable_gc(self):
+        """target platform must remove all cycles unconditionally when
+        gc.collect() is called, as well as clean out unreferenced subclasses.
+
+        """
+        return self.cpython
 
     @property
     def no_coverage(self):

@@ -16,6 +16,68 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.0.16
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 3810
+        :versions: 1.1.0
+
+        Changed the query used to get "default schema name", from one that
+        queries the database principals table to using the
+        "schema_name()" function, as issues have been reported that the
+        former system was unavailable on the Azure Data Warehouse edition.
+        It is hoped that this will finally work across all SQL Server
+        versions and authentication styles.
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 3814
+        :versions: 1.1.0
+
+        Updated the server version info scheme for pyodbc to use SQL Server
+        SERVERPROPERTY(), rather than relying upon pyodbc.SQL_DBMS_VER, which
+        continues to be unreliable particularly with FreeTDS.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3800
+        :versions: 1.1.0
+
+        Fixed bug where joined eager loading would fail for a polymorphically-
+        loaded mapper, where the polymorphic_on was set to an un-mapped
+        expression such as a CASE expression.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3798
+        :versions: 1.1.0
+
+        Fixed bug where the ArgumentError raised for an invalid bind
+        sent to a Session via :meth:`.Session.bind_mapper`,
+        :meth:`.Session.bind_table`,
+        or the constructor would fail to be correctly raised.
+
+    .. change::
+        :tags: bug, mssql
+        :tickes: 3791
+        :versions: 1.1.0
+
+        Added error code 20017 "unexpected EOF from the server" to the list of
+        disconnect exceptions that result in a connection pool reset.  Pull
+        request courtesy Ken Robbins.
+
+    .. change::
+        :tags: bug, orm.declarative
+        :tickets: 3797
+        :versions: 1.1.0
+
+        Fixed bug where setting up a single-table inh subclass of a joined-table
+        subclass which included an extra column would corrupt the foreign keys
+        collection of the mapped table, thereby interfering with the
+        initialization of relationships.
+
+.. changelog::
     :version: 1.0.15
     :released: September 1, 2016
 
@@ -81,7 +143,7 @@
         :versions: 1.1.0b3
 
         Fixed bug in :paramref:`.Select.with_for_update.of`, where the Oracle
-        "rownum" approach to LIMIT/OFFSET would fail to accomodate for the
+        "rownum" approach to LIMIT/OFFSET would fail to accommodate for the
         expressions inside the "OF" clause, which must be stated at the topmost
         level referring to expression within the subquery.  The expressions are
         now added to the subquery if needed.
@@ -236,7 +298,7 @@
         :tickets: 3690
 
         Fixed bug where when using ``case_sensitive=False`` with an
-        :class:`.Engine`, the result set would fail to correctly accomodate
+        :class:`.Engine`, the result set would fail to correctly accommodate
         for duplicate column names in the result set, causing an error
         when the statement is executed in 1.0, and preventing the
         "ambiguous column" exception from functioning in 1.1.
@@ -1240,7 +1302,7 @@
         pool of only a single connection were used, this means the pool would
         be fully checked out until that stack trace were freed.  This mostly
         impacts very specific debugging scenarios and is unlikely to have been
-        noticable in any production application.  The fix applies an
+        noticeable in any production application.  The fix applies an
         explicit checkin of the record before re-raising the caught exception.
 
 
@@ -1386,7 +1448,7 @@
 
         Fixed bug where the truncation of long labels in SQL could produce
         a label that overlapped another label that is not truncated; this
-        because the length threshhold for truncation was greater than
+        because the length threshold for truncation was greater than
         the portion of the label that remains after truncation.  These
         two values have now been made the same; label_length - 6.
         The effect here is that shorter column labels will be "truncated"
@@ -1944,7 +2006,7 @@
         The Postgresql :class:`.postgresql.ENUM` type will emit a
         DROP TYPE instruction when a plain ``table.drop()`` is called,
         assuming the object is not associated directly with a
-        :class:`.MetaData` object.   In order to accomodate the use case of
+        :class:`.MetaData` object.   In order to accommodate the use case of
         an enumerated type shared between multiple tables, the type should
         be associated directly with the :class:`.MetaData` object; in this
         case the type will only be created at the metadata level, or if
