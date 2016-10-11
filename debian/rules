@@ -27,11 +27,11 @@ build: build-arch
 build-arch: $(PYVERS:%=build-python%) $(PY3VERS:%=build-python%)
 
 build-python%:
-	python$* ./setup.py --with-cextensions build
+	python$* ./setup.py build
 	touch $@
 
 build-debug-python%:
-	python$*-dbg setup.py --with-cextensions build
+	python$*-dbg setup.py build
 	touch $@
 
 build-indep: build-docs
