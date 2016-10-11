@@ -772,9 +772,10 @@ class DeclarativeTest(DeclarativeTestBase):
         for i in range(3):
             assert_raises_message(
                 sa.exc.InvalidRequestError,
-                "^One or more mappers failed to initialize - "
-                "can't proceed with initialization of other "
-                "mappers.  Original exception was: When initializing.*",
+                "^One or more mappers failed to initialize"
+                " - can't proceed with initialization of other mappers. "
+                r"Triggering mapper: 'Mapper\|User\|users'. "
+                "Original exception was: When initializing.*",
                 configure_mappers)
 
     def test_custom_base(self):
@@ -1593,8 +1594,7 @@ class DeclarativeTest(DeclarativeTestBase):
         meta = MetaData(testing.db)
         t1 = Table(
             't1', meta,
-            Column('id', String(50),
-                   primary_key=True, test_needs_autoincrement=True),
+            Column('id', String(50), primary_key=True),
             Column('data', String(50)))
         meta.create_all()
         try:
@@ -1722,6 +1722,15 @@ class DeclarativeTest(DeclarativeTestBase):
                 mock.call.class_instrument(Test)
             ]
         )
+
+    def test_cls_docstring(self):
+
+        class MyBase(object):
+            """MyBase Docstring"""
+
+        Base = decl.declarative_base(cls=MyBase)
+
+        eq_(Base.__doc__, MyBase.__doc__)
 
 
 def _produce_test(inline, stringbased):

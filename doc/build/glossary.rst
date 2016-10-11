@@ -592,7 +592,7 @@ Glossary
         for INSERT and UPDATE statements and "OUTPUT DELETED" for DELETE statements;
         the key caveat is that triggers are not supported in conjunction with this
         keyword.  On Oracle, it is known as "RETURNING...INTO", and requires that the
-        value be placed into an OUT paramter, meaning not only is the syntax awkward,
+        value be placed into an OUT parameter, meaning not only is the syntax awkward,
         but it can also only be used for one row at a time.
 
         SQLAlchemy's :meth:`.UpdateBase.returning` system provides a layer of abstraction
@@ -1020,7 +1020,7 @@ Glossary
             http://en.wikipedia.org/wiki/Unique_key#Defining_unique_keys
 
     transient
-        This describes one of the four major object states which
+        This describes one of the major object states which
         an object can have within a :term:`session`; a transient object
         is a new object that doesn't have any database identity
         and has not been associated with a session yet.  When the
@@ -1032,7 +1032,7 @@ Glossary
             :ref:`session_object_states`
 
     pending
-        This describes one of the four major object states which
+        This describes one of the major object states which
         an object can have within a :term:`session`; a pending object
         is a new object that doesn't have any database identity,
         but has been recently associated with a session.   When
@@ -1043,8 +1043,23 @@ Glossary
 
             :ref:`session_object_states`
 
+    deleted
+        This describes one of the major object states which
+        an object can have within a :term:`session`; a deleted object
+        is an object that was formerly persistent and has had a
+        DELETE statement emitted to the database within a flush
+        to delete its row.  The object will move to the :term:`detached`
+        state once the session's transaction is committed; alternatively,
+        if the session's transaction is rolled back, the DELETE is
+        reverted and the object moves back to the :term:`persistent`
+        state.
+
+        .. seealso::
+
+            :ref:`session_object_states`
+
     persistent
-        This describes one of the four major object states which
+        This describes one of the major object states which
         an object can have within a :term:`session`; a persistent object
         is an object that has a database identity (i.e. a primary key)
         and is currently associated with a session.   Any object
@@ -1059,7 +1074,7 @@ Glossary
             :ref:`session_object_states`
 
     detached
-        This describes one of the four major object states which
+        This describes one of the major object states which
         an object can have within a :term:`session`; a detached object
         is an object that has a database identity (i.e. a primary key)
         but is not associated with any session.  An object that

@@ -155,15 +155,19 @@ class SelectableTest(
         assert c in s.c.bar.proxy_set
 
     def test_no_error_on_unsupported_expr_key(self):
-        from sqlalchemy.dialects.postgresql import ARRAY
+        from sqlalchemy.sql.expression import BinaryExpression
 
-        t = table('t', column('x', ARRAY(Integer)))
+        def myop(x, y):
+            pass
 
-        expr = t.c.x[5]
+        t = table('t', column('x'), column('y'))
+
+        expr = BinaryExpression(t.c.x, t.c.y, myop)
+
         s = select([t, expr])
         eq_(
             s.c.keys(),
-            ['x', expr.anon_label]
+            ['x', 'y', expr.anon_label]
         )
 
     def test_cloned_intersection(self):
@@ -443,6 +447,26 @@ class SelectableTest(
     def test_union_alias_dupe_keys(self):
         s1 = select([table1.c.col1, table1.c.col2, table2.c.col1]).alias()
         s2 = select([table2.c.col1, table2.c.col2, table2.c.col3])
+        u1 = union(s1, s2)
+
+        assert u1.corresponding_column(
+            s1.c._all_columns[0]) is u1.c._all_columns[0]
+        assert u1.corresponding_column(s2.c.col1) is u1.c._all_columns[0]
+        assert u1.corresponding_column(s1.c.col2) is u1.c.col2
+        assert u1.corresponding_column(s2.c.col2) is u1.c.col2
+
+        assert u1.corresponding_column(s2.c.col3) is u1.c._all_columns[2]
+
+        # this differs from the non-alias test because table2.c.col1 is
+        # more directly at s2.c.col1 than it is s1.c.col1.
+        assert u1.corresponding_column(table2.c.col1) is u1.c._all_columns[0]
+        assert u1.corresponding_column(table2.c.col3) is u1.c._all_columns[2]
+
+    @testing.emits_warning("Column 'col1'")
+    def test_union_alias_dupe_keys_grouped(self):
+        s1 = select([table1.c.col1, table1.c.col2, table2.c.col1]).\
+            limit(1).alias()
+        s2 = select([table2.c.col1, table2.c.col2, table2.c.col3]).limit(1)
         u1 = union(s1, s2)
 
         assert u1.corresponding_column(
@@ -892,6 +916,44 @@ class RefreshForNewColTest(fixtures.TestBase):
         j._refresh_for_new_column(q)
         assert j.c.b_q is q
 
+    def test_fk_table(self):
+        m = MetaData()
+        fk = ForeignKey('x.id')
+        Table('x', m, Column('id', Integer))
+        a = Table('a', m, Column('x', Integer, fk))
+        a.c
+
+        q = Column('q', Integer)
+        a.append_column(q)
+        a._refresh_for_new_column(q)
+        eq_(a.foreign_keys, set([fk]))
+
+        fk2 = ForeignKey('g.id')
+        p = Column('p', Integer, fk2)
+        a.append_column(p)
+        a._refresh_for_new_column(p)
+        eq_(a.foreign_keys, set([fk, fk2]))
+
+    def test_fk_join(self):
+        m = MetaData()
+        fk = ForeignKey('x.id')
+        Table('x', m, Column('id', Integer))
+        a = Table('a', m, Column('x', Integer, fk))
+        b = Table('b', m, Column('y', Integer))
+        j = a.join(b, a.c.x == b.c.y)
+        j.c
+
+        q = Column('q', Integer)
+        b.append_column(q)
+        j._refresh_for_new_column(q)
+        eq_(j.foreign_keys, set([fk]))
+
+        fk2 = ForeignKey('g.id')
+        p = Column('p', Integer, fk2)
+        b.append_column(p)
+        j._refresh_for_new_column(p)
+        eq_(j.foreign_keys, set([fk, fk2]))
+
 
 class AnonLabelTest(fixtures.TestBase):
 
@@ -912,10 +974,10 @@ class AnonLabelTest(fixtures.TestBase):
         c1 = func.count('*')
         assert c1.label(None) is not c1
 
-        eq_(str(select([c1])), "SELECT count(:param_1) AS count_1")
+        eq_(str(select([c1])), "SELECT count(:count_2) AS count_1")
         c2 = select([c1]).compile()
 
-        eq_(str(select([c1.label(None)])), "SELECT count(:param_1) AS count_1")
+        eq_(str(select([c1.label(None)])), "SELECT count(:count_2) AS count_1")
 
     def test_named_labels_named_column(self):
         c1 = column('x')

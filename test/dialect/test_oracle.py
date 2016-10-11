@@ -334,6 +334,27 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE OF "
             "mytable.myid, mytable.name NOWAIT")
 
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).
+                with_for_update(skip_locked=True, of=[table1.c.myid, table1.c.name]),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE OF "
+            "mytable.myid, mytable.name SKIP LOCKED")
+
+        # key_share has no effect
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).
+                with_for_update(key_share=True),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE")
+
+        # read has no effect
+        self.assert_compile(
+            table1.select(table1.c.myid == 7).
+                with_for_update(read=True, key_share=True),
+            "SELECT mytable.myid, mytable.name, mytable.description "
+            "FROM mytable WHERE mytable.myid = :myid_1 FOR UPDATE")
+
         ta = table1.alias()
         self.assert_compile(
             ta.select(ta.c.myid == 7).
@@ -991,7 +1012,7 @@ drop synonym %(test_schema)s.local_table;
                             oracle_resolve_synonyms=True)
         self.assert_compile(parent.select(),
                 "SELECT %(test_schema)s_pt.id, "
-                "%(test_schema)s_pt.data FROM %(test_schema)s_pt" 
+                "%(test_schema)s_pt.data FROM %(test_schema)s_pt"
                  % {"test_schema": testing.config.test_schema})
         select([parent]).execute().fetchall()
 
@@ -1804,6 +1825,41 @@ class EuroNumericTest(fixtures.TestBase):
                 exp
             )
             assert type(test_exp) is type(exp)
+
+
+class SystemTableTablenamesTest(fixtures.TestBase):
+    __only_on__ = 'oracle'
+    __backend__ = True
+
+    def setup(self):
+        testing.db.execute("create table my_table (id integer)")
+        testing.db.execute("create global temporary table my_temp_table (id integer)")
+        testing.db.execute("create table foo_table (id integer) tablespace SYSTEM")
+
+    def teardown(self):
+        testing.db.execute("drop table my_temp_table")
+        testing.db.execute("drop table my_table")
+        testing.db.execute("drop table foo_table")
+
+    def test_table_names_no_system(self):
+        insp = inspect(testing.db)
+        eq_(
+            insp.get_table_names(), ["my_table"]
+        )
+
+    def test_temp_table_names_no_system(self):
+        insp = inspect(testing.db)
+        eq_(
+            insp.get_temp_table_names(), ["my_temp_table"]
+        )
+
+    def test_table_names_w_system(self):
+        engine = testing_engine(options={"exclude_tablespaces": ["FOO"]})
+        insp = inspect(engine)
+        eq_(
+            set(insp.get_table_names()).intersection(["my_table", "foo_table"]),
+            set(["my_table", "foo_table"])
+        )
 
 
 class DontReflectIOTTest(fixtures.TestBase):

@@ -8,7 +8,9 @@
 
 from .sql import (
     alias,
+    all_,
     and_,
+    any_,
     asc,
     between,
     bindparam,
@@ -30,6 +32,7 @@ from .sql import (
     intersect,
     intersect_all,
     join,
+    lateral,
     literal,
     literal_column,
     modifier,
@@ -42,6 +45,7 @@ from .sql import (
     select,
     subquery,
     table,
+    tablesample,
     text,
     true,
     tuple_,
@@ -49,9 +53,11 @@ from .sql import (
     union,
     union_all,
     update,
+    within_group,
     )
 
 from .types import (
+    ARRAY,
     BIGINT,
     BINARY,
     BLOB,
@@ -73,6 +79,7 @@ from .types import (
     INTEGER,
     Integer,
     Interval,
+    JSON,
     LargeBinary,
     NCHAR,
     NVARCHAR,
@@ -121,7 +128,7 @@ from .schema import (
 from .inspection import inspect
 from .engine import create_engine, engine_from_config
 
-__version__ = '1.0.15'
+__version__ = '1.1.1'
 
 
 def __go(lcls):

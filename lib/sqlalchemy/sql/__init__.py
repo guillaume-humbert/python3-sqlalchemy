@@ -18,9 +18,12 @@ from .expression import (
     Select,
     Selectable,
     TableClause,
+    TableSample,
     Update,
     alias,
     and_,
+    any_,
+    all_,
     asc,
     between,
     bindparam,
@@ -44,6 +47,7 @@ from .expression import (
     intersect_all,
     join,
     label,
+    lateral,
     literal,
     literal_column,
     modifier,
@@ -56,6 +60,7 @@ from .expression import (
     select,
     subquery,
     table,
+    tablesample,
     text,
     true,
     True_,
@@ -64,6 +69,7 @@ from .expression import (
     union,
     union_all,
     update,
+    within_group
 )
 
 from .visitors import ClauseVisitor

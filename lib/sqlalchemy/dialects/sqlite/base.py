@@ -352,6 +352,8 @@ The index will be rendered at create time as::
 
 .. versionadded:: 0.9.9
 
+.. _sqlite_dotted_column_names:
+
 Dotted Column Names
 -------------------
 
@@ -361,7 +363,7 @@ databases in general, as the dot is a syntactically significant character,
 the SQLite driver up until version **3.10.0** of SQLite has a bug which
 requires that SQLAlchemy filter out these dots in result sets.
 
-.. note::
+.. versionchanged:: 1.1
 
     The following SQLite issue has been resolved as of version 3.10.0
     of SQLite.  SQLAlchemy as of **1.1** automatically disables its internal
@@ -370,6 +372,8 @@ requires that SQLAlchemy filter out these dots in result sets.
 The bug, entirely outside of SQLAlchemy, can be illustrated thusly::
 
     import sqlite3
+
+    assert sqlite3.sqlite_version_info < (3, 10, 0), "bug is fixed in this version"
 
     conn = sqlite3.connect(":memory:")
     cursor = conn.cursor()
@@ -845,6 +849,14 @@ class SQLiteCompiler(compiler.SQLCompiler):
         # sqlite has no "FOR UPDATE" AFAICT
         return ''
 
+    def visit_is_distinct_from_binary(self, binary, operator, **kw):
+        return "%s IS NOT %s" % (self.process(binary.left),
+                                 self.process(binary.right))
+
+    def visit_isnot_distinct_from_binary(self, binary, operator, **kw):
+        return "%s IS %s" % (self.process(binary.left),
+                             self.process(binary.right))
+
 
 class SQLiteDDLCompiler(compiler.DDLCompiler):
 
@@ -859,12 +871,20 @@ class SQLiteDDLCompiler(compiler.DDLCompiler):
         if not column.nullable:
             colspec += " NOT NULL"
 
-        if (column.primary_key and
-                column.table.dialect_options['sqlite']['autoincrement'] and
-                len(column.table.primary_key.columns) == 1 and
-                issubclass(column.type._type_affinity, sqltypes.Integer) and
-                not column.foreign_keys):
-            colspec += " PRIMARY KEY AUTOINCREMENT"
+        if column.primary_key:
+            if (
+                column.autoincrement is True and
+                len(column.table.primary_key.columns) != 1
+            ):
+                raise exc.CompileError(
+                    "SQLite does not support autoincrement for "
+                    "composite primary keys")
+
+            if (column.table.dialect_options['sqlite']['autoincrement'] and
+                    len(column.table.primary_key.columns) == 1 and
+                    issubclass(column.type._type_affinity, sqltypes.Integer) and
+                    not column.foreign_keys):
+                colspec += " PRIMARY KEY AUTOINCREMENT"
 
         return colspec
 
@@ -900,11 +920,25 @@ class SQLiteDDLCompiler(compiler.DDLCompiler):
 
         return preparer.format_table(table, use_schema=False)
 
-    def visit_create_index(self, create):
+    def visit_create_index(self, create, include_schema=False,
+                           include_table_schema=True):
         index = create.element
-
-        text = super(SQLiteDDLCompiler, self).visit_create_index(
-            create, include_table_schema=False)
+        self._verify_index_table(index)
+        preparer = self.preparer
+        text = "CREATE "
+        if index.unique:
+            text += "UNIQUE "
+        text += "INDEX %s ON %s (%s)" \
+            % (
+                self._prepared_index_name(index,
+                                          include_schema=True),
+                preparer.format_table(index.table,
+                                      use_schema=False),
+                ', '.join(
+                    self.sql_compiler.process(
+                        expr, include_table=False, literal_binds=True) for
+                    expr in index.expressions)
+            )
 
         whereclause = index.dialect_options["sqlite"]["where"]
         if whereclause is not None:
@@ -981,7 +1015,8 @@ class SQLiteIdentifierPreparer(compiler.IdentifierPreparer):
 class SQLiteExecutionContext(default.DefaultExecutionContext):
     @util.memoized_property
     def _preserve_raw_colnames(self):
-        return self.execution_options.get("sqlite_raw_colnames", False)
+        return not self.dialect._broken_dotted_colnames or \
+            self.execution_options.get("sqlite_raw_colnames", False)
 
     def _translate_colname(self, colname):
         # TODO: detect SQLite version 3.10.0 or greater;
@@ -1007,10 +1042,6 @@ class SQLiteDialect(default.DefaultDialect):
     supports_cast = True
     supports_multivalues_insert = True
 
-    # TODO: detect version 3.7.16 or greater;
-    # see [ticket:3634]
-    supports_right_nested_joins = False
-
     default_paramstyle = 'qmark'
     execution_ctx_cls = SQLiteExecutionContext
     statement_compiler = SQLiteCompiler
@@ -1034,6 +1065,7 @@ class SQLiteDialect(default.DefaultDialect):
     ]
 
     _broken_fk_pragma_quotes = False
+    _broken_dotted_colnames = False
 
     def __init__(self, isolation_level=None, native_datetime=False, **kwargs):
         default.DefaultDialect.__init__(self, **kwargs)
@@ -1046,6 +1078,11 @@ class SQLiteDialect(default.DefaultDialect):
         self.native_datetime = native_datetime
 
         if self.dbapi is not None:
+            self.supports_right_nested_joins = (
+                self.dbapi.sqlite_version_info >= (3, 7, 16))
+            self._broken_dotted_colnames = (
+                self.dbapi.sqlite_version_info < (3, 10, 0)
+            )
             self.supports_default_values = (
                 self.dbapi.sqlite_version_info >= (3, 3, 8))
             self.supports_cast = (
@@ -1105,6 +1142,13 @@ class SQLiteDialect(default.DefaultDialect):
             return connect
         else:
             return None
+
+    @reflection.cache
+    def get_schema_names(self, connection, **kw):
+        s = "PRAGMA database_list"
+        dl = connection.execute(s)
+
+        return [db[1] for db in dl if db[1] != "temp"]
 
     @reflection.cache
     def get_table_names(self, connection, schema=None, **kw):
@@ -1202,7 +1246,7 @@ class SQLiteDialect(default.DefaultDialect):
             'type': coltype,
             'nullable': nullable,
             'default': default,
-            'autoincrement': default is None,
+            'autoincrement': 'auto',
             'primary_key': primary_key,
         }
 
@@ -1261,12 +1305,20 @@ class SQLiteDialect(default.DefaultDialect):
 
     @reflection.cache
     def get_pk_constraint(self, connection, table_name, schema=None, **kw):
+        constraint_name = None
+        table_data = self._get_table_sql(connection, table_name, schema=schema)
+        if table_data:
+            PK_PATTERN = 'CONSTRAINT (\w+) PRIMARY KEY'
+            result = re.search(PK_PATTERN, table_data, re.I)
+            constraint_name = result.group(1) if result else None
+
         cols = self.get_columns(connection, table_name, schema, **kw)
         pkeys = []
         for col in cols:
             if col['primary_key']:
                 pkeys.append(col['name'])
-        return {'constrained_columns': pkeys, 'name': None}
+
+        return {'constrained_columns': pkeys, 'name': constraint_name}
 
     @reflection.cache
     def get_foreign_keys(self, connection, table_name, schema=None, **kw):
@@ -1295,9 +1347,10 @@ class SQLiteDialect(default.DefaultDialect):
                 fk = fks[numerical_id] = {
                     'name': None,
                     'constrained_columns': [],
-                    'referred_schema': None,
+                    'referred_schema': schema,
                     'referred_table': rtbl,
                     'referred_columns': [],
+                    'options': {}
                 }
                 fks[numerical_id] = fk
 
@@ -1330,14 +1383,16 @@ class SQLiteDialect(default.DefaultDialect):
             FK_PATTERN = (
                 '(?:CONSTRAINT (\w+) +)?'
                 'FOREIGN KEY *\( *(.+?) *\) +'
-                'REFERENCES +(?:(?:"(.+?)")|([a-z0-9_]+)) *\((.+?)\)'
+                'REFERENCES +(?:(?:"(.+?)")|([a-z0-9_]+)) *\((.+?)\) *'
+                '((?:ON (?:DELETE|UPDATE) '
+                '(?:SET NULL|SET DEFAULT|CASCADE|RESTRICT|NO ACTION) *)*)'
             )
-
             for match in re.finditer(FK_PATTERN, table_data, re.I):
                 (
                     constraint_name, constrained_columns,
                     referred_quoted_name, referred_name,
-                    referred_columns) = match.group(1, 2, 3, 4, 5)
+                    referred_columns, onupdatedelete) = \
+                    match.group(1, 2, 3, 4, 5, 6)
                 constrained_columns = list(
                     self._find_cols_in_sig(constrained_columns))
                 if not referred_columns:
@@ -1346,14 +1401,21 @@ class SQLiteDialect(default.DefaultDialect):
                     referred_columns = list(
                         self._find_cols_in_sig(referred_columns))
                 referred_name = referred_quoted_name or referred_name
+                options = {}
+
+                for token in re.split(r" *\bON\b *", onupdatedelete.upper()):
+                    if token.startswith("DELETE"):
+                        options['ondelete'] = token[6:].strip()
+                    elif token.startswith("UPDATE"):
+                        options["onupdate"] = token[6:].strip()
                 yield (
                     constraint_name, constrained_columns,
-                    referred_name, referred_columns)
+                    referred_name, referred_columns, options)
         fkeys = []
 
         for (
             constraint_name, constrained_columns,
-                referred_name, referred_columns) in parse_fks():
+                referred_name, referred_columns, options) in parse_fks():
             sig = fk_sig(
                 constrained_columns, referred_name, referred_columns)
             if sig not in keys_by_signature:
@@ -1367,6 +1429,7 @@ class SQLiteDialect(default.DefaultDialect):
                 continue
             key = keys_by_signature.pop(sig)
             key['name'] = constraint_name
+            key['options'] = options
             fkeys.append(key)
         # assume the remainders are the unnamed, inline constraints, just
         # use them as is as it's extremely difficult to parse inline
@@ -1428,6 +1491,32 @@ class SQLiteDialect(default.DefaultDialect):
         # NOTE: auto_index_by_sig might not be empty here,
         # the PRIMARY KEY may have an entry.
         return unique_constraints
+
+    @reflection.cache
+    def get_check_constraints(self, connection, table_name,
+                              schema=None, **kw):
+        table_data = self._get_table_sql(
+            connection, table_name, schema=schema, **kw)
+        if not table_data:
+            return []
+
+        CHECK_PATTERN = (
+            '(?:CONSTRAINT (\w+) +)?'
+            'CHECK *\( *(.+) *\),? *'
+        )
+        check_constraints = []
+        # NOTE: we aren't using re.S here because we actually are
+        # taking advantage of each CHECK constraint being all on one
+        # line in the table definition in order to delineate.  This
+        # necessarily makes assumptions as to how the CREATE TABLE
+        # was emitted.
+        for match in re.finditer(CHECK_PATTERN, table_data, re.I):
+            check_constraints.append({
+                'sqltext': match.group(2),
+                'name': match.group(1)
+            })
+
+        return check_constraints
 
     @reflection.cache
     def get_indexes(self, connection, table_name, schema=None, **kw):

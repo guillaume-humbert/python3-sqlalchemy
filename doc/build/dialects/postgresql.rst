@@ -9,7 +9,7 @@ PostgreSQL Data Types
 ------------------------
 
 As with all SQLAlchemy dialects, all UPPERCASE types that are known to be
-valid with Postgresql are importable from the top level dialect, whether
+valid with PostgreSQL are importable from the top level dialect, whether
 they originate from :mod:`sqlalchemy.types` or from the local dialect::
 
     from sqlalchemy.dialects.postgresql import \
@@ -24,15 +24,18 @@ construction arguments, are as follows:
 
 .. currentmodule:: sqlalchemy.dialects.postgresql
 
+.. autoclass:: aggregate_order_by
+
 .. autoclass:: array
 
 .. autoclass:: ARRAY
     :members: __init__, Comparator
 
+.. autofunction:: array_agg
 
-.. autoclass:: Any
+.. autofunction:: Any
 
-.. autoclass:: All
+.. autofunction:: All
 
 .. autoclass:: BIT
     :members: __init__
@@ -71,9 +74,6 @@ construction arguments, are as follows:
     :members:
 
 .. autoclass:: JSONB
-    :members:
-
-.. autoclass:: JSONElement
     :members:
 
 .. autoclass:: MACADDR
@@ -160,7 +160,7 @@ For example:
 PostgreSQL Constraint Types
 ---------------------------
 
-SQLAlchemy supports Postgresql EXCLUDE constraints via the
+SQLAlchemy supports PostgreSQL EXCLUDE constraints via the
 :class:`ExcludeConstraint` class:
 
 .. autoclass:: ExcludeConstraint
@@ -181,29 +181,43 @@ For example::
           ExcludeConstraint(('room', '='), ('during', '&&')),
       )
 
+PostgreSQL DML Constructs
+---------------------------
+
+.. autofunction:: sqlalchemy.dialects.postgresql.dml.insert
+
+.. autoclass:: sqlalchemy.dialects.postgresql.dml.Insert
+  :members:
+
 psycopg2
---------------
+--------
 
 .. automodule:: sqlalchemy.dialects.postgresql.psycopg2
 
 pg8000
---------------
+------
 
 .. automodule:: sqlalchemy.dialects.postgresql.pg8000
 
 psycopg2cffi
---------------
+------------
 
 .. automodule:: sqlalchemy.dialects.postgresql.psycopg2cffi
 
 py-postgresql
---------------------
+-------------
 
 .. automodule:: sqlalchemy.dialects.postgresql.pypostgresql
 
+.. _dialect-postgresql-pygresql:
+
+pygresql
+--------
+
+.. automodule:: sqlalchemy.dialects.postgresql.pygresql
 
 zxjdbc
---------------
+------
 
 .. automodule:: sqlalchemy.dialects.postgresql.zxjdbc
 

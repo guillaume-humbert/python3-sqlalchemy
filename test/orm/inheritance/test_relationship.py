@@ -2,7 +2,7 @@ from sqlalchemy.orm import create_session, relationship, mapper, \
     contains_eager, joinedload, subqueryload, subqueryload_all,\
     Session, aliased, with_polymorphic, joinedload_all
 
-from sqlalchemy import Integer, String, ForeignKey
+from sqlalchemy import Integer, String, ForeignKey, select, func
 from sqlalchemy.engine import default
 
 from sqlalchemy.testing import AssertsCompiledSQL, fixtures
@@ -587,7 +587,12 @@ class SelfReferentialM2MTest(fixtures.MappedTest, AssertsCompiledSQL):
         )
 
         # another way to check
-        assert q.limit(1).with_labels().subquery().count().scalar() == 1
+        eq_(
+            select([func.count('*')]).select_from(
+                q.limit(1).with_labels().subquery()
+            ).scalar(),
+            1
+        )
         assert q.first() is c1
 
     def test_subquery_load(self):
@@ -1852,3 +1857,80 @@ class MultipleAdaptUsesEntityOverTableTest(AssertsCompiledSQL, fixtures.MappedTe
             "JOIN (a AS a_2 JOIN d AS d_1 ON a_2.id = d_1.id) "
             "ON d_1.cid = c_1.id"
         )
+
+
+class SameNameOnJoined(fixtures.MappedTest):
+
+    run_setup_mappers = 'once'
+    run_inserts = None
+    run_deletes = None
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table(
+            'a', metadata,
+            Column(
+                'id', Integer, primary_key=True,
+                test_needs_autoincrement=True),
+            Column('t', String(5))
+        )
+        Table(
+            'a_sub', metadata,
+            Column('id', Integer, ForeignKey('a.id'), primary_key=True)
+        )
+        Table(
+            'b', metadata,
+            Column('id', Integer, primary_key=True,
+                   test_needs_autoincrement=True),
+            Column('a_id', Integer, ForeignKey('a.id'))
+
+        )
+
+    @classmethod
+    def setup_mappers(cls):
+        class A(cls.Comparable):
+            pass
+
+        class ASub(A):
+            pass
+
+        class B(cls.Comparable):
+            pass
+
+        mapper(
+            A, cls.tables.a, polymorphic_on=cls.tables.a.c.t,
+            polymorphic_identity='a',
+            properties={
+                'bs': relationship(B, cascade="all, delete-orphan")
+            }
+        )
+
+        mapper(
+            ASub, cls.tables.a_sub, inherits=A,
+            polymorphic_identity='asub', properties={
+                'bs': relationship(B, cascade="all, delete-orphan")
+            }
+        )
+
+        mapper(B, cls.tables.b)
+
+    def test_persist(self):
+        A, ASub, B = self.classes('A', 'ASub', 'B')
+
+        s = Session(testing.db)
+
+        s.add_all([
+            A(bs=[B(), B(), B()]),
+            ASub(bs=[B(), B(), B()])
+        ])
+        s.commit()
+
+        eq_(s.query(B).count(), 6)
+
+        for a in s.query(A):
+            eq_(len(a.bs), 3)
+            s.delete(a)
+
+        s.commit()
+
+        eq_(s.query(B).count(), 0)

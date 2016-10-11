@@ -164,57 +164,7 @@ how SQLAlchemy handles this:
 
 
 This
-is an auxilliary use case suitable for testing and bulk insert scenarios.
-
-.. _legacy_schema_rendering:
-
-Rendering of SQL statements that include schema qualifiers
----------------------------------------------------------
-
-When using :class:`.Table` metadata that includes a "schema" qualifier,
-such as::
-
-    account_table = Table(
-        'account', metadata,
-        Column('id', Integer, primary_key=True),
-        Column('info', String(100)),
-        schema="customer_schema"
-    )
-
-The SQL Server dialect has a long-standing behavior that it will attempt
-to turn a schema-qualified table name into an alias, such as::
-
-    >>> eng = create_engine("mssql+pymssql://mydsn")
-    >>> print(account_table.select().compile(eng))
-    SELECT account_1.id, account_1.info
-    FROM customer_schema.account AS account_1
-
-This behavior is legacy, does not function correctly for many forms
-of SQL statements, and will be disabled by default in the 1.1 series
-of SQLAlchemy.   As of 1.0.5, the above statement will produce the following
-warning::
-
-    SAWarning: legacy_schema_aliasing flag is defaulted to True;
-      some schema-qualified queries may not function correctly.
-      Consider setting this flag to False for modern SQL Server versions;
-      this flag will default to False in version 1.1
-
-This warning encourages the :class:`.Engine` to be created as follows::
-
-    >>> eng = create_engine("mssql+pymssql://mydsn", legacy_schema_aliasing=False)
-
-Where the above SELECT statement will produce::
-
-    >>> print(account_table.select().compile(eng))
-    SELECT customer_schema.account.id, customer_schema.account.info
-    FROM customer_schema.account
-
-The warning will not emit if the ``legacy_schema_aliasing`` flag is set
-to either True or False.
-
-.. versionadded:: 1.0.5 - Added the ``legacy_schema_aliasing`` flag to disable
-   the SQL Server dialect's legacy behavior with schema-qualified table
-   names.  This flag will default to False in version 1.1.
+is an auxiliary use case suitable for testing and bulk insert scenarios.
 
 MAX on VARCHAR / NVARCHAR
 -------------------------
@@ -234,6 +184,7 @@ To build a SQL Server VARCHAR or NVARCHAR with MAX length, use None::
         Column('my_data', VARCHAR(None)),
         Column('my_n_data', NVARCHAR(None))
     )
+
 
 Collation Support
 -----------------
@@ -267,6 +218,47 @@ will yield::
 If using SQL Server 2005 or above, LIMIT with OFFSET
 support is available through the ``ROW_NUMBER OVER`` construct.
 For versions below 2005, LIMIT with OFFSET usage will fail.
+
+.. _mssql_isolation_level:
+
+Transaction Isolation Level
+---------------------------
+
+All SQL Server dialects support setting of transaction isolation level
+both via a dialect-specific parameter
+:paramref:`.create_engine.isolation_level`
+accepted by :func:`.create_engine`,
+as well as the :paramref:`.Connection.execution_options.isolation_level`
+argument as passed to
+:meth:`.Connection.execution_options`.  This feature works by issuing the
+command ``SET TRANSACTION ISOLATION LEVEL <level>`` for
+each new connection.
+
+To set isolation level using :func:`.create_engine`::
+
+    engine = create_engine(
+        "mssql+pyodbc://scott:tiger@ms_2008",
+        isolation_level="REPEATABLE READ"
+    )
+
+To set using per-connection execution options::
+
+    connection = engine.connect()
+    connection = connection.execution_options(
+        isolation_level="READ COMMITTED"
+    )
+
+Valid values for ``isolation_level`` include:
+
+* ``READ COMMITTED``
+* ``READ UNCOMMITTED``
+* ``REPEATABLE READ``
+* ``SERIALIZABLE``
+* ``SNAPSHOT`` - specific to SQL Server
+
+.. versionadded:: 1.1 support for isolation level setting on Microsoft
+   SQL Server.
+
 
 Nullability
 -----------
@@ -341,6 +333,41 @@ behavior of this flag is as follows:
 
 .. versionadded:: 1.0.0
 
+.. _legacy_schema_rendering:
+
+Legacy Schema Mode
+------------------
+
+Very old versions of the MSSQL dialect introduced the behavior such that a
+schema-qualified table would be auto-aliased when used in a
+SELECT statement; given a table::
+
+    account_table = Table(
+        'account', metadata,
+        Column('id', Integer, primary_key=True),
+        Column('info', String(100)),
+        schema="customer_schema"
+    )
+
+this legacy mode of rendering would assume that "customer_schema.account"
+would not be accepted by all parts of the SQL statement, as illustrated
+below::
+
+    >>> eng = create_engine("mssql+pymssql://mydsn", legacy_schema_aliasing=True)
+    >>> print(account_table.select().compile(eng))
+    SELECT account_1.id, account_1.info
+    FROM customer_schema.account AS account_1
+
+This mode of behavior is now off by default, as it appears to have served
+no purpose; however in the case that legacy applications rely upon it,
+it is available using the ``legacy_schema_aliasing`` argument to
+:func:`.create_engine` as illustrated above.
+
+.. versionchanged:: 1.1 the ``legacy_schema_aliasing`` flag introduced
+   in version 1.0.5 to allow disabling of legacy mode for schemas now
+   defaults to False.
+
+
 .. _mssql_indexes:
 
 Clustered Index Support
@@ -355,8 +382,6 @@ To generate a clustered index::
     Index("my_index", table.c.x, mssql_clustered=True)
 
 which renders the index as ``CREATE CLUSTERED INDEX my_index ON table (x)``.
-
-.. versionadded:: 0.8
 
 To generate a clustered primary key use::
 
@@ -379,7 +404,24 @@ Similarly, we can generate a clustered unique constraint using::
           UniqueConstraint("y", mssql_clustered=True),
           )
 
-  .. versionadded:: 0.9.2
+To explicitly request a non-clustered primary key (for example, when
+a separate clustered index is desired), use::
+
+    Table('my_table', metadata,
+          Column('x', ...),
+          Column('y', ...),
+          PrimaryKeyConstraint("x", "y", mssql_clustered=False))
+
+which will render the table, for example, as::
+
+  CREATE TABLE my_table (x INTEGER NOT NULL, y INTEGER NOT NULL,
+                         PRIMARY KEY NONCLUSTERED (x, y))
+
+.. versionchanged:: 1.1 the ``mssql_clustered`` option now defaults
+   to None, rather than False.  ``mssql_clustered=False`` now explicitly
+   renders the NONCLUSTERED clause, whereas None omits the CLUSTERED
+   clause entirely, allowing SQL Server defaults to take effect.
+
 
 MSSQL-Specific Index Options
 -----------------------------
@@ -529,6 +571,8 @@ from ...util import update_wrapper
 from . import information_schema as ischema
 
 # http://sqlserverbuilds.blogspot.com/
+MS_2016_VERSION = (13,)
+MS_2014_VERSION = (12,)
 MS_2012_VERSION = (11,)
 MS_2008_VERSION = (10,)
 MS_2005_VERSION = (9,)
@@ -1221,15 +1265,6 @@ class MSSQLCompiler(compiler.SQLCompiler):
 
     def _schema_aliased_table(self, table):
         if getattr(table, 'schema', None) is not None:
-            if self.dialect._warn_schema_aliasing and \
-                    table.schema.lower() != 'information_schema':
-                util.warn(
-                    "legacy_schema_aliasing flag is defaulted to True; "
-                    "some schema-qualified queries may not function "
-                    "correctly. Consider setting this flag to False for "
-                    "modern SQL Server versions; this flag will default to "
-                    "False in version 1.1")
-
             if table not in self.tablealiases:
                 self.tablealiases[table] = table.alias()
             return self.tablealiases[table]
@@ -1422,8 +1457,12 @@ class MSDDLCompiler(compiler.DDLCompiler):
             text += "UNIQUE "
 
         # handle clustering option
-        if index.dialect_options['mssql']['clustered']:
-            text += "CLUSTERED "
+        clustered = index.dialect_options['mssql']['clustered']
+        if clustered is not None:
+            if clustered:
+                text += "CLUSTERED "
+            else:
+                text += "NONCLUSTERED "
 
         text += "INDEX %s ON %s (%s)" \
             % (
@@ -1466,8 +1505,12 @@ class MSDDLCompiler(compiler.DDLCompiler):
                     self.preparer.format_constraint(constraint)
         text += "PRIMARY KEY "
 
-        if constraint.dialect_options['mssql']['clustered']:
-            text += "CLUSTERED "
+        clustered = constraint.dialect_options['mssql']['clustered']
+        if clustered is not None:
+            if clustered:
+                text += "CLUSTERED "
+            else:
+                text += "NONCLUSTERED "
 
         text += "(%s)" % ', '.join(self.preparer.quote(c.name)
                                    for c in constraint)
@@ -1483,8 +1526,12 @@ class MSDDLCompiler(compiler.DDLCompiler):
                     self.preparer.format_constraint(constraint)
         text += "UNIQUE "
 
-        if constraint.dialect_options['mssql']['clustered']:
-            text += "CLUSTERED "
+        clustered = constraint.dialect_options['mssql']['clustered']
+        if clustered is not None:
+            if clustered:
+                text += "CLUSTERED "
+            else:
+                text += "NONCLUSTERED "
 
         text += "(%s)" % ', '.join(self.preparer.quote(c.name)
                                    for c in constraint)
@@ -1578,13 +1625,13 @@ class MSDialect(default.DefaultDialect):
 
     construct_arguments = [
         (sa_schema.PrimaryKeyConstraint, {
-            "clustered": False
+            "clustered": None
         }),
         (sa_schema.UniqueConstraint, {
-            "clustered": False
+            "clustered": None
         }),
         (sa_schema.Index, {
-            "clustered": False,
+            "clustered": None,
             "include": None
         })
     ]
@@ -1594,8 +1641,9 @@ class MSDialect(default.DefaultDialect):
                  use_scope_identity=True,
                  max_identifier_length=None,
                  schema_name="dbo",
+                 isolation_level=None,
                  deprecate_large_types=None,
-                 legacy_schema_aliasing=None, **opts):
+                 legacy_schema_aliasing=False, **opts):
         self.query_timeout = int(query_timeout or 0)
         self.schema_name = schema_name
 
@@ -1603,15 +1651,11 @@ class MSDialect(default.DefaultDialect):
         self.max_identifier_length = int(max_identifier_length or 0) or \
             self.max_identifier_length
         self.deprecate_large_types = deprecate_large_types
-
-        if legacy_schema_aliasing is None:
-            self.legacy_schema_aliasing = True
-            self._warn_schema_aliasing = True
-        else:
-            self.legacy_schema_aliasing = legacy_schema_aliasing
-            self._warn_schema_aliasing = False
+        self.legacy_schema_aliasing = legacy_schema_aliasing
 
         super(MSDialect, self).__init__(**opts)
+
+        self.isolation_level = isolation_level
 
     def do_savepoint(self, connection, name):
         # give the DBAPI a push
@@ -1622,24 +1666,57 @@ class MSDialect(default.DefaultDialect):
         # SQL Server does not support RELEASE SAVEPOINT
         pass
 
+    _isolation_lookup = set(['SERIALIZABLE', 'READ UNCOMMITTED',
+                             'READ COMMITTED', 'REPEATABLE READ',
+                             'SNAPSHOT'])
+
+    def set_isolation_level(self, connection, level):
+        level = level.replace('_', ' ')
+        if level not in self._isolation_lookup:
+            raise exc.ArgumentError(
+                "Invalid value '%s' for isolation_level. "
+                "Valid isolation levels for %s are %s" %
+                (level, self.name, ", ".join(self._isolation_lookup))
+            )
+        cursor = connection.cursor()
+        cursor.execute(
+            "SET TRANSACTION ISOLATION LEVEL %s" % level)
+        cursor.close()
+
+    def get_isolation_level(self, connection):
+        cursor = connection.cursor()
+        cursor.execute("""
+          SELECT CASE transaction_isolation_level
+            WHEN 0 THEN NULL
+            WHEN 1 THEN 'READ UNCOMMITTED'
+            WHEN 2 THEN 'READ COMMITTED'
+            WHEN 3 THEN 'REPEATABLE READ'
+            WHEN 4 THEN 'SERIALIZABLE'
+            WHEN 5 THEN 'SNAPSHOT' END AS TRANSACTION_ISOLATION_LEVEL
+            FROM sys.dm_exec_sessions
+            where session_id = @@SPID
+          """)
+        val = cursor.fetchone()[0]
+        cursor.close()
+        return val.upper()
+
     def initialize(self, connection):
         super(MSDialect, self).initialize(connection)
         self._setup_version_attributes()
 
+    def on_connect(self):
+        if self.isolation_level is not None:
+            def connect(conn):
+                self.set_isolation_level(conn, self.isolation_level)
+            return connect
+        else:
+            return None
+
     def _setup_version_attributes(self):
         if self.server_version_info[0] not in list(range(8, 17)):
-            # FreeTDS with version 4.2 seems to report here
-            # a number like "95.10.255".  Don't know what
-            # that is.  So emit warning.
-            # Use TDS Version 7.0 through 7.3, per the MS information here:
-            # https://msdn.microsoft.com/en-us/library/dd339982.aspx
-            # and FreeTDS information here (7.3 highest supported version):
-            # http://www.freetds.org/userguide/choosingtdsprotocol.htm
             util.warn(
-                "Unrecognized server version info '%s'.   Version specific "
-                "behaviors may not function properly.   If using ODBC "
-                "with FreeTDS, ensure TDS_VERSION 7.0 through 7.3, not "
-                "4.2, is configured in the FreeTDS configuration." %
+                "Unrecognized server version info '%s'.  Some SQL Server "
+                "features may not function properly." %
                 ".".join(str(x) for x in self.server_version_info))
         if self.server_version_info >= MS_2005_VERSION and \
                 'implicit_returning' not in self.__dict__:
@@ -1653,17 +1730,13 @@ class MSDialect(default.DefaultDialect):
     def _get_default_schema_name(self, connection):
         if self.server_version_info < MS_2005_VERSION:
             return self.schema_name
-
-        query = sql.text("""
-            SELECT default_schema_name FROM
-            sys.database_principals
-            WHERE principal_id=database_principal_id()
-        """)
-        default_schema_name = connection.scalar(query)
-        if default_schema_name is not None:
-            return util.text_type(default_schema_name)
         else:
-            return self.schema_name
+            query = sql.text("SELECT schema_name()")
+            default_schema_name = connection.scalar(query)
+            if default_schema_name is not None:
+                return util.text_type(default_schema_name)
+            else:
+                return self.schema_name
 
     @_db_plus_owner
     def has_table(self, connection, tablename, dbname, owner, schema):
@@ -1837,7 +1910,7 @@ class MSDialect(default.DefaultDialect):
                            MSNText, MSBinary, MSVarBinary,
                            sqltypes.LargeBinary):
                 if charlen == -1:
-                    charlen = 'max'
+                    charlen = None
                 kwargs['length'] = charlen
                 if collation:
                     kwargs['collation'] = collation

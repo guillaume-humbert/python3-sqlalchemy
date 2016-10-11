@@ -1,7 +1,7 @@
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, select
 from sqlalchemy.orm import interfaces, create_session, joinedload, joinedload_all, \
     subqueryload, subqueryload_all, aliased,\
-    class_mapper
+    class_mapper, with_polymorphic
 from sqlalchemy import exc as sa_exc
 
 from sqlalchemy import testing
@@ -47,7 +47,9 @@ class _PolymorphicTestBase(object):
 
         sess = create_session()
         def go():
-            eq_(sess.query(Person).all(), all_employees)
+            eq_(
+                sess.query(Person).order_by(Person.person_id).all(),
+                all_employees)
         count = {'':14, 'Polymorphic':9}.get(self.select_type, 10)
         self.assert_sql_count(testing.db, go, count)
 
@@ -57,7 +59,7 @@ class _PolymorphicTestBase(object):
 
         sess = create_session()
         def go():
-            eq_(sess.query(Person)
+            eq_(sess.query(Person).order_by(Person.person_id)
                     .options(joinedload(Engineer.machines))[1:3],
                 all_employees[1:3])
         count = {'':6, 'Polymorphic':3}.get(self.select_type, 4)
@@ -66,7 +68,7 @@ class _PolymorphicTestBase(object):
     def test_primary_eager_aliasing_two(self):
         sess = create_session()
         def go():
-            eq_(sess.query(Person)
+            eq_(sess.query(Person).order_by(Person.person_id)
                     .options(subqueryload(Engineer.machines)).all(),
                 all_employees)
         count = {'':14, 'Polymorphic':7}.get(self.select_type, 8)
@@ -79,15 +81,18 @@ class _PolymorphicTestBase(object):
         sess = create_session()
         def go():
             eq_(sess.query(Person).with_polymorphic('*')
+                    .order_by(Person.person_id)
                     .options(joinedload(Engineer.machines))[1:3],
                 all_employees[1:3])
         self.assert_sql_count(testing.db, go, 3)
 
-        eq_(sess.query(Person).with_polymorphic('*')
+        eq_(
+            select([func.count('*')]).select_from(
+                sess.query(Person).with_polymorphic('*')
                 .options(joinedload(Engineer.machines))
-                .limit(2).offset(1).with_labels()
-                .subquery().count().scalar(),
-            2)
+                .limit(2).offset(1).with_labels().subquery()
+            ).scalar(),
+        2)
 
     def test_get_one(self):
         """
@@ -183,6 +188,7 @@ class _PolymorphicTestBase(object):
     def test_join_from_polymorphic_nonaliased_two(self):
         sess = create_session()
         eq_(sess.query(Person)
+                .order_by(Person.person_id)
                 .join('paperwork', aliased=False)
                 .filter(Paperwork.description.like('%#2%')).all(),
             [e1, m1])
@@ -190,6 +196,7 @@ class _PolymorphicTestBase(object):
     def test_join_from_polymorphic_nonaliased_three(self):
         sess = create_session()
         eq_(sess.query(Engineer)
+                .order_by(Person.person_id)
                 .join('paperwork', aliased=False)
                 .filter(Paperwork.description.like('%#2%')).all(),
             [e1])
@@ -197,6 +204,7 @@ class _PolymorphicTestBase(object):
     def test_join_from_polymorphic_nonaliased_four(self):
         sess = create_session()
         eq_(sess.query(Person)
+                .order_by(Person.person_id)
                 .join('paperwork', aliased=False)
                 .filter(Person.name.like('%dog%'))
                 .filter(Paperwork.description.like('%#2%')).all(),
@@ -205,6 +213,7 @@ class _PolymorphicTestBase(object):
     def test_join_from_polymorphic_aliased_one(self):
         sess = create_session()
         eq_(sess.query(Person)
+                .order_by(Person.person_id)
                 .join('paperwork', aliased=True)
                 .filter(Paperwork.description.like('%review%')).all(),
             [b1, m1])
@@ -212,6 +221,7 @@ class _PolymorphicTestBase(object):
     def test_join_from_polymorphic_aliased_two(self):
         sess = create_session()
         eq_(sess.query(Person)
+                .order_by(Person.person_id)
                 .join('paperwork', aliased=True)
                 .filter(Paperwork.description.like('%#2%')).all(),
             [e1, m1])
@@ -219,6 +229,7 @@ class _PolymorphicTestBase(object):
     def test_join_from_polymorphic_aliased_three(self):
         sess = create_session()
         eq_(sess.query(Engineer)
+                .order_by(Person.person_id)
                 .join('paperwork', aliased=True)
                 .filter(Paperwork.description.like('%#2%')).all(),
             [e1])
@@ -226,6 +237,7 @@ class _PolymorphicTestBase(object):
     def test_join_from_polymorphic_aliased_four(self):
         sess = create_session()
         eq_(sess.query(Person)
+                .order_by(Person.person_id)
                 .join('paperwork', aliased=True)
                 .filter(Person.name.like('%dog%'))
                 .filter(Paperwork.description.like('%#2%')).all(),
@@ -235,6 +247,7 @@ class _PolymorphicTestBase(object):
         sess = create_session()
         eq_(sess.query(Person)
                 .with_polymorphic(Manager)
+                .order_by(Person.person_id)
                 .join('paperwork')
                 .filter(Paperwork.description.like('%review%')).all(),
             [b1, m1])
@@ -243,6 +256,7 @@ class _PolymorphicTestBase(object):
         sess = create_session()
         eq_(sess.query(Person)
                 .with_polymorphic([Manager, Engineer])
+                .order_by(Person.person_id)
                 .join('paperwork')
                 .filter(Paperwork.description.like('%#2%')).all(),
             [e1, m1])
@@ -251,6 +265,7 @@ class _PolymorphicTestBase(object):
         sess = create_session()
         eq_(sess.query(Person)
                 .with_polymorphic([Manager, Engineer])
+                .order_by(Person.person_id)
                 .join('paperwork')
                 .filter(Person.name.like('%dog%'))
                 .filter(Paperwork.description.like('%#2%')).all(),
@@ -269,6 +284,7 @@ class _PolymorphicTestBase(object):
         sess = create_session()
         eq_(sess.query(Person)
                 .with_polymorphic([Manager, Engineer])
+                .order_by(Person.person_id)
                 .join('paperwork', aliased=True)
                 .filter(Paperwork.description.like('%#2%')).all(),
             [e1, m1])
@@ -277,6 +293,7 @@ class _PolymorphicTestBase(object):
         sess = create_session()
         eq_(sess.query(Person)
                 .with_polymorphic([Manager, Engineer])
+                .order_by(Person.person_id)
                 .join('paperwork', aliased=True)
                 .filter(Person.name.like('%dog%'))
                 .filter(Paperwork.description.like('%#2%')).all(),
@@ -326,14 +343,17 @@ class _PolymorphicTestBase(object):
         sess = create_session()
         any_ = Engineer.machines.any(
             Machine.name == "Commodore 64")
-        eq_(sess.query(Person).filter(any_).all(), [e2, e3])
+        eq_(
+            sess.query(Person).order_by(Person.person_id).filter(any_).all(),
+            [e2, e3])
 
     def test_polymorphic_any_nine(self):
         sess = create_session()
         any_ = Person.paperwork.any(
             Paperwork.description == "review #2")
-        eq_(sess.query(Person).filter(any_).all(), [m1])
-
+        eq_(
+            sess.query(Person).order_by(Person.person_id).filter(any_).all(),
+            [m1])
 
     def test_join_from_columns_or_subclass_one(self):
         sess = create_session()
@@ -541,7 +561,7 @@ class _PolymorphicTestBase(object):
         sess = create_session()
         def go():
             eq_(sess.query(Person)
-                    .with_polymorphic('*').all(),
+                    .with_polymorphic('*').order_by(Person.person_id).all(),
                 self._emps_wo_relationships_fixture())
         self.assert_sql_count(testing.db, go, 1)
 
@@ -590,7 +610,8 @@ class _PolymorphicTestBase(object):
         sess = create_session()
         # compare to entities without related collections to prevent
         # additional lazy SQL from firing on loaded entities
-        eq_(sess.query(Person).with_polymorphic('*').all(),
+        eq_(sess.query(Person).with_polymorphic('*').
+            order_by(Person.person_id).all(),
             self._emps_wo_relationships_fixture())
 
 
@@ -946,9 +967,11 @@ class _PolymorphicTestBase(object):
 
     def test_filter_on_baseclass(self):
         sess = create_session()
-        eq_(sess.query(Person).all(), all_employees)
-        eq_(sess.query(Person).first(), all_employees[0])
-        eq_(sess.query(Person)
+        eq_(sess.query(Person).order_by(Person.person_id).all(), all_employees)
+        eq_(
+            sess.query(Person).order_by(Person.person_id).first(),
+            all_employees[0])
+        eq_(sess.query(Person).order_by(Person.person_id)
                 .filter(Person.person_id == e2.person_id).one(),
             e2)
 
@@ -956,6 +979,7 @@ class _PolymorphicTestBase(object):
         sess = create_session()
         palias = aliased(Person)
         eq_(sess.query(palias)
+                .order_by(palias.person_id)
                 .filter(palias.name.in_(['dilbert', 'wally'])).all(),
             [e1, e2])
 
@@ -1031,6 +1055,7 @@ class _PolymorphicTestBase(object):
             'Elbonia, Inc.')]
         eq_(sess.query(Engineer, Company.name)
                 .join(Company.employees)
+                .order_by(Person.person_id)
                 .filter(Person.type == 'engineer').all(),
             expected)
 
@@ -1252,6 +1277,44 @@ class _PolymorphicTestBase(object):
         assert row.name == 'dilbert'
         assert row.primary_language == 'java'
 
+    def test_correlation_one(self):
+        sess = create_session()
+
+        # unfortunately this pattern can't yet work for PolymorphicAliased
+        # and PolymorphicUnions, because the subquery does not compile
+        # out including the polymorphic selectable; only if Person is in
+        # the query() list does that happen.
+        eq_(sess.query(Person.name)
+                .filter(
+                    sess.query(Company.name).
+                    filter(Company.company_id == Person.company_id).
+                    correlate(Person).as_scalar() == "Elbonia, Inc.").all(),
+            [(e3.name, )])
+
+    def test_correlation_two(self):
+        sess = create_session()
+
+        paliased = aliased(Person)
+
+        eq_(sess.query(paliased.name)
+                .filter(
+                    sess.query(Company.name).
+                    filter(Company.company_id == paliased.company_id).
+                    correlate(paliased).as_scalar() == "Elbonia, Inc.").all(),
+            [(e3.name, )])
+
+    def test_correlation_three(self):
+        sess = create_session()
+
+        paliased = aliased(Person, flat=True)
+
+        eq_(sess.query(paliased.name)
+                .filter(
+                    sess.query(Company.name).
+                    filter(Company.company_id == paliased.company_id).
+                    correlate(paliased).as_scalar() == "Elbonia, Inc.").all(),
+            [(e3.name, )])
+
 class PolymorphicTest(_PolymorphicTestBase, _Polymorphic):
     def test_join_to_subclass_four(self):
         sess = create_session()
@@ -1268,6 +1331,31 @@ class PolymorphicTest(_PolymorphicTestBase, _Polymorphic):
                 .filter(Machine.name.ilike("%ibm%")).all(),
             [e1, e3])
 
+    def test_correlation_w_polymorphic(self):
+
+        sess = create_session()
+
+        p_poly = with_polymorphic(Person, '*')
+
+        eq_(sess.query(p_poly.name)
+                .filter(
+                    sess.query(Company.name).
+                    filter(Company.company_id == p_poly.company_id).
+                    correlate(p_poly).as_scalar() == "Elbonia, Inc.").all(),
+            [(e3.name, )])
+
+    def test_correlation_w_polymorphic_flat(self):
+
+        sess = create_session()
+
+        p_poly = with_polymorphic(Person, '*', flat=True)
+
+        eq_(sess.query(p_poly.name)
+                .filter(
+                    sess.query(Company.name).
+                    filter(Company.company_id == p_poly.company_id).
+                    correlate(p_poly).as_scalar() == "Elbonia, Inc.").all(),
+            [(e3.name, )])
 
     def test_join_to_subclass_ten(self):
         pass
@@ -1296,6 +1384,7 @@ class PolymorphicPolymorphicTest(_PolymorphicTestBase, _PolymorphicPolymorphic):
         palias = aliased(Person)
         self.assert_compile(
             sess.query(palias, Company.name)
+                .order_by(palias.person_id)
                 .join(Person, Company.employees)
                 .filter(palias.name == 'dilbert'),
             "SELECT anon_1.people_person_id AS anon_1_people_person_id, "
@@ -1347,6 +1436,7 @@ class PolymorphicPolymorphicTest(_PolymorphicTestBase, _PolymorphicPolymorphic):
         self.assert_compile(
             sess.query(palias, Company.name)
                 .select_from(palias)
+                .order_by(palias.person_id)
                 .join(Person, Company.employees)
                 .filter(palias.name == 'dilbert'),
             "SELECT people_1.person_id AS people_1_person_id, "
@@ -1379,10 +1469,16 @@ class PolymorphicPolymorphicTest(_PolymorphicTestBase, _PolymorphicPolymorphic):
 
 
 class PolymorphicUnionsTest(_PolymorphicTestBase, _PolymorphicUnions):
-    pass
+
+    @testing.fails()
+    def test_correlation_one(self):
+        super(PolymorphicUnionsTest, self).test_correlation_one()
+
 
 class PolymorphicAliasedJoinsTest(_PolymorphicTestBase, _PolymorphicAliasedJoins):
-    pass
+    @testing.fails()
+    def test_correlation_one(self):
+        super(PolymorphicAliasedJoinsTest, self).test_correlation_one()
 
 class PolymorphicJoinsTest(_PolymorphicTestBase, _PolymorphicJoins):
     pass

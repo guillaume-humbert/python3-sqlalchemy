@@ -3,9 +3,9 @@ from sqlalchemy import text
 from sqlalchemy import exc
 from sqlalchemy.util import compat
 from . import config, engines
+import os
 import time
 import logging
-import os
 log = logging.getLogger(__name__)
 
 FOLLOWER_IDENT = None

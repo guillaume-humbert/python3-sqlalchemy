@@ -8,8 +8,7 @@ from sqlalchemy.orm import mapper as orm_mapper
 import sqlalchemy as sa
 from sqlalchemy.util import u, ue, b
 from sqlalchemy import Integer, String, ForeignKey, \
-    literal_column, event, Boolean
-from sqlalchemy.testing import engines
+    literal_column, event, Boolean, select, func
 from sqlalchemy import testing
 from sqlalchemy.testing.schema import Table
 from sqlalchemy.testing.schema import Column
@@ -260,7 +259,7 @@ class PKTest(fixtures.MappedTest):
     def define_tables(cls, metadata):
         Table('multipk1', metadata,
               Column('multi_id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
+                     test_needs_autoincrement=not testing.against('sqlite')),
               Column('multi_rev', Integer, primary_key=True),
               Column('name', String(50), nullable=False),
               Column('value', String(100)))
@@ -370,9 +369,10 @@ class ForeignPKTest(fixtures.MappedTest):
         session.add(p)
         session.flush()
 
-        p_count = people.count(people.c.person=='im the key').scalar()
+        p_count = select([func.count('*')]).where(
+            people.c.person=='im the key').scalar()
         eq_(p_count, 1)
-        eq_(peoplesites.count(peoplesites.c.person=='im the key').scalar(), 1)
+        eq_(select([func.count('*')]).where(peoplesites.c.person=='im the key').scalar(), 1)
 
 
 class ClauseAttributesTest(fixtures.MappedTest):
@@ -482,6 +482,29 @@ class ClauseAttributesTest(fixtures.MappedTest):
         assert 'value' not in hb.__dict__
         eq_(hb.value, False)
 
+    def test_clauseelement_accessor(self):
+        class Thing(object):
+            def __init__(self, value):
+                self.value = value
+
+            def __clause_element__(self):
+                return literal_column(str(self.value))
+
+        User = self.classes.User
+
+        u = User(id=5, name='test', counter=Thing(3))
+
+        session = create_session()
+        session.add(u)
+        session.flush()
+
+        u.counter = Thing(5)
+        session.flush()
+
+        def go():
+            eq_(u.counter, 5)
+        self.sql_count_(1, go)
+
 
 class PassiveDeletesTest(fixtures.MappedTest):
     __requires__ = ('foreign_keys',)
@@ -531,13 +554,13 @@ class PassiveDeletesTest(fixtures.MappedTest):
         session.flush()
         session.expunge_all()
 
-        assert myothertable.count().scalar() == 4
+        eq_(select([func.count('*')]).select_from(myothertable).scalar(), 4)
         mc = session.query(MyClass).get(mc.id)
         session.delete(mc)
         session.flush()
 
-        assert mytable.count().scalar() == 0
-        assert myothertable.count().scalar() == 0
+        eq_(select([func.count('*')]).select_from(mytable).scalar(), 0)
+        eq_(select([func.count('*')]).select_from(myothertable).scalar(), 0)
 
     @testing.emits_warning(r".*'passive_deletes' is normally configured on one-to-many")
     def test_backwards_pd(self):
@@ -565,16 +588,16 @@ class PassiveDeletesTest(fixtures.MappedTest):
         session.add(mco)
         session.flush()
 
-        assert mytable.count().scalar() == 1
-        assert myothertable.count().scalar() == 1
+        eq_(select([func.count('*')]).select_from(mytable).scalar(), 1)
+        eq_(select([func.count('*')]).select_from(myothertable).scalar(), 1)
 
         session.expire(mco, ['myclass'])
         session.delete(mco)
         session.flush()
 
         # mytable wasn't deleted, is the point.
-        assert mytable.count().scalar() == 1
-        assert myothertable.count().scalar() == 0
+        eq_(select([func.count('*')]).select_from(mytable).scalar(), 1)
+        eq_(select([func.count('*')]).select_from(myothertable).scalar(), 0)
 
     def test_aaa_m2o_emits_warning(self):
         myothertable, MyClass, MyOtherClass, mytable = (self.tables.myothertable,
@@ -681,7 +704,7 @@ class ExtraPassiveDeletesTest(fixtures.MappedTest):
         session.flush()
         session.expunge_all()
 
-        assert myothertable.count().scalar() == 4
+        eq_(select([func.count('*')]).select_from(myothertable).scalar(), 4)
         mc = session.query(MyClass).get(mc.id)
         session.delete(mc)
         assert_raises(sa.exc.DBAPIError, session.flush)
@@ -705,7 +728,7 @@ class ExtraPassiveDeletesTest(fixtures.MappedTest):
         session.flush()
         session.expunge_all()
 
-        assert myothertable.count().scalar() == 1
+        eq_(select([func.count('*')]).select_from(myothertable).scalar(), 1)
 
         mc = session.query(MyClass).get(mc.id)
         session.delete(mc)
@@ -1589,8 +1612,8 @@ class SaveTest(_fixtures.FixtureTest):
         u = session.query(User).get(u.id)
         session.delete(u)
         session.flush()
-        assert users.count().scalar() == 0
-        assert addresses.count().scalar() == 0
+        eq_(select([func.count('*')]).select_from(users).scalar(), 0)
+        eq_(select([func.count('*')]).select_from(addresses).scalar(), 0)
 
     def test_batch_mode(self):
         """The 'batch=False' flag on mapper()"""
@@ -1966,10 +1989,10 @@ class ManyToManyTest(_fixtures.FixtureTest):
         session.add(i)
         session.flush()
 
-        assert item_keywords.count().scalar() == 2
+        eq_(select([func.count('*')]).select_from(item_keywords).scalar(), 2)
         i.keywords = []
         session.flush()
-        assert item_keywords.count().scalar() == 0
+        eq_(select([func.count('*')]).select_from(item_keywords).scalar(), 0)
 
     def test_scalar(self):
         """sa.dependency won't delete an m2m relationship referencing None."""
@@ -2173,16 +2196,20 @@ class SaveTest3(fixtures.MappedTest):
         session.add(i)
         session.flush()
 
-        assert assoc.count().scalar() == 2
+        eq_(select([func.count('*')]).select_from(assoc).scalar(), 2)
         i.keywords = []
         session.flush()
-        assert assoc.count().scalar() == 0
+        eq_(select([func.count('*')]).select_from(assoc).scalar(), 0)
+
 
 class BooleanColTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
-        Table('t1_t', metadata,
-            Column('id', Integer, primary_key=True, test_needs_autoincrement=True),
+        Table(
+            't1_t', metadata,
+            Column(
+                'id', Integer,
+                primary_key=True, test_needs_autoincrement=True),
             Column('name', String(30)),
             Column('value', sa.Boolean))
 
@@ -2192,7 +2219,7 @@ class BooleanColTest(fixtures.MappedTest):
         # use the regular mapper
         class T(fixtures.ComparableEntity):
             pass
-        orm_mapper(T, t1_t, order_by=t1_t.c.id)
+        orm_mapper(T, t1_t)
 
         sess = create_session()
         t1 = T(value=True, name="t1")
@@ -2205,21 +2232,35 @@ class BooleanColTest(fixtures.MappedTest):
         for clear in (False, True):
             if clear:
                 sess.expunge_all()
-            eq_(sess.query(T).all(), [T(value=True, name="t1"), T(value=False, name="t2"), T(value=True, name="t3")])
+            eq_(
+                sess.query(T).order_by(T.id).all(),
+                [
+                    T(value=True, name="t1"),
+                    T(value=False, name="t2"), T(value=True, name="t3")])
             if clear:
                 sess.expunge_all()
-            eq_(sess.query(T).filter(T.value==True).all(), [T(value=True, name="t1"),T(value=True, name="t3")])
+            eq_(
+                sess.query(T).filter(T.value == True).order_by(T.id).all(),
+                [T(value=True, name="t1"), T(value=True, name="t3")])
             if clear:
                 sess.expunge_all()
-            eq_(sess.query(T).filter(T.value==False).all(), [T(value=False, name="t2")])
+            eq_(
+                sess.query(T).filter(T.value == False).order_by(T.id).all(),
+                [T(value=False, name="t2")])
 
         t2 = sess.query(T).get(t2.id)
         t2.value = True
         sess.flush()
-        eq_(sess.query(T).filter(T.value==True).all(), [T(value=True, name="t1"), T(value=True, name="t2"), T(value=True, name="t3")])
+        eq_(
+            sess.query(T).filter(T.value == True).order_by(T.id).all(),
+            [
+                T(value=True, name="t1"),
+                T(value=True, name="t2"), T(value=True, name="t3")])
         t2.value = False
         sess.flush()
-        eq_(sess.query(T).filter(T.value==True).all(), [T(value=True, name="t1"),T(value=True, name="t3")])
+        eq_(
+            sess.query(T).filter(T.value == True).order_by(T.id).all(),
+            [T(value=True, name="t1"), T(value=True, name="t3")])
 
 
 class RowSwitchTest(fixtures.MappedTest):

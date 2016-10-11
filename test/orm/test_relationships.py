@@ -2,7 +2,8 @@ from sqlalchemy.testing import assert_raises, assert_raises_message
 import datetime
 import sqlalchemy as sa
 from sqlalchemy import testing
-from sqlalchemy import Integer, String, ForeignKey, MetaData, and_
+from sqlalchemy import Integer, String, ForeignKey, MetaData, and_, \
+    select, func
 from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.orm import mapper, relationship, relation, \
     backref, create_session, configure_mappers, \
@@ -931,14 +932,12 @@ class SynonymsAsFKsTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table("tableA", metadata,
-              Column("id", Integer, primary_key=True,
-                     test_needs_autoincrement=True),
+              Column("id", Integer, primary_key=True),
               Column("foo", Integer,),
               test_needs_fk=True)
 
         Table("tableB", metadata,
-              Column("id", Integer, primary_key=True,
-                     test_needs_autoincrement=True),
+              Column("id", Integer, primary_key=True),
               Column("_a_id", Integer, key='a_id', primary_key=True),
               test_needs_fk=True)
 
@@ -1093,7 +1092,7 @@ class FKsAsPksTest(fixtures.MappedTest):
             'tablec', tableA.metadata,
             Column('id', Integer, primary_key=True),
             Column('a_id', Integer, ForeignKey('tableA.id'),
-                   primary_key=True, autoincrement=False, nullable=True))
+                   primary_key=True, nullable=True))
         tableC.create()
 
         class C(fixtures.BasicEntity):
@@ -1311,7 +1310,6 @@ class RelationshipToSelectableTest(fixtures.MappedTest):
         mapper(
             Container,
             container_select,
-            order_by=sa.asc(container_select.c.type),
             properties=dict(
                 lineItems=relationship(
                     LineItem,
@@ -1345,7 +1343,8 @@ class RelationshipToSelectableTest(fixtures.MappedTest):
             session.add(li)
         session.flush()
         session.expunge_all()
-        newcon = session.query(Container).first()
+        newcon = session.query(Container).\
+            order_by(container_select.c.type).first()
         assert con.policyNum == newcon.policyNum
         assert len(newcon.lineItems) == 10
         for old, new in zip(con.lineItems, newcon.lineItems):
@@ -1982,12 +1981,12 @@ class TypedAssociationTable(fixtures.MappedTest):
         sess.add(a)
         sess.flush()
 
-        assert t3.count().scalar() == 2
+        eq_(select([func.count('*')]).select_from(t3).scalar(), 2)
 
         a.t2s.remove(c)
         sess.flush()
 
-        assert t3.count().scalar() == 1
+        eq_(select([func.count('*')]).select_from(t3).scalar(), 1)
 
 
 class CustomOperatorTest(fixtures.MappedTest, AssertsCompiledSQL):
@@ -2703,8 +2702,7 @@ class ExplicitLocalRemoteTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table('t1', metadata,
-              Column('id', String(50), primary_key=True,
-                     test_needs_autoincrement=True),
+              Column('id', String(50), primary_key=True),
               Column('data', String(50)))
         Table('t2', metadata,
               Column('id', Integer, primary_key=True,

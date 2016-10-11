@@ -1,16 +1,15 @@
-import operator
-
 import unicodedata
 import sqlalchemy as sa
-from sqlalchemy import schema, events, event, inspect
+from sqlalchemy import schema, inspect
 from sqlalchemy import MetaData, Integer, String
-from sqlalchemy.testing import (ComparesTables, engines, AssertsCompiledSQL,
+from sqlalchemy.testing import (
+    ComparesTables, engines, AssertsCompiledSQL,
     fixtures, skip)
 from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
 from sqlalchemy import testing
 from sqlalchemy.util import ue
-
+from sqlalchemy.testing import config
 
 metadata, users = None, None
 
@@ -311,22 +310,22 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
 
         Don't mark this test as unsupported for any backend !
 
-        (technically it fails with MySQL InnoDB since "id" comes before "id2")
-
         """
 
         meta = self.metadata
-        Table('test', meta,
+        Table(
+            'test', meta,
             Column('id', sa.Integer, primary_key=True),
             Column('data', sa.String(50)),
-            mysql_engine='MyISAM'
+            mysql_engine='InnoDB'
         )
-        Table('test2', meta,
-            Column('id', sa.Integer, sa.ForeignKey('test.id'),
-                                        primary_key=True),
+        Table(
+            'test2', meta,
+            Column(
+                'id', sa.Integer, sa.ForeignKey('test.id'), primary_key=True),
             Column('id2', sa.Integer, primary_key=True),
             Column('data', sa.String(50)),
-            mysql_engine='MyISAM'
+            mysql_engine='InnoDB'
         )
         meta.create_all()
         m2 = MetaData(testing.db)
@@ -334,7 +333,8 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         assert t1a._autoincrement_column is t1a.c.id
 
         t2a = Table('test2', m2, autoload=True)
-        assert t2a._autoincrement_column is t2a.c.id2
+        assert t2a._autoincrement_column is None
+
 
     @skip('sqlite')
     @testing.provide_metadata
@@ -981,6 +981,26 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         assert set([t2.c.name, t2.c.id]) == set(r2.columns)
         assert set([t2.c.name]) == set(r3.columns)
 
+    @testing.requires.check_constraint_reflection
+    @testing.provide_metadata
+    def test_check_constraint_reflection(self):
+        m1 = self.metadata
+        Table(
+            'x', m1,
+            Column('q', Integer),
+            sa.CheckConstraint('q > 10', name="ck1")
+        )
+        m1.create_all()
+        m2 = MetaData(testing.db)
+        t2 = Table('x', m2, autoload=True)
+
+        ck = [
+            const for const in
+            t2.constraints if isinstance(const, sa.CheckConstraint)][0]
+
+        eq_(ck.sqltext.text, "q > 10")
+        eq_(ck.name, "ck1")
+
     @testing.provide_metadata
     def test_index_reflection_cols_busted(self):
         t = Table('x', self.metadata,
@@ -1368,6 +1388,18 @@ class SchemaTest(fixtures.TestBase):
         finally:
             metadata.drop_all()
 
+    @testing.requires.schemas
+    @testing.provide_metadata
+    def test_schema_translation(self):
+        Table('foob', self.metadata, Column('q', Integer), schema=config.test_schema)
+        self.metadata.create_all()
+
+        m = MetaData()
+        map_ = {"foob": config.test_schema}
+        with config.db.connect().execution_options(schema_translate_map=map_) as conn:
+            t = Table('foob', m, schema="foob", autoload_with=conn)
+            eq_(t.schema, "foob")
+            eq_(t.c.keys(), ['q'])
     @testing.requires.schemas
     @testing.fails_on('sybase', 'FIXME: unknown')
     def test_explicit_default_schema_metadata(self):

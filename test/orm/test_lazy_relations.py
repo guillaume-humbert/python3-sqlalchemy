@@ -4,14 +4,15 @@ from sqlalchemy.testing import assert_raises
 import datetime
 from sqlalchemy.orm import attributes, exc as orm_exc, configure_mappers
 import sqlalchemy as sa
-from sqlalchemy import testing, and_
+from sqlalchemy import testing, and_, bindparam
 from sqlalchemy import Integer, String, ForeignKey, SmallInteger, Boolean
+from sqlalchemy import ForeignKeyConstraint
 from sqlalchemy.types import TypeDecorator
 from sqlalchemy.testing.schema import Table
 from sqlalchemy.testing.schema import Column
 from sqlalchemy import orm
 from sqlalchemy.orm import mapper, relationship, create_session, Session
-from sqlalchemy.testing import eq_
+from sqlalchemy.testing import eq_, is_true, is_false
 from sqlalchemy.testing import fixtures
 from test.orm import _fixtures
 from sqlalchemy.testing.assertsql import CompiledSQL
@@ -257,6 +258,35 @@ class LazyTest(_fixtures.FixtureTest):
         s = create_session()
         u1 = s.query(User).filter(User.id == 7).one()
         assert_raises(sa.exc.SAWarning, getattr, u1, 'order')
+
+    def test_callable_bind(self):
+        Address, addresses, users, User = (
+            self.classes.Address,
+            self.tables.addresses,
+            self.tables.users,
+            self.classes.User)
+
+        mapper(User, users, properties=dict(
+            addresses=relationship(
+                mapper(Address, addresses),
+                lazy='select',
+                primaryjoin=and_(
+                    users.c.id == addresses.c.user_id,
+                    users.c.name == bindparam("name", callable_=lambda: "ed")
+                )
+            )
+        ))
+
+        s = Session()
+        ed = s.query(User).filter_by(name='ed').one()
+        eq_(ed.addresses, [
+            Address(id=2, user_id=8),
+            Address(id=3, user_id=8),
+            Address(id=4, user_id=8)
+        ])
+
+        fred = s.query(User).filter_by(name='fred').one()
+        eq_(fred.addresses, [])  # fred is missing
 
     def test_one_to_many_scalar(self):
         Address, addresses, users, User = (
@@ -1073,3 +1103,144 @@ class RefersToSelfLazyLoadInterferenceTest(fixtures.MappedTest):
         session.query(B).options(
             sa.orm.joinedload('parent').joinedload('zc')).all()
 
+
+class TypeCoerceTest(fixtures.MappedTest, testing.AssertsExecutionResults,):
+    """ORM-level test for [ticket:3531]"""
+
+    # mysql is having a recursion issue in the bind_expression
+    __only_on__ = ('sqlite', 'postgresql')
+
+    class StringAsInt(TypeDecorator):
+        impl = String(50)
+
+        def column_expression(self, col):
+            return sa.cast(col, Integer)
+
+        def bind_expression(self, col):
+            return sa.cast(col, String)
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table(
+            'person', metadata,
+            Column("id", cls.StringAsInt, primary_key=True),
+        )
+        Table(
+            "pets", metadata,
+            Column("id", Integer, primary_key=True),
+            Column("person_id", Integer),
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class Person(cls.Basic):
+            pass
+
+        class Pet(cls.Basic):
+            pass
+
+    @classmethod
+    def setup_mappers(cls):
+        mapper(cls.classes.Person, cls.tables.person, properties=dict(
+            pets=relationship(
+                cls.classes.Pet, primaryjoin=(
+                    orm.foreign(cls.tables.pets.c.person_id) ==
+                    sa.cast(
+                        sa.type_coerce(cls.tables.person.c.id, Integer),
+                        Integer
+                    )
+                )
+            )
+        ))
+
+        mapper(cls.classes.Pet, cls.tables.pets)
+
+    def test_lazyload_singlecast(self):
+        Person = self.classes.Person
+        Pet = self.classes.Pet
+
+        s = Session()
+        s.add_all([
+            Person(id=5), Pet(id=1, person_id=5)
+        ])
+        s.commit()
+
+        p1 = s.query(Person).first()
+
+        with self.sql_execution_asserter() as asserter:
+            p1.pets
+
+        asserter.assert_(
+            CompiledSQL(
+                "SELECT pets.id AS pets_id, pets.person_id "
+                "AS pets_person_id FROM pets "
+                "WHERE pets.person_id = CAST(:param_1 AS INTEGER)",
+                [{'param_1': 5}]
+            )
+        )
+
+
+class CompositeSimpleM2OTest(fixtures.MappedTest):
+    """ORM-level test for [ticket:3788]"""
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table(
+            'a', metadata,
+            Column("id1", Integer, primary_key=True),
+            Column("id2", Integer, primary_key=True),
+        )
+
+        Table(
+            "b_sameorder", metadata,
+            Column("id", Integer, primary_key=True),
+            Column('a_id1', Integer),
+            Column('a_id2', Integer),
+            ForeignKeyConstraint(['a_id1', 'a_id2'], ['a.id1', 'a.id2'])
+        )
+
+        Table(
+            "b_differentorder", metadata,
+            Column("id", Integer, primary_key=True),
+            Column('a_id1', Integer),
+            Column('a_id2', Integer),
+            ForeignKeyConstraint(['a_id1', 'a_id2'], ['a.id1', 'a.id2'])
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class A(cls.Basic):
+            pass
+
+        class B(cls.Basic):
+            pass
+
+    def test_use_get_sameorder(self):
+        mapper(self.classes.A, self.tables.a)
+        m_b = mapper(self.classes.B, self.tables.b_sameorder, properties={
+            'a': relationship(self.classes.A)
+        })
+
+        configure_mappers()
+        is_true(m_b.relationships.a.strategy.use_get)
+
+    def test_use_get_reverseorder(self):
+        mapper(self.classes.A, self.tables.a)
+        m_b = mapper(self.classes.B, self.tables.b_differentorder, properties={
+            'a': relationship(self.classes.A)
+        })
+
+        configure_mappers()
+        is_true(m_b.relationships.a.strategy.use_get)
+
+    def test_dont_use_get_pj_is_different(self):
+        mapper(self.classes.A, self.tables.a)
+        m_b = mapper(self.classes.B, self.tables.b_sameorder, properties={
+            'a': relationship(self.classes.A, primaryjoin=and_(
+                self.tables.a.c.id1 == self.tables.b_sameorder.c.a_id1,
+                self.tables.a.c.id2 == 12
+            ))
+        })
+
+        configure_mappers()
+        is_false(m_b.relationships.a.strategy.use_get)

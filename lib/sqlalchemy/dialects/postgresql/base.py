@@ -48,14 +48,14 @@ Transaction Isolation Level
 ---------------------------
 
 All Postgresql dialects support setting of transaction isolation level
-both via a dialect-specific parameter :paramref:`.create_engine.isolation_level`
-accepted by :func:`.create_engine`,
-as well as the :paramref:`.Connection.execution_options.isolation_level` argument as passed to
-:meth:`.Connection.execution_options`.  When using a non-psycopg2 dialect,
-this feature works by issuing the command
+both via a dialect-specific parameter
+:paramref:`.create_engine.isolation_level` accepted by :func:`.create_engine`,
+as well as the :paramref:`.Connection.execution_options.isolation_level`
+argument as passed to :meth:`.Connection.execution_options`.
+When using a non-psycopg2 dialect, this feature works by issuing the command
 ``SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL <level>`` for
-each new connection.  For the special AUTOCOMMIT isolation level, DBAPI-specific
-techniques are used.
+each new connection.  For the special AUTOCOMMIT isolation level,
+DBAPI-specific techniques are used.
 
 To set isolation level using :func:`.create_engine`::
 
@@ -247,6 +247,197 @@ use the :meth:`._UpdateBase.returning` method on a per-statement basis::
         where(table.c.name=='foo')
     print result.fetchall()
 
+.. _postgresql_insert_on_conflict:
+
+INSERT...ON CONFLICT (Upsert)
+------------------------------
+
+Starting with version 9.5, PostgreSQL allows "upserts" (update or insert)
+of rows into a table via the ``ON CONFLICT`` clause of the ``INSERT`` statement.
+A candidate row will only be inserted if that row does not violate
+any unique constraints.  In the case of a unique constraint violation,
+a secondary action can occur which can be either "DO UPDATE", indicating
+that the data in the target row should be updated, or "DO NOTHING",
+which indicates to silently skip this row.
+
+Conflicts are determined using existing unique constraints and indexes.  These
+constraints may be identified either using their name as stated in DDL,
+or they may be *inferred* by stating the columns and conditions that comprise
+the indexes.
+
+SQLAlchemy provides ``ON CONFLICT`` support via the Postgresql-specific
+:func:`.postgresql.dml.insert()` function, which provides
+the generative methods :meth:`~.postgresql.dml.Insert.on_conflict_do_update`
+and :meth:`~.postgresql.dml.Insert.on_conflict_do_nothing`::
+
+    from sqlalchemy.dialects.postgresql import insert
+
+    insert_stmt = insert(my_table).values(
+        id='some_existing_id',
+        data='inserted value')
+
+    do_nothing_stmt = insert_stmt.on_conflict_do_nothing(
+        index_elements=['id']
+    )
+
+    conn.execute(do_nothing_stmt)
+
+    do_update_stmt = insert_stmt.on_conflict_do_update(
+        constraint='pk_my_table',
+        set_=dict(data='updated value')
+    )
+
+    conn.execute(do_update_stmt)
+
+Both methods supply the "target" of the conflict using either the
+named constraint or by column inference:
+
+* The :paramref:`.Insert.on_conflict_do_update.index_elements` argument
+  specifies a sequence containing string column names, :class:`.Column` objects,
+  and/or SQL expression elements, which would identify a unique index::
+
+    do_update_stmt = insert_stmt.on_conflict_do_update(
+        index_elements=['id'],
+        set_=dict(data='updated value')
+    )
+
+    do_update_stmt = insert_stmt.on_conflict_do_update(
+        index_elements=[my_table.c.id],
+        set_=dict(data='updated value')
+    )
+
+* When using :paramref:`.Insert.on_conflict_do_update.index_elements` to
+  infer an index, a partial index can be inferred by also specifying the
+  use the :paramref:`.Insert.on_conflict_do_update.index_where` parameter::
+
+    from sqlalchemy.dialects.postgresql import insert
+
+    stmt = insert(my_table).values(user_email='a@b.com', data='inserted data')
+    stmt = stmt.on_conflict_do_update(
+        index_elements=[my_table.c.user_email],
+        index_where=my_table.c.user_email.like('%@gmail.com'),
+        set_=dict(data=stmt.excluded.data)
+        )
+    conn.execute(stmt)
+
+
+* The :paramref:`.Insert.on_conflict_do_update.constraint` argument is
+  used to specify an index directly rather than inferring it.  This can be
+  the name of a UNIQUE constraint, a PRIMARY KEY constraint, or an INDEX::
+
+    do_update_stmt = insert_stmt.on_conflict_do_update(
+        constraint='my_table_idx_1',
+        set_=dict(data='updated value')
+    )
+
+    do_update_stmt = insert_stmt.on_conflict_do_update(
+        constraint='my_table_pk',
+        set_=dict(data='updated value')
+    )
+
+* The :paramref:`.Insert.on_conflict_do_update.constraint` argument may
+  also refer to a SQLAlchemy construct representing a constraint,
+  e.g. :class:`.UniqueConstraint`, :class:`.PrimaryKeyConstraint`,
+  :class:`.Index`, or :class:`.ExcludeConstraint`.   In this use,
+  if the constraint has a name, it is used directly.  Otherwise, if the
+  constraint is unnamed, then inference will be used, where the expressions
+  and optional WHERE clause of the constraint will be spelled out in the
+  construct.  This use is especially convenient
+  to refer to the named or unnamed primary key of a :class:`.Table` using the
+  :attr:`.Table.primary_key` attribute::
+
+    do_update_stmt = insert_stmt.on_conflict_do_update(
+        constraint=my_table.primary_key,
+        set_=dict(data='updated value')
+    )
+
+``ON CONFLICT...DO UPDATE`` is used to perform an update of the already
+existing row, using any combination of new values as well as values
+from the proposed insertion.   These values are specified using the
+:paramref:`.Insert.on_conflict_do_update.set_` parameter.  This
+parameter accepts a dictionary which consists of direct values
+for UPDATE::
+
+    from sqlalchemy.dialects.postgresql import insert
+
+    stmt = insert(my_table).values(id='some_id', data='inserted value')
+    do_update_stmt = stmt.on_conflict_do_update(
+        index_elements=['id'],
+        set_=dict(data='updated value')
+        )
+    conn.execute(do_update_stmt)
+
+.. warning::
+
+    The :meth:`.Insert.on_conflict_do_update` method does **not** take into
+    account Python-side default UPDATE values or generation functions, e.g.
+    e.g. those specified using :paramref:`.Column.onupdate`.
+    These values will not be exercised for an ON CONFLICT style of UPDATE,
+    unless they are manually specified in the
+    :paramref:`.Insert.on_conflict_do_update.set_` dictionary.
+
+In order to refer to the proposed insertion row, the special alias
+:attr:`~.postgresql.dml.Insert.excluded` is available as an attribute on
+the :class:`.postgresql.dml.Insert` object; this object is a
+:class:`.ColumnCollection` which alias contains all columns of the target
+table::
+
+    from sqlalchemy.dialects.postgresql import insert
+
+    stmt = insert(my_table).values(
+        id='some_id',
+        data='inserted value',
+        author='jlh')
+    do_update_stmt = stmt.on_conflict_do_update(
+        index_elements=['id'],
+        set_=dict(data='updated value', author=stmt.excluded.author)
+        )
+    conn.execute(do_update_stmt)
+
+The :meth:`.Insert.on_conflict_do_update` method also accepts
+a WHERE clause using the :paramref:`.Insert.on_conflict_do_update.where`
+parameter, which will limit those rows which receive an UPDATE::
+
+    from sqlalchemy.dialects.postgresql import insert
+
+    stmt = insert(my_table).values(
+        id='some_id',
+        data='inserted value',
+        author='jlh')
+    on_update_stmt = stmt.on_conflict_do_update(
+        index_elements=['id'],
+        set_=dict(data='updated value', author=stmt.excluded.author)
+        where=(my_table.c.status == 2)
+        )
+    conn.execute(on_update_stmt)
+
+``ON CONFLICT`` may also be used to skip inserting a row entirely
+if any conflict with a unique or exclusion constraint occurs; below
+this is illustrated using the
+:meth:`~.postgresql.dml.Insert.on_conflict_do_nothing` method::
+
+    from sqlalchemy.dialects.postgresql import insert
+
+    stmt = insert(my_table).values(id='some_id', data='inserted value')
+    stmt = stmt.on_conflict_do_nothing(index_elements=['id'])
+    conn.execute(stmt)
+
+If ``DO NOTHING`` is used without specifying any columns or constraint,
+it has the effect of skipping the INSERT for any unique or exclusion
+constraint violation which occurs::
+
+    from sqlalchemy.dialects.postgresql import insert
+
+    stmt = insert(my_table).values(id='some_id', data='inserted value')
+    stmt = stmt.on_conflict_do_nothing()
+    conn.execute(stmt)
+
+.. versionadded:: 1.1 Added support for Postgresql ON CONFLICT clauses
+
+.. seealso::
+
+    `INSERT .. ON CONFLICT <http://www.postgresql.org/docs/current/static/sql-insert.html#SQL-ON-CONFLICT>`_ - in the Postgresql documentation.
+
 .. _postgresql_match:
 
 Full Text Search
@@ -345,6 +536,7 @@ syntaxes. It uses SQLAlchemy's hints mechanism::
     # DELETE FROM ONLY ...
     table.delete().with_hint('ONLY', dialect_name='postgresql')
 
+
 .. _postgresql_indexes:
 
 Postgresql-Specific Index Options
@@ -352,6 +544,8 @@ Postgresql-Specific Index Options
 
 Several extensions to the :class:`.Index` construct are available, specific
 to the PostgreSQL dialect.
+
+.. _postgresql_partial_indexes:
 
 Partial Indexes
 ^^^^^^^^^^^^^^^^
@@ -413,6 +607,16 @@ keyword argument::
 
 .. versionadded:: 1.0.6
 
+PostgreSQL allows to define the tablespace in which to create the index.
+The tablespace can be specified on :class:`.Index` using the
+``postgresql_tablespace`` keyword argument::
+
+    Index('my_index', my_table.c.data, postgresql_tablespace='my_tablespace')
+
+.. versionadded:: 1.1
+
+Note that the same option is available on :class:`.Table` as well.
+
 .. _postgresql_index_concurrently:
 
 Indexes with CONCURRENTLY
@@ -425,11 +629,21 @@ flag ``postgresql_concurrently`` to the :class:`.Index` construct::
 
     idx1 = Index('test_idx1', tbl.c.data, postgresql_concurrently=True)
 
-The above index construct will render SQL as::
+The above index construct will render DDL for CREATE INDEX, assuming
+Postgresql 8.2 or higher is detected or for a connection-less dialect, as::
 
     CREATE INDEX CONCURRENTLY test_idx1 ON testtbl (data)
 
-.. versionadded:: 0.9.9
+For DROP INDEX, assuming Postgresql 9.2 or higher is detected or for
+a connection-less dialect, it will emit::
+
+    DROP INDEX CONCURRENTLY test_idx1
+
+.. versionadded:: 1.1 support for CONCURRENTLY on DROP INDEX.  The
+   CONCURRENTLY keyword is now only emitted if a high enough version
+   of Postgresql is detected on the connection (or for a connection-less
+   dialect).
+
 
 .. _postgresql_index_reflection:
 
@@ -481,6 +695,8 @@ dialect in conjunction with the :class:`.Table` construct:
 
     Table("some_table", metadata, ..., postgresql_tablespace='some_tablespace')
 
+  The above option is also available on the :class:`.Index` construct.
+
 * ``ON COMMIT``::
 
     Table("some_table", metadata, ..., postgresql_on_commit='PRESERVE ROWS')
@@ -505,6 +721,41 @@ dialect in conjunction with the :class:`.Table` construct:
 
     `Postgresql CREATE TABLE options
     <http://www.postgresql.org/docs/current/static/sql-createtable.html>`_
+
+ARRAY Types
+-----------
+
+The Postgresql dialect supports arrays, both as multidimensional column types
+as well as array literals:
+
+* :class:`.postgresql.ARRAY` - ARRAY datatype
+
+* :class:`.postgresql.array` - array literal
+
+* :func:`.postgresql.array_agg` - ARRAY_AGG SQL function
+
+* :class:`.postgresql.aggregate_order_by` - helper for PG's ORDER BY aggregate
+  function syntax.
+
+JSON Types
+----------
+
+The Postgresql dialect supports both JSON and JSONB datatypes, including
+psycopg2's native support and support for all of Postgresql's special
+operators:
+
+* :class:`.postgresql.JSON`
+
+* :class:`.postgresql.JSONB`
+
+HSTORE Type
+-----------
+
+The Postgresql HSTORE type as well as hstore literals are supported:
+
+* :class:`.postgresql.HSTORE` - HSTORE datatype
+
+* :class:`.postgresql.hstore` - hstore literal
 
 ENUM Types
 ----------
@@ -571,7 +822,7 @@ import datetime as dt
 
 from ... import sql, schema, exc, util
 from ...engine import default, reflection
-from ...sql import compiler, expression, operators, default_comparator
+from ...sql import compiler, expression
 from ... import types as sqltypes
 
 try:
@@ -604,7 +855,6 @@ RESERVED_WORDS = set(
 _DECIMAL_TYPES = (1231, 1700)
 _FLOAT_TYPES = (700, 701, 1021, 1022)
 _INT_TYPES = (20, 21, 23, 26, 1005, 1007, 1016)
-
 
 class BYTEA(sqltypes.LargeBinary):
     __visit_name__ = 'BYTEA'
@@ -765,421 +1015,6 @@ class TSVECTOR(sqltypes.TypeEngine):
 
     """
     __visit_name__ = 'TSVECTOR'
-
-
-class _Slice(expression.ColumnElement):
-    __visit_name__ = 'slice'
-    type = sqltypes.NULLTYPE
-
-    def __init__(self, slice_, source_comparator):
-        self.start = default_comparator._check_literal(
-            source_comparator.expr,
-            operators.getitem, slice_.start)
-        self.stop = default_comparator._check_literal(
-            source_comparator.expr,
-            operators.getitem, slice_.stop)
-
-
-class Any(expression.ColumnElement):
-
-    """Represent the clause ``left operator ANY (right)``.  ``right`` must be
-    an array expression.
-
-    .. seealso::
-
-        :class:`.postgresql.ARRAY`
-
-        :meth:`.postgresql.ARRAY.Comparator.any` - ARRAY-bound method
-
-    """
-    __visit_name__ = 'any'
-
-    def __init__(self, left, right, operator=operators.eq):
-        self.type = sqltypes.Boolean()
-        self.left = expression._literal_as_binds(left)
-        self.right = right
-        self.operator = operator
-
-
-class All(expression.ColumnElement):
-
-    """Represent the clause ``left operator ALL (right)``.  ``right`` must be
-    an array expression.
-
-    .. seealso::
-
-        :class:`.postgresql.ARRAY`
-
-        :meth:`.postgresql.ARRAY.Comparator.all` - ARRAY-bound method
-
-    """
-    __visit_name__ = 'all'
-
-    def __init__(self, left, right, operator=operators.eq):
-        self.type = sqltypes.Boolean()
-        self.left = expression._literal_as_binds(left)
-        self.right = right
-        self.operator = operator
-
-
-class array(expression.Tuple):
-
-    """A Postgresql ARRAY literal.
-
-    This is used to produce ARRAY literals in SQL expressions, e.g.::
-
-        from sqlalchemy.dialects.postgresql import array
-        from sqlalchemy.dialects import postgresql
-        from sqlalchemy import select, func
-
-        stmt = select([
-                        array([1,2]) + array([3,4,5])
-                    ])
-
-        print stmt.compile(dialect=postgresql.dialect())
-
-    Produces the SQL::
-
-        SELECT ARRAY[%(param_1)s, %(param_2)s] ||
-            ARRAY[%(param_3)s, %(param_4)s, %(param_5)s]) AS anon_1
-
-    An instance of :class:`.array` will always have the datatype
-    :class:`.ARRAY`.  The "inner" type of the array is inferred from
-    the values present, unless the ``type_`` keyword argument is passed::
-
-        array(['foo', 'bar'], type_=CHAR)
-
-    .. versionadded:: 0.8 Added the :class:`~.postgresql.array` literal type.
-
-    See also:
-
-    :class:`.postgresql.ARRAY`
-
-    """
-    __visit_name__ = 'array'
-
-    def __init__(self, clauses, **kw):
-        super(array, self).__init__(*clauses, **kw)
-        self.type = ARRAY(self.type)
-
-    def _bind_param(self, operator, obj):
-        return array([
-            expression.BindParameter(None, o, _compared_to_operator=operator,
-                                     _compared_to_type=self.type, unique=True)
-            for o in obj
-        ])
-
-    def self_group(self, against=None):
-        return self
-
-
-class ARRAY(sqltypes.Concatenable, sqltypes.TypeEngine):
-
-    """Postgresql ARRAY type.
-
-    Represents values as Python lists.
-
-    An :class:`.ARRAY` type is constructed given the "type"
-    of element::
-
-        mytable = Table("mytable", metadata,
-                Column("data", ARRAY(Integer))
-            )
-
-    The above type represents an N-dimensional array,
-    meaning Postgresql will interpret values with any number
-    of dimensions automatically.   To produce an INSERT
-    construct that passes in a 1-dimensional array of integers::
-
-        connection.execute(
-                mytable.insert(),
-                data=[1,2,3]
-        )
-
-    The :class:`.ARRAY` type can be constructed given a fixed number
-    of dimensions::
-
-        mytable = Table("mytable", metadata,
-                Column("data", ARRAY(Integer, dimensions=2))
-            )
-
-    This has the effect of the :class:`.ARRAY` type
-    specifying that number of bracketed blocks when a :class:`.Table`
-    is used in a CREATE TABLE statement, or when the type is used
-    within a :func:`.expression.cast` construct; it also causes
-    the bind parameter and result set processing of the type
-    to optimize itself to expect exactly that number of dimensions.
-    Note that Postgresql itself still allows N dimensions with such a type.
-
-    SQL expressions of type :class:`.ARRAY` have support for "index" and
-    "slice" behavior.  The Python ``[]`` operator works normally here, given
-    integer indexes or slices.  Note that Postgresql arrays default
-    to 1-based indexing.  The operator produces binary expression
-    constructs which will produce the appropriate SQL, both for
-    SELECT statements::
-
-        select([mytable.c.data[5], mytable.c.data[2:7]])
-
-    as well as UPDATE statements when the :meth:`.Update.values` method
-    is used::
-
-        mytable.update().values({
-            mytable.c.data[5]: 7,
-            mytable.c.data[2:7]: [1, 2, 3]
-        })
-
-    .. note::
-
-        Multi-dimensional support for the ``[]`` operator is not supported
-        in SQLAlchemy 1.0.  Please use the :func:`.type_coerce` function
-        to cast an intermediary expression to ARRAY again as a workaround::
-
-            expr = type_coerce(my_array_column[5], ARRAY(Integer))[6]
-
-        Multi-dimensional support will be provided in a future release.
-
-    :class:`.ARRAY` provides special methods for containment operations,
-    e.g.::
-
-        mytable.c.data.contains([1, 2])
-
-    For a full list of special methods see :class:`.ARRAY.Comparator`.
-
-    .. versionadded:: 0.8 Added support for index and slice operations
-       to the :class:`.ARRAY` type, including support for UPDATE
-       statements, and special array containment operations.
-
-    The :class:`.ARRAY` type may not be supported on all DBAPIs.
-    It is known to work on psycopg2 and not pg8000.
-
-    Additionally, the :class:`.ARRAY` type does not work directly in
-    conjunction with the :class:`.ENUM` type.  For a workaround, see the
-    special type at :ref:`postgresql_array_of_enum`.
-
-    See also:
-
-    :class:`.postgresql.array` - produce a literal array value.
-
-    """
-    __visit_name__ = 'ARRAY'
-
-    class Comparator(sqltypes.Concatenable.Comparator):
-
-        """Define comparison operations for :class:`.ARRAY`."""
-
-        def __getitem__(self, index):
-            shift_indexes = 1 if self.expr.type.zero_indexes else 0
-            if isinstance(index, slice):
-                if shift_indexes:
-                    index = slice(
-                        index.start + shift_indexes,
-                        index.stop + shift_indexes,
-                        index.step
-                    )
-                index = _Slice(index, self)
-                return_type = self.type
-            else:
-                index += shift_indexes
-                return_type = self.type.item_type
-
-            return default_comparator._binary_operate(
-                self.expr, operators.getitem, index,
-                result_type=return_type)
-
-        def any(self, other, operator=operators.eq):
-            """Return ``other operator ANY (array)`` clause.
-
-            Argument places are switched, because ANY requires array
-            expression to be on the right hand-side.
-
-            E.g.::
-
-                from sqlalchemy.sql import operators
-
-                conn.execute(
-                    select([table.c.data]).where(
-                            table.c.data.any(7, operator=operators.lt)
-                        )
-                )
-
-            :param other: expression to be compared
-            :param operator: an operator object from the
-             :mod:`sqlalchemy.sql.operators`
-             package, defaults to :func:`.operators.eq`.
-
-            .. seealso::
-
-                :class:`.postgresql.Any`
-
-                :meth:`.postgresql.ARRAY.Comparator.all`
-
-            """
-            return Any(other, self.expr, operator=operator)
-
-        def all(self, other, operator=operators.eq):
-            """Return ``other operator ALL (array)`` clause.
-
-            Argument places are switched, because ALL requires array
-            expression to be on the right hand-side.
-
-            E.g.::
-
-                from sqlalchemy.sql import operators
-
-                conn.execute(
-                    select([table.c.data]).where(
-                            table.c.data.all(7, operator=operators.lt)
-                        )
-                )
-
-            :param other: expression to be compared
-            :param operator: an operator object from the
-             :mod:`sqlalchemy.sql.operators`
-             package, defaults to :func:`.operators.eq`.
-
-            .. seealso::
-
-                :class:`.postgresql.All`
-
-                :meth:`.postgresql.ARRAY.Comparator.any`
-
-            """
-            return All(other, self.expr, operator=operator)
-
-        def contains(self, other, **kwargs):
-            """Boolean expression.  Test if elements are a superset of the
-            elements of the argument array expression.
-            """
-            return self.expr.op('@>')(other)
-
-        def contained_by(self, other):
-            """Boolean expression.  Test if elements are a proper subset of the
-            elements of the argument array expression.
-            """
-            return self.expr.op('<@')(other)
-
-        def overlap(self, other):
-            """Boolean expression.  Test if array has elements in common with
-            an argument array expression.
-            """
-            return self.expr.op('&&')(other)
-
-        def _adapt_expression(self, op, other_comparator):
-            if isinstance(op, operators.custom_op):
-                if op.opstring in ['@>', '<@', '&&']:
-                    return op, sqltypes.Boolean
-            return sqltypes.Concatenable.Comparator.\
-                _adapt_expression(self, op, other_comparator)
-
-    comparator_factory = Comparator
-
-    def __init__(self, item_type, as_tuple=False, dimensions=None,
-                 zero_indexes=False):
-        """Construct an ARRAY.
-
-        E.g.::
-
-          Column('myarray', ARRAY(Integer))
-
-        Arguments are:
-
-        :param item_type: The data type of items of this array. Note that
-          dimensionality is irrelevant here, so multi-dimensional arrays like
-          ``INTEGER[][]``, are constructed as ``ARRAY(Integer)``, not as
-          ``ARRAY(ARRAY(Integer))`` or such.
-
-        :param as_tuple=False: Specify whether return results
-          should be converted to tuples from lists. DBAPIs such
-          as psycopg2 return lists by default. When tuples are
-          returned, the results are hashable.
-
-        :param dimensions: if non-None, the ARRAY will assume a fixed
-         number of dimensions.  This will cause the DDL emitted for this
-         ARRAY to include the exact number of bracket clauses ``[]``,
-         and will also optimize the performance of the type overall.
-         Note that PG arrays are always implicitly "non-dimensioned",
-         meaning they can store any number of dimensions no matter how
-         they were declared.
-
-        :param zero_indexes=False: when True, index values will be converted
-         between Python zero-based and Postgresql one-based indexes, e.g.
-         a value of one will be added to all index values before passing
-         to the database.
-
-         .. versionadded:: 0.9.5
-
-        """
-        if isinstance(item_type, ARRAY):
-            raise ValueError("Do not nest ARRAY types; ARRAY(basetype) "
-                             "handles multi-dimensional arrays of basetype")
-        if isinstance(item_type, type):
-            item_type = item_type()
-        self.item_type = item_type
-        self.as_tuple = as_tuple
-        self.dimensions = dimensions
-        self.zero_indexes = zero_indexes
-
-    @property
-    def python_type(self):
-        return list
-
-    def compare_values(self, x, y):
-        return x == y
-
-    def _proc_array(self, arr, itemproc, dim, collection):
-        if dim is None:
-            arr = list(arr)
-        if dim == 1 or dim is None and (
-                # this has to be (list, tuple), or at least
-                # not hasattr('__iter__'), since Py3K strings
-                # etc. have __iter__
-                not arr or not isinstance(arr[0], (list, tuple))):
-            if itemproc:
-                return collection(itemproc(x) for x in arr)
-            else:
-                return collection(arr)
-        else:
-            return collection(
-                self._proc_array(
-                    x, itemproc,
-                    dim - 1 if dim is not None else None,
-                    collection)
-                for x in arr
-            )
-
-    def bind_processor(self, dialect):
-        item_proc = self.item_type.\
-            dialect_impl(dialect).\
-            bind_processor(dialect)
-
-        def process(value):
-            if value is None:
-                return value
-            else:
-                return self._proc_array(
-                    value,
-                    item_proc,
-                    self.dimensions,
-                    list)
-        return process
-
-    def result_processor(self, dialect, coltype):
-        item_proc = self.item_type.\
-            dialect_impl(dialect).\
-            result_processor(dialect, coltype)
-
-        def process(value):
-            if value is None:
-                return value
-            else:
-                return self._proc_array(
-                    value,
-                    item_proc,
-                    self.dimensions,
-                    tuple if self.as_tuple else list)
-        return process
-
-PGArray = ARRAY
 
 
 class ENUM(sqltypes.Enum):
@@ -1434,24 +1269,28 @@ class PGCompiler(compiler.SQLCompiler):
             self.process(element.stop, **kw),
         )
 
-    def visit_any(self, element, **kw):
-        return "%s%sANY (%s)" % (
-            self.process(element.left, **kw),
-            compiler.OPERATORS[element.operator],
-            self.process(element.right, **kw)
+    def visit_json_getitem_op_binary(self, binary, operator, **kw):
+        kw['eager_grouping'] = True
+        return self._generate_generic_binary(
+            binary, " -> ", **kw
         )
 
-    def visit_all(self, element, **kw):
-        return "%s%sALL (%s)" % (
-            self.process(element.left, **kw),
-            compiler.OPERATORS[element.operator],
-            self.process(element.right, **kw)
+    def visit_json_path_getitem_op_binary(self, binary, operator, **kw):
+        kw['eager_grouping'] = True
+        return self._generate_generic_binary(
+            binary, " #> ", **kw
         )
 
     def visit_getitem_binary(self, binary, operator, **kw):
         return "%s[%s]" % (
             self.process(binary.left, **kw),
             self.process(binary.right, **kw)
+        )
+
+    def visit_aggregate_order_by(self, element, **kw):
+        return "%s ORDER BY %s" % (
+            self.process(element.target, **kw),
+            self.process(element.order_by, **kw)
         )
 
     def visit_match_op_binary(self, binary, operator, **kw):
@@ -1535,7 +1374,12 @@ class PGCompiler(compiler.SQLCompiler):
     def for_update_clause(self, select, **kw):
 
         if select._for_update_arg.read:
-            tmp = " FOR SHARE"
+            if select._for_update_arg.key_share:
+                tmp = " FOR KEY SHARE"
+            else:
+                tmp = " FOR SHARE"
+        elif select._for_update_arg.key_share:
+            tmp = " FOR NO KEY UPDATE"
         else:
             tmp = " FOR UPDATE"
 
@@ -1550,6 +1394,8 @@ class PGCompiler(compiler.SQLCompiler):
 
         if select._for_update_arg.nowait:
             tmp += " NOWAIT"
+        if select._for_update_arg.skip_locked:
+            tmp += " SKIP LOCKED"
 
         return tmp
 
@@ -1570,6 +1416,67 @@ class PGCompiler(compiler.SQLCompiler):
             return "SUBSTRING(%s FROM %s FOR %s)" % (s, start, length)
         else:
             return "SUBSTRING(%s FROM %s)" % (s, start)
+
+    def _on_conflict_target(self, clause, **kw):
+
+        if clause.constraint_target is not None:
+            target_text = 'ON CONSTRAINT %s' % clause.constraint_target
+        elif clause.inferred_target_elements is not None:
+            target_text = '(%s)' % ', '.join(
+                (self.preparer.quote(c)
+                 if isinstance(c, util.string_types)
+                 else
+                 self.process(c, include_table=False, use_schema=False))
+                for c in clause.inferred_target_elements
+            )
+            if clause.inferred_target_whereclause is not None:
+                target_text += ' WHERE %s' % \
+                    self.process(
+                        clause.inferred_target_whereclause,
+                        use_schema=False
+                    )
+        else:
+            target_text = ''
+
+        return target_text
+
+    def visit_on_conflict_do_nothing(self, on_conflict, **kw):
+
+        target_text = self._on_conflict_target(on_conflict, **kw)
+
+        if target_text:
+            return "ON CONFLICT %s DO NOTHING" % target_text
+        else:
+            return "ON CONFLICT DO NOTHING"
+
+    def visit_on_conflict_do_update(self, on_conflict, **kw):
+
+        clause = on_conflict
+
+        target_text = self._on_conflict_target(on_conflict, **kw)
+
+        action_set_ops = []
+        for k, v in clause.update_values_to_set:
+            key_text = (
+                self.preparer.quote(k)
+                if isinstance(k, util.string_types)
+                else self.process(k, use_schema=False)
+            )
+            value_text = self.process(
+                v,
+                use_schema=False
+            )
+            action_set_ops.append('%s = %s' % (key_text, value_text))
+        action_text = ', '.join(action_set_ops)
+        if clause.update_whereclause is not None:
+            action_text += ' WHERE %s' % \
+                self.process(
+                    clause.update_whereclause,
+                    include_table=True,
+                    use_schema=False
+                )
+
+        return 'ON CONFLICT %s DO UPDATE SET %s' % (target_text, action_text)
 
 
 class PGDDLCompiler(compiler.DDLCompiler):
@@ -1599,8 +1506,8 @@ class PGDDLCompiler(compiler.DDLCompiler):
             else:
                 colspec += " SERIAL"
         else:
-            colspec += " " + self.dialect.type_compiler.process(column.type,
-                                                    type_expression=column)
+            colspec += " " + self.dialect.type_compiler.process(
+                column.type, type_expression=column)
             default = self.get_column_default_string(column)
             if default is not None:
                 colspec += " DEFAULT " + default
@@ -1635,9 +1542,10 @@ class PGDDLCompiler(compiler.DDLCompiler):
             text += "UNIQUE "
         text += "INDEX "
 
-        concurrently = index.dialect_options['postgresql']['concurrently']
-        if concurrently:
-            text += "CONCURRENTLY "
+        if self.dialect._supports_create_index_concurrently:
+            concurrently = index.dialect_options['postgresql']['concurrently']
+            if concurrently:
+                text += "CONCURRENTLY "
 
         text += "%s ON %s " % (
             self._prepared_index_name(index,
@@ -1674,6 +1582,11 @@ class PGDDLCompiler(compiler.DDLCompiler):
                 ['%s = %s' % storage_parameter
                  for storage_parameter in withclause.items()]))
 
+        tablespace_name = index.dialect_options['postgresql']['tablespace']
+
+        if tablespace_name:
+            text += " TABLESPACE %s" % preparer.quote(tablespace_name)
+
         whereclause = index.dialect_options["postgresql"]["where"]
 
         if whereclause is not None:
@@ -1681,6 +1594,19 @@ class PGDDLCompiler(compiler.DDLCompiler):
                 whereclause, include_table=False,
                 literal_binds=True)
             text += " WHERE " + where_compiled
+        return text
+
+    def visit_drop_index(self, drop):
+        index = drop.element
+
+        text = "\nDROP INDEX "
+
+        if self.dialect._supports_drop_index_concurrently:
+            concurrently = index.dialect_options['postgresql']['concurrently']
+            if concurrently:
+                text += "CONCURRENTLY "
+
+        text += self._prepared_index_name(index, include_schema=True)
         return text
 
     def visit_exclude_constraint(self, constraint, **kw):
@@ -1860,8 +1786,11 @@ class PGIdentifierPreparer(compiler.IdentifierPreparer):
             raise exc.CompileError("Postgresql ENUM type requires a name.")
 
         name = self.quote(type_.name)
-        if not self.omit_schema and use_schema and type_.schema is not None:
-            name = self.quote_schema(type_.schema) + "." + name
+        effective_schema = self.schema_for_object(type_)
+
+        if not self.omit_schema and use_schema and \
+                effective_schema is not None:
+            name = self.quote_schema(effective_schema) + "." + name
         return name
 
 
@@ -1910,6 +1839,24 @@ class PGInspector(reflection.Inspector):
         schema = schema or self.default_schema_name
         return self.dialect._get_foreign_table_names(self.bind, schema)
 
+    def get_view_names(self, schema=None, include=('plain', 'materialized')):
+        """Return all view names in `schema`.
+
+        :param schema: Optional, retrieve names from a non-default schema.
+         For special quoting, use :class:`.quoted_name`.
+
+        :param include: specify which types of views to return.  Passed
+         as a string value (for a single type) or a tuple (for any number
+         of types).  Defaults to ``('plain', 'materialized')``.
+
+         .. versionadded:: 1.1
+
+        """
+
+        return self.dialect.get_view_names(self.bind, schema,
+                                           info_cache=self.info_cache,
+                                           include=include)
+
 
 class CreateEnumType(schema._CreateDropBase):
     __visit_name__ = "create_enum_type"
@@ -1954,10 +1901,15 @@ class PGExecutionContext(default.DefaultExecutionContext):
                     name = "%s_%s_seq" % (tab, col)
                     column._postgresql_seq_name = seq_name = name
 
-                sch = column.table.schema
-                if sch is not None:
+                if column.table is not None:
+                    effective_schema = self.connection.schema_for_object(
+                        column.table)
+                else:
+                    effective_schema = None
+
+                if effective_schema is not None:
                     exc = "select nextval('\"%s\".\"%s\"')" % \
-                        (sch, seq_name)
+                        (effective_schema, seq_name)
                 else:
                     exc = "select nextval('\"%s\"')" % \
                         (seq_name, )
@@ -2003,7 +1955,8 @@ class PGDialect(default.DefaultDialect):
             "where": None,
             "ops": {},
             "concurrently": False,
-            "with": {}
+            "with": {},
+            "tablespace": None
         }),
         (schema.Table, {
             "ignore_search_path": False,
@@ -2011,12 +1964,14 @@ class PGDialect(default.DefaultDialect):
             "with_oids": None,
             "on_commit": None,
             "inherits": None
-        })
+        }),
     ]
 
     reflection_options = ('postgresql_ignore_search_path', )
 
     _backslash_escapes = True
+    _supports_create_index_concurrently = True
+    _supports_drop_index_concurrently = True
 
     def __init__(self, isolation_level=None, json_serializer=None,
                  json_deserializer=None, **kwargs):
@@ -2044,6 +1999,11 @@ class PGDialect(default.DefaultDialect):
             connection.scalar(
             "show standard_conforming_strings"
         ) == 'off'
+
+        self._supports_create_index_concurrently = \
+            self.server_version_info >= (8, 2)
+        self._supports_drop_index_concurrently = \
+            self.server_version_info >= (9, 2)
 
     def on_connect(self):
         if self.isolation_level is not None:
@@ -2277,98 +2237,70 @@ class PGDialect(default.DefaultDialect):
 
     @reflection.cache
     def get_schema_names(self, connection, **kw):
-        s = """
-        SELECT nspname
-        FROM pg_namespace
-        ORDER BY nspname
-        """
-        rp = connection.execute(s)
-        # what about system tables?
-
-        if util.py2k:
-            schema_names = [row[0].decode(self.encoding) for row in rp
-                            if not row[0].startswith('pg_')]
-        else:
-            schema_names = [row[0] for row in rp
-                            if not row[0].startswith('pg_')]
-        return schema_names
+        result = connection.execute(
+            sql.text("SELECT nspname FROM pg_namespace "
+                     "WHERE nspname NOT LIKE 'pg_%' "
+                     "ORDER BY nspname"
+            ).columns(nspname=sqltypes.Unicode))
+        return [name for name, in result]
 
     @reflection.cache
     def get_table_names(self, connection, schema=None, **kw):
-        if schema is not None:
-            current_schema = schema
-        else:
-            current_schema = self.default_schema_name
-
         result = connection.execute(
-            sql.text("SELECT relname FROM pg_class c "
-                     "WHERE relkind = 'r' "
-                     "AND '%s' = (select nspname from pg_namespace n "
-                     "where n.oid = c.relnamespace) " %
-                     current_schema,
-                     typemap={'relname': sqltypes.Unicode}
-                     )
-        )
-        return [row[0] for row in result]
+            sql.text("SELECT c.relname FROM pg_class c "
+                     "JOIN pg_namespace n ON n.oid = c.relnamespace "
+                     "WHERE n.nspname = :schema AND c.relkind = 'r'"
+                     ).columns(relname=sqltypes.Unicode),
+            schema=schema if schema is not None else self.default_schema_name)
+        return [name for name, in result]
 
     @reflection.cache
     def _get_foreign_table_names(self, connection, schema=None, **kw):
-        if schema is not None:
-            current_schema = schema
-        else:
-            current_schema = self.default_schema_name
-
         result = connection.execute(
-            sql.text("SELECT relname FROM pg_class c "
-                     "WHERE relkind = 'f' "
-                     "AND '%s' = (select nspname from pg_namespace n "
-                     "where n.oid = c.relnamespace) " %
-                     current_schema,
-                     typemap={'relname': sqltypes.Unicode}
-                     )
-        )
-        return [row[0] for row in result]
+            sql.text("SELECT c.relname FROM pg_class c "
+                     "JOIN pg_namespace n ON n.oid = c.relnamespace "
+                     "WHERE n.nspname = :schema AND c.relkind = 'f'"
+                     ).columns(relname=sqltypes.Unicode),
+            schema=schema if schema is not None else self.default_schema_name)
+        return [name for name, in result]
 
     @reflection.cache
-    def get_view_names(self, connection, schema=None, **kw):
-        if schema is not None:
-            current_schema = schema
-        else:
-            current_schema = self.default_schema_name
-        s = """
-        SELECT relname
-        FROM pg_class c
-        WHERE relkind IN ('m', 'v')
-          AND '%(schema)s' = (select nspname from pg_namespace n
-          where n.oid = c.relnamespace)
-        """ % dict(schema=current_schema)
+    def get_view_names(
+            self, connection, schema=None,
+            include=('plain', 'materialized'), **kw):
 
-        if util.py2k:
-            view_names = [row[0].decode(self.encoding)
-                          for row in connection.execute(s)]
-        else:
-            view_names = [row[0] for row in connection.execute(s)]
-        return view_names
+        include_kind = {'plain': 'v', 'materialized': 'm'}
+        try:
+            kinds = [include_kind[i] for i in util.to_list(include)]
+        except KeyError:
+            raise ValueError(
+                "include %r unknown, needs to be a sequence containing "
+                "one or both of 'plain' and 'materialized'" % (include,))
+        if not kinds:
+            raise ValueError(
+                "empty include, needs to be a sequence containing "
+                "one or both of 'plain' and 'materialized'")
+
+        result = connection.execute(
+            sql.text("SELECT c.relname FROM pg_class c "
+                     "JOIN pg_namespace n ON n.oid = c.relnamespace "
+                     "WHERE n.nspname = :schema AND c.relkind IN (%s)" %
+                     (", ".join("'%s'" % elem for elem in kinds))
+                     ).columns(relname=sqltypes.Unicode),
+            schema=schema if schema is not None else self.default_schema_name)
+        return [name for name, in result]
 
     @reflection.cache
     def get_view_definition(self, connection, view_name, schema=None, **kw):
-        if schema is not None:
-            current_schema = schema
-        else:
-            current_schema = self.default_schema_name
-        s = """
-        SELECT definition FROM pg_views
-        WHERE schemaname = :schema
-        AND viewname = :view_name
-        """
-        rp = connection.execute(sql.text(s),
-                                view_name=view_name, schema=current_schema)
-        if rp:
-            if util.py2k:
-                view_def = rp.scalar().decode(self.encoding)
-            else:
-                view_def = rp.scalar()
-            return view_def
+        view_def = connection.scalar(
+            sql.text("SELECT pg_get_viewdef(c.oid) view_def FROM pg_class c "
+                     "JOIN pg_namespace n ON n.oid = c.relnamespace "
+                     "WHERE n.nspname = :schema AND c.relname = :view_name "
+                     "AND c.relkind IN ('v', 'm')"
+                     ).columns(view_def=sqltypes.Unicode),
+            schema=schema if schema is not None else self.default_schema_name,
+            view_name=view_name)
+        return view_def
 
     @reflection.cache
     def get_columns(self, connection, table_name, schema=None, **kw):
@@ -2421,7 +2353,7 @@ class PGDialect(default.DefaultDialect):
         attype = re.sub(r'\(.*\)', '', format_type)
 
         # strip '[]' from integer[], etc.
-        attype = re.sub(r'\[\]', '', attype)
+        attype = attype.replace('[]', '')
 
         nullable = not notnull
         is_array = format_type.endswith('[]')
@@ -2500,7 +2432,7 @@ class PGDialect(default.DefaultDialect):
         if coltype:
             coltype = coltype(*args, **kwargs)
             if is_array:
-                coltype = ARRAY(coltype)
+                coltype = self.ischema_names['_array'](coltype)
         else:
             util.warn("Did not recognize type '%s' of column '%s'" %
                       (attype, name))
@@ -2751,7 +2683,9 @@ class PGDialect(default.DefaultDialect):
                   i.relname
             """
 
-        t = sql.text(IDX_SQL, typemap={'attname': sqltypes.Unicode})
+        t = sql.text(IDX_SQL, typemap={
+            'relname': sqltypes.Unicode,
+            'attname': sqltypes.Unicode})
         c = connection.execute(t, table_oid=table_oid)
 
         indexes = defaultdict(lambda: defaultdict(dict))
@@ -2850,6 +2784,31 @@ class PGDialect(default.DefaultDialect):
              'column_names': [uc["cols"][i] for i in uc["key"]]}
             for name, uc in uniques.items()
         ]
+
+    @reflection.cache
+    def get_check_constraints(
+            self, connection, table_name, schema=None, **kw):
+        table_oid = self.get_table_oid(connection, table_name, schema,
+                                       info_cache=kw.get('info_cache'))
+
+        CHECK_SQL = """
+            SELECT
+                cons.conname as name,
+                cons.consrc as src
+            FROM
+                pg_catalog.pg_constraint cons
+            WHERE
+                cons.conrelid = :table_oid AND
+                cons.contype = 'c'
+        """
+
+        c = connection.execute(sql.text(CHECK_SQL), table_oid=table_oid)
+
+        return [
+            {'name': name,
+             'sqltext': src[1:-1]}
+            for name, src in c.fetchall()
+            ]
 
     def _load_enums(self, connection, schema=None):
         schema = schema or self.default_schema_name

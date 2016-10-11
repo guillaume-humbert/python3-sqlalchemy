@@ -14,6 +14,7 @@ from __future__ import with_statement
 import sys
 from .. import exc, util, log, interfaces
 from ..sql import util as sql_util
+from ..sql import schema
 from .interfaces import Connectable, ExceptionContext
 from .util import _distill_params
 import contextlib
@@ -44,6 +45,22 @@ class Connection(Connectable):
 
     """
 
+    schema_for_object = schema._schema_getter(None)
+    """Return the ".schema" attribute for an object.
+
+    Used for :class:`.Table`, :class:`.Sequence` and similar objects,
+    and takes into account
+    the :paramref:`.Connection.execution_options.schema_translate_map`
+    parameter.
+
+      .. versionadded:: 1.1
+
+      .. seealso::
+
+          :ref:`schema_translating`
+
+    """
+
     def __init__(self, engine, connection=None, close_with_result=False,
                  _branch_from=None, _execution_options=None,
                  _dispatch=None,
@@ -67,6 +84,7 @@ class Connection(Connectable):
             self.should_close_with_result = False
             self.dispatch = _dispatch
             self._has_events = _branch_from._has_events
+            self.schema_for_object = _branch_from.schema_for_object
         else:
             self.__connection = connection \
                 if connection is not None else engine.raw_connection()
@@ -255,6 +273,8 @@ class Connection(Connectable):
 
                 :ref:`MySQL Transaction Isolation <mysql_isolation_level>`
 
+                :ref:`SQL Server Transaction Isolation <mssql_isolation_level>`
+
                 :ref:`session_transaction_isolation` - for the ORM
 
         :param no_parameters: When ``True``, if the final parameter
@@ -276,6 +296,19 @@ class Connection(Connectable):
           "streamed" and not pre-buffered, if possible.  This is a limitation
           of many DBAPIs.  The flag is currently understood only by the
           psycopg2 dialect.
+
+        :param schema_translate_map: Available on: Connection, Engine.
+          A dictionary mapping schema names to schema names, that will be
+          applied to the :paramref:`.Table.schema` element of each
+          :class:`.Table` encountered when SQL or DDL expression elements
+          are compiled into strings; the resulting schema name will be
+          converted based on presence in the map of the original name.
+
+          .. versionadded:: 1.1
+
+          .. seealso::
+
+            :ref:`schema_translating`
 
         """
         c = self._clone()
@@ -314,7 +347,7 @@ class Connection(Connectable):
         except AttributeError:
             try:
                 return self._revalidate_connection()
-            except Exception as e:
+            except BaseException as e:
                 self._handle_dbapi_exception(e, None, None, None, None)
 
     def get_isolation_level(self):
@@ -350,7 +383,7 @@ class Connection(Connectable):
         """
         try:
             return self.dialect.get_isolation_level(self.connection)
-        except Exception as e:
+        except BaseException as e:
             self._handle_dbapi_exception(e, None, None, None, None)
 
     @property
@@ -652,7 +685,7 @@ class Connection(Connectable):
             self.engine.dialect.do_begin(self.connection)
             if self.connection._reset_agent is None:
                 self.connection._reset_agent = transaction
-        except Exception as e:
+        except BaseException as e:
             self._handle_dbapi_exception(e, None, None, None, None)
 
     def _rollback_impl(self):
@@ -666,7 +699,7 @@ class Connection(Connectable):
                 self.engine.logger.info("ROLLBACK")
             try:
                 self.engine.dialect.do_rollback(self.connection)
-            except Exception as e:
+            except BaseException as e:
                 self._handle_dbapi_exception(e, None, None, None, None)
             finally:
                 if not self.__invalid and \
@@ -686,7 +719,7 @@ class Connection(Connectable):
             self.engine.logger.info("COMMIT")
         try:
             self.engine.dialect.do_commit(self.connection)
-        except Exception as e:
+        except BaseException as e:
             self._handle_dbapi_exception(e, None, None, None, None)
         finally:
             if not self.__invalid and \
@@ -907,9 +940,7 @@ class Connection(Connectable):
         try:
             meth = object._execute_on_connection
         except AttributeError:
-            raise exc.InvalidRequestError(
-                "Unexecutable object type: %s" %
-                type(object))
+            raise exc.ObjectNotExecutableError(object)
         else:
             return meth(self, multiparams, params)
 
@@ -936,7 +967,7 @@ class Connection(Connectable):
             dialect = self.dialect
             ctx = dialect.execution_ctx_cls._init_default(
                 dialect, self, conn)
-        except Exception as e:
+        except BaseException as e:
             self._handle_dbapi_exception(e, None, None, None, None)
 
         ret = ctx._exec_default(default, None)
@@ -959,7 +990,10 @@ class Connection(Connectable):
 
         dialect = self.dialect
 
-        compiled = ddl.compile(dialect=dialect)
+        compiled = ddl.compile(
+            dialect=dialect,
+            schema_translate_map=self.schema_for_object
+            if not self.schema_for_object.is_default else None)
         ret = self._execute_context(
             dialect,
             dialect.execution_ctx_cls._init_ddl,
@@ -990,17 +1024,26 @@ class Connection(Connectable):
 
         dialect = self.dialect
         if 'compiled_cache' in self._execution_options:
-            key = dialect, elem, tuple(sorted(keys)), len(distilled_params) > 1
+            key = (
+                dialect, elem, tuple(sorted(keys)),
+                self.schema_for_object.hash_key,
+                len(distilled_params) > 1
+            )
             compiled_sql = self._execution_options['compiled_cache'].get(key)
             if compiled_sql is None:
                 compiled_sql = elem.compile(
                     dialect=dialect, column_keys=keys,
-                    inline=len(distilled_params) > 1)
+                    inline=len(distilled_params) > 1,
+                    schema_translate_map=self.schema_for_object
+                    if not self.schema_for_object.is_default else None
+                )
                 self._execution_options['compiled_cache'][key] = compiled_sql
         else:
             compiled_sql = elem.compile(
                 dialect=dialect, column_keys=keys,
-                inline=len(distilled_params) > 1)
+                inline=len(distilled_params) > 1,
+                schema_translate_map=self.schema_for_object
+                if not self.schema_for_object.is_default else None)
 
         ret = self._execute_context(
             dialect,
@@ -1071,7 +1114,7 @@ class Connection(Connectable):
                 conn = self._revalidate_connection()
 
             context = constructor(dialect, self, conn, *args)
-        except Exception as e:
+        except BaseException as e:
             self._handle_dbapi_exception(
                 e,
                 util.text_type(statement), parameters,
@@ -1137,7 +1180,7 @@ class Connection(Connectable):
                         statement,
                         parameters,
                         context)
-        except Exception as e:
+        except BaseException as e:
             self._handle_dbapi_exception(
                 e,
                 statement,
@@ -1202,7 +1245,7 @@ class Connection(Connectable):
                     statement,
                     parameters,
                     context)
-        except Exception as e:
+        except BaseException as e:
             self._handle_dbapi_exception(
                 e,
                 statement,
@@ -1243,18 +1286,24 @@ class Connection(Connectable):
         if context and context.exception is None:
             context.exception = e
 
+        is_exit_exception = not isinstance(e, Exception)
+
         if not self._is_disconnect:
-            self._is_disconnect =  \
-                isinstance(e, self.dialect.dbapi.Error) and \
-                not self.closed and \
+            self._is_disconnect = (
+                isinstance(e, self.dialect.dbapi.Error) and
+                not self.closed and
                 self.dialect.is_disconnect(
                     e,
                     self.__connection if not self.invalidated else None,
                     cursor)
+            ) or (
+                is_exit_exception and not self.closed
+            )
+
             if context:
                 context.is_disconnect = self._is_disconnect
 
-        invalidate_pool_on_disconnect = True
+        invalidate_pool_on_disconnect = not is_exit_exception
 
         if self._reentrant_error:
             util.raise_from_cause(
@@ -1270,7 +1319,8 @@ class Connection(Connectable):
             # non-DBAPI error - if we already got a context,
             # or there's no string statement, don't wrap it
             should_wrap = isinstance(e, self.dialect.dbapi.Error) or \
-                (statement is not None and context is None)
+                (statement is not None
+                 and context is None and not is_exit_exception)
 
             if should_wrap:
                 sqlalchemy_exception = exc.DBAPIError.instance(
@@ -1301,7 +1351,8 @@ class Connection(Connectable):
                 ctx = ExceptionContextImpl(
                     e, sqlalchemy_exception, self.engine,
                     self, cursor, statement,
-                    parameters, context, self._is_disconnect)
+                    parameters, context, self._is_disconnect,
+                    invalidate_pool_on_disconnect)
 
                 for fn in self.dispatch.handle_error:
                     try:
@@ -1315,10 +1366,11 @@ class Connection(Connectable):
                         newraise = _raised
                         break
 
-                if sqlalchemy_exception and \
-                        self._is_disconnect != ctx.is_disconnect:
-                    sqlalchemy_exception.connection_invalidated = \
-                        self._is_disconnect = ctx.is_disconnect
+                if self._is_disconnect != ctx.is_disconnect:
+                    self._is_disconnect = ctx.is_disconnect
+                    if sqlalchemy_exception:
+                        sqlalchemy_exception.connection_invalidated = \
+                            ctx.is_disconnect
 
                 # set up potentially user-defined value for
                 # invalidate pool.
@@ -1357,7 +1409,6 @@ class Connection(Connectable):
 
     @classmethod
     def _handle_dbapi_exception_noconnection(cls, e, dialect, engine):
-
         exc_info = sys.exc_info()
 
         is_disconnect = dialect.is_disconnect(e, None, None)
@@ -1379,7 +1430,7 @@ class Connection(Connectable):
         if engine._has_events:
             ctx = ExceptionContextImpl(
                 e, sqlalchemy_exception, engine, None, None, None,
-                None, None, is_disconnect)
+                None, None, is_disconnect, True)
             for fn in engine.dispatch.handle_error:
                 try:
                     # handler returns an exception;
@@ -1486,7 +1537,7 @@ class ExceptionContextImpl(ExceptionContext):
 
     def __init__(self, exception, sqlalchemy_exception,
                  engine, connection, cursor, statement, parameters,
-                 context, is_disconnect):
+                 context, is_disconnect, invalidate_pool_on_disconnect):
         self.engine = engine
         self.connection = connection
         self.sqlalchemy_exception = sqlalchemy_exception
@@ -1495,6 +1546,7 @@ class ExceptionContextImpl(ExceptionContext):
         self.statement = statement
         self.parameters = parameters
         self.is_disconnect = is_disconnect
+        self.invalidate_pool_on_disconnect = invalidate_pool_on_disconnect
 
 
 class Transaction(object):
@@ -1686,6 +1738,22 @@ class Engine(Connectable, log.Identified):
     _has_events = False
     _connection_cls = Connection
 
+    schema_for_object = schema._schema_getter(None)
+    """Return the ".schema" attribute for an object.
+
+    Used for :class:`.Table`, :class:`.Sequence` and similar objects,
+    and takes into account
+    the :paramref:`.Connection.execution_options.schema_translate_map`
+    parameter.
+
+      .. versionadded:: 1.1
+
+      .. seealso::
+
+          :ref:`schema_translating`
+
+    """
+
     def __init__(self, pool, dialect, url,
                  logging_name=None, echo=None, proxy=None,
                  execution_options=None
@@ -1693,7 +1761,6 @@ class Engine(Connectable, log.Identified):
         self.pool = pool
         self.url = url
         self.dialect = dialect
-        self.pool._dialect = dialect
         if logging_name:
             self.logging_name = logging_name
         self.echo = echo

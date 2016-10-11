@@ -84,6 +84,9 @@ class DefaultRequirements(SuiteRequirements):
 
         return only_on(['oracle'])
 
+    @property
+    def foreign_key_constraint_option_reflection(self):
+        return only_on(['postgresql', 'mysql', 'sqlite'])
 
     @property
     def unbounded_varchar(self):
@@ -225,7 +228,7 @@ class DefaultRequirements(SuiteRequirements):
     @property
     def isolation_level(self):
         return only_on(
-                    ('postgresql', 'sqlite', 'mysql'),
+                    ('postgresql', 'sqlite', 'mysql', 'mssql'),
                     "DBAPI has no isolation level support"
                 ) + fails_on('postgresql+pypostgresql',
                           'pypostgresql bombs on multiple isolation level calls')
@@ -297,7 +300,6 @@ class DefaultRequirements(SuiteRequirements):
         named 'test_schema'."""
 
         return skip_if([
-                    "sqlite",
                     "firebird"
                 ], "no schema support")
 
@@ -314,6 +316,13 @@ class DefaultRequirements(SuiteRequirements):
         return fails_on_everything_except(
                     "postgresql",
                     "mysql",
+                    "sqlite"
+                )
+
+    @property
+    def check_constraint_reflection(self):
+        return fails_on_everything_except(
+                    "postgresql",
                     "sqlite"
                 )
 
@@ -342,6 +351,14 @@ class DefaultRequirements(SuiteRequirements):
         return skip_if(exclude('mysql', '<', (4, 1, 1)), 'no subquery support')
 
     @property
+    def ctes(self):
+        """Target database supports CTEs"""
+
+        return only_if(
+            ['postgresql', 'mssql']
+        )
+
+    @property
     def mod_operator_as_percent_sign(self):
         """target database must use a plain percent '%' as the 'modulus'
         operator."""
@@ -364,6 +381,32 @@ class DefaultRequirements(SuiteRequirements):
         return fails_if([
                 "firebird", "mysql", "sybase",
             ], 'no support for EXCEPT')
+
+    @property
+    def parens_in_union_contained_select_w_limit_offset(self):
+        """Target database must support parenthesized SELECT in UNION
+        when LIMIT/OFFSET is specifically present.
+
+        E.g. (SELECT ...) UNION (SELECT ..)
+
+        This is known to fail on SQLite.
+
+        """
+        return fails_if('sqlite')
+
+    @property
+    def parens_in_union_contained_select_wo_limit_offset(self):
+        """Target database must support parenthesized SELECT in UNION
+        when OFFSET/LIMIT is specifically not present.
+
+        E.g. (SELECT ... LIMIT ..) UNION (SELECT .. OFFSET ..)
+
+        This is known to fail on SQLite.  It also fails on Oracle
+        because without LIMIT/OFFSET, there is currently no step that
+        creates an additional subquery.
+
+        """
+        return fails_if(['sqlite', 'oracle'])
 
     @property
     def offset(self):
@@ -393,21 +436,19 @@ class DefaultRequirements(SuiteRequirements):
             no_support('postgresql+zxjdbc',
                     'FIXME: JDBC driver confuses the transaction state, may '
                        'need separate XA implementation'),
-            exclude('mysql', '<', (5, 0, 3),
-                        'two-phase xact not supported by database'),
+            no_support('mysql',
+                'recent MySQL communiity editions have too many issues '
+                '(late 2016), disabling for now'),
             ])
 
     @property
     def two_phase_recovery(self):
         return self.two_phase_transactions + (
-            exclusions.fails_if(
-               lambda config:  config.db.name == 'mysql' and (
-                        'MariaDB' in config.db.dialect.server_version_info or
-                        config.db.dialect.server_version_info < (5, 7)
-               )
+            skip_if(
+               "mysql",
+               "crashes on most mariadb and mysql versions"
             )
         )
-
 
     @property
     def views(self):
@@ -519,7 +560,26 @@ class DefaultRequirements(SuiteRequirements):
         """Target driver reflects the name of primary key constraints."""
 
         return fails_on_everything_except('postgresql', 'oracle', 'mssql',
-                    'sybase')
+                    'sybase', 'sqlite')
+
+    @property
+    def array_type(self):
+        return only_on([
+            lambda config: against(config, "postgresql") and
+            not against(config, "+pg8000") and not against(config, "+zxjdbc")
+        ])
+
+    @property
+    def json_type(self):
+        return only_on([
+            lambda config: against(config, "mysql >= 5.7") and
+            not config.db.dialect._is_mariadb,
+            "postgresql >= 9.3"
+        ])
+
+    @property
+    def json_array_indexes(self):
+        return self.json_type + fails_if("+pg8000")
 
     @property
     def datetime_literals(self):
@@ -689,45 +749,6 @@ class DefaultRequirements(SuiteRequirements):
         return fails_on("postgresql+pg8000")
 
     @property
-    def python2(self):
-        return skip_if(
-                lambda: sys.version_info >= (3,),
-                "Python version 2.xx is required."
-                )
-
-    @property
-    def python3(self):
-        return skip_if(
-                lambda: sys.version_info < (3,),
-                "Python version 3.xx is required."
-                )
-
-    @property
-    def cpython(self):
-        return only_if(lambda: util.cpython,
-               "cPython interpreter needed"
-             )
-
-
-    @property
-    def non_broken_pickle(self):
-        from sqlalchemy.util import pickle
-        return only_if(
-            lambda: not util.pypy and pickle.__name__ == 'cPickle'
-                or sys.version_info >= (3, 2),
-            "Needs cPickle+cPython or newer Python 3 pickle"
-        )
-
-
-    @property
-    def predictable_gc(self):
-        """target platform must remove all cycles unconditionally when
-        gc.collect() is called, as well as clean out unreferenced subclasses.
-
-        """
-        return self.cpython
-
-    @property
     def hstore(self):
         def check_hstore(config):
             if not against(config, "postgresql"):
@@ -774,7 +795,7 @@ class DefaultRequirements(SuiteRequirements):
 
     @property
     def postgresql_jsonb(self):
-        return skip_if(
+        return only_on("postgresql >= 9.4") + skip_if(
             lambda config:
             config.db.dialect.driver == "pg8000" and
             config.db.dialect._dbapi_version <= (1, 10, 1)

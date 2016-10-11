@@ -336,11 +336,7 @@ class SybaseSQLCompiler(compiler.SQLCompiler):
             s += "TOP %s " % (limit,)
         offset = select._offset
         if offset:
-            if not limit:
-                # FIXME: sybase doesn't allow an offset without a limit
-                # so use a huge value for TOP here
-                s += "TOP 1000000 "
-            s += "START AT %s " % (offset + 1,)
+            raise NotImplementedError("Sybase ASE does not support OFFSET")
         return s
 
     def get_from_hint_text(self, table, text):
@@ -556,7 +552,7 @@ class SybaseDialect(default.DefaultDialect):
             coltype = sqltypes.NULLTYPE
 
         if default:
-            default = re.sub("DEFAULT", "", default).strip()
+            default = default.replace("DEFAULT", "").strip()
             default = re.sub("^'(.*)'$", lambda m: m.group(1), default)
         else:
             default = None

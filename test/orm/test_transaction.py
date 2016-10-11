@@ -3,13 +3,13 @@ from sqlalchemy import (
     testing, exc as sa_exc, event, String, Column, Table, select, func)
 from sqlalchemy.testing import (
     fixtures, engines, eq_, assert_raises, assert_raises_message,
-    assert_warnings, mock, expect_warnings)
+    assert_warnings, mock, expect_warnings, is_, is_not_)
 from sqlalchemy.orm import (
     exc as orm_exc, Session, mapper, sessionmaker, create_session,
-    relationship, attributes)
+    relationship, attributes, session as _session)
 from sqlalchemy.testing.util import gc_collect
 from test.orm._fixtures import FixtureTest
-
+from sqlalchemy import inspect
 
 class SessionTransactionTest(FixtureTest):
     run_inserts = None
@@ -209,8 +209,8 @@ class SessionTransactionTest(FixtureTest):
         sess.commit()
         sess.close()
         engine2.dispose()
-        assert users.count().scalar() == 1
-        assert addresses.count().scalar() == 1
+        eq_(select([func.count('*')]).select_from(users).scalar(), 1)
+        eq_(select([func.count('*')]).select_from(addresses).scalar(), 1)
 
     @testing.requires.independent_connections
     def test_invalidate(self):
@@ -923,13 +923,20 @@ class AutoExpireTest(_LocalFixture):
         assert u1_state.obj() is None
 
         s.rollback()
-        assert u1_state in s.identity_map.all_states()
+        # new in 1.1, not in identity map if the object was
+        # gc'ed and we restore snapshot; we've changed update_impl
+        # to just skip this object
+        assert u1_state not in s.identity_map.all_states()
+
+        # in any version, the state is replaced by the query
+        # because the identity map would switch it
         u1 = s.query(User).filter_by(name='ed').one()
         assert u1_state not in s.identity_map.all_states()
-        assert s.scalar(users.count()) == 1
+
+        eq_(s.scalar(select([func.count('*')]).select_from(users)), 1)
         s.delete(u1)
         s.flush()
-        assert s.scalar(users.count()) == 0
+        eq_(s.scalar(select([func.count('*')]).select_from(users)), 0)
         s.commit()
 
     def test_trans_deleted_cleared_on_rollback(self):
@@ -1284,6 +1291,35 @@ class SavepointTest(_LocalFixture):
         assert u1 in s
         assert u1 not in s.deleted
 
+    @testing.requires.savepoints_w_release
+    def test_savepoint_lost_still_runs(self):
+        User = self.classes.User
+        s = self.session(bind=self.bind)
+        trans = s.begin_nested()
+        s.connection()
+        u1 = User(name='ed')
+        s.add(u1)
+
+        # kill off the transaction
+        nested_trans = trans._connections[self.bind][1]
+        nested_trans._do_commit()
+
+        is_(s.transaction, trans)
+        assert_raises(
+            sa_exc.DBAPIError,
+            s.rollback
+        )
+
+        assert u1 not in s.new
+
+        is_(trans._state, _session.CLOSED)
+        is_not_(s.transaction, trans)
+        is_(s.transaction._state, _session.ACTIVE)
+
+        is_(s.transaction.nested, False)
+
+        is_(s.transaction._parent, None)
+
 
 class AccountingFlagsTest(_LocalFixture):
     __backend__ = True
@@ -1511,6 +1547,30 @@ class NaturalPKRollbackTest(fixtures.MappedTest):
         assert u2 not in session.deleted
 
         session.rollback()
+
+    def test_reloaded_deleted_checked_for_expiry(self):
+        """test issue #3677"""
+        users, User = self.tables.users, self.classes.User
+
+        mapper(User, users)
+
+        u1 = User(name='u1')
+
+        s = Session()
+        s.add(u1)
+        s.flush()
+        del u1
+        gc_collect()
+
+        u1 = s.query(User).first()  # noqa
+
+        s.rollback()
+
+        u2 = User(name='u1')
+        s.add(u2)
+        s.commit()
+
+        assert inspect(u2).persistent
 
     def test_key_replaced_by_update(self):
         users, User = self.tables.users, self.classes.User

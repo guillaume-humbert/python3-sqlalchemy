@@ -16,7 +16,7 @@ occur **once**, rather than for each time that query is built up and executed.
 The rationale for this system is to greatly reduce Python interpreter
 overhead for everything that occurs **before the SQL is emitted**.
 The caching of the "baked" system does **not** in any way reduce SQL calls or
-cache the **return results** from the database.  A technique that demonstates
+cache the **return results** from the database.  A technique that demonstrates
 the caching of the SQL calls and result sets themselves is available in
 :ref:`examples_caching`.
 
@@ -25,9 +25,12 @@ the caching of the SQL calls and result sets themselves is available in
 
 .. note::
 
-    The :mod:`sqlalchemy.ext.baked` extension should be considered
-    **experimental** as of 1.0.0.  It provides a dramatically different system
-    of producing queries which has yet to be proven at scale.
+    The :mod:`sqlalchemy.ext.baked` extension is **not for beginners**.  Using
+    it correctly requires a good high level understanding of how SQLAlchemy, the
+    database driver, and the backend database interact with each other.  This
+    extension presents a very specific kind of optimization that is not ordinarily
+    needed.  As noted above, it **does not cache queries**, only the string
+    formulation of the SQL itself.
 
 Synopsis
 --------

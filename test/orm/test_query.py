@@ -1,7 +1,7 @@
 from sqlalchemy import (
     testing, null, exists, text, union, literal, literal_column, func, between,
     Unicode, desc, and_, bindparam, select, distinct, or_, collate, insert,
-    Integer, String, Boolean, exc as sa_exc, util, cast)
+    Integer, String, Boolean, exc as sa_exc, util, cast, MetaData)
 from sqlalchemy.sql import operators, expression
 from sqlalchemy import column, table
 from sqlalchemy.engine import default
@@ -13,7 +13,8 @@ from sqlalchemy.testing.assertsql import CompiledSQL
 from sqlalchemy.testing.schema import Table, Column
 import sqlalchemy as sa
 from sqlalchemy.testing.assertions import (
-    eq_, assert_raises, assert_raises_message, expect_warnings)
+    eq_, assert_raises, assert_raises_message, expect_warnings,
+    eq_ignore_whitespace)
 from sqlalchemy.testing import fixtures, AssertsCompiledSQL, assert_warnings
 from test.orm import _fixtures
 from sqlalchemy.orm.util import join, with_parent
@@ -208,6 +209,69 @@ class RowTupleTest(QueryTest):
         eq_(
             row, (User(id=7), [7])
         )
+
+
+class BindSensitiveStringifyTest(fixtures.TestBase):
+    def _fixture(self, bind_to=None):
+        # building a totally separate metadata /mapping here
+        # because we need to control if the MetaData is bound or not
+
+        class User(object):
+            pass
+
+        m = MetaData(bind=bind_to)
+        user_table = Table(
+            'users', m,
+            Column('id', Integer, primary_key=True),
+            Column('name', String(50)))
+
+        mapper(User, user_table)
+        return User
+
+    def _dialect_fixture(self):
+        class MyDialect(default.DefaultDialect):
+            default_paramstyle = 'qmark'
+
+        from sqlalchemy.engine import base
+        return base.Engine(mock.Mock(), MyDialect(), mock.Mock())
+
+    def _test(
+            self, bound_metadata, bound_session,
+            session_present, expect_bound):
+        if bound_metadata or bound_session:
+            eng = self._dialect_fixture()
+        else:
+            eng = None
+
+        User = self._fixture(bind_to=eng if bound_metadata else None)
+
+        s = Session(eng if bound_session else None)
+        q = s.query(User).filter(User.id == 7)
+        if not session_present:
+            q = q.with_session(None)
+
+        eq_ignore_whitespace(
+            str(q),
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users WHERE users.id = ?" if expect_bound else
+            "SELECT users.id AS users_id, users.name AS users_name "
+            "FROM users WHERE users.id = :id_1"
+        )
+
+    def test_query_unbound_metadata_bound_session(self):
+        self._test(False, True, True, True)
+
+    def test_query_bound_metadata_unbound_session(self):
+        self._test(True, False, True, True)
+
+    def test_query_unbound_metadata_no_session(self):
+        self._test(False, False, False, False)
+
+    def test_query_unbound_metadata_unbound_session(self):
+        self._test(False, False, True, False)
+
+    def test_query_bound_metadata_bound_session(self):
+        self._test(True, True, True, True)
 
 
 class RawSelectTest(QueryTest, AssertsCompiledSQL):
@@ -579,8 +643,7 @@ class GetTest(QueryTest):
         table = Table(
             'unicode_data', metadata,
             Column(
-                'id', Unicode(40), primary_key=True,
-                test_needs_autoincrement=True),
+                'id', Unicode(40), primary_key=True),
             Column('data', Unicode(40)))
         metadata.create_all()
         ustring = util.b('petit voix m\xe2\x80\x99a').decode('utf-8')
@@ -742,7 +805,7 @@ class InvalidGenerationsTest(QueryTest, AssertsCompiledSQL):
             text("select * from table"))
         assert_raises(sa_exc.InvalidRequestError, q.with_polymorphic, User)
 
-    def test_mapper_zero(self):
+    def test_only_full_mapper_zero(self):
         User, Address = self.classes.User, self.classes.Address
 
         s = create_session()
@@ -775,6 +838,42 @@ class InvalidGenerationsTest(QueryTest, AssertsCompiledSQL):
                 sa_exc.InvalidRequestError,
                 meth, q, *arg, **kw
             )
+
+    def test_illegal_coercions(self):
+        User = self.classes.User
+
+        assert_raises_message(
+            sa_exc.ArgumentError,
+            "Object .*User.* is not legal as a SQL literal value",
+            distinct, User
+        )
+
+        ua = aliased(User)
+        assert_raises_message(
+            sa_exc.ArgumentError,
+            "Object .*User.* is not legal as a SQL literal value",
+            distinct, ua
+        )
+
+        s = Session()
+        assert_raises_message(
+            sa_exc.ArgumentError,
+            "Object .*User.* is not legal as a SQL literal value",
+            lambda: s.query(User).filter(User.name == User)
+        )
+
+        u1 = User()
+        assert_raises_message(
+            sa_exc.ArgumentError,
+            "Object .*User.* is not legal as a SQL literal value",
+            distinct, u1
+        )
+
+        assert_raises_message(
+            sa_exc.ArgumentError,
+            "Object .*User.* is not legal as a SQL literal value",
+            lambda: s.query(User).filter(User.name == u1)
+        )
 
 
 class OperatorTest(QueryTest, AssertsCompiledSQL):
@@ -1475,6 +1574,135 @@ class ExpressionTest(QueryTest, AssertsCompiledSQL):
                     User(id=7, name='jack'),
                     Address(email_address='jack@bean.com', user_id=7, id=1))])
 
+    def test_group_by_plain(self):
+        User = self.classes.User
+        s = create_session()
+
+        q1 = s.query(User.id, User.name).group_by(User.name)
+        self.assert_compile(
+            select([q1]),
+            "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users GROUP BY users.name)"
+        )
+
+    def test_group_by_append(self):
+        User = self.classes.User
+        s = create_session()
+
+        q1 = s.query(User.id, User.name).group_by(User.name)
+
+        # test append something to group_by
+        self.assert_compile(
+            select([q1.group_by(User.id)]),
+            "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users GROUP BY users.name, users.id)"
+        )
+
+    def test_group_by_cancellation(self):
+        User = self.classes.User
+        s = create_session()
+
+        q1 = s.query(User.id, User.name).group_by(User.name)
+        # test cancellation by using None, replacement with something else
+        self.assert_compile(
+            select([q1.group_by(None).group_by(User.id)]),
+            "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users GROUP BY users.id)"
+        )
+
+        # test cancellation by using None, replacement with nothing
+        self.assert_compile(
+            select([q1.group_by(None)]),
+            "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users)"
+        )
+
+    def test_group_by_cancelled_still_present(self):
+        User = self.classes.User
+        s = create_session()
+
+        q1 = s.query(User.id, User.name).group_by(User.name).group_by(None)
+
+        q1._no_criterion_assertion("foo")
+
+    def test_order_by_plain(self):
+        User = self.classes.User
+        s = create_session()
+
+        q1 = s.query(User.id, User.name).order_by(User.name)
+        self.assert_compile(
+            select([q1]),
+            "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users ORDER BY users.name)"
+        )
+
+    def test_order_by_append(self):
+        User = self.classes.User
+        s = create_session()
+
+        q1 = s.query(User.id, User.name).order_by(User.name)
+
+        # test append something to order_by
+        self.assert_compile(
+            select([q1.order_by(User.id)]),
+            "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users "
+            "ORDER BY users.name, users.id)"
+        )
+
+    def test_order_by_cancellation(self):
+        User = self.classes.User
+        s = create_session()
+
+        q1 = s.query(User.id, User.name).order_by(User.name)
+        # test cancellation by using None, replacement with something else
+        self.assert_compile(
+            select([q1.order_by(None).order_by(User.id)]),
+            "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users ORDER BY users.id)"
+        )
+
+        # test cancellation by using None, replacement with nothing
+        self.assert_compile(
+            select([q1.order_by(None)]),
+            "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users)"
+        )
+
+    def test_order_by_cancellation_false(self):
+        User = self.classes.User
+        s = create_session()
+
+        q1 = s.query(User.id, User.name).order_by(User.name)
+        # test cancellation by using None, replacement with something else
+        self.assert_compile(
+            select([q1.order_by(False).order_by(User.id)]),
+            "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users ORDER BY users.id)"
+        )
+
+        # test cancellation by using None, replacement with nothing
+        self.assert_compile(
+            select([q1.order_by(False)]),
+            "SELECT users_id, users_name FROM (SELECT users.id AS users_id, "
+            "users.name AS users_name FROM users)"
+        )
+
+    def test_order_by_cancelled_allows_assertions(self):
+        User = self.classes.User
+        s = create_session()
+
+        q1 = s.query(User.id, User.name).order_by(User.name).order_by(None)
+
+        q1._no_criterion_assertion("foo")
+
+    def test_legacy_order_by_cancelled_allows_assertions(self):
+        User = self.classes.User
+        s = create_session()
+
+        q1 = s.query(User.id, User.name).order_by(User.name).order_by(False)
+
+        q1._no_criterion_assertion("foo")
 
 class ColumnPropertyTest(_fixtures.FixtureTest, AssertsCompiledSQL):
     __dialect__ = 'default'
@@ -2017,13 +2245,6 @@ class FilterTest(QueryTest, AssertsCompiledSQL):
             sess.query(User). \
             filter(User.addresses.any(email_address='fred@fred.com')).all()
 
-        # test that any() doesn't overcorrelate
-        assert [User(id=7), User(id=8)] == \
-            sess.query(User).join("addresses"). \
-            filter(
-                ~User.addresses.any(
-                    Address.email_address == 'fred@fred.com')).all()
-
         # test that the contents are not adapted by the aliased join
         assert [User(id=7), User(id=8)] == \
             sess.query(User).join("addresses", aliased=True). \
@@ -2034,6 +2255,18 @@ class FilterTest(QueryTest, AssertsCompiledSQL):
         assert [User(id=10)] == \
             sess.query(User).outerjoin("addresses", aliased=True). \
             filter(~User.addresses.any()).all()
+
+    def test_any_doesnt_overcorrelate(self):
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = create_session()
+
+        # test that any() doesn't overcorrelate
+        assert [User(id=7), User(id=8)] == \
+            sess.query(User).join("addresses"). \
+            filter(
+                ~User.addresses.any(
+                    Address.email_address == 'fred@fred.com')).all()
 
     def test_has(self):
         Dingaling, User, Address = (
@@ -2245,6 +2478,42 @@ class FilterTest(QueryTest, AssertsCompiledSQL):
             "SELECT users.id AS users_id, users.name "
             "AS users_name FROM users WHERE name='ed'"
         )
+
+
+class HasMapperEntitiesTest(QueryTest):
+    def test_entity(self):
+        User = self.classes.User
+        s = Session()
+
+        q = s.query(User)
+
+        assert q._has_mapper_entities
+
+    def test_cols(self):
+        User = self.classes.User
+        s = Session()
+
+        q = s.query(User.id)
+
+        assert not q._has_mapper_entities
+
+    def test_cols_set_entities(self):
+        User = self.classes.User
+        s = Session()
+
+        q = s.query(User.id)
+
+        q._set_entities(User)
+        assert q._has_mapper_entities
+
+    def test_entity_set_entities(self):
+        User = self.classes.User
+        s = Session()
+
+        q = s.query(User)
+
+        q._set_entities(User.id)
+        assert not q._has_mapper_entities
 
 
 class SetOpsTest(QueryTest, AssertsCompiledSQL):
@@ -2612,7 +2881,9 @@ class CountTest(QueryTest):
         eq_(q.distinct().count(), 3)
 
 
-class DistinctTest(QueryTest):
+class DistinctTest(QueryTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
     def test_basic(self):
         User = self.classes.User
 
@@ -2626,19 +2897,22 @@ class DistinctTest(QueryTest):
             order_by(desc(User.name)).all()
         )
 
-    def test_joined(self):
-        """test that orderbys from a joined table get placed into the columns
-        clause when DISTINCT is used"""
-
+    def test_columns_augmented_roundtrip_one(self):
         User, Address = self.classes.User, self.classes.Address
 
         sess = create_session()
         q = sess.query(User).join('addresses').distinct(). \
             order_by(desc(Address.email_address))
 
-        assert [User(id=7), User(id=9), User(id=8)] == q.all()
+        eq_(
+            [User(id=7), User(id=9), User(id=8)],
+            q.all()
+        )
 
-        sess.expunge_all()
+    def test_columns_augmented_roundtrip_two(self):
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = create_session()
 
         # test that it works on embedded joinedload/LIMIT subquery
         q = sess.query(User).join('addresses').distinct(). \
@@ -2655,6 +2929,131 @@ class DistinctTest(QueryTest):
                 ]),
             ] == q.all()
         self.assert_sql_count(testing.db, go, 1)
+
+    def test_columns_augmented_roundtrip_three(self):
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = create_session()
+
+        q = sess.query(User.id, User.name.label('foo'), Address.id).\
+            filter(User.name == 'jack').\
+            distinct().\
+            order_by(User.id, User.name, Address.email_address)
+
+        # even though columns are added, they aren't in the result
+        eq_(
+            q.all(),
+            [(7, 'jack', 3), (7, 'jack', 4), (7, 'jack', 2),
+             (7, 'jack', 5), (7, 'jack', 1)]
+        )
+        for row in q:
+            eq_(row.keys(), ['id', 'foo', 'id'])
+
+    def test_columns_augmented_sql_one(self):
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = create_session()
+
+        q = sess.query(User.id, User.name.label('foo'), Address.id).\
+            distinct().\
+            order_by(User.id, User.name, Address.email_address)
+
+        # Address.email_address is added because of DISTINCT,
+        # however User.id, User.name are not b.c. they're already there,
+        # even though User.name is labeled
+        self.assert_compile(
+            q,
+            "SELECT DISTINCT users.id AS users_id, users.name AS foo, "
+            "addresses.id AS addresses_id, "
+            "addresses.email_address AS addresses_email_address FROM users, "
+            "addresses ORDER BY users.id, users.name, addresses.email_address"
+        )
+
+    def test_columns_augmented_sql_two(self):
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = create_session()
+
+        q = sess.query(User).\
+            options(joinedload(User.addresses)).\
+            distinct().\
+            order_by(User.name, Address.email_address).\
+            limit(5)
+
+        # addresses.email_address is added to inner query so that
+        # it is available in ORDER BY
+        self.assert_compile(
+            q,
+            "SELECT anon_1.users_id AS anon_1_users_id, "
+            "anon_1.users_name AS anon_1_users_name, "
+            "anon_1.addresses_email_address AS "
+            "anon_1_addresses_email_address, "
+            "addresses_1.id AS addresses_1_id, "
+            "addresses_1.user_id AS addresses_1_user_id, "
+            "addresses_1.email_address AS addresses_1_email_address "
+            "FROM (SELECT DISTINCT users.id AS users_id, "
+            "users.name AS users_name, "
+            "addresses.email_address AS addresses_email_address "
+            "FROM users, addresses "
+            "ORDER BY users.name, addresses.email_address "
+            "LIMIT :param_1) AS anon_1 LEFT OUTER JOIN "
+            "addresses AS addresses_1 "
+            "ON anon_1.users_id = addresses_1.user_id "
+            "ORDER BY anon_1.users_name, "
+            "anon_1.addresses_email_address, addresses_1.id"
+        )
+
+    def test_columns_augmented_sql_three(self):
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = create_session()
+
+        q = sess.query(User.id, User.name.label('foo'), Address.id).\
+            distinct(User.name).\
+            order_by(User.id, User.name, Address.email_address)
+
+        # no columns are added when DISTINCT ON is used
+        self.assert_compile(
+            q,
+            "SELECT DISTINCT ON (users.name) users.id AS users_id, "
+            "users.name AS foo, addresses.id AS addresses_id FROM users, "
+            "addresses ORDER BY users.id, users.name, addresses.email_address",
+            dialect='postgresql'
+        )
+
+    def test_columns_augmented_sql_four(self):
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = create_session()
+
+        q = sess.query(User).join('addresses').\
+            distinct(Address.email_address). \
+            options(joinedload('addresses')).\
+            order_by(desc(Address.email_address)).limit(2)
+
+        # but for the subquery / eager load case, we still need to make
+        # the inner columns available for the ORDER BY even though its
+        # a DISTINCT ON
+        self.assert_compile(
+            q,
+            "SELECT anon_1.users_id AS anon_1_users_id, "
+            "anon_1.users_name AS anon_1_users_name, "
+            "anon_1.addresses_email_address AS "
+            "anon_1_addresses_email_address, "
+            "addresses_1.id AS addresses_1_id, "
+            "addresses_1.user_id AS addresses_1_user_id, "
+            "addresses_1.email_address AS addresses_1_email_address "
+            "FROM (SELECT DISTINCT ON (addresses.email_address) "
+            "users.id AS users_id, users.name AS users_name, "
+            "addresses.email_address AS addresses_email_address "
+            "FROM users JOIN addresses ON users.id = addresses.user_id "
+            "ORDER BY addresses.email_address DESC  "
+            "LIMIT %(param_1)s) AS anon_1 "
+            "LEFT OUTER JOIN addresses AS addresses_1 "
+            "ON anon_1.users_id = addresses_1.user_id "
+            "ORDER BY anon_1.addresses_email_address DESC, addresses_1.id",
+            dialect='postgresql'
+        )
 
 
 class PrefixWithTest(QueryTest, AssertsCompiledSQL):
@@ -3656,13 +4055,17 @@ class ImmediateTest(_fixtures.FixtureTest):
 
         sess = create_session()
 
-        assert_raises(
+        assert_raises_message(
             sa.orm.exc.NoResultFound,
+            "No row was found for one\(\)",
             sess.query(User).filter(User.id == 99).one)
 
         eq_(sess.query(User).filter(User.id == 7).one().id, 7)
 
-        assert_raises(sa.orm.exc.MultipleResultsFound, sess.query(User).one)
+        assert_raises_message(
+            sa.orm.exc.MultipleResultsFound,
+            "Multiple rows were found for one\(\)",
+            sess.query(User).one)
 
         assert_raises(
             sa.orm.exc.NoResultFound,

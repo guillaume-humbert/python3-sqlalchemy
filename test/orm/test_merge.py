@@ -1,15 +1,15 @@
-from sqlalchemy.testing import assert_raises, assert_raises_message
+from sqlalchemy.testing import assert_raises_message
 import sqlalchemy as sa
-from sqlalchemy import Integer, PickleType, String, ForeignKey
+from sqlalchemy import Integer, PickleType, String, ForeignKey, Text
 import operator
 from sqlalchemy import testing
 from sqlalchemy.util import OrderedSet
 from sqlalchemy.orm import mapper, relationship, create_session, \
     PropComparator, synonym, comparable_property, sessionmaker, \
-    attributes, Session, backref, configure_mappers, foreign
+    attributes, Session, backref, configure_mappers, foreign, deferred, defer
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.orm.interfaces import MapperOption
-from sqlalchemy.testing import eq_, ne_
+from sqlalchemy.testing import eq_, in_, not_in_
 from sqlalchemy.testing import fixtures
 from test.orm import _fixtures
 from sqlalchemy import event, and_, case
@@ -1151,6 +1151,101 @@ class MergeTest(_fixtures.FixtureTest):
             eq_(ustate.load_path.path, (umapper, ))
             eq_(ustate.load_options, set([opt2]))
 
+    def test_resolve_conflicts_pending_doesnt_interfere_no_ident(self):
+        User, Address, Order = (
+            self.classes.User, self.classes.Address, self.classes.Order)
+        users, addresses, orders = (
+            self.tables.users, self.tables.addresses, self.tables.orders)
+
+        mapper(User, users, properties={
+            'orders': relationship(Order)
+        })
+        mapper(Order, orders, properties={
+            'address': relationship(Address)
+        })
+        mapper(Address, addresses)
+
+        u1 = User(id=7, name='x')
+        u1.orders = [
+            Order(description='o1', address=Address(email_address='a')),
+            Order(description='o2', address=Address(email_address='b')),
+            Order(description='o3', address=Address(email_address='c'))
+        ]
+
+        sess = Session()
+        sess.merge(u1)
+        sess.flush()
+
+        eq_(
+            sess.query(Address.email_address).order_by(
+                Address.email_address).all(),
+            [('a', ), ('b', ), ('c', )]
+        )
+
+    def test_resolve_conflicts_pending(self):
+        User, Address, Order = (
+            self.classes.User, self.classes.Address, self.classes.Order)
+        users, addresses, orders = (
+            self.tables.users, self.tables.addresses, self.tables.orders)
+
+        mapper(User, users, properties={
+            'orders': relationship(Order)
+        })
+        mapper(Order, orders, properties={
+            'address': relationship(Address)
+        })
+        mapper(Address, addresses)
+
+        u1 = User(id=7, name='x')
+        u1.orders = [
+            Order(description='o1', address=Address(id=1, email_address='a')),
+            Order(description='o2', address=Address(id=1, email_address='b')),
+            Order(description='o3', address=Address(id=1, email_address='c'))
+        ]
+
+        sess = Session()
+        sess.merge(u1)
+        sess.flush()
+
+        eq_(
+            sess.query(Address).one(),
+            Address(id=1, email_address='c')
+        )
+
+    def test_resolve_conflicts_persistent(self):
+        User, Address, Order = (
+            self.classes.User, self.classes.Address, self.classes.Order)
+        users, addresses, orders = (
+            self.tables.users, self.tables.addresses, self.tables.orders)
+
+        mapper(User, users, properties={
+            'orders': relationship(Order)
+        })
+        mapper(Order, orders, properties={
+            'address': relationship(Address)
+        })
+        mapper(Address, addresses)
+
+        sess = Session()
+        sess.add(Address(id=1, email_address='z'))
+        sess.commit()
+
+        u1 = User(id=7, name='x')
+        u1.orders = [
+            Order(description='o1', address=Address(id=1, email_address='a')),
+            Order(description='o2', address=Address(id=1, email_address='b')),
+            Order(description='o3', address=Address(id=1, email_address='c'))
+        ]
+
+        sess = Session()
+        sess.merge(u1)
+        sess.flush()
+
+        eq_(
+            sess.query(Address).one(),
+            Address(id=1, email_address='c')
+        )
+
 
 class M2ONoUseGetLoadingTest(fixtures.MappedTest):
     """Merge a one-to-many.  The many-to-one on the other side is set up
@@ -1282,6 +1377,102 @@ class M2ONoUseGetLoadingTest(fixtures.MappedTest):
             a2 = u2.addresses[1]
             assert a2.user is u2
         self.assert_sql_count(testing.db, go, 5)
+
+
+class DeferredMergeTest(fixtures.MappedTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        Table(
+            'book', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('title', String(200), nullable=False),
+            Column('summary', String(2000)),
+            Column('excerpt', Text),
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class Book(cls.Basic):
+            pass
+
+    def test_deferred_column_mapping(self):
+        # defer 'excerpt' at mapping level instead of query level
+        Book, book = self.classes.Book, self.tables.book
+        mapper(Book, book, properties={'excerpt': deferred(book.c.excerpt)})
+        sess = sessionmaker()()
+
+        b = Book(
+            id=1,
+            title='Essential SQLAlchemy',
+            summary='some summary',
+            excerpt='some excerpt',
+        )
+        sess.add(b)
+        sess.commit()
+
+        b1 = sess.query(Book).first()
+        sess.expire(b1, ['summary'])
+        sess.close()
+
+        def go():
+            b2 = sess.merge(b1, load=False)
+
+            # should not emit load for deferred 'excerpt'
+            eq_(b2.summary, 'some summary')
+            not_in_('excerpt', b2.__dict__)
+
+            # now it should emit load for deferred 'excerpt'
+            eq_(b2.excerpt, 'some excerpt')
+            in_('excerpt', b2.__dict__)
+
+        self.sql_eq_(go, [
+            ("SELECT book.summary AS book_summary "
+             "FROM book WHERE book.id = :param_1",
+             {'param_1': 1}),
+            ("SELECT book.excerpt AS book_excerpt "
+             "FROM book WHERE book.id = :param_1",
+             {'param_1': 1})
+        ])
+
+    def test_deferred_column_query(self):
+        Book, book = self.classes.Book, self.tables.book
+        mapper(Book, book)
+        sess = sessionmaker()()
+
+        b = Book(
+            id=1,
+            title='Essential SQLAlchemy',
+            summary='some summary',
+            excerpt='some excerpt',
+        )
+        sess.add(b)
+        sess.commit()
+
+        # defer 'excerpt' at query level instead of mapping level
+        b1 = sess.query(Book).options(defer(Book.excerpt)).first()
+        sess.expire(b1, ['summary'])
+        sess.close()
+
+        def go():
+            b2 = sess.merge(b1, load=False)
+
+            # should not emit load for deferred 'excerpt'
+            eq_(b2.summary, 'some summary')
+            not_in_('excerpt', b2.__dict__)
+
+            # now it should emit load for deferred 'excerpt'
+            eq_(b2.excerpt, 'some excerpt')
+            in_('excerpt', b2.__dict__)
+
+        self.sql_eq_(go, [
+            ("SELECT book.summary AS book_summary "
+             "FROM book WHERE book.id = :param_1",
+             {'param_1': 1}),
+            ("SELECT book.excerpt AS book_excerpt "
+             "FROM book WHERE book.id = :param_1",
+             {'param_1': 1})
+        ])
+
 
 class MutableMergeTest(fixtures.MappedTest):
     @classmethod
