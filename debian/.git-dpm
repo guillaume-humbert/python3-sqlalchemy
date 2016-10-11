@@ -2,10 +2,10 @@
 f0e70f3d01ac674a2c35b8fe1407fc23d1391d29
 f0e70f3d01ac674a2c35b8fe1407fc23d1391d29
 366de0ad86cd6332f7f59cad39250aac58275290
-366de0ad86cd6332f7f59cad39250aac58275290
-sqlalchemy_1.0.15+ds1.orig.tar.gz
-f8f48a861f3035c6d86c80c12c7b2f59d892be48
-2572951
+b5e94cbae6483e20873aaa86dbb2bbe7f7ebecb5
+sqlalchemy_1.1.1+ds1.orig.tar.gz
+1a7959d1a634a8151957c6bb7026fed27f678f52
+2724443
 debianTag="debian/%e%v"
 patchedTag="patched/%e%v"
 upstreamTag="upstream/%e%u"
