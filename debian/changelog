@@ -1,6 +1,8 @@
-sqlalchemy (1.1.1+ds1-1) unstable; urgency=medium
+sqlalchemy (1.1.1+ds1-1) experimental; urgency=medium
 
   * New upstream version
+  * debian/rules: remove no longer needed/available (now default)
+    --with-cextensions build option
 
  -- Piotr Ożarowski <piotr@debian.org>  Tue, 11 Oct 2016 16:38:16 +0200
 
