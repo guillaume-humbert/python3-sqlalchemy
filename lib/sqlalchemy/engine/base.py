@@ -222,7 +222,7 @@ class Connection(Connectable):
         :param isolation_level: Available on: :class:`.Connection`.
           Set the transaction isolation level for
           the lifespan of this :class:`.Connection` object (*not* the
-          underyling DBAPI connection, for which the level is reset
+          underlying DBAPI connection, for which the level is reset
           to its original setting upon termination of this
           :class:`.Connection` object).
 
@@ -269,7 +269,7 @@ class Connection(Connectable):
 
                 :ref:`SQLite Transaction Isolation <sqlite_isolation_level>`
 
-                :ref:`Postgresql Transaction Isolation <postgresql_isolation_level>`
+                :ref:`PostgreSQL Transaction Isolation <postgresql_isolation_level>`
 
                 :ref:`MySQL Transaction Isolation <mysql_isolation_level>`
 
@@ -499,7 +499,7 @@ class Connection(Connectable):
         :meth:`.Connection.execute` method or similar),
         this :class:`.Connection` will attempt to
         procure a new DBAPI connection using the services of the
-        :class:`.Pool` as a source of connectivty (e.g. a "reconnection").
+        :class:`.Pool` as a source of connectivity (e.g. a "reconnection").
 
         If a transaction was in progress (e.g. the
         :meth:`.Connection.begin` method has been called) when

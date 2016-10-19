@@ -124,7 +124,7 @@ Backend-agnostic GUID Type
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Receives and returns Python uuid() objects.  Uses the PG UUID type
-when using Postgresql, CHAR(32) on other backends, storing them
+when using PostgreSQL, CHAR(32) on other backends, storing them
 in stringified hex format.   Can be modified to store
 binary in CHAR(16) if desired::
 
@@ -135,7 +135,7 @@ binary in CHAR(16) if desired::
     class GUID(TypeDecorator):
         """Platform-independent GUID type.
 
-        Uses Postgresql's UUID type, otherwise uses
+        Uses PostgreSQL's UUID type, otherwise uses
         CHAR(32), storing as stringified hex values.
 
         """
@@ -338,7 +338,7 @@ possible to define SQL-level transformations as well.  The rationale here is whe
 only the relational database contains a particular series of functions that are necessary
 to coerce incoming and outgoing data between an application and persistence format.
 Examples include using database-defined encryption/decryption functions, as well
-as stored procedures that handle geographic data.  The Postgis extension to Postgresql
+as stored procedures that handle geographic data.  The PostGIS extension to PostgreSQL
 includes an extensive array of SQL functions that are necessary for coercing
 data into particular formats.
 
@@ -348,7 +348,7 @@ can include implementations of
 when defined to return a non-``None`` value should return a :class:`.ColumnElement`
 expression to be injected into the SQL statement, either surrounding
 bound parameters or a column expression.  For example, to build a ``Geometry``
-type which will apply the Postgis function ``ST_GeomFromText`` to all outgoing
+type which will apply the PostGIS function ``ST_GeomFromText`` to all outgoing
 values and the function ``ST_AsText`` to all incoming data, we can create
 our own subclass of :class:`.UserDefinedType` which provides these methods
 in conjunction with :data:`~.sqlalchemy.sql.expression.func`::
@@ -401,7 +401,7 @@ Output::
 
 For an example of subclassing a built in type directly, we subclass
 :class:`.postgresql.BYTEA` to provide a ``PGPString``, which will make use of the
-Postgresql ``pgcrypto`` extension to encrpyt/decrypt values
+PostgreSQL ``pgcrypto`` extension to encrypt/decrypt values
 transparently::
 
     from sqlalchemy import create_engine, String, select, func, \
@@ -535,7 +535,7 @@ Using the above type::
 
 Unary operations
 are also possible.  For example, to add an implementation of the
-Postgresql factorial operator, we combine the :class:`.UnaryExpression` construct
+PostgreSQL factorial operator, we combine the :class:`.UnaryExpression` construct
 along with a :class:`.custom_op` to produce the factorial expression::
 
     from sqlalchemy import Integer

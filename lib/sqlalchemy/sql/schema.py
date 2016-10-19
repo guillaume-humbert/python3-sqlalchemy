@@ -942,7 +942,7 @@ class Column(SchemaItem, ColumnClause):
           an INTEGER type with no stated client-side or python-side defaults
           should receive auto increment semantics automatically;
           all other varieties of primary key columns will not.  This
-          includes that :term:`DDL` such as Postgresql SERIAL or MySQL
+          includes that :term:`DDL` such as PostgreSQL SERIAL or MySQL
           AUTO_INCREMENT will be emitted for this column during a table
           create, as well as that the column is assumed to generate new
           integer primary key values when an INSERT statement invokes which
@@ -995,7 +995,7 @@ class Column(SchemaItem, ColumnClause):
           * DDL issued for the column will include database-specific
             keywords intended to signify this column as an
             "autoincrement" column, such as AUTO INCREMENT on MySQL,
-            SERIAL on Postgresql, and IDENTITY on MS-SQL.  It does
+            SERIAL on PostgreSQL, and IDENTITY on MS-SQL.  It does
             *not* issue AUTOINCREMENT for SQLite since this is a
             special SQLite flag that is not required for autoincrementing
             behavior.
@@ -1048,10 +1048,14 @@ class Column(SchemaItem, ColumnClause):
         :param info: Optional data dictionary which will be populated into the
             :attr:`.SchemaItem.info` attribute of this object.
 
-        :param nullable: If set to the default of ``True``, indicates the
-            column will be rendered as allowing NULL, else it's rendered as
-            NOT NULL. This parameter is only used when issuing CREATE TABLE
-            statements.
+        :param nullable: When set to ``False``, will cause the "NOT NULL"
+            phrase to be added when generating DDL for the column.   When
+            ``True``, will normally generate nothing (in SQL this defaults to
+            "NULL"), except in some very specific backend-specific edge cases
+            where "NULL" may render explicitly.   Defaults to ``True`` unless
+            :paramref:`~.Column.primary_key` is also ``True``, in which case it
+            defaults to ``False``.  This parameter is only used when issuing
+            CREATE TABLE statements.
 
         :param onupdate: A scalar, Python callable, or
             :class:`~sqlalchemy.sql.expression.ClauseElement` representing a
@@ -2174,7 +2178,7 @@ class Sequence(DefaultGenerator):
          :class:`.Sequence` object only needs to be explicitly generated
          on backends that don't provide another way to generate primary
          key identifiers.  Currently, it essentially means, "don't create
-         this sequence on the Postgresql backend, where the SERIAL keyword
+         this sequence on the PostgreSQL backend, where the SERIAL keyword
          creates a sequence for us automatically".
         :param quote: boolean value, when ``True`` or ``False``, explicitly
          forces quoting of the schema name on or off.  When left at its
