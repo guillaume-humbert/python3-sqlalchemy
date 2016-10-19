@@ -224,7 +224,7 @@ the actual ``CREATE TABLE`` statement:
 .. topic:: Minimal Table Descriptions vs. Full Descriptions
 
     Users familiar with the syntax of CREATE TABLE may notice that the
-    VARCHAR columns were generated without a length; on SQLite and Postgresql,
+    VARCHAR columns were generated without a length; on SQLite and PostgreSQL,
     this is a valid datatype, but on others, it's not allowed. So if running
     this tutorial on one of those databases, and you wish to use SQLAlchemy to
     issue CREATE TABLE, a "length" may be provided to the :class:`~sqlalchemy.types.String` type as
@@ -1780,8 +1780,8 @@ of loading by default, see the section :doc:`/orm/loading_relationships`.
 Deleting
 ========
 
-Let's try to delete ``jack`` and see how that goes. We'll mark as deleted in
-the session, then we'll issue a ``count`` query to see that no rows remain:
+Let's try to delete ``jack`` and see how that goes. We'll mark the object as deleted
+in the session, then we'll issue a ``count`` query to see that no rows remain:
 
 .. sourcecode:: python+sql
 

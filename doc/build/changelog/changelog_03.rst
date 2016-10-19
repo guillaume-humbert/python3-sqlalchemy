@@ -878,7 +878,7 @@
 
       preliminary support for unicode table names, column names and
       SQL statements added, for databases which can support them.
-      Works with sqlite and postgres so far.  Mysql *mostly* works
+      Works with sqlite and postgres so far.  MySQL *mostly* works
       except the has_table() function does not work.  Reflection
       works too.
 
@@ -2701,7 +2701,7 @@
 
       changed "for_update" parameter to accept False/True/"nowait"
       and "read", the latter two of which are interpreted only by
-      Oracle and Mysql
+      Oracle and MySQL
 
     .. change::
         :tags: construction, sql
@@ -2753,7 +2753,7 @@
         :tickets: 
 
       a wide refactoring to "attribute loader" and "options" architectures.
-      ColumnProperty and PropertyLoader define their loading behaivor via switchable
+      ColumnProperty and PropertyLoader define their loading behavior via switchable
       "strategies", and MapperOptions no longer use mapper/property copying
       in order to function; they are instead propagated via QueryContext
       and SelectionContext objects at query/instances time.
