@@ -19,6 +19,69 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.1.3
+    :released: October 27, 2016
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3839
+
+        Fixed regression caused by :ticket:`2677` whereby calling
+        :meth:`.Session.delete` on an object that was already flushed as
+        deleted in that session would fail to set up the object in the
+        identity map (or reject the object), causing flush errors as the
+        object were in a state not accommodated by the unit of work.
+        The pre-1.1 behavior in this case has been restored, which is that
+        the object is put back into the identity map so that the DELETE
+        statement will be attempted again, which emits a warning that the number
+        of expected rows was not matched (unless the row were restored outside
+        of the session).
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 3835
+
+        Postgresql table reflection will ensure that the
+        :paramref:`.Column.autoincrement` flag is set to False when reflecting
+        a primary key column that is not of an :class:`.Integer` datatype,
+        even if the default is related to an integer-generating sequence.
+        This can happen if a column is created as SERIAL and the datatype
+        is changed.  The autoincrement flag can only be True if the datatype
+        is of integer affinity in the 1.1 series.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3836
+
+        Fixed regression where some :class:`.Query` methods like
+        :meth:`.Query.update` and others would fail if the :class:`.Query`
+        were against a series of mapped columns, rather than the mapped
+        entity as a whole.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3833
+
+        Fixed bug involving new value translation and validation feature
+        in :class:`.Enum` whereby using the enum object in a string
+        concatenation would maintain the :class:`.Enum` type as the type
+        of the expression overall, producing missing lookups.  A string
+        concatenation against an :class:`.Enum`-typed column now uses
+        :class:`.String` as the datatype of the expression itself.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3832
+
+        Fixed regression which occurred as a side effect of :ticket:`2919`,
+        which in the less typical case of a user-defined
+        :class:`.TypeDecorator` that was also itself an instance of
+        :class:`.SchemaType` (rather than the implementation being such)
+        would cause the column attachment events to be skipped for the
+        type itself.
+
+
+.. changelog::
     :version: 1.1.2
     :released: October 17, 2016
 

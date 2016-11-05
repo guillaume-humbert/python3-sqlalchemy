@@ -1296,6 +1296,19 @@ class Enum(String, SchemaType):
                 raise LookupError(
                     '"%s" is not among the defined enum values' % elem)
 
+    class Comparator(String.Comparator):
+
+        def _adapt_expression(self, op, other_comparator):
+            op, typ = super(Enum.Comparator, self)._adapt_expression(
+                op, other_comparator)
+            if op is operators.concat_op:
+                typ = String(
+                    self.type.length,
+                    convert_unicode=self.type.convert_unicode)
+            return op, typ
+
+    comparator_factory = Comparator
+
     def _object_value_for_elem(self, elem):
         try:
             return self._object_lookup[elem]
@@ -1795,6 +1808,13 @@ class JSON(Indexable, TypeEngine):
 
              from sqlalchemy import null
              conn.execute(table.insert(), data=null())
+
+         .. note::
+
+              :paramref:`.JSON.none_as_null` does **not** apply to the
+              values passed to :paramref:`.Column.default` and
+              :paramref:`.Column.server_default`; a value of ``None`` passed for
+              these parameters means "no default present".
 
          .. seealso::
 
