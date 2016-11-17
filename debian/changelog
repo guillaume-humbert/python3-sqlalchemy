@@ -1,6 +1,8 @@
 sqlalchemy (1.1.4+ds1-1) unstable; urgency=medium
 
   * New upstream release
+  * pydist files no longer require ">= 1.X~, << 1.X+1" dependency, SQLAlchemy
+    is stable enough
 
  -- Piotr Ożarowski <piotr@debian.org>  Thu, 17 Nov 2016 20:20:23 +0100
 
