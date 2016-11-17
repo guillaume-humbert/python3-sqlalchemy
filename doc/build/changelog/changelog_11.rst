@@ -19,6 +19,91 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.1.4
+    :released: November 15, 2016
+
+    .. change::  3842
+        :tags: bug, sql
+        :tickets: 3842
+
+        Fixed bug where newly added warning for primary key on insert w/o
+        autoincrement setting (see :ref:`change_3216`) would fail to emit
+        correctly when invoked upon a lower-case :func:`.table` construct.
+
+    .. change::  3852
+        :tags: bug, orm
+        :tickets: 3852
+
+        Fixed regression in collections due to :ticket:`3457` whereby
+        deserialize during pickle or deepcopy would fail to establish all
+        attributes of an ORM collection, causing further mutation operations to
+        fail.
+
+    .. change::  default_schema
+        :tags: bug, engine
+
+        Removed long-broken "default_schema_name()" method from
+        :class:`.Connection`.  This method was left over from a very old
+        version and was non-working (e.g. would raise).  Pull request
+        courtesy Benjamin Dopplinger.
+
+    .. change:: pragma
+        :tags: bug, sqlite
+
+        Added quotes to the PRAGMA directives in the pysqlcipher dialect
+        to support additional cipher arguments appropriately.  Pull request
+        courtesy Kevin Jurczyk.
+
+    .. change:: 3846
+        :tags: bug, postgresql
+        :tickets: 3846, 3807
+
+        Fixed regression caused by the fix in :ticket:`3807` (version 1.1.0)
+        where we ensured that the tablename was qualified in the WHERE clause
+        of the DO UPDATE portion of PostgreSQL's ON CONFLICT, however you
+        *cannot* put the table name in the  WHERE clause in the actual ON
+        CONFLICT itself.   This was an incorrect assumption, so that portion
+        of the change in :ticket:`3807` is rolled back.
+
+    .. change:: 3845
+        :tags: bug, orm
+        :tickets: 3845
+
+        Fixed long-standing bug where the "noload" relationship loading
+        strategy would cause backrefs and/or back_populates options to be
+        ignored.
+
+    .. change:: sscursor_mysql
+        :tags: feature, mysql
+
+        Added support for server side cursors to the mysqlclient and
+        pymysql dialects.   This feature is available via the
+        :paramref:`.Connection.execution_options.stream_results` flag as well
+        as the ``server_side_cursors=True`` dialect argument in the
+        same way that it has been for psycopg2 on Postgresql.  Pull request
+        courtesy Roman Podoliaka.
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 3841
+
+        MySQL's native ENUM type supports any non-valid value being sent, and
+        in response will return a blank string.  A hardcoded rule to check for
+        "is returning the blank string" has been added to the  MySQL
+        implementation for ENUM so that this blank string is returned to the
+        application rather than being rejected as a non-valid value.  Note that
+        if your MySQL enum is linking values to objects, you still get the
+        blank string back.
+
+    .. change::
+        :tags: bug, sqlite, py3k
+
+        Added an optional import for the pysqlcipher3 DBAPI when using the
+        pysqlcipher dialect.  This package will attempt to be imported
+        if the Python-2 only pysqlcipher DBAPI is non-present.
+        Pull request courtesy Kevin Jurczyk.
+
+.. changelog::
     :version: 1.1.3
     :released: October 27, 2016
 

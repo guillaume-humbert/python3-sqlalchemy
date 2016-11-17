@@ -1,4 +1,4 @@
-From 46da9df299934d06aa967cce1d96e3fa0615c306 Mon Sep 17 00:00:00 2001
+From 8f100411906899eac3305c38c93b0f1cb15fa8e0 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Piotr=20O=C5=BCarowski?= <piotr@debian.org>
 Date: Tue, 20 Sep 2016 23:28:44 +0200
 Subject: disable_intersphinx module
@@ -8,7 +8,7 @@ Subject: disable_intersphinx module
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/doc/build/conf.py b/doc/build/conf.py
-index f5785a7..7a55b79 100644
+index 992657b..68de26b 100644
 --- a/doc/build/conf.py
 +++ b/doc/build/conf.py
 @@ -34,7 +34,7 @@ import sqlalchemy
