@@ -17,6 +17,15 @@
 
 .. changelog::
     :version: 1.0.16
+    :released: November 15, 2016
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3849
+        :versions: 1.1.4
+
+        Fixed bug in :meth:`.Session.bulk_update_mappings` where an alternate-named
+        primary key attribute would not track properly into the UPDATE statement.
 
     .. change::
         :tags: bug, mssql
@@ -76,6 +85,37 @@
         subclass which included an extra column would corrupt the foreign keys
         collection of the mapped table, thereby interfering with the
         initialization of relationships.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3781
+        :versions: 1.1.4
+
+        Fixed bug in :meth:`.Session.bulk_save` where an UPDATE would
+        not function correctly in conjunction with a mapping that
+        implements a version id counter.
+
+    .. 3778
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3778
+        :versions: 1.1.4
+
+        Fixed bug where the :attr:`.Mapper.attrs`,
+        :attr:`.Mapper.all_orm_descriptors` and other derived attributes would
+        fail to refresh when mapper properties or other ORM constructs were
+        added to the mapper/class after these  accessors were first called.
+
+    .. change:: 3762
+        :tags: bug, mssql
+        :tickets: 3762
+        :versions: 1.1.4
+
+        Fixed bug in pyodbc dialect (as well as in the mostly non-working
+        adodbapi dialect) whereby a semicolon present in the password
+        or username fields could be interpreted as a separator for another
+        token; the values are now quoted when semicolons are present.
 
 .. changelog::
     :version: 1.0.15

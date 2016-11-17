@@ -295,7 +295,7 @@ class Connection(Connectable):
           Indicate to the dialect that results should be
           "streamed" and not pre-buffered, if possible.  This is a limitation
           of many DBAPIs.  The flag is currently understood only by the
-          psycopg2 dialect.
+          psycopg2, mysqldb and pymysql dialects.
 
         :param schema_translate_map: Available on: Connection, Engine.
           A dictionary mapping schema names to schema names, that will be
@@ -1457,9 +1457,6 @@ class Connection(Connectable):
             )
         else:
             util.reraise(*exc_info)
-
-    def default_schema_name(self):
-        return self.engine.dialect.get_default_schema_name(self)
 
     def transaction(self, callable_, *args, **kwargs):
         """Execute the given function within a transaction boundary.
