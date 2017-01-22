@@ -19,6 +19,197 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.1.5
+    :released: January 17, 2017
+
+    .. change:: mysql_index_prefix
+        :tags: feature, mysql
+
+        Added a new parameter ``mysql_prefix`` supported by the :class:`.Index`
+        construct, allows specification of MySQL-specific prefixes such as
+        "FULLTEXT". Pull request courtesy Joseph Schorr.
+
+    .. change:: 3854
+        :tags: bug, orm
+        :tickets: 3854
+
+        Fixed bug in subquery loading where an object encountered as an
+        "existing" row, e.g. already loaded from a different path in the
+        same query, would not invoke subquery loaders for unloaded attributes
+        that specified this loading.  This issue is in the same area
+        as that of :ticket:`3431`, :ticket:`3811` which involved
+        similar issues with joined loading.
+
+    .. change:: 3888
+        :tags: bug, postgresql
+        :tickets: 3888
+
+        Fixed bug in new "ON CONFLICT DO UPDATE" feature where the "set"
+        values for the UPDATE clause would not be subject to type-level
+        processing, as normally takes effect to handle both user-defined
+        type level conversions as well as dialect-required conversions, such
+        as those required for JSON datatypes.   Additionally, clarified that
+        the keys in the set_ dictionary should match the "key" of the column,
+        if distinct from the column name.  A warning is emitted
+        for remaining column names that don't match column keys; for
+        compatibility reasons, these are emitted as they were previously.
+
+    .. change:: 3872
+        :tags: bug, examples
+        :tickets: 3872
+
+        Fixed two issues with the versioned_history example, one is that
+        the history table now gets autoincrement=False to avoid 1.1's new
+        errors regarding composite primary keys with autoincrement; the other
+        is that the sqlite_autoincrement flag is now used to ensure on SQLite,
+        unique identifiers are used for the lifespan of a table even if
+        some rows are deleted.  Pull request courtesy Carlos García Montoro.
+
+    .. change:: 3882
+        :tags: bug, sql
+        :tikets: 3882
+
+        Fixed bug originally introduced in 0.9 via :ticket:`1068` where
+        order_by(<some Label()>) would order by the label name based on name
+        alone, that is, even if the labeled expression were not at all the same
+        expression otherwise present, implicitly or explicitly, in the
+        selectable.  The logic that orders by label now ensures that the
+        labeled expression is related to the one that resolves to that name
+        before ordering by the label name; additionally, the name has to
+        resolve to an actual label explicit in the expression elsewhere, not
+        just a column name.  This logic is carefully kept separate from the
+        order by(textual name) feature that has a slightly different purpose.
+
+    .. change:: try_finally_for_noautoflush
+        :tags: bug, orm
+
+        The :attr:`.Session.no_autoflush` context manager now ensures that
+        the autoflush flag is reset within a "finally" block, so that if
+        an exception is raised within the block, the state still resets
+        appropriately.  Pull request courtesy Emin Arakelian.
+
+    .. change:: 3878
+        :tags: bug, sql
+        :tickets: 3878
+
+        Fixed 1.1 regression where "import *" would not work for
+        sqlalchemy.sql.expression, due to mis-spelled "any_" and "all_"
+        functions.
+
+    .. change:: 3880
+        :tags: bg, sql
+        :tickets: 3880
+
+        Fixed bug where literal_binds compiler flag was not honored by the
+        :class:`.Insert` construct for the "multiple values" feature; the
+        subsequent values are now rendered as literals.
+
+    .. change:: 3877
+        :tags: bug, oracle, postgresql
+        :tickets: 3877
+
+        Fixed bug where an INSERT from SELECT where the source table contains
+        an autoincrementing Sequence would fail to compile correctly.
+
+    .. change:: 3876
+        :tags: bug, mssql
+        :tickets: 3876
+
+        Fixed bug where SQL Server dialects would attempt to select the
+        last row identity for an INSERT from SELECT, failing in the case when
+        the SELECT has no rows.  For such a statement,
+        the inline flag is set to True indicating no last primary key
+        should be fetched.
+
+    .. change:: 3875
+        :tags: bug, oracle
+        :tickets: 3875
+
+        Fixed bug where the "COMPRESSION" keyword was used in the ALL_TABLES
+        query on Oracle 9.2; even though Oracle docs state table compression
+        was introduced in 9i, the actual column is not present until
+        10.1.
+
+    .. change:: 3874
+        :tags: bug, orm
+        :tickets: 3874
+
+        Fixed bug where the single-table inheritance query criteria would not
+        be inserted into the query in the case that the :class:`.Bundle`
+        construct were used as the selection criteria.
+
+    .. change:: repr_for_url_reflect
+        :tags: bug, sql
+
+        The engine URL embedded in the exception for "could not reflect"
+        in :meth:`.MetaData.reflect` now conceals the password; also
+        the ``__repr__`` for :class:`.TLEngine` now acts like that of
+        :class:`.Engine`, concealing the URL password.  Pull request courtesy
+        Valery Yundin.
+
+    .. change:: 3867
+        :tags: bug, mysql
+        :tickets: 3867
+
+        The MySQL dialect now will not warn when a reflected column has a
+        "COMMENT" keyword on it, but note however the comment is not yet
+        reflected; this is on the roadmap for a future release.  Pull request
+        courtesy Lele Long.
+
+    .. change:: pg_timestamp_zero_prec
+        :tags: bug, postgresql
+
+        The :class:`.postgresql.TIME` and :class:`.postgresql.TIMESTAMP`
+        datatypes now support a setting of zero for "precision"; previously
+        a zero would be ignored.  Pull request courtesy Ionuț Ciocîrlan.
+
+    .. change:: 3861
+        :tags: bug, engine
+        :tickets: 3861
+
+        The "extend_existing" option of :class:`.Table` reflection would
+        cause indexes and constraints to be doubled up in the case that the parameter
+        were used with :meth:`.MetaData.reflect` (as the automap extension does)
+        due to tables being reflected both within the foreign key path as well
+        as directly.  A new de-duplicating set is passed through within the
+        :meth:`.MetaData.reflect` sequence to prevent double reflection in this
+        way.
+
+    .. change:: 3859
+        :tags: bug, sql
+        :tickets: 3859
+
+        Fixed issue in :class:`.Variant` where the "right hand coercion" logic,
+        inherited from :class:`.TypeDecorator`, would
+        coerce the right-hand side into the :class:`.Variant` itself, rather than
+        what the default type for the :class:`.Variant` would do.   In the
+        case of :class:`.Variant`, we want the type to act mostly like the base
+        type so the default logic of :class:`.TypeDecorator` is now overridden
+        to fall back to the underlying wrapped type's logic.   Is mostly relevant
+        for JSON at the moment.
+
+    .. change:: 3856
+        :tags: bug, orm
+        :tickets: 3856
+
+        Fixed bug related to :ticket:`3177`, where a UNION or other set operation
+        emitted by a :class:`.Query` would apply "single-inheritance" criteria
+        to the outside of the union (also referencing the wrong selectable),
+        even though this criteria is now expected to
+        be already present on the inside subqueries.  The single-inheritance
+        criteria is now omitted once union() or another set operation is
+        called against :class:`.Query` in the same way as :meth:`.Query.from_self`.
+
+    .. change:: 3548
+        :tags: bug, firebird
+        :tickets: 3548
+
+        Ported the fix for Oracle quoted-lowercase names to Firebird, so that
+        a table name that is quoted as lower case can be reflected properly
+        including when the table name comes from the get_table_names()
+        inspection function.
+
+.. changelog::
     :version: 1.1.4
     :released: November 15, 2016
 

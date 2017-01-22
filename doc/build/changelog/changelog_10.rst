@@ -16,6 +16,28 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.0.17
+    :released: January 17, 2017
+
+     .. change::
+        :tags: bug, py3k
+        :tickets: 3886
+        :versions: 1.1.5
+
+        Fixed Python 3.6 DeprecationWarnings related to escaped strings without
+        the 'r' modifier, and added test coverage for Python 3.6.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3884
+        :versions: 1.1.5
+
+        Fixed bug involving joined eager loading against multiple entities
+        when polymorphic inheritance is also in use which would throw
+        "'NoneType' object has no attribute 'isa'".  The issue was introduced
+        by the fix for :ticket:`3611`.
+
+.. changelog::
     :version: 1.0.16
     :released: November 15, 2016
 

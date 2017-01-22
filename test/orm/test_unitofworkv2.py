@@ -1307,9 +1307,13 @@ class RowswitchAccountingTest(fixtures.MappedTest):
         sess.flush()
 
         eq_(
-            select([func.count('*')]).select_from(self.tables.parent).scalar(),
-            0)
+            sess.scalar(
+                select([func.count('*')]).select_from(self.tables.parent)
+            ),
+            0
+        )
 
+        sess.close()
 
 class RowswitchM2OTest(fixtures.MappedTest):
     # tests for #3060 and related issues
@@ -1459,6 +1463,7 @@ class BasicStaleChecksTest(fixtures.MappedTest):
         mapper(Child, child)
         return Parent, Child
 
+    @testing.requires.sane_rowcount
     def test_update_single_missing(self):
         Parent, Child = self._fixture()
         sess = Session()
@@ -1471,11 +1476,12 @@ class BasicStaleChecksTest(fixtures.MappedTest):
         p1.data = 3
         assert_raises_message(
             orm_exc.StaleDataError,
-            "UPDATE statement on table 'parent' expected to "
-            "update 1 row\(s\); 0 were matched.",
+            r"UPDATE statement on table 'parent' expected to "
+            r"update 1 row\(s\); 0 were matched.",
             sess.flush
         )
 
+    @testing.requires.sane_rowcount
     def test_update_single_missing_broken_multi_rowcount(self):
         @util.memoized_property
         def rowcount(self):
@@ -1500,8 +1506,8 @@ class BasicStaleChecksTest(fixtures.MappedTest):
                 p1.data = 3
                 assert_raises_message(
                     orm_exc.StaleDataError,
-                    "UPDATE statement on table 'parent' expected to "
-                    "update 1 row\(s\); 0 were matched.",
+                    r"UPDATE statement on table 'parent' expected to "
+                    r"update 1 row\(s\); 0 were matched.",
                     sess.flush
                 )
 
@@ -1561,8 +1567,8 @@ class BasicStaleChecksTest(fixtures.MappedTest):
                 p1.data = literal(1)
                 assert_raises_message(
                     orm_exc.StaleDataError,
-                    "UPDATE statement on table 'parent' expected to "
-                    "update 1 row\(s\); 0 were matched.",
+                    r"UPDATE statement on table 'parent' expected to "
+                    r"update 1 row\(s\); 0 were matched.",
                     sess.flush
                 )
 
@@ -1581,8 +1587,8 @@ class BasicStaleChecksTest(fixtures.MappedTest):
 
         assert_raises_message(
             exc.SAWarning,
-            "DELETE statement on table 'parent' expected to "
-            "delete 1 row\(s\); 0 were matched.",
+            r"DELETE statement on table 'parent' expected to "
+            r"delete 1 row\(s\); 0 were matched.",
             sess.commit
         )
 
@@ -1601,8 +1607,8 @@ class BasicStaleChecksTest(fixtures.MappedTest):
 
         assert_raises_message(
             exc.SAWarning,
-            "DELETE statement on table 'parent' expected to "
-            "delete 2 row\(s\); 0 were matched.",
+            r"DELETE statement on table 'parent' expected to "
+            r"delete 2 row\(s\); 0 were matched.",
             sess.flush
         )
 
