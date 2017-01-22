@@ -697,6 +697,10 @@ class TimePrecisionTest(fixtures.TestBase, AssertsCompiledSQL):
              'TIMESTAMP(5) WITHOUT TIME ZONE'),
             (postgresql.TIMESTAMP(timezone=True, precision=5),
              'TIMESTAMP(5) WITH TIME ZONE'),
+            (postgresql.TIME(precision=0),
+             'TIME(0) WITHOUT TIME ZONE'),
+            (postgresql.TIMESTAMP(precision=0),
+             'TIMESTAMP(0) WITHOUT TIME ZONE'),
         ]:
             self.assert_compile(type_, expected)
 
@@ -1705,7 +1709,7 @@ class HStoreTest(AssertsCompiledSQL, fixtures.TestBase):
         assert_raises_message(
             ValueError,
             r'''After u?'\[\.\.\.\], "key1"=>"value1", ', could not parse '''
-            '''residual at position 36: u?'crapcrapcrap, "key3"\[\.\.\.\]''',
+            r'''residual at position 36: u?'crapcrapcrap, "key3"\[\.\.\.\]''',
             proc,
             '"key2"=>"value2", "key1"=>"value1", '
             'crapcrapcrap, "key3"=>"value3"'

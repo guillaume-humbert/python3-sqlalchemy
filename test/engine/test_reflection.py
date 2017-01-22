@@ -1,7 +1,8 @@
 import unicodedata
 import sqlalchemy as sa
 from sqlalchemy import schema, inspect
-from sqlalchemy import MetaData, Integer, String
+from sqlalchemy import MetaData, Integer, String, Index, ForeignKey, \
+    UniqueConstraint
 from sqlalchemy.testing import (
     ComparesTables, engines, AssertsCompiledSQL,
     fixtures, skip)
@@ -200,6 +201,39 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         assert t4.c.y is old_y
         assert t4.c.z.type._type_affinity is String
         assert t4.c.q is old_q
+
+    @testing.provide_metadata
+    def test_extend_existing_reflect_all_dont_dupe_index(self):
+        m = self.metadata
+        d = Table(
+            "d", m, Column('id', Integer, primary_key=True),
+            Column('foo', String(50)),
+            Column('bar', String(50)),
+            UniqueConstraint('bar')
+        )
+        Index("foo_idx", d.c.foo)
+        Table(
+            "b", m, Column('id', Integer, primary_key=True),
+            Column('aid', ForeignKey('d.id'))
+        )
+        m.create_all()
+
+        m2 = MetaData()
+        m2.reflect(testing.db, extend_existing=True)
+
+        eq_(
+            len([idx for idx in m2.tables['d'].indexes
+                 if idx.name == 'foo_idx']),
+            1
+        )
+        if testing.requires.\
+                unique_constraint_reflection_no_index_overlap.enabled:
+            eq_(
+                len([
+                    const for const in m2.tables['d'].constraints
+                    if isinstance(const, UniqueConstraint)]),
+                1
+            )
 
     @testing.emits_warning(r".*omitted columns")
     @testing.provide_metadata
@@ -898,11 +932,13 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         self.assert_(set(m3.tables.keys()) == set(['rt_c']))
 
         m4 = MetaData(testing.db)
-        try:
-            m4.reflect(only=['rt_a', 'rt_f'])
-            self.assert_(False)
-        except sa.exc.InvalidRequestError as e:
-            self.assert_(e.args[0].endswith('(rt_f)'))
+
+        assert_raises_message(
+            sa.exc.InvalidRequestError,
+            r"Could not reflect: requested table\(s\) not available in "
+            r"Engine\(.*?\): \(rt_f\)",
+            m4.reflect, only=['rt_a', 'rt_f']
+        )
 
         m5 = MetaData(testing.db)
         m5.reflect(only=[])
