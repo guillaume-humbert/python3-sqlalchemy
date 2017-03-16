@@ -1,6 +1,6 @@
 
 from sqlalchemy.testing import eq_, assert_raises, \
-    assert_raises_message, is_, is_true
+    assert_raises_message, is_, is_true, is_false
 from sqlalchemy.ext import declarative as decl
 import sqlalchemy as sa
 from sqlalchemy import testing
@@ -12,6 +12,7 @@ from sqlalchemy.orm import relationship, create_session, class_mapper, \
 from sqlalchemy.ext.declarative import declared_attr, AbstractConcreteBase, \
     ConcreteBase, has_inherited_table
 from sqlalchemy.testing import fixtures, mock
+from test.orm.test_events import _RemoveListeners
 
 Base = None
 
@@ -484,6 +485,43 @@ class DeclarativeInheritanceTest(DeclarativeTestBase):
         eq_(sess.query(Engineer).filter_by(primary_language='cobol'
                                            ).one(),
             Engineer(name='vlad', primary_language='cobol'))
+
+    def test_single_cols_on_sub_base_of_joined(self):
+        """test [ticket:3895]"""
+
+        class Person(Base):
+            __tablename__ = "person"
+
+            id = Column(Integer, primary_key=True)
+            type = Column(String)
+
+            __mapper_args__ = {
+                "polymorphic_on": type,
+            }
+
+        class Contractor(Person):
+            contractor_field = Column(String)
+
+            __mapper_args__ = {
+                "polymorphic_identity": "contractor",
+            }
+
+        class Employee(Person):
+            __tablename__ = "employee"
+
+            id = Column(Integer, ForeignKey(Person.id), primary_key=True)
+
+        class Engineer(Employee):
+            __mapper_args__ = {
+                "polymorphic_identity": "engineer",
+            }
+
+        configure_mappers()
+
+        is_false(hasattr(Person, 'contractor_field'))
+        is_true(hasattr(Contractor, 'contractor_field'))
+        is_false(hasattr(Employee, 'contractor_field'))
+        is_false(hasattr(Engineer, 'contractor_field'))
 
     def test_single_cols_on_sub_to_joined(self):
         """test [ticket:3797]"""
@@ -1009,9 +1047,6 @@ class OverlapColPrecedenceTest(DeclarativeTestBase):
                         primary_key=True)
 
         self._run_test(Engineer, "eid", "pid")
-
-
-from test.orm.test_events import _RemoveListeners
 
 
 class ConcreteInhTest(_RemoveListeners, DeclarativeTestBase):

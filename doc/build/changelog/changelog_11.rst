@@ -19,6 +19,129 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.1.6
+    :released: February 28, 2017
+
+    .. change::
+        :tags: bug, mysql
+
+        Added new MySQL 8.0 reserved words to the MySQL dialect for proper
+        quoting.  Pull request courtesy Hanno Schlichting.
+
+    .. change:: 3915
+        :tags: bug, orm
+        :tickets: 3915
+
+        Addressed some long unattended performance concerns within the joined
+        eager loader query construction system that have accumulated since
+        earlier versions as a result of increased abstraction. The use of ad-
+        hoc :class:`.AliasedClass` objects per query, which produces lots of
+        column lookup overhead each time, has been replaced with a cached
+        approach that makes use of a small pool of :class:`.AliasedClass`
+        objects that are reused between invocations of joined eager loading.
+        Some mechanics involving eager join path construction have also been
+        optimized.   Callcounts for an end-to-end query construction + single
+        row fetch test with a worst-case joined loader scenario have been
+        reduced by about 60% vs. 1.1.5 and 42% vs. that of 0.8.6.
+
+    .. change:: 3804
+        :tags: bug, postgresql
+        :tickets: 3804
+
+        Added regular expressions for the "IMPORT FOREIGN SCHEMA",
+        "REFRESH MATERIALIZED VIEW" Postgresql statements so that they
+        autocommit when invoked via a connection or engine without
+        an explicit transaction.  Pull requests courtesy Frazer McLean
+        and Paweł Stiasny.
+
+    .. change:: 3909
+        :tags: bug, orm
+        :tickets: 3909
+
+        Fixed a major inefficiency in the "eager_defaults" feature whereby
+        an unnecessary SELECT would be emitted for column values where the
+        ORM had explicitly inserted NULL, corresponding to attributes that
+        were unset on the object but did not have any server default
+        specified, as well as expired attributes on update that nevertheless
+        had no server onupdate set up.   As these columns are not part of the
+        RETURNING that eager_defaults tries to use, they should not be
+        post-SELECTed either.
+
+    .. change:: 3908
+        :tags: bug, orm
+        :tickets: 3908
+
+        Fixed two closely related bugs involving the mapper eager_defaults
+        flag in conjunction with single-table inheritance; one where the
+        eager defaults logic would inadvertently try to access a column
+        that's part of the mapper's "exclude_properties" list (used by
+        Declarative with single table inheritance) during the eager defaults
+        fetch, and the other where the full load of the row in order to
+        fetch the defaults would fail to use the correct inheriting mapper.
+
+
+    .. change:: 3905
+        :tags: bug, sql
+        :tickets: 3905
+
+        Fixed bug whereby the :meth:`.DDLEvents.column_reflect` event would not
+        allow a non-textual expression to be passed as the value of the
+        "default" for the new column, such as a :class:`.FetchedValue`
+        object to indicate a generic triggered default or a
+        :func:`.sql.expression.text` construct.  Clarified the documentation
+        in this regard as well.
+
+    .. change:: 3901
+        :tags: bug, ext
+        :tickets: 3901
+
+        Fixed bug in new :mod:`sqlalchemy.ext.indexable` extension
+        where setting of a property that itself refers to another property
+        would fail.
+
+    .. change:: 3900
+        :tags: bug, postgresql
+        :tickets: 3900
+
+        Fixed bug in Postgresql :class:`.ExcludeConstraint` where the
+        "whereclause" and "using" parameters would not be copied during an
+        operation like :meth:`.Table.tometadata`.
+
+    .. change:: 3898
+        :tags: bug, mssql
+        :tickets: 3898
+
+        Added a version check to the "get_isolation_level" feature, which is
+        invoked upon first connect, so that it skips for SQL Server version
+        2000, as the necessary system view is not available prior to SQL Server
+        2005.
+
+    .. change:: 3897
+        :tags: feature, ext
+        :tickets: 3896
+
+        Added :meth:`.baked.Result.scalar` and :meth:`.baked.Result.count`
+        to the "baked" query system.
+
+    .. change:: 3895
+        :tags: bug, orm, declarative
+        :tickets: 3895
+
+        Fixed bug where the "automatic exclude" feature of declarative that
+        ensures a column local to a single table inheritance subclass does
+        not appear as an attribute on other derivations of the base would
+        not take effect for multiple levels of subclassing from the base.
+
+    .. change:: 3893
+        :tags: bug, orm
+        :tickets: 3893
+
+        Fixed bug first introduced in 0.9.7 as a result of :ticket:`3106`
+        which would cause an incorrect query in some forms of multi-level
+        subqueryload against aliased entities, with an unnecessary extra
+        FROM entity in the innermost subquery.
+
+.. changelog::
     :version: 1.1.5
     :released: January 17, 2017
 
@@ -748,7 +871,7 @@
 
         Made a slight behavioral change in the ``sqlalchemy.ext.compiler``
         extension, whereby the existing compilation schemes for an established
-        construct would be removed if that construct was itself didn't already
+        construct would be removed if that construct itself didn't already
         have its own dedicated ``__visit_name__``.  This was a
         rare occurrence in 1.0, however in 1.1 :class:`.postgresql.ARRAY`
         subclasses :class:`.sqltypes.ARRAY` and has this behavior.

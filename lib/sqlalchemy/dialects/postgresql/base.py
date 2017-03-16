@@ -9,6 +9,7 @@ r"""
 .. dialect:: postgresql
     :name: PostgreSQL
 
+.. _postgresql_sequences:
 
 Sequences/SERIAL
 ----------------
@@ -876,6 +877,11 @@ except ImportError:
 from sqlalchemy.types import INTEGER, BIGINT, SMALLINT, VARCHAR, \
     CHAR, TEXT, FLOAT, NUMERIC, \
     DATE, BOOLEAN, REAL
+
+AUTOCOMMIT_REGEXP = re.compile(
+    r'\s*(?:UPDATE|INSERT|CREATE|DELETE|DROP|ALTER|'
+    'IMPORT FOREIGN SCHEMA|REFRESH MATERIALIZED VIEW)',
+    re.I | re.UNICODE)
 
 RESERVED_WORDS = set(
     ["all", "analyse", "analyze", "and", "any", "array", "as", "asc",
@@ -1996,6 +2002,9 @@ class PGExecutionContext(default.DefaultExecutionContext):
                 return self._execute_scalar(exc, column.type)
 
         return super(PGExecutionContext, self).get_insert_default(column)
+
+    def should_autocommit_text(self, statement):
+        return AUTOCOMMIT_REGEXP.match(statement)
 
 
 class PGDialect(default.DefaultDialect):
