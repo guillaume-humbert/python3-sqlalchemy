@@ -351,7 +351,7 @@ class RudimentaryFlushTest(UOWTest):
 
         session.flush()
 
-        #pid = parent.id
+        # pid = parent.id
         c1id = c1.id
         c2id = c2.id
 
@@ -414,7 +414,7 @@ class RudimentaryFlushTest(UOWTest):
 
         session.flush()
 
-        #pid = parent.id
+        # pid = parent.id
         c1id = c1.id
         c2id = c2.id
 
@@ -734,7 +734,7 @@ class SingleCycleTest(UOWTest):
                         {'nodes_id': n3.id, 'parent_id': None},
                         {'nodes_id': n2.id, 'parent_id': None}
                     ]
-                    )
+                )
             ),
             CompiledSQL(
                 "DELETE FROM nodes WHERE nodes.id = :id", lambda ctx: {
@@ -1314,6 +1314,7 @@ class RowswitchAccountingTest(fixtures.MappedTest):
         )
 
         sess.close()
+
 
 class RowswitchM2OTest(fixtures.MappedTest):
     # tests for #3060 and related issues
@@ -2320,6 +2321,47 @@ class EagerDefaultsTest(fixtures.MappedTest):
                 dialect='postgresql'
             )
         )
+
+    def test_insert_dont_fetch_nondefaults(self):
+        Thing2 = self.classes.Thing2
+        s = Session()
+
+        t1 = Thing2(id=1, bar=2)
+
+        s.add(t1)
+
+        self.assert_sql_execution(
+            testing.db,
+            s.flush,
+            CompiledSQL(
+                "INSERT INTO test2 (id, foo, bar) "
+                "VALUES (:id, :foo, :bar)",
+                [{'id': 1, 'foo': None, 'bar': 2}]
+            )
+        )
+
+    def test_update_dont_fetch_nondefaults(self):
+        Thing2 = self.classes.Thing2
+        s = Session()
+
+        t1 = Thing2(id=1, bar=2)
+
+        s.add(t1)
+        s.flush()
+
+        s.expire(t1, ['foo'])
+
+        t1.bar = 3
+
+        self.assert_sql_execution(
+            testing.db,
+            s.flush,
+            CompiledSQL(
+                "UPDATE test2 SET bar=:bar WHERE test2.id = :test2_id",
+                [{'bar': 3, 'test2_id': 1}]
+            )
+        )
+
 
 class TypeWoBoolTest(fixtures.MappedTest, testing.AssertsExecutionResults):
     """test support for custom datatypes that return a non-__bool__ value

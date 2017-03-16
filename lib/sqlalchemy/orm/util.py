@@ -548,6 +548,17 @@ class AliasedInsp(InspectionAttr):
             assert False, "mapper %s doesn't correspond to %s" % (
                 mapper, self)
 
+    @util.memoized_property
+    def _memoized_values(self):
+        return {}
+
+    def _memo(self, key, callable_, *args, **kw):
+        if key in self._memoized_values:
+            return self._memoized_values[key]
+        else:
+            self._memoized_values[key] = value = callable_(*args, **kw)
+            return value
+
     def __repr__(self):
         if self.with_polymorphic_mappers:
             with_poly = "(%s)" % ", ".join(
@@ -636,7 +647,7 @@ def aliased(element, alias=None, name=None, flat=False, adapt_on_names=False):
 
      Above, functions on ``aggregated_unit_price`` which refer to
      ``.price`` will return the
-     ``fund.sum(UnitPrice.price).label('price')`` column, as it is
+     ``func.sum(UnitPrice.price).label('price')`` column, as it is
      matched on the name "price".  Ordinarily, the "price" function
      wouldn't have any "column correspondence" to the actual
      ``UnitPrice.price`` column as it is not a proxy of the original.
