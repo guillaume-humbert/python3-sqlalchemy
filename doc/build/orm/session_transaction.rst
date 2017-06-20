@@ -1,6 +1,6 @@
-=======================================
+======================================
 Transactions and Connection Management
-=======================================
+======================================
 
 .. _unitofwork_transaction:
 
@@ -75,6 +75,15 @@ The example below illustrates this lifecycle::
         # as that of commit proceeds.
         session.rollback()
         raise
+    finally:
+        # close the Session.  This will expunge any remaining
+        # objects as well as reset any existing SessionTransaction
+        # state.  Neither of these steps are usually essential.
+        # However, if the commit() or rollback() itself experienced
+        # an unanticipated internal failure (such as due to a mis-behaved
+        # user-defined event handler), .close() will ensure that 
+        # invalid state is removed.
+        session.close()
 
 .. _session_begin_nested:
 
@@ -114,8 +123,8 @@ reference the full state of the :class:`~sqlalchemy.orm.session.Session` right
 before :meth:`~.Session.begin_nested` was called.
 
 :meth:`~.Session.begin_nested`, in the same manner as the less often
-used :meth:`~.Session.begin` method, returns a transactional object
-which also works as a context manager.
+used :meth:`~.Session.begin` method, returns a :class:`.SessionTransaction` object
+which works as a context manager.
 It can be succinctly used around individual record inserts in order to catch
 things like unique constraint exceptions::
 

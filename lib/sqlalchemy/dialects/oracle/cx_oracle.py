@@ -25,7 +25,10 @@ directly as a TNS name.
 Additional arguments which may be specified either as query string arguments
 on the URL, or as keyword arguments to :func:`.create_engine()` are:
 
-* ``allow_twophase`` - enable two-phase transactions.  Defaults to ``True``.
+* ``allow_twophase`` - enable two-phase transactions.  This argument is
+  **deprecated** as of the cx_Oracle 5.x series, two phase transactions are
+  not supported under cx_Oracle and as of cx_Oracle 6.0b1 this feature is
+  removed entirely.
 
 * ``arraysize`` - set the cx_oracle.arraysize value on cursors, defaulted
   to 50.  This setting is significant with cx_Oracle as the contents of LOB
@@ -185,39 +188,12 @@ To disable this processing, pass ``auto_convert_lobs=False`` to
 Two Phase Transaction Support
 -----------------------------
 
-Two Phase transactions are implemented using XA transactions, and are known
-to work in a rudimental fashion with recent versions of cx_Oracle
-as of SQLAlchemy 0.8.0b2, 0.7.10.   However, the mechanism is not yet
-considered to be robust and should still be regarded as experimental.
+Two phase transactions are **not supported** under cx_Oracle due to poor
+driver support.   As of cx_Oracle 6.0b1, the interface for
+two phase transactions has been changed to be more of a direct pass-through
+to the underlying OCI layer with less automation.  The additional logic
+to support this system is not implemented in SQLAlchemy.
 
-In particular, the cx_Oracle DBAPI as recently as 5.1.2 has a bug regarding
-two phase which prevents
-a particular DBAPI connection from being consistently usable in both
-prepared transactions as well as traditional DBAPI usage patterns; therefore
-once a particular connection is used via :meth:`.Connection.begin_prepared`,
-all subsequent usages of the underlying DBAPI connection must be within
-the context of prepared transactions.
-
-The default behavior of :class:`.Engine` is to maintain a pool of DBAPI
-connections.  Therefore, due to the above glitch, a DBAPI connection that has
-been used in a two-phase operation, and is then returned to the pool, will
-not be usable in a non-two-phase context.   To avoid this situation,
-the application can make one of several choices:
-
-* Disable connection pooling using :class:`.NullPool`
-
-* Ensure that the particular :class:`.Engine` in use is only used
-  for two-phase operations.   A :class:`.Engine` bound to an ORM
-  :class:`.Session` which includes ``twophase=True`` will consistently
-  use the two-phase transaction style.
-
-* For ad-hoc two-phase operations without disabling pooling, the DBAPI
-  connection in use can be evicted from the connection pool using the
-  :meth:`.Connection.detach` method.
-
-.. versionchanged:: 0.8.0b2,0.7.10
-    Support for cx_oracle prepared transactions has been implemented
-    and tested.
 
 .. _cx_oracle_numeric:
 
@@ -298,6 +274,7 @@ import random
 import collections
 import decimal
 import re
+import time
 
 
 class _OracleNumeric(sqltypes.Numeric):
@@ -621,9 +598,9 @@ class OracleExecutionContext_cx_oracle_with_unicode(
         OracleExecutionContext_cx_oracle.__init__(self, *arg, **kw)
         self.statement = util.text_type(self.statement)
 
-    def _execute_scalar(self, stmt):
+    def _execute_scalar(self, stmt, type_):
         return super(OracleExecutionContext_cx_oracle_with_unicode, self).\
-            _execute_scalar(util.text_type(stmt))
+            _execute_scalar(util.text_type(stmt), type_)
 
 
 class ReturningResultProxy(_result.FullyBufferedResultProxy):
@@ -692,7 +669,8 @@ class OracleDialect_cx_oracle(OracleDialect):
                  allow_twophase=True,
                  coerce_to_decimal=True,
                  coerce_to_unicode=False,
-                 arraysize=50, **kwargs):
+                 arraysize=50, _retry_on_12516=False,
+                 **kwargs):
         OracleDialect.__init__(self, **kwargs)
         self.threaded = threaded
         self.arraysize = arraysize
@@ -701,10 +679,11 @@ class OracleDialect_cx_oracle(OracleDialect):
             hasattr(self.dbapi, 'TIMESTAMP')
         self.auto_setinputsizes = auto_setinputsizes
         self.auto_convert_lobs = auto_convert_lobs
+        self._retry_on_12516 = _retry_on_12516
 
         if hasattr(self.dbapi, 'version'):
-            self.cx_oracle_ver = tuple([int(x) for x in
-                                        self.dbapi.version.split('.')])
+            self.cx_oracle_ver = self._parse_cx_oracle_ver(self.dbapi.version)
+
         else:
             self.cx_oracle_ver = (0, 0, 0)
 
@@ -719,6 +698,8 @@ class OracleDialect_cx_oracle(OracleDialect):
         self._cx_oracle_unicode_types = types("UNICODE", "NCLOB")
         self._cx_oracle_binary_types = types("BFILE", "CLOB", "NCLOB", "BLOB")
         self.supports_unicode_binds = self.cx_oracle_ver >= (5, 0)
+
+        self._enable_twophase = self.cx_oracle_ver < (6, 0)
 
         self.coerce_to_unicode = (
             self.cx_oracle_ver >= (5, 0) and
@@ -748,18 +729,8 @@ class OracleDialect_cx_oracle(OracleDialect):
 
             if util.py2k:
                 # There's really no reason to run with WITH_UNICODE under
-                # Python 2.x.  Give the user a hint.
-                util.warn(
-                    "cx_Oracle is compiled under Python 2.xx using the "
-                    "WITH_UNICODE flag.  Consider recompiling cx_Oracle "
-                    "without this flag, which is in no way necessary for "
-                    "full support of Unicode. Otherwise, all string-holding "
-                    "bind parameters must be explicitly typed using "
-                    "SQLAlchemy's String type or one of its subtypes,"
-                    "or otherwise be passed as Python unicode.  "
-                    "Plain Python strings passed as bind parameters will be "
-                    "silently corrupted by cx_Oracle."
-                )
+                # Python 2.x.  However as of cx_oracle 5.3 it seems to be
+                # set to ON for default builds
                 self.execution_ctx_cls = \
                     OracleExecutionContext_cx_oracle_with_unicode
         else:
@@ -780,10 +751,38 @@ class OracleDialect_cx_oracle(OracleDialect):
                 self.dbapi.BINARY: oracle.RAW(),
             }
 
+    def _parse_cx_oracle_ver(self, version):
+        m = re.match(r'(\d+)\.(\d+)(?:\.(\d+))?', version)
+        if m:
+            return tuple(
+                int(x)
+                for x in m.group(1, 2, 3)
+                if x is not None)
+        else:
+            return (0, 0, 0)
+
     @classmethod
     def dbapi(cls):
         import cx_Oracle
         return cx_Oracle
+
+    def connect(self, *cargs, **cparams):
+        if self._retry_on_12516:
+            # emergency flag for the SQLAlchemy test suite, which has
+            # decreased in stability since cx_oracle 5.3; generalized
+            # "retry on connect" functionality is part of an upcoming
+            # SQLAlchemy feature
+            try:
+                return self.dbapi.connect(*cargs, **cparams)
+            except self.dbapi.DatabaseError as err:
+                if "ORA-12516" in str(err):
+                    time.sleep(2)
+                    return self.dbapi.connect(*cargs, **cparams)
+                else:
+                    raise
+        else:
+            return super(OracleDialect_cx_oracle, self).connect(
+                *cargs, **cparams)
 
     def initialize(self, connection):
         super(OracleDialect_cx_oracle, self).initialize(connection)
@@ -883,6 +882,7 @@ class OracleDialect_cx_oracle(OracleDialect):
 
     def create_connect_args(self, url):
         dialect_opts = dict(url.query)
+
         for opt in ('use_ansi', 'auto_setinputsizes', 'auto_convert_lobs',
                     'threaded', 'allow_twophase'):
             if opt in dialect_opts:
@@ -915,8 +915,10 @@ class OracleDialect_cx_oracle(OracleDialect):
 
         opts = dict(
             threaded=self.threaded,
-            twophase=self.allow_twophase,
         )
+
+        if self._enable_twophase:
+            opts['twophase'] = self.allow_twophase
 
         if dsn is not None:
             opts['dsn'] = dsn
@@ -973,7 +975,12 @@ class OracleDialect_cx_oracle(OracleDialect):
         """create a two-phase transaction ID.
 
         this id will be passed to do_begin_twophase(), do_rollback_twophase(),
-        do_commit_twophase().  its format is unspecified."""
+        do_commit_twophase().  its format is unspecified.
+
+        .. deprecated:: two-phase transaction support is no longer functional
+           in SQLAlchemy's cx_Oracle dialect as of cx_Oracle 6.0b1
+
+        """
 
         id = random.randint(0, 2 ** 128)
         return (0x1234, "%032x" % id, "%032x" % 9)

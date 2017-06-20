@@ -1,6 +1,6 @@
-from sqlalchemy import Integer, ForeignKey, String
+from sqlalchemy import Integer, ForeignKey, String, func
 from sqlalchemy.types import PickleType, TypeDecorator, VARCHAR
-from sqlalchemy.orm import mapper, Session, composite
+from sqlalchemy.orm import mapper, Session, composite, column_property
 from sqlalchemy.orm.mapper import Mapper
 from sqlalchemy.orm.instrumentation import ClassManager
 from sqlalchemy.testing.schema import Table, Column
@@ -720,6 +720,51 @@ class MutableWithScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest):
               Column('non_mutable_data', JSONEncodedDict),
               Column('unrelated_data', String(50))
               )
+
+    def test_non_mutable(self):
+        self._test_non_mutable()
+
+
+class MutableColumnCopyJSONTest(_MutableDictTestBase, fixtures.MappedTest):
+
+    @classmethod
+    def define_tables(cls, metadata):
+        import json
+        from sqlalchemy.ext.declarative import declarative_base
+
+        class JSONEncodedDict(TypeDecorator):
+            impl = VARCHAR(50)
+
+            def process_bind_param(self, value, dialect):
+                if value is not None:
+                    value = json.dumps(value)
+
+                return value
+
+            def process_result_value(self, value, dialect):
+                if value is not None:
+                    value = json.loads(value)
+                return value
+
+        MutableDict = cls._type_fixture()
+
+        Base = declarative_base(metadata=metadata)
+
+        class AbstractFoo(Base):
+            __abstract__ = True
+
+            id = Column(Integer, primary_key=True,
+                        test_needs_autoincrement=True)
+            data = Column(MutableDict.as_mutable(JSONEncodedDict))
+            non_mutable_data = Column(JSONEncodedDict)
+            unrelated_data = Column(String(50))
+
+        class Foo(AbstractFoo):
+            __tablename__ = "foo"
+            column_prop = column_property(
+                func.lower(AbstractFoo.unrelated_data))
+
+        assert Foo.data.property.columns[0].type is not AbstractFoo.data.type
 
     def test_non_mutable(self):
         self._test_non_mutable()

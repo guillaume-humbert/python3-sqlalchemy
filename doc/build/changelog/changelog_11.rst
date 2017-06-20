@@ -1,8 +1,8 @@
 
 
-==============
+=============
 1.1 Changelog
-==============
+=============
 
 .. changelog_imports::
 
@@ -17,6 +17,323 @@
 
     .. include:: changelog_07.rst
         :start-line: 5
+
+.. changelog::
+    :version: 1.1.11
+    :released: Monday, June 19, 2017
+
+    .. change:: 4011
+        :tags: bug, orm
+        :tickets: 4011
+        :versions: 1.2.0b1
+
+        Fixed issue with subquery eagerloading which continues on from
+        the series of issues fixed in :ticket:`2699`, :ticket:`3106`,
+        :ticket:`3893` involving that the "subquery" contains the correct
+        FROM clause when beginning from a joined inheritance subclass
+        and then subquery eager loading onto a relationship from
+        the base class, while the query also includes criteria against
+        the subclass. The fix in the previous tickets did not accommodate
+        for additional subqueryload operations loading more deeply from
+        the first level, so the fix has been further generalized.
+
+    .. change:: 4012
+        :tags: bug, sql
+        :tickets: 4012
+        :versions: 1.2.0b1
+
+        Fixed AttributeError which would occur in :class:`.WithinGroup`
+        construct during an iteration of the structure.
+
+    .. change:: 4005
+        :tags: bug, postgresql
+        :tickets: 4005
+        :versions: 1.2.0b1
+
+        Continuing with the fix that correctly handles Postgresql
+        version string "10devel" released in 1.1.8, an additional regexp
+        bump to handle version strings of the form "10beta1".   While
+        Postgresql now offers better ways to get this information, we
+        are sticking w/ the regexp at least through 1.1.x for the least
+        amount of risk to compatibility w/ older or alternate Postgresql
+        databases.
+
+    .. change:: 4006
+        :tags: bug, postgresql
+        :tickets: 4006
+        :versions: 1.2.0b1
+
+        Fixed bug where using :class:`.ARRAY` with a string type that
+        features a collation would fail to produce the correct syntax
+        within CREATE TABLE.
+
+    .. change:: 4007
+        :tags: bug, mysql
+        :tickets: 4007
+        :versions: 1.2.0b1
+
+        MySQL 5.7 has introduced permission limiting for the "SHOW VARIABLES"
+        command; the MySQL dialect will now handle when SHOW returns no
+        row, in particular for the initial fetch of SQL_MODE, and will
+        emit a warning that user permissions should be modified to allow the
+        row to be present.
+
+    .. change:: 3994
+        :tags: bug, mssql
+        :tickets: 3994
+
+        Fixed bug where SQL Server transaction isolation must be fetched
+        from a different view when using Azure data warehouse, the query
+        is now attempted against both views and then a NotImplemented
+        is raised unconditionally if failure continues to provide the
+        best resiliency against future arbitrary API changes in new
+        SQL Server versions.
+
+    .. change:: 3997
+        :tags: bug, oracle
+        :tickets: 3997
+        :versions: 1.2.0b1
+
+        Support for two-phase transactions has been removed entirely for
+        cx_Oracle when version 6.0b1 or later of the DBAPI is in use.  The two-
+        phase feature historically has never been usable under cx_Oracle 5.x in
+        any case, and cx_Oracle 6.x has removed the connection-level "twophase"
+        flag upon which this feature relied.
+
+    .. change:: 3973
+        :tags: bug, mssql
+        :tickets: 3973
+        :versions: 1.2.0b1
+
+        Added a placeholder type :class:`.mssql.XML` to the SQL Server
+        dialect, so that a reflected table which includes this type can
+        be re-rendered as a CREATE TABLE.  The type has no special round-trip
+        behavior nor does it currently support additional qualifying
+        arguments.
+
+.. changelog::
+    :version: 1.1.10
+    :released: Friday, May 19, 2017
+
+    .. change:: 3986
+        :tags: bug, orm
+        :versions: 1.2.0b1
+        :tickets: 3986
+
+        Fixed bug where a cascade such as "delete-orphan" (but others as well)
+        would fail to locate an object linked to a relationship that itself
+        is local to a subclass in an inheritance relationship, thus causing
+        the operation to not take place.
+
+    .. change:: 3975
+        :tags: bug, oracle
+        :versions: 1.2.0b1
+        :tickets: 3975
+
+        Fixed bug in cx_Oracle dialect where version string parsing would
+        fail for cx_Oracle version 6.0b1 due to the "b" character.  Version
+        string parsing is now via a regexp rather than a simple split.
+
+    .. change:: 3949
+        :tags: bug, schema
+        :versions: 1.2.0b1
+        :tickets: 3949
+
+        An :class:`.ArgumentError` is now raised if a
+        :class:`.ForeignKeyConstraint` object is created with a mismatched
+        number of "local" and "remote" columns, which otherwise causes the
+        internal state of the constraint to be incorrect.   Note that this
+        also impacts the condition where a dialect's reflection process
+        produces a mismatched set of columns for a foreign key constraint.
+
+    .. change:: 3980
+        :tags: bug, ext
+        :versions: 1.2.0b1
+        :tickets: 3980
+
+        Protected against testing "None" as a class in the case where
+        declarative classes are being garbage collected and new
+        automap prepare() operations are taking place concurrently, very
+        infrequently hitting a weakref that has not been fully acted upon
+        after gc.
+
+    .. change::
+        :tags: bug, postgresql
+        :versions: 1.2.0b1
+
+        Added "autocommit" support for GRANT, REVOKE keywords.  Pull request
+        courtesy Jacob Hayes.
+
+    .. change:: 3966
+        :tags: bug, mysql
+        :versions: 1.2.0b1
+        :tickets: 3966
+
+        Removed an ancient and unnecessary intercept of the UTC_TIMESTAMP
+        MySQL function, which was getting in the way of using it with a
+        parameter.
+
+    .. change:: 3961
+        :tags: bug, mysql
+        :versions: 1.2.0b1
+        :tickets: 3961
+
+        Fixed bug in MySQL dialect regarding rendering of table options in
+        conjunction with PARTITION options when rendering CREATE TABLE.
+        The PARTITION related options need to follow the table options,
+        whereas previously this ordering was not enforced.
+
+
+.. changelog::
+    :version: 1.1.9
+    :released: April 4, 2017
+
+    .. change:: 3956
+        :tags: bug, ext
+        :tickets: 3956
+
+        Fixed regression released in 1.1.8 due to :ticket:`3950` where the
+        deeper search for information about column types in the case of a
+        "schema type" or a :class:`.TypeDecorator` would produce an attribute
+        error if the mapping also contained a :obj:`.column_property`.
+
+    .. change:: 3952
+        :tags: bug, sql
+        :versions: 1.2.0b1
+        :tickets: 3952
+
+        Fixed regression released in 1.1.5 due to :ticket:`3859` where
+        adjustments to the "right-hand-side" evaluation of an expression
+        based on :class:`.Variant` to honor the underlying type's
+        "right-hand-side" rules caused the :class:`.Variant` type
+        to be inappropriately lost, in those cases when we *do* want the
+        left-hand side type to be transferred directly to the right hand side
+        so that bind-level rules can be applied to the expression's argument.
+
+    .. change:: 3955
+        :tags: bug, sql, postgresql
+        :versions: 1.2.0b1
+        :tickets: 3955
+
+        Changed the mechanics of :class:`.ResultProxy` to unconditionally
+        delay the "autoclose" step until the :class:`.Connection` is done
+        with the object; in the case where Postgresql ON CONFLICT with
+        RETURNING returns no rows, autoclose was occurring in this previously
+        non-existent use case, causing the usual autocommit behavior that
+        occurs unconditionally upon INSERT/UPDATE/DELETE to fail.
+
+.. changelog::
+    :version: 1.1.8
+    :released: March 31, 2017
+
+    .. change:: 3950
+        :tags: bug, ext
+        :versions: 1.2.0b1
+        :tickets: 3950
+
+        Fixed bug in :mod:`sqlalchemy.ext.mutable` where the
+        :meth:`.Mutable.as_mutable` method would not track a type that had
+        been copied using :meth:`.TypeEngine.copy`.  This became more of
+        a regression in 1.1 compared to 1.0 because the :class:`.TypeDecorator`
+        class is now a subclass of :class:`.SchemaEventTarget`, which among
+        other things indicates to the parent :class:`.Column` that the type
+        should be copied when the :class:`.Column` is.  These copies are
+        common when using declarative with mixins or abstract classes.
+
+    .. change::
+        :tags: bug, ext
+        :versions: 1.2.0b1
+
+        Added support for bound parameters, e.g. those normally set up
+        via :meth:`.Query.params`, to the :meth:`.baked.Result.count`
+        method.  Previously, support for parameters were omitted. Pull request
+        courtesy Pat Deegan.
+
+    .. change::
+        :tags: bug, postgresql
+        :versions: 1.2.0b1
+
+        Added support for parsing the Postgresql version string for
+        a development version like "PostgreSQL 10devel".  Pull request
+        courtesy Sean McCully.
+
+.. changelog::
+    :version: 1.1.7
+    :released: March 27, 2017
+
+    .. change::
+        :tags: feature, orm
+        :tickets: 3933
+        :versions: 1.2.0b1
+
+        An :func:`.aliased()` construct can now be passed to the
+        :meth:`.Query.select_entity_from` method.   Entities will be pulled
+        from the selectable represented by the :func:`.aliased` construct.
+        This allows special options for :func:`.aliased` such as
+        :paramref:`.aliased.adapt_on_names` to be used in conjunction with
+        :meth:`.Query.select_entity_from`.
+
+    .. change::
+        :tags: bug, engine
+        :tickets: 3946
+        :versions: 1.2.0b1
+
+        Added an exception handler that will warn for the "cause" exception on
+        Py2K when the "autorollback" feature of :class:`.Connection` itself
+        raises an exception. In Py3K, the two exceptions are naturally reported
+        by the interpreter as one occurring during the handling of the other.
+        This is continuing with the series of changes for rollback failure
+        handling that were last visited as part of :ticket:`2696` in 1.0.12.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 3947
+        :versions: 1.2.0b1
+
+        Fixed a race condition which could occur under threaded environments
+        as a result of the caching added via :ticket:`3915`.   An internal
+        collection of ``Column`` objects could be regenerated on an alias
+        object inappropriately, confusing a joined eager loader when it
+        attempts to render SQL and collect results and resulting in an
+        attribute error.   The collection is now generated up front before
+        the alias object is cached and shared among threads.
+
+    .. change::
+        :tags: bug, sql, postgresql
+        :tickets: 2892
+
+        Added support for the :class:`.Variant` and the :class:`.SchemaType`
+        objects to be compatible with each other.  That is, a variant
+        can be created against a type like :class:`.Enum`, and the instructions
+        to create constraints and/or database-specific type objects will
+        propagate correctly as per the variant's dialect mapping.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3931
+
+        Fixed bug in compiler where the string identifier of a savepoint would
+        be cached in the identifier quoting dictionary; as these identifiers
+        are arbitrary, a small memory leak could occur if a single
+        :class:`.Connection` had an unbounded number of savepoints used,
+        as well as if the savepoint clause constructs were used directly
+        with an unbounded umber of savepoint names.   The memory leak does
+        **not** impact the vast majority of cases as normally the
+        :class:`.Connection`, which renders savepoint names with a simple
+        counter starting at "1", is used on a per-transaction or
+        per-fixed-number-of-transactions basis before being discarded.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 3924
+
+        Fixed bug in new "schema translate" feature where the translated schema
+        name would be invoked in terms of an alias name when rendered along
+        with a column expression; occurred only when the source translate
+        name was "None".   The "schema translate" feature now only takes
+        effect for :class:`.SchemaItem` and :class:`.SchemaType` subclasses,
+        that is, objects that correspond to a DDL-creatable structure in
+        a database.
 
 .. changelog::
     :version: 1.1.6
