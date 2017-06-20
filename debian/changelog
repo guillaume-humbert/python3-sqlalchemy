@@ -1,3 +1,9 @@
+sqlalchemy (1.1.11+ds1-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Piotr Ożarowski <piotr@debian.org>  Tue, 20 Jun 2017 20:28:45 +0200
+
 sqlalchemy (1.1.6+ds1-1) unstable; urgency=medium
 
   * New upstream release
