@@ -60,7 +60,15 @@ class MiscTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
                     '64-bit', (9, 1, 2)),
                 (
                     '[PostgreSQL 9.2.4 ] VMware vFabric Postgres 9.2.4.0 '
-                    'release build 1080137', (9, 2, 4))]:
+                    'release build 1080137', (9, 2, 4)),
+                (
+                    'PostgreSQL 10devel on x86_64-pc-linux-gnu'
+                    'compiled by gcc (GCC) 6.3.1 20170306, 64-bit', (10,)),
+                (
+                    'PostgreSQL 10beta1 on x86_64-pc-linux-gnu, '
+                    'compiled by gcc (GCC) 4.8.5 20150623 '
+                    '(Red Hat 4.8.5-11), 64-bit', (10,))
+        ]:
             eq_(testing.db.dialect._get_server_version_info(mock_conn(string)),
                 version)
 
@@ -301,8 +309,14 @@ class MiscTest(fixtures.TestBase, AssertsExecutionResults, AssertsCompiledSQL):
 class AutocommitTextTest(test_execute.AutocommitTextTest):
     __only_on__ = 'postgresql'
 
+    def test_grant(self):
+        self._test_keyword("GRANT USAGE ON SCHEMA fooschema TO foorole")
+
     def test_import_foreign_schema(self):
         self._test_keyword("IMPORT FOREIGN SCHEMA foob")
 
     def test_refresh_view(self):
         self._test_keyword("REFRESH MATERIALIZED VIEW fooview")
+
+    def test_revoke(self):
+        self._test_keyword("REVOKE USAGE ON SCHEMA fooschema FROM foorole")

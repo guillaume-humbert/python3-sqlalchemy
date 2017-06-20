@@ -336,7 +336,12 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
         )
 
     def test_utc_timestamp(self):
-        self.assert_compile(func.utc_timestamp(), "UTC_TIMESTAMP")
+        self.assert_compile(func.utc_timestamp(), "utc_timestamp()")
+
+    def test_utc_timestamp_fsp(self):
+        self.assert_compile(
+            func.utc_timestamp(5), "utc_timestamp(%s)",
+            checkparams={"utc_timestamp_1": 5})
 
     def test_sysdate(self):
         self.assert_compile(func.sysdate(), "SYSDATE()")
@@ -607,6 +612,26 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
             ')PARTITION BY KEY(other_id) PARTITIONS 2'
         )
 
+    def test_create_table_with_subpartition(self):
+        t1 = Table(
+            'testtable', MetaData(),
+            Column('id', Integer(), primary_key=True, autoincrement=True),
+            Column('other_id', Integer(), primary_key=True,
+                   autoincrement=False),
+            mysql_partitions='2',
+            mysql_partition_by='KEY(other_id)',
+            mysql_subpartition_by="HASH(some_expr)",
+            mysql_subpartitions='2')
+        self.assert_compile(
+            schema.CreateTable(t1),
+            'CREATE TABLE testtable ('
+            'id INTEGER NOT NULL AUTO_INCREMENT, '
+            'other_id INTEGER NOT NULL, '
+            'PRIMARY KEY (id, other_id)'
+            ')PARTITION BY KEY(other_id) PARTITIONS 2 '
+            'SUBPARTITION BY HASH(some_expr) SUBPARTITIONS 2'
+        )
+
     def test_create_table_with_partition_hash(self):
         t1 = Table(
             'testtable', MetaData(),
@@ -621,6 +646,23 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
             'other_id INTEGER NOT NULL, '
             'PRIMARY KEY (id, other_id)'
             ')PARTITION BY HASH(other_id) PARTITIONS 2'
+        )
+
+    def test_create_table_with_partition_and_other_opts(self):
+        t1 = Table(
+            'testtable', MetaData(),
+            Column('id', Integer(), primary_key=True, autoincrement=True),
+            Column('other_id', Integer(), primary_key=True,
+                   autoincrement=False),
+            mysql_stats_sample_pages='2',
+            mysql_partitions='2', mysql_partition_by='HASH(other_id)')
+        self.assert_compile(
+            schema.CreateTable(t1),
+            'CREATE TABLE testtable ('
+            'id INTEGER NOT NULL AUTO_INCREMENT, '
+            'other_id INTEGER NOT NULL, '
+            'PRIMARY KEY (id, other_id)'
+            ')STATS_SAMPLE_PAGES=2 PARTITION BY HASH(other_id) PARTITIONS 2'
         )
 
     def test_inner_join(self):

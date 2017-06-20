@@ -17,11 +17,56 @@ from sqlalchemy.testing.engines import testing_engine
 from sqlalchemy.dialects.oracle import cx_oracle, base as oracle
 from sqlalchemy.engine import default
 import decimal
+from sqlalchemy.engine import url
 from sqlalchemy.testing.schema import Table, Column
 import datetime
 import os
 from sqlalchemy import sql
 from sqlalchemy.testing.mock import Mock
+
+
+class DialectTest(fixtures.TestBase):
+    def test_cx_oracle_version_parse(self):
+        dialect = cx_oracle.OracleDialect_cx_oracle()
+
+        eq_(
+            dialect._parse_cx_oracle_ver("5.2"),
+            (5, 2)
+        )
+
+        eq_(
+            dialect._parse_cx_oracle_ver("5.0.1"),
+            (5, 0, 1)
+        )
+
+        eq_(
+            dialect._parse_cx_oracle_ver("6.0b1"),
+            (6, 0)
+        )
+
+    def test_twophase_arg(self):
+
+        mock_dbapi = Mock(version="5.0.3")
+        dialect = cx_oracle.OracleDialect_cx_oracle(dbapi=mock_dbapi)
+        args = dialect.create_connect_args(
+            url.make_url("oracle+cx_oracle://a:b@host/db"))
+
+        eq_(args[1]['twophase'], True)
+
+        mock_dbapi = Mock(version="5.0.3")
+        dialect = cx_oracle.OracleDialect_cx_oracle(
+            dbapi=mock_dbapi, allow_twophase=False)
+        args = dialect.create_connect_args(
+            url.make_url("oracle+cx_oracle://a:b@host/db"))
+
+        eq_(args[1]['twophase'], False)
+
+        mock_dbapi = Mock(version="6.0b1")
+        dialect = cx_oracle.OracleDialect_cx_oracle(dbapi=mock_dbapi)
+        args = dialect.create_connect_args(
+            url.make_url("oracle+cx_oracle://a:b@host/db"))
+
+        assert 'twophase' not in args[1]
 
 
 class OutParamTest(fixtures.TestBase, AssertsExecutionResults):
@@ -1706,10 +1751,10 @@ class TypesTest(fixtures.TestBase):
     @testing.provide_metadata
     def test_reflect_nvarchar(self):
         metadata = self.metadata
-        Table('t', metadata, Column('data', sqltypes.NVARCHAR(255)))
+        Table('tnv', metadata, Column('data', sqltypes.NVARCHAR(255)))
         metadata.create_all()
         m2 = MetaData(testing.db)
-        t2 = Table('t', m2, autoload=True)
+        t2 = Table('tnv', m2, autoload=True)
         assert isinstance(t2.c.data.type, sqltypes.NVARCHAR)
 
         if testing.against('oracle+cx_oracle'):
@@ -2260,3 +2305,4 @@ class ServiceNameTest(fixtures.TestBase):
             create_engine, url_string,
             _initialize=False
         )
+

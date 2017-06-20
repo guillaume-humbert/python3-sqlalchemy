@@ -1,6 +1,6 @@
-=======================
+===============
 Loading Objects
-=======================
+===============
 
 Notes and features regarding the general loading of mapped objects.
 
@@ -11,5 +11,6 @@ For an in-depth introduction to querying with the SQLAlchemy ORM, please see the
 
     loading_columns
     loading_relationships
+    inheritance_loading
     constructors
     query

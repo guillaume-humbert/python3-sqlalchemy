@@ -1,10 +1,10 @@
 .. module:: sqlalchemy.orm.session
 
 Session API
-============
+===========
 
 Session and sessionmaker()
----------------------------
+--------------------------
 
 .. autoclass:: sessionmaker
     :members:
@@ -17,8 +17,8 @@ Session and sessionmaker()
 .. autoclass:: sqlalchemy.orm.session.SessionTransaction
    :members:
 
-Session Utilites
-----------------
+Session Utilities
+-----------------
 
 .. autofunction:: make_transient
 
@@ -29,7 +29,7 @@ Session Utilites
 .. autofunction:: sqlalchemy.orm.util.was_deleted
 
 Attribute and State Management Utilities
------------------------------------------
+----------------------------------------
 
 These functions are provided by the SQLAlchemy attribute
 instrumentation API to provide a detailed interface for dealing

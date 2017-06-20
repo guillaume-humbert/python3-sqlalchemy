@@ -3,9 +3,9 @@
 
 .. module:: sqlalchemy.schema
 
-=================================
+================================
 Defining Constraints and Indexes
-=================================
+================================
 
 This section will discuss SQL :term:`constraints` and indexes.  In SQLAlchemy
 the key classes include :class:`.ForeignKeyConstraint` and :class:`.Index`.
@@ -391,7 +391,7 @@ option of being configured directly::
     :class:`.PrimaryKeyConstraint` - detailed API documentation.
 
 Setting up Constraints when using the Declarative ORM Extension
-----------------------------------------------------------------
+---------------------------------------------------------------
 
 The :class:`.Table` is the SQLAlchemy Core construct that allows one to define
 table metadata, which among other things can be used by the SQLAlchemy ORM
@@ -415,7 +415,7 @@ produced inline with the table definition, the database usually has a system
 in place in which names are automatically assigned to these constraints, if
 a name is not otherwise specified.  When an existing database table is altered
 in a database using a command such as ``ALTER TABLE``, this command typically
-needs to specify expicit names for new constraints as well as be able to
+needs to specify explicit names for new constraints as well as be able to
 specify the name of an existing constraint that is to be dropped or modified.
 
 Constraints can be named explicitly using the :paramref:`.Constraint.name` parameter,
@@ -568,7 +568,7 @@ name as follows::
 .. _naming_check_constraints:
 
 Naming CHECK Constraints
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :class:`.CheckConstraint` object is configured against an arbitrary
 SQL expression, which can have any number of columns present, and additionally
@@ -640,7 +640,7 @@ structure of the expression will determine which column is noted as
 .. _naming_schematypes:
 
 Configuring Naming for Boolean, Enum, and other schema types
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :class:`.SchemaType` class refers to type objects such as :class:`.Boolean`
 and :class:`.Enum` which generate a CHECK constraint accompanying the type.
@@ -724,7 +724,6 @@ Constraints API
 .. autoclass:: ForeignKeyConstraint
     :members:
     :inherited-members:
-
 
 .. autoclass:: PrimaryKeyConstraint
     :members:
@@ -829,7 +828,7 @@ The :class:`~sqlalchemy.schema.Index` object also supports its own ``create()`` 
 .. _schema_indexes_functional:
 
 Functional Indexes
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 
 :class:`.Index` supports SQL and function expressions, as supported by the
 target backend.  To create an index against a column using a descending

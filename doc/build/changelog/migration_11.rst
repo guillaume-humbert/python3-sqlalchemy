@@ -1,6 +1,6 @@
-==============================
+=============================
 What's New in SQLAlchemy 1.1?
-==============================
+=============================
 
 .. admonition:: About this Document
 
@@ -32,7 +32,7 @@ as things like "extras", ``setup.py`` now depends on Setuptools fully.
 
 .. seealso::
 
-	:ref:`installation`
+    :ref:`installation`
 
 :ticket:`3489`
 
@@ -47,7 +47,7 @@ as it relies on deprecated features of setuptools.
 
 .. seealso::
 
-	:ref:`c_extensions`
+    :ref:`c_extensions`
 
 :ticket:`3500`
 
@@ -170,8 +170,8 @@ can instead be::
 
 .. _change_3499:
 
-Changes regarding "unhashable" types
-------------------------------------
+Changes regarding "unhashable" types, impacts deduping of ORM rows
+------------------------------------------------------------------
 
 The :class:`.Query` object has a well-known behavior of "deduping"
 returned rows that contain at least one ORM-mapped entity (e.g., a
@@ -197,6 +197,39 @@ flag is now set consistently for all of PostgreSQL's "structural" types.
 The "unhashable" flag is also set on the :class:`.NullType` type,
 as :class:`.NullType` is used to refer to any expression of unknown
 type.
+
+Since :class:`.NullType` is applied to most
+usages of :attr:`.func`, as :attr:`.func` doesn't actually know anything
+about the function names given in most cases, **using func() will
+often disable row deduping unless explicit typing is applied**.
+The following examples illustrate ``func.substr()`` applied to a string
+expression, and ``func.date()`` applied to a datetime expression; both
+examples will return duplicate rows due to the joined eager load unless
+explicit typing is applied::
+
+    result = session.query(
+        func.substr(A.some_thing, 0, 4), A
+    ).options(joinedload(A.bs)).all()
+
+    users = session.query(
+        func.date(
+            User.date_created, 'start of month'
+        ).label('month'),
+        User,
+    ).options(joinedload(User.orders)).all()
+
+The above examples, in order to retain deduping, should be specified as::
+
+    result = session.query(
+        func.substr(A.some_thing, 0, 4, type_=String), A
+    ).options(joinedload(A.bs)).all()
+
+    users = session.query(
+        func.date(
+            User.date_created, 'start of month', type_=DateTime
+        ).label('month'),
+        User,
+    ).options(joinedload(User.orders)).all()
 
 Additionally, the treatment of a so-called "unhashable" type is slightly
 different than its been in previous releases; internally we are using
@@ -592,7 +625,7 @@ for an attribute being replaced.
 .. _change_3749:
 
 Same-named relationships on inheriting mappers no longer warn
---------------------------------------------------------------
+-------------------------------------------------------------
 
 When creating two mappers in an inheritance scenario, placing a relationship
 on both with the same name would emit the warning
@@ -1187,7 +1220,7 @@ RANGE and ROWS expressions for window functions::
 .. _change_2857:
 
 Support for the SQL LATERAL keyword
-------------------------------------
+-----------------------------------
 
 The LATERAL keyword is currently known to only be supported by PostgreSQL 9.3
 and greater, however as it is part of the SQL standard support for this keyword
@@ -1345,7 +1378,7 @@ will not have much impact on the behavior of the column during an INSERT.
 .. _change_is_distinct_from:
 
 Support for IS DISTINCT FROM and IS NOT DISTINCT FROM
-------------------------------------------------------
+-----------------------------------------------------
 
 New operators :meth:`.ColumnOperators.is_distinct_from` and
 :meth:`.ColumnOperators.isnot_distinct_from` allow the IS DISTINCT
@@ -1500,7 +1533,7 @@ used for the fetch.
 .. _change_3292:
 
 Support for Python's native ``enum`` type and compatible forms
----------------------------------------------------------------
+--------------------------------------------------------------
 
 The :class:`.Enum` type can now be constructed using any
 PEP-435 compliant enumerated type.   When using this mode, input values
@@ -1529,7 +1562,7 @@ string/integer/etc values::
     assert e.scalar(t.select()) is MyEnum.two
 
 The ``Enum.enums`` collection is now a list instead of a tuple
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As part of the changes to :class:`.Enum`, the :attr:`.Enum.enums` collection
 of elements is now a list instead of a tuple.  This because lists
@@ -2411,7 +2444,7 @@ in order to have an array value present in a composed ORM row.
 .. _change_3503:
 
 Correct SQL Types are Established from Indexed Access of ARRAY, JSON, HSTORE
------------------------------------------------------------------------------
+----------------------------------------------------------------------------
 
 For all three of :class:`~.postgresql.ARRAY`, :class:`~.postgresql.JSON` and :class:`.HSTORE`,
 the SQL type assigned to the expression returned by indexed access, e.g.
@@ -2462,7 +2495,7 @@ This includes:
 .. _change_3503_cast:
 
 The JSON cast() operation now requires ``.astext`` is called explicitly
-------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 As part of the changes in :ref:`change_3503`, the workings of the
 :meth:`.ColumnElement.cast` operator on :class:`.postgresql.JSON` and
@@ -2563,7 +2596,7 @@ The `PyGreSQL <https://pypi.python.org/pypi/PyGreSQL>`_ DBAPI is now supported.
     :ref:`dialect-postgresql-pygresql`
 
 The "postgres" module is removed
----------------------------------
+--------------------------------
 
 The ``sqlalchemy.dialects.postgres`` module, long deprecated, is
 removed; this has emitted a warning for many years and projects
@@ -2592,7 +2625,7 @@ or "SELECT...FOR SHARE" query on the PostgreSQL backend:
     stmt = select([table]).with_for_update(read=True, key_share=True)
 
 Dialect Improvements and Changes - MySQL
-=============================================
+========================================
 
 .. _change_3547:
 
@@ -2699,7 +2732,7 @@ directives are no longer needed::
 
 
 Dialect Improvements and Changes - SQLite
-=============================================
+=========================================
 
 .. _change_3634:
 
@@ -2764,7 +2797,7 @@ given schema in the results.  Cross-schema foreign keys aren't supported.
 .. _change_3629:
 
 Reflection of the name of PRIMARY KEY constraints
---------------------------------------------------
+-------------------------------------------------
 
 The SQLite backend now takes advantage of the "sqlite_master" view
 of SQLite in order to extract the name of the primary key constraint
@@ -2899,7 +2932,7 @@ on this behavior, set the flag back to True.
 :ticket:`3434`
 
 Dialect Improvements and Changes - Oracle
-=============================================
+=========================================
 
 Support for SKIP LOCKED
 -----------------------

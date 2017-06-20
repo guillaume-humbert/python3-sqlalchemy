@@ -9,7 +9,7 @@ from sqlalchemy import Table, MetaData, Column, Integer, Enum, Float, select, \
     func, DateTime, Numeric, exc, String, cast, REAL, TypeDecorator, Unicode, \
     Text, null, text, column, ARRAY, any_, all_
 from sqlalchemy.sql import operators
-from sqlalchemy import types
+from sqlalchemy import types as sqltypes
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import HSTORE, hstore, array, \
@@ -523,6 +523,77 @@ class EnumTest(fixtures.TestBase, AssertsExecutionResults):
                 "twoHITHERE"
             )
 
+    @testing.provide_metadata
+    def test_generic_w_pg_variant(self):
+        some_table = Table(
+            'some_table', self.metadata,
+            Column(
+                'data',
+                Enum(
+                    "one", "two", "three",
+                    native_enum=True   # make sure this is True because
+                                       # it should *not* take effect due to
+                                       # the variant
+                ).with_variant(
+                    postgresql.ENUM("four", "five", "six", name="my_enum"),
+                    "postgresql"
+                )
+            )
+        )
+
+        with testing.db.begin() as conn:
+            assert 'my_enum' not in [
+                e['name'] for e in inspect(conn).get_enums()]
+
+            self.metadata.create_all(conn)
+
+            assert 'my_enum' in [
+                e['name'] for e in inspect(conn).get_enums()]
+
+            conn.execute(
+                some_table.insert(), {"data": "five"}
+            )
+
+            self.metadata.drop_all(conn)
+
+            assert 'my_enum' not in [
+                e['name'] for e in inspect(conn).get_enums()]
+
+    @testing.provide_metadata
+    def test_generic_w_some_other_variant(self):
+        some_table = Table(
+            'some_table', self.metadata,
+            Column(
+                'data',
+                Enum(
+                    "one", "two", "three",
+                    name="my_enum",
+                    native_enum=True
+                ).with_variant(
+                    Enum("four", "five", "six"),
+                    "mysql"
+                )
+            )
+        )
+
+        with testing.db.begin() as conn:
+            assert 'my_enum' not in [
+                e['name'] for e in inspect(conn).get_enums()]
+
+            self.metadata.create_all(conn)
+
+            assert 'my_enum' in [
+                e['name'] for e in inspect(conn).get_enums()]
+
+            conn.execute(
+                some_table.insert(), {"data": "two"}
+            )
+
+            self.metadata.drop_all(conn)
+
+            assert 'my_enum' not in [
+                e['name'] for e in inspect(conn).get_enums()]
+
 
 class OIDTest(fixtures.TestBase):
     __only_on__ = 'postgresql'
@@ -739,6 +810,18 @@ class TimePrecisionTest(fixtures.TestBase, AssertsCompiledSQL):
 class ArrayTest(AssertsCompiledSQL, fixtures.TestBase):
     __dialect__ = 'postgresql'
 
+    def test_array_type_render_str(self):
+        self.assert_compile(
+            postgresql.ARRAY(Unicode(30)),
+            "VARCHAR(30)[]"
+        )
+
+    def test_array_type_render_str_collate(self):
+        self.assert_compile(
+            postgresql.ARRAY(Unicode(30, collation="en_US")),
+            'VARCHAR(30)[] COLLATE "en_US"'
+        )
+
     def test_array_int_index(self):
         col = column('x', postgresql.ARRAY(Integer))
         self.assert_compile(
@@ -906,7 +989,7 @@ class ArrayTest(AssertsCompiledSQL, fixtures.TestBase):
 
     def test_array_agg_generic(self):
         expr = func.array_agg(column('q', Integer))
-        is_(expr.type.__class__, types.ARRAY)
+        is_(expr.type.__class__, sqltypes.ARRAY)
         is_(expr.type.item_type.__class__, Integer)
 
     def test_array_agg_specific(self):
@@ -971,6 +1054,17 @@ class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
         assert isinstance(tbl.c.strarr.type, postgresql.ARRAY)
         assert isinstance(tbl.c.intarr.type.item_type, Integer)
         assert isinstance(tbl.c.strarr.type.item_type, String)
+
+    @testing.provide_metadata
+    def test_array_str_collation(self):
+        m = self.metadata
+
+        t = Table(
+            't', m, Column('data',
+                           sqltypes.ARRAY(String(50, collation="en_US")))
+        )
+
+        t.create()
 
     @testing.provide_metadata
     def test_array_agg(self):
@@ -1352,7 +1446,7 @@ class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
             Column(
                 'data_2',
                 postgresql.ARRAY(
-                    types.Enum('a', 'b', 'c', name='my_enum_2')
+                    sqltypes.Enum('a', 'b', 'c', name='my_enum_2')
                 )
             )
         )
@@ -1471,12 +1565,12 @@ class SpecialTypesTest(fixtures.TestBase, ComparesTables, AssertsCompiledSQL):
 
         # create these types so that we can issue
         # special SQL92 INTERVAL syntax
-        class y2m(types.UserDefinedType, postgresql.INTERVAL):
+        class y2m(sqltypes.UserDefinedType, postgresql.INTERVAL):
 
             def get_col_spec(self):
                 return "INTERVAL YEAR TO MONTH"
 
-        class d2s(types.UserDefinedType, postgresql.INTERVAL):
+        class d2s(sqltypes.UserDefinedType, postgresql.INTERVAL):
 
             def get_col_spec(self):
                 return "INTERVAL DAY TO SECOND"
@@ -1783,7 +1877,7 @@ class HStoreTest(AssertsCompiledSQL, fixtures.TestBase):
         is_(col['foo'].type.__class__, Text)
 
     def test_ret_type_custom(self):
-        class MyType(types.UserDefinedType):
+        class MyType(sqltypes.UserDefinedType):
             pass
 
         col = column('x', HSTORE(text_type=MyType))
@@ -2468,20 +2562,20 @@ class JSONTest(AssertsCompiledSQL, fixtures.TestBase):
     def test_path_typing(self):
         col = column('x', JSON())
         is_(
-            col['q'].type._type_affinity, types.JSON
+            col['q'].type._type_affinity, sqltypes.JSON
         )
         is_(
-            col[('q', )].type._type_affinity, types.JSON
+            col[('q', )].type._type_affinity, sqltypes.JSON
         )
         is_(
-            col['q']['p'].type._type_affinity, types.JSON
+            col['q']['p'].type._type_affinity, sqltypes.JSON
         )
         is_(
-            col[('q', 'p')].type._type_affinity, types.JSON
+            col[('q', 'p')].type._type_affinity, sqltypes.JSON
         )
 
     def test_custom_astext_type(self):
-        class MyType(types.UserDefinedType):
+        class MyType(sqltypes.UserDefinedType):
             pass
 
         col = column('x', JSON(astext_type=MyType))

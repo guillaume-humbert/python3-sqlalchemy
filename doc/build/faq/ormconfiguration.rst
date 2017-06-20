@@ -1,5 +1,5 @@
 ORM Configuration
-==================
+=================
 
 .. contents::
     :local:
@@ -72,7 +72,7 @@ columns::
 
 
 How do I configure a Column that is a Python reserved word or similar?
-----------------------------------------------------------------------------
+----------------------------------------------------------------------
 
 Column-based attributes can be given any name desired in the mapping. See
 :ref:`mapper_column_distinct_names`.
@@ -326,9 +326,9 @@ The primary key is a good choice for this::
 
     session.query(User).options(subqueryload(User.addresses)).order_by(User.id).first()
 
-Note that :func:`.joinedload` does not suffer from the same problem because
-only one query is ever issued, so the load query cannot be different from the
-main query.
+Note that the :func:`.joinedload` eager loader strategy does not suffer from
+the same problem because only one query is ever issued, so the load query
+cannot be different from the main query.
 
 .. seealso::
 
