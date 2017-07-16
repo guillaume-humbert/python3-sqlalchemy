@@ -60,6 +60,10 @@ install-docs: build-docs
 		/usr/share/doc/${p_name}/html
 	dh_link -p${p_name}-doc /usr/share/doc/${p_name}-doc/rst \
 		/usr/share/doc/${p_name}/rst
+	dh_link -p${p_name}-doc /usr/share/doc/${p_name}-doc/html \
+		/usr/share/doc/python3-sqlalchemy/html
+	dh_link -p${p_name}-doc /usr/share/doc/${p_name}-doc/rst \
+		/usr/share/doc/python3-sqlalchemy/rst
 	touch $@
 
 install: build $(PYVERS:%=install-python%) $(PY3VERS:%=install-python%)
