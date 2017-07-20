@@ -332,40 +332,50 @@ to arrive at the current "baked" approach.   Starting from the
 management,  removal of all redundant Python execution, and queries built up
 with conditionals needed to be addressed, leading to the final approach.
 
+Disabling Baked Queries Session-wide
+------------------------------------
+
+The flag :paramref:`.Session.enable_baked_queries` may be set to False,
+causing all baked queries to not use the cache when used against that
+:class:`.Session`::
+
+    session = Session(engine, enable_baked_queries=False)
+
+Like all session flags, it is also accepted by factory objects like
+:class:`.sessionmaker` and methods like :meth:`.sessionmaker.configure`.
+
+The immediate rationale for this flag is to reduce memory use in the case
+that the query baking used by relationship loaders and other loaders
+is not desirable.   It also can be used in the case that an application
+which is seeing issues potentially due to cache key conflicts from user-defined
+baked queries or other baked query issues can turn the behavior off, in
+order to identify or eliminate baked queries as the cause of an issue.
+
+.. versionadded:: 1.2
+
 Lazy Loading Integration
 ------------------------
 
-The baked query can be integrated with SQLAlchemy's lazy loader feature
-transparently.   A future release of SQLAlchemy may enable this by default,
-as its use within lazy loading is completely transparent.    For now,
-to enable baked lazyloading for all lazyloaders systemwide, call upon
-the :func:`.bake_lazy_loaders` function.   This will impact all relationships
-that use the ``lazy='select'`` strategy as well as all use of the :func:`.lazyload`
-per-query strategy.
+The baked query system is integrated into SQLAlchemy's lazy loader feature
+as used by :func:`.relationship`, and will cache queries for most lazy
+load conditions.   A small subset of
+"lazy loads" may not be cached; these involve query options in conjunction with ad-hoc
+:obj:`.aliased` structures that cannot produce a repeatable cache
+key.
 
-"Baked" lazy loading may be enabled on a per-:func:`.relationship` basis
-using the ``baked_select`` loader strategy::
-
-    class MyClass(Base):
-        # ...
-
-        widgets = relationship("Widget", lazy="baked_select")
-
-The ``baked_select`` strategy is available once any part of the application
-has imported the ``sqlalchemy.ext.baked`` module.   The "bakery" used by
-this feature is local to the mapper for ``MyClass``.
-
-For per-query use, the :func:`.baked_lazyload` strategy may be used,
-which works like any other loader option.
+.. versionchanged:: 1.2  "baked" queries are now the foundation of the
+   lazy-loader feature of :func:`.relationship`.
 
 Opting out with the bake_queries flag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :func:`.relationship` construct includes a flag
 :paramref:`.relationship.bake_queries` which when set to False will cause
-that relationship to opt out of the baked query system, when the
-application-wide :func:`.bake_lazy_loaders` function has been called to enable
-baked query loaders by default.
+that relationship to opt out of caching queries.  Additionally, the
+:paramref:`.Session.enable_baked_queries` setting can be used to disable
+all "baked query" use.   These flags can be useful to conserve memory,
+when memory conservation is more important than performance for a particular
+relationship or for the application overall.
 
 API Documentation
 -----------------
@@ -375,13 +385,9 @@ API Documentation
 .. autoclass:: BakedQuery
     :members:
 
+.. autoclass:: Bakery
+    :members:
+
 .. autoclass:: Result
     :members:
 
-.. autofunction:: bake_lazy_loaders
-
-.. autofunction:: unbake_lazy_loaders
-
-.. autofunction:: baked_lazyload
-
-.. autofunction:: baked_lazyload_all

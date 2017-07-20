@@ -19,8 +19,29 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.1.12
+
+    .. change:: cache_order_sequence
+        :tags: feature, oracle, posgresql
+        :versions: 1.2.0b1
+
+        Added new keywords :paramref:`.Sequence.cache` and
+        :paramref:`.Sequence.order` to :class:`.Sequence`, to allow rendering
+        of the CACHE parameter understood by Oracle and PostgreSQL, and the
+        ORDER parameter understood by Oracle.  Pull request
+        courtesy David Moore.
+
+.. changelog::
     :version: 1.1.11
     :released: Monday, June 19, 2017
+
+    .. change:: 4012
+        :tags: bug, sql
+        :tickets: 4012
+        :versions: 1.2.0b1
+
+        Fixed AttributeError which would occur in :class:`.WithinGroup`
+        construct during an iteration of the structure.
 
     .. change:: 4011
         :tags: bug, orm
@@ -36,14 +57,6 @@
         the subclass. The fix in the previous tickets did not accommodate
         for additional subqueryload operations loading more deeply from
         the first level, so the fix has been further generalized.
-
-    .. change:: 4012
-        :tags: bug, sql
-        :tickets: 4012
-        :versions: 1.2.0b1
-
-        Fixed AttributeError which would occur in :class:`.WithinGroup`
-        construct during an iteration of the structure.
 
     .. change:: 4005
         :tags: bug, postgresql
@@ -81,6 +94,7 @@
     .. change:: 3994
         :tags: bug, mssql
         :tickets: 3994
+        :versions: 1.2.0b1
 
         Fixed bug where SQL Server transaction isolation must be fetched
         from a different view when using Azure data warehouse, the query

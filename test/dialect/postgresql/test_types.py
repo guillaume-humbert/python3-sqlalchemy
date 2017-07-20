@@ -4,12 +4,13 @@ from sqlalchemy.testing.assertions import eq_, assert_raises, \
     AssertsCompiledSQL, ComparesTables
 from sqlalchemy.testing import engines, fixtures
 from sqlalchemy import testing
+from sqlalchemy.sql import sqltypes
 import datetime
 from sqlalchemy import Table, MetaData, Column, Integer, Enum, Float, select, \
     func, DateTime, Numeric, exc, String, cast, REAL, TypeDecorator, Unicode, \
     Text, null, text, column, ARRAY, any_, all_
 from sqlalchemy.sql import operators
-from sqlalchemy import types as sqltypes
+from sqlalchemy import types
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import HSTORE, hstore, array, \
@@ -85,13 +86,32 @@ class FloatCoercionTest(fixtures.TablesTest, AssertsExecutionResults):
     @testing.fails_on('postgresql+zxjdbc',
                       'zxjdbc has no support for PG arrays')
     @testing.provide_metadata
-    def test_arrays(self):
+    def test_arrays_pg(self):
         metadata = self.metadata
         t1 = Table('t', metadata,
                    Column('x', postgresql.ARRAY(Float)),
                    Column('y', postgresql.ARRAY(REAL)),
                    Column('z', postgresql.ARRAY(postgresql.DOUBLE_PRECISION)),
                    Column('q', postgresql.ARRAY(Numeric))
+                   )
+        metadata.create_all()
+        t1.insert().execute(x=[5], y=[5], z=[6], q=[decimal.Decimal("6.4")])
+        row = t1.select().execute().first()
+        eq_(
+            row,
+            ([5], [5], [6], [decimal.Decimal("6.4")])
+        )
+
+    @testing.fails_on('postgresql+zxjdbc',
+                      'zxjdbc has no support for PG arrays')
+    @testing.provide_metadata
+    def test_arrays_base(self):
+        metadata = self.metadata
+        t1 = Table('t', metadata,
+                   Column('x', sqltypes.ARRAY(Float)),
+                   Column('y', sqltypes.ARRAY(REAL)),
+                   Column('z', sqltypes.ARRAY(postgresql.DOUBLE_PRECISION)),
+                   Column('q', sqltypes.ARRAY(Numeric))
                    )
         metadata.create_all()
         t1.insert().execute(x=[5], y=[5], z=[6], q=[decimal.Decimal("6.4")])
@@ -989,7 +1009,7 @@ class ArrayTest(AssertsCompiledSQL, fixtures.TestBase):
 
     def test_array_agg_generic(self):
         expr = func.array_agg(column('q', Integer))
-        is_(expr.type.__class__, sqltypes.ARRAY)
+        is_(expr.type.__class__, types.ARRAY)
         is_(expr.type.item_type.__class__, Integer)
 
     def test_array_agg_specific(self):
@@ -999,17 +1019,19 @@ class ArrayTest(AssertsCompiledSQL, fixtures.TestBase):
         is_(expr.type.item_type.__class__, Integer)
 
 
-class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
+class ArrayRoundTripTest(object):
 
     __only_on__ = 'postgresql'
     __backend__ = True
     __unsupported_on__ = 'postgresql+pg8000', 'postgresql+zxjdbc'
 
+    ARRAY = postgresql.ARRAY
+
     @classmethod
     def define_tables(cls, metadata):
 
         class ProcValue(TypeDecorator):
-            impl = postgresql.ARRAY(Integer, dimensions=2)
+            impl = cls.ARRAY(Integer, dimensions=2)
 
             def process_bind_param(self, value, dialect):
                 if value is None:
@@ -1029,15 +1051,15 @@ class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
 
         Table('arrtable', metadata,
               Column('id', Integer, primary_key=True),
-              Column('intarr', postgresql.ARRAY(Integer)),
-              Column('strarr', postgresql.ARRAY(Unicode())),
+              Column('intarr', cls.ARRAY(Integer)),
+              Column('strarr', cls.ARRAY(Unicode())),
               Column('dimarr', ProcValue)
               )
 
         Table('dim_arrtable', metadata,
               Column('id', Integer, primary_key=True),
-              Column('intarr', postgresql.ARRAY(Integer, dimensions=1)),
-              Column('strarr', postgresql.ARRAY(Unicode(), dimensions=1)),
+              Column('intarr', cls.ARRAY(Integer, dimensions=1)),
+              Column('strarr', cls.ARRAY(Unicode(), dimensions=1)),
               Column('dimarr', ProcValue)
               )
 
@@ -1050,8 +1072,8 @@ class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
     def test_reflect_array_column(self):
         metadata2 = MetaData(testing.db)
         tbl = Table('arrtable', metadata2, autoload=True)
-        assert isinstance(tbl.c.intarr.type, postgresql.ARRAY)
-        assert isinstance(tbl.c.strarr.type, postgresql.ARRAY)
+        assert isinstance(tbl.c.intarr.type, self.ARRAY)
+        assert isinstance(tbl.c.strarr.type, self.ARRAY)
         assert isinstance(tbl.c.intarr.type.item_type, Integer)
         assert isinstance(tbl.c.strarr.type.item_type, String)
 
@@ -1130,19 +1152,19 @@ class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
             func.array_cat(
                 array([1, 2, 3]),
                 array([4, 5, 6]),
-                type_=postgresql.ARRAY(Integer)
+                type_=self.ARRAY(Integer)
             )[2:5]
         ])
         eq_(
             testing.db.execute(stmt).scalar(), [2, 3, 4, 5]
         )
 
-    def test_any_all_exprs(self):
+    def test_any_all_exprs_array(self):
         stmt = select([
             3 == any_(func.array_cat(
                 array([1, 2, 3]),
                 array([4, 5, 6]),
-                type_=postgresql.ARRAY(Integer)
+                type_=self.ARRAY(Integer)
             ))
         ])
         eq_(
@@ -1248,17 +1270,6 @@ class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
             7
         )
 
-    def test_undim_array_empty(self):
-        arrtable = self.tables.arrtable
-        self._fixture_456(arrtable)
-        eq_(
-            testing.db.scalar(
-                select([arrtable.c.intarr]).
-                where(arrtable.c.intarr.contains([]))
-            ),
-            [4, 5, 6]
-        )
-
     def test_array_getitem_slice_exec(self):
         arrtable = self.tables.arrtable
         testing.db.execute(
@@ -1277,6 +1288,126 @@ class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
             testing.db.scalar(select([arrtable.c.intarr[2:3]])),
             [7, 8]
         )
+
+    def test_multi_dim_roundtrip(self):
+        arrtable = self.tables.arrtable
+        testing.db.execute(arrtable.insert(), dimarr=[[1, 2, 3], [4, 5, 6]])
+        eq_(
+            testing.db.scalar(select([arrtable.c.dimarr])),
+            [[-1, 0, 1], [2, 3, 4]]
+        )
+
+    def test_array_any_exec(self):
+        arrtable = self.tables.arrtable
+        with testing.db.connect() as conn:
+            conn.execute(
+                arrtable.insert(),
+                intarr=[4, 5, 6]
+            )
+            eq_(
+                conn.scalar(
+                    select([arrtable.c.intarr]).
+                    where(postgresql.Any(5, arrtable.c.intarr))
+                ),
+                [4, 5, 6]
+            )
+
+    def test_array_all_exec(self):
+        arrtable = self.tables.arrtable
+        with testing.db.connect() as conn:
+            conn.execute(
+                arrtable.insert(),
+                intarr=[4, 5, 6]
+            )
+            eq_(
+                conn.scalar(
+                    select([arrtable.c.intarr]).
+                    where(arrtable.c.intarr.all(4, operator=operators.le))
+                ),
+                [4, 5, 6]
+            )
+
+    @testing.provide_metadata
+    def test_tuple_flag(self):
+        metadata = self.metadata
+
+        t1 = Table(
+            't1', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('data', self.ARRAY(String(5), as_tuple=True)),
+            Column(
+                'data2',
+                self.ARRAY(
+                    Numeric(asdecimal=False), as_tuple=True)
+            )
+        )
+        metadata.create_all()
+        testing.db.execute(
+            t1.insert(), id=1, data=[
+                "1", "2", "3"], data2=[
+                5.4, 5.6])
+        testing.db.execute(
+            t1.insert(),
+            id=2,
+            data=[
+                "4",
+                "5",
+                "6"],
+            data2=[1.0])
+        testing.db.execute(t1.insert(), id=3, data=[["4", "5"], ["6", "7"]],
+                           data2=[[5.4, 5.6], [1.0, 1.1]])
+
+        r = testing.db.execute(t1.select().order_by(t1.c.id)).fetchall()
+        eq_(
+            r,
+            [
+                (1, ('1', '2', '3'), (5.4, 5.6)),
+                (2, ('4', '5', '6'), (1.0,)),
+                (3, (('4', '5'), ('6', '7')), ((5.4, 5.6), (1.0, 1.1)))
+            ]
+        )
+        # hashable
+        eq_(
+            set(row[1] for row in r),
+            set([('1', '2', '3'), ('4', '5', '6'), (('4', '5'), ('6', '7'))])
+        )
+
+    def test_array_plus_native_enum_create(self):
+        m = MetaData()
+        t = Table(
+            't', m,
+            Column(
+                'data_1',
+                self.ARRAY(
+                    postgresql.ENUM('a', 'b', 'c', name='my_enum_1')
+                )
+            ),
+            Column(
+                'data_2',
+                self.ARRAY(
+                    types.Enum('a', 'b', 'c', name='my_enum_2')
+                )
+            )
+        )
+
+        t.create(testing.db)
+        eq_(
+            set(e['name'] for e in inspect(testing.db).get_enums()),
+            set(['my_enum_1', 'my_enum_2'])
+        )
+        t.drop(testing.db)
+        eq_(inspect(testing.db).get_enums(), [])
+
+
+class CoreArrayRoundTripTest(ArrayRoundTripTest,
+                             fixtures.TablesTest, AssertsExecutionResults):
+
+    ARRAY = sqltypes.ARRAY
+
+
+class PGArrayRoundTripTest(ArrayRoundTripTest,
+                           fixtures.TablesTest, AssertsExecutionResults):
+    ARRAY = postgresql.ARRAY
 
     def _test_undim_array_contains_typed_exec(self, struct):
         arrtable = self.tables.arrtable
@@ -1321,14 +1452,6 @@ class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
             lambda elem: (
                 x for x in elem))
 
-    def test_multi_dim_roundtrip(self):
-        arrtable = self.tables.arrtable
-        testing.db.execute(arrtable.insert(), dimarr=[[1, 2, 3], [4, 5, 6]])
-        eq_(
-            testing.db.scalar(select([arrtable.c.dimarr])),
-            [[-1, 0, 1], [2, 3, 4]]
-        )
-
     def test_array_contained_by_exec(self):
         arrtable = self.tables.arrtable
         with testing.db.connect() as conn:
@@ -1342,6 +1465,17 @@ class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
                 ),
                 True
             )
+
+    def test_undim_array_empty(self):
+        arrtable = self.tables.arrtable
+        self._fixture_456(arrtable)
+        eq_(
+            testing.db.scalar(
+                select([arrtable.c.intarr]).
+                where(arrtable.c.intarr.contains([]))
+            ),
+            [4, 5, 6]
+        )
 
     def test_array_overlap_exec(self):
         arrtable = self.tables.arrtable
@@ -1357,107 +1491,6 @@ class ArrayRoundTripTest(fixtures.TablesTest, AssertsExecutionResults):
                 ),
                 [4, 5, 6]
             )
-
-    def test_array_any_exec(self):
-        arrtable = self.tables.arrtable
-        with testing.db.connect() as conn:
-            conn.execute(
-                arrtable.insert(),
-                intarr=[4, 5, 6]
-            )
-            eq_(
-                conn.scalar(
-                    select([arrtable.c.intarr]).
-                    where(postgresql.Any(5, arrtable.c.intarr))
-                ),
-                [4, 5, 6]
-            )
-
-    def test_array_all_exec(self):
-        arrtable = self.tables.arrtable
-        with testing.db.connect() as conn:
-            conn.execute(
-                arrtable.insert(),
-                intarr=[4, 5, 6]
-            )
-            eq_(
-                conn.scalar(
-                    select([arrtable.c.intarr]).
-                    where(arrtable.c.intarr.all(4, operator=operators.le))
-                ),
-                [4, 5, 6]
-            )
-
-    @testing.provide_metadata
-    def test_tuple_flag(self):
-        metadata = self.metadata
-
-        t1 = Table(
-            't1', metadata,
-            Column('id', Integer, primary_key=True),
-            Column('data', postgresql.ARRAY(String(5), as_tuple=True)),
-            Column(
-                'data2',
-                postgresql.ARRAY(
-                    Numeric(asdecimal=False), as_tuple=True)
-            )
-        )
-        metadata.create_all()
-        testing.db.execute(
-            t1.insert(), id=1, data=[
-                "1", "2", "3"], data2=[
-                5.4, 5.6])
-        testing.db.execute(
-            t1.insert(),
-            id=2,
-            data=[
-                "4",
-                "5",
-                "6"],
-            data2=[1.0])
-        testing.db.execute(t1.insert(), id=3, data=[["4", "5"], ["6", "7"]],
-                           data2=[[5.4, 5.6], [1.0, 1.1]])
-
-        r = testing.db.execute(t1.select().order_by(t1.c.id)).fetchall()
-        eq_(
-            r,
-            [
-                (1, ('1', '2', '3'), (5.4, 5.6)),
-                (2, ('4', '5', '6'), (1.0,)),
-                (3, (('4', '5'), ('6', '7')), ((5.4, 5.6), (1.0, 1.1)))
-            ]
-        )
-        # hashable
-        eq_(
-            set(row[1] for row in r),
-            set([('1', '2', '3'), ('4', '5', '6'), (('4', '5'), ('6', '7'))])
-        )
-
-    def test_array_plus_native_enum_create(self):
-        m = MetaData()
-        t = Table(
-            't', m,
-            Column(
-                'data_1',
-                postgresql.ARRAY(
-                    postgresql.ENUM('a', 'b', 'c', name='my_enum_1')
-                )
-            ),
-            Column(
-                'data_2',
-                postgresql.ARRAY(
-                    sqltypes.Enum('a', 'b', 'c', name='my_enum_2')
-                )
-            )
-        )
-
-        t.create(testing.db)
-        eq_(
-            set(e['name'] for e in inspect(testing.db).get_enums()),
-            set(['my_enum_1', 'my_enum_2'])
-        )
-        t.drop(testing.db)
-        eq_(inspect(testing.db).get_enums(), [])
 
 
 class HashableFlagORMTest(fixtures.TestBase):
@@ -1565,12 +1598,12 @@ class SpecialTypesTest(fixtures.TestBase, ComparesTables, AssertsCompiledSQL):
 
         # create these types so that we can issue
         # special SQL92 INTERVAL syntax
-        class y2m(sqltypes.UserDefinedType, postgresql.INTERVAL):
+        class y2m(types.UserDefinedType, postgresql.INTERVAL):
 
             def get_col_spec(self):
                 return "INTERVAL YEAR TO MONTH"
 
-        class d2s(sqltypes.UserDefinedType, postgresql.INTERVAL):
+        class d2s(types.UserDefinedType, postgresql.INTERVAL):
 
             def get_col_spec(self):
                 return "INTERVAL DAY TO SECOND"
@@ -1877,7 +1910,7 @@ class HStoreTest(AssertsCompiledSQL, fixtures.TestBase):
         is_(col['foo'].type.__class__, Text)
 
     def test_ret_type_custom(self):
-        class MyType(sqltypes.UserDefinedType):
+        class MyType(types.UserDefinedType):
             pass
 
         col = column('x', HSTORE(text_type=MyType))
@@ -2562,20 +2595,20 @@ class JSONTest(AssertsCompiledSQL, fixtures.TestBase):
     def test_path_typing(self):
         col = column('x', JSON())
         is_(
-            col['q'].type._type_affinity, sqltypes.JSON
+            col['q'].type._type_affinity, types.JSON
         )
         is_(
-            col[('q', )].type._type_affinity, sqltypes.JSON
+            col[('q', )].type._type_affinity, types.JSON
         )
         is_(
-            col['q']['p'].type._type_affinity, sqltypes.JSON
+            col['q']['p'].type._type_affinity, types.JSON
         )
         is_(
-            col[('q', 'p')].type._type_affinity, sqltypes.JSON
+            col[('q', 'p')].type._type_affinity, types.JSON
         )
 
     def test_custom_astext_type(self):
-        class MyType(sqltypes.UserDefinedType):
+        class MyType(types.UserDefinedType):
             pass
 
         col = column('x', JSON(astext_type=MyType))

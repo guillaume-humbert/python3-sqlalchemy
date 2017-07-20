@@ -1,5 +1,5 @@
 from sqlalchemy import func, Integer, Numeric, String, ForeignKey
-from sqlalchemy.orm import relationship, Session, aliased
+from sqlalchemy.orm import relationship, Session, aliased, persistence
 from sqlalchemy.testing.schema import Column
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext import hybrid
@@ -119,6 +119,7 @@ class PropertyExpressionTest(fixtures.TestBase, AssertsCompiledSQL):
                 return func.bar(cls._value)
 
         return A
+
 
     def _relationship_fixture(self):
         Base = declarative_base()
@@ -263,6 +264,118 @@ class PropertyValueTest(fixtures.TestBase, AssertsCompiledSQL):
         a1 = A(value=5)
         eq_(a1.value, 5)
         eq_(a1._value, 10)
+
+
+class PropertyOverrideTest(fixtures.TestBase, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
+    def _fixture(self):
+        Base = declarative_base()
+
+        class Person(Base):
+            __tablename__ = 'person'
+            id = Column(Integer, primary_key=True)
+            _name = Column(String)
+
+            @hybrid.hybrid_property
+            def name(self):
+                return self._name
+
+            @name.setter
+            def name(self, value):
+                self._name = value.title()
+
+        class OverrideSetter(Person):
+            __tablename__ = 'override_setter'
+            id = Column(Integer, ForeignKey('person.id'), primary_key=True)
+            other = Column(String)
+
+            @Person.name.setter
+            def name(self, value):
+                self._name = value.upper()
+
+        class OverrideGetter(Person):
+            __tablename__ = 'override_getter'
+            id = Column(Integer, ForeignKey('person.id'), primary_key=True)
+            other = Column(String)
+
+            @Person.name.getter
+            def name(self):
+                return "Hello " + self._name
+
+        class OverrideExpr(Person):
+            __tablename__ = 'override_expr'
+            id = Column(Integer, ForeignKey('person.id'), primary_key=True)
+            other = Column(String)
+
+            @Person.name.overrides.expression
+            def name(self):
+                return func.concat("Hello", self._name)
+
+        class FooComparator(hybrid.Comparator):
+            def __clause_element__(self):
+                return func.concat("Hello", self.expression._name)
+
+        class OverrideComparator(Person):
+            __tablename__ = 'override_comp'
+            id = Column(Integer, ForeignKey('person.id'), primary_key=True)
+            other = Column(String)
+
+            @Person.name.overrides.comparator
+            def name(self):
+                return FooComparator(self)
+
+        return (
+            Person, OverrideSetter, OverrideGetter,
+            OverrideExpr, OverrideComparator
+        )
+
+    def test_property(self):
+        Person, _, _, _, _ = self._fixture()
+        p1 = Person()
+        p1.name = 'mike'
+        eq_(p1._name, 'Mike')
+        eq_(p1.name, 'Mike')
+
+    def test_override_setter(self):
+        _, OverrideSetter, _, _, _ = self._fixture()
+        p1 = OverrideSetter()
+        p1.name = 'mike'
+        eq_(p1._name, 'MIKE')
+        eq_(p1.name, 'MIKE')
+
+    def test_override_getter(self):
+        _, _, OverrideGetter, _, _ = self._fixture()
+        p1 = OverrideGetter()
+        p1.name = 'mike'
+        eq_(p1._name, 'Mike')
+        eq_(p1.name, 'Hello Mike')
+
+    def test_override_expr(self):
+        Person, _, _, OverrideExpr, _ = self._fixture()
+
+        self.assert_compile(
+            Person.name.__clause_element__(),
+            "person._name"
+        )
+
+        self.assert_compile(
+            OverrideExpr.name.__clause_element__(),
+            "concat(:concat_1, person._name)"
+        )
+
+    def test_override_comparator(self):
+        Person, _, _, _, OverrideComparator = self._fixture()
+
+        self.assert_compile(
+            Person.name.__clause_element__(),
+            "person._name"
+        )
+
+        self.assert_compile(
+            OverrideComparator.name.__clause_element__(),
+            "concat(:concat_1, person._name)"
+        )
 
 
 class PropertyMirrorTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -423,6 +536,164 @@ class MethodExpressionTest(fixtures.TestBase, AssertsCompiledSQL):
         eq_(a1.value.__doc__, "This is an instance-level docstring")
 
         eq_(a1.other_value.__doc__, "This is an instance-level docstring")
+
+
+class BulkUpdateTest(fixtures.DeclarativeMappedTest, AssertsCompiledSQL):
+    __dialect__ = 'default'
+
+    @classmethod
+    def setup_classes(cls):
+        Base = cls.DeclarativeBasic
+
+        class Person(Base):
+            __tablename__ = 'person'
+
+            id = Column(Integer, primary_key=True)
+            first_name = Column(String(10))
+            last_name = Column(String(10))
+
+            @hybrid.hybrid_property
+            def name(self):
+                return self.first_name + ' ' + self.last_name
+
+            @name.setter
+            def name(self, value):
+                self.first_name, self.last_name = value.split(' ', 1)
+
+            @name.expression
+            def name(cls):
+                return func.concat(cls.first_name, ' ', cls.last_name)
+
+            @name.update_expression
+            def name(cls, value):
+                f, l = value.split(' ', 1)
+                return [(cls.first_name, f), (cls.last_name, l)]
+
+            @hybrid.hybrid_property
+            def uname(self):
+                return self.name
+
+            @hybrid.hybrid_property
+            def fname(self):
+                return self.first_name
+
+            @hybrid.hybrid_property
+            def fname2(self):
+                return self.fname
+
+    @classmethod
+    def insert_data(cls):
+        s = Session()
+        jill = cls.classes.Person(id=3, first_name='jill')
+        s.add(jill)
+        s.commit()
+
+    def test_update_plain(self):
+        Person = self.classes.Person
+
+        s = Session()
+        q = s.query(Person)
+
+        bulk_ud = persistence.BulkUpdate.factory(
+            q, False, {Person.fname: "Dr."}, {})
+
+        self.assert_compile(
+            bulk_ud,
+            "UPDATE person SET first_name=:first_name",
+            params={'first_name': 'Dr.'}
+        )
+
+    def test_update_expr(self):
+        Person = self.classes.Person
+
+        s = Session()
+        q = s.query(Person)
+
+        bulk_ud = persistence.BulkUpdate.factory(
+            q, False, {Person.name: "Dr. No"}, {})
+
+        self.assert_compile(
+            bulk_ud,
+            "UPDATE person SET first_name=:first_name, last_name=:last_name",
+            params={'first_name': 'Dr.', 'last_name': 'No'}
+        )
+
+    def test_evaluate_hybrid_attr_indirect(self):
+        Person = self.classes.Person
+
+        s = Session()
+        jill = s.query(Person).get(3)
+
+        s.query(Person).update(
+            {Person.fname2: 'moonbeam'},
+            synchronize_session='evaluate')
+        eq_(jill.fname2, 'moonbeam')
+
+    def test_evaluate_hybrid_attr_plain(self):
+        Person = self.classes.Person
+
+        s = Session()
+        jill = s.query(Person).get(3)
+
+        s.query(Person).update(
+            {Person.fname: 'moonbeam'},
+            synchronize_session='evaluate')
+        eq_(jill.fname, 'moonbeam')
+
+    def test_fetch_hybrid_attr_indirect(self):
+        Person = self.classes.Person
+
+        s = Session()
+        jill = s.query(Person).get(3)
+
+        s.query(Person).update(
+            {Person.fname2: 'moonbeam'},
+            synchronize_session='fetch')
+        eq_(jill.fname2, 'moonbeam')
+
+    def test_fetch_hybrid_attr_plain(self):
+        Person = self.classes.Person
+
+        s = Session()
+        jill = s.query(Person).get(3)
+
+        s.query(Person).update(
+            {Person.fname: 'moonbeam'},
+            synchronize_session='fetch')
+        eq_(jill.fname, 'moonbeam')
+
+    def test_evaluate_hybrid_attr_w_update_expr(self):
+        Person = self.classes.Person
+
+        s = Session()
+        jill = s.query(Person).get(3)
+
+        s.query(Person).update(
+            {Person.name: 'moonbeam sunshine'},
+            synchronize_session='evaluate')
+        eq_(jill.name, 'moonbeam sunshine')
+
+    def test_fetch_hybrid_attr_w_update_expr(self):
+        Person = self.classes.Person
+
+        s = Session()
+        jill = s.query(Person).get(3)
+
+        s.query(Person).update(
+            {Person.name: 'moonbeam sunshine'},
+            synchronize_session='fetch')
+        eq_(jill.name, 'moonbeam sunshine')
+
+    def test_evaluate_hybrid_attr_indirect_w_update_expr(self):
+        Person = self.classes.Person
+
+        s = Session()
+        jill = s.query(Person).get(3)
+
+        s.query(Person).update(
+            {Person.uname: 'moonbeam sunshine'},
+            synchronize_session='evaluate')
+        eq_(jill.uname, 'moonbeam sunshine')
 
 
 class SpecialObjectTest(fixtures.TestBase, AssertsCompiledSQL):

@@ -1,12 +1,12 @@
-from sqlalchemy import *
+from sqlalchemy import MetaData, Table, Column, Integer, select, \
+    ForeignKey, Index, CheckConstraint, inspect, column
 from sqlalchemy import sql, schema
 from sqlalchemy.sql import compiler
 from sqlalchemy.testing import fixtures, AssertsCompiledSQL, eq_
 from sqlalchemy import testing
-from sqlalchemy.sql.elements import (quoted_name,
-                                     _truncated_label,
-                                     _anonymous_label)
+from sqlalchemy.sql.elements import quoted_name, _anonymous_label
 from sqlalchemy.testing.util import picklers
+from sqlalchemy.engine import default
 
 
 class QuoteExecTest(fixtures.TestBase):
@@ -454,6 +454,23 @@ class QuoteTest(fixtures.TestBase, AssertsCompiledSQL):
             'SELECT t1.col1 AS "ShouldQuote" FROM t1 ORDER BY "ShouldQuote"'
         )
 
+    def test_collate(self):
+        self.assert_compile(
+            column('foo').collate('utf8'),
+            "foo COLLATE utf8"
+        )
+
+        self.assert_compile(
+            column('foo').collate('fr_FR'),
+            'foo COLLATE "fr_FR"'
+        )
+
+        self.assert_compile(
+            column('foo').collate('utf8_GERMAN_ci'),
+            'foo COLLATE `utf8_GERMAN_ci`',
+            dialect="mysql"
+        )
+
     def test_join(self):
         # Lower case names, should not quote
         metadata = MetaData()
@@ -683,7 +700,7 @@ class PreparerTest(fixtures.TestBase):
     """Test the db-agnostic quoting services of IdentifierPreparer."""
 
     def test_unformat(self):
-        prep = compiler.IdentifierPreparer(None)
+        prep = compiler.IdentifierPreparer(default.DefaultDialect())
         unformat = prep.unformat_identifiers
 
         def a_eq(have, want):
@@ -715,7 +732,7 @@ class PreparerTest(fixtures.TestBase):
             def _unescape_identifier(self, value):
                 return value.replace('``', '`')
 
-        prep = Custom(None)
+        prep = Custom(default.DefaultDialect())
         unformat = prep.unformat_identifiers
 
         def a_eq(have, want):

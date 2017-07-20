@@ -31,13 +31,12 @@ if util.jython:
     import array
 
 
-class _DateAffinity(object):
+class _LookupExpressionAdapter(object):
 
-    """Mixin date/time specific expression adaptations.
+    """Mixin expression adaptations based on lookup tables.
 
-    Rules are implemented within Date,Time,Interval,DateTime, Numeric,
-    Integer. Based on http://www.postgresql.org/docs/current/static
-    /functions-datetime.html.
+    These rules are currenly used by the numeric, integer and date types
+    which have detailed cross-expression coercion rules.
 
     """
 
@@ -50,12 +49,15 @@ class _DateAffinity(object):
 
         def _adapt_expression(self, op, other_comparator):
             othertype = other_comparator.type._type_affinity
-            return (
-                op, to_instance(
-                    self.type._expression_adaptations.
-                    get(op, self._blank_dict).
-                    get(othertype, NULLTYPE))
-            )
+            lookup = self.type._expression_adaptations.get(
+                op, self._blank_dict).get(
+                othertype, NULLTYPE)
+            if lookup is othertype:
+                return (op, other_comparator.type)
+            elif lookup is self.type._type_affinity:
+                return (op, self.type)
+            else:
+                return (op, to_instance(lookup))
     comparator_factory = Comparator
 
 
@@ -384,7 +386,7 @@ class UnicodeText(Text):
         super(UnicodeText, self).__init__(length=length, **kwargs)
 
 
-class Integer(_DateAffinity, TypeEngine):
+class Integer(_LookupExpressionAdapter, TypeEngine):
 
     """A type for ``int`` integers."""
 
@@ -456,7 +458,7 @@ class BigInteger(Integer):
     __visit_name__ = 'big_integer'
 
 
-class Numeric(_DateAffinity, TypeEngine):
+class Numeric(_LookupExpressionAdapter, TypeEngine):
 
     """A type for fixed precision numbers, such as ``NUMERIC`` or ``DECIMAL``.
 
@@ -700,32 +702,13 @@ class Float(Numeric):
             return processors.to_decimal_processor_factory(
                 decimal.Decimal,
                 self._effective_decimal_return_scale)
+        elif dialect.supports_native_decimal:
+            return processors.to_float
         else:
             return None
 
-    @util.memoized_property
-    def _expression_adaptations(self):
-        return {
-            operators.mul: {
-                Interval: Interval,
-                Numeric: self.__class__,
-            },
-            operators.div: {
-                Numeric: self.__class__,
-            },
-            operators.truediv: {
-                Numeric: self.__class__,
-            },
-            operators.add: {
-                Numeric: self.__class__,
-            },
-            operators.sub: {
-                Numeric: self.__class__,
-            }
-        }
 
-
-class DateTime(_DateAffinity, TypeEngine):
+class DateTime(_LookupExpressionAdapter, TypeEngine):
 
     """A type for ``datetime.datetime()`` objects.
 
@@ -770,6 +753,10 @@ class DateTime(_DateAffinity, TypeEngine):
 
     @util.memoized_property
     def _expression_adaptations(self):
+
+        # Based on http://www.postgresql.org/docs/current/\
+        # static/functions-datetime.html.
+
         return {
             operators.add: {
                 Interval: self.__class__,
@@ -781,7 +768,7 @@ class DateTime(_DateAffinity, TypeEngine):
         }
 
 
-class Date(_DateAffinity, TypeEngine):
+class Date(_LookupExpressionAdapter, TypeEngine):
 
     """A type for ``datetime.date()`` objects."""
 
@@ -796,6 +783,9 @@ class Date(_DateAffinity, TypeEngine):
 
     @util.memoized_property
     def _expression_adaptations(self):
+        # Based on http://www.postgresql.org/docs/current/\
+        # static/functions-datetime.html.
+
         return {
             operators.add: {
                 Integer: self.__class__,
@@ -819,7 +809,7 @@ class Date(_DateAffinity, TypeEngine):
         }
 
 
-class Time(_DateAffinity, TypeEngine):
+class Time(_LookupExpressionAdapter, TypeEngine):
 
     """A type for ``datetime.time()`` objects."""
 
@@ -837,6 +827,9 @@ class Time(_DateAffinity, TypeEngine):
 
     @util.memoized_property
     def _expression_adaptations(self):
+        # Based on http://www.postgresql.org/docs/current/\
+        # static/functions-datetime.html.
+
         return {
             operators.add: {
                 Date: DateTime,
@@ -1627,7 +1620,7 @@ class Boolean(TypeEngine, SchemaType):
             return processors.int_to_boolean
 
 
-class Interval(_DateAffinity, TypeDecorator):
+class Interval(_LookupExpressionAdapter, TypeDecorator):
 
     """A type for ``datetime.timedelta()`` objects.
 
@@ -1719,6 +1712,9 @@ class Interval(_DateAffinity, TypeDecorator):
 
     @util.memoized_property
     def _expression_adaptations(self):
+        # Based on http://www.postgresql.org/docs/current/\
+        # static/functions-datetime.html.
+
         return {
             operators.add: {
                 Date: DateTime,
@@ -2077,7 +2073,7 @@ class JSON(Indexable, TypeEngine):
         return process
 
 
-class ARRAY(Indexable, Concatenable, TypeEngine):
+class ARRAY(SchemaEventTarget, Indexable, Concatenable, TypeEngine):
     """Represent a SQL Array type.
 
     .. note::  This type serves as the basis for all ARRAY operations.
@@ -2215,6 +2211,11 @@ class ARRAY(Indexable, Concatenable, TypeEngine):
 
             return operators.getitem, index, return_type
 
+        def contains(self, *arg, **kw):
+            raise NotImplementedError(
+                "ARRAY.contains() not implemented for the base "
+                "ARRAY type; please use the dialect-specific ARRAY type")
+
         @util.dependencies("sqlalchemy.sql.elements")
         def any(self, elements, other, operator=None):
             """Return ``other operator ANY (array)`` clause.
@@ -2340,6 +2341,18 @@ class ARRAY(Indexable, Concatenable, TypeEngine):
 
     def compare_values(self, x, y):
         return x == y
+
+    def _set_parent(self, column):
+        """Support SchemaEventTarget"""
+
+        if isinstance(self.item_type, SchemaEventTarget):
+            self.item_type._set_parent(column)
+
+    def _set_parent_with_dispatch(self, parent):
+        """Support SchemaEventTarget"""
+
+        if isinstance(self.item_type, SchemaEventTarget):
+            self.item_type._set_parent_with_dispatch(parent)
 
 
 class REAL(Float):
@@ -2554,7 +2567,9 @@ class NullType(TypeEngine):
     class Comparator(TypeEngine.Comparator):
 
         def _adapt_expression(self, op, other_comparator):
-            if isinstance(other_comparator, NullType.Comparator) or \
+            if operators.is_comparison(op):
+                return op, BOOLEANTYPE
+            elif isinstance(other_comparator, NullType.Comparator) or \
                     not operators.is_commutative(op):
                 return op, self.expr.type
             else:
@@ -2585,7 +2600,7 @@ MATCHTYPE = MatchType()
 
 _type_map = {
     int: Integer(),
-    float: Numeric(),
+    float: Float(),
     bool: BOOLEANTYPE,
     decimal.Decimal: Numeric(),
     dt.date: Date(),

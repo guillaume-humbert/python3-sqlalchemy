@@ -220,6 +220,14 @@ class SuiteRequirements(Requirements):
         )
 
     @property
+    def tuple_in(self):
+        """Target platform supports the syntax
+        "(x, y) IN ((x1, y1), (x2, y2), ...)"
+        """
+
+        return exclusions.closed()
+
+    @property
     def duplicate_names_in_cursor_description(self):
         """target platform supports a SELECT statement that has
         the same name repeated more than once in the columns list."""
@@ -320,6 +328,10 @@ class SuiteRequirements(Requirements):
     @property
     def table_reflection(self):
         return exclusions.open()
+
+    @property
+    def comment_reflection(self):
+        return exclusions.closed()
 
     @property
     def view_column_reflection(self):

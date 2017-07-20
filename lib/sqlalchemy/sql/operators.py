@@ -196,7 +196,7 @@ class Operators(object):
 class custom_op(object):
     """Represent a 'custom' operator.
 
-    :class:`.custom_op` is normally instantitated when the
+    :class:`.custom_op` is normally instantiated when the
     :meth:`.ColumnOperators.op` method is used to create a
     custom operator callable.  The class can also be used directly
     when programmatically constructing expressions.   E.g.
@@ -458,6 +458,17 @@ class ColumnOperators(Operators):
         "other" may be a tuple/list of column expressions,
         or a :func:`~.expression.select` construct.
 
+        In the case that ``other`` is an empty sequence, the compiler
+        produces an "empty in" expression.   This defaults to the
+        expression "1 != 1" to produce false in all cases.  The
+        :paramref:`.create_engine.empty_in_strategy` may be used to
+        alter this behavior.
+
+        .. versionchanged:: 1.2  The :meth:`.ColumnOperators.in_` and
+           :meth:`.ColumnOperators.notin_` operators
+           now produce a "static" expression for an empty IN sequence
+           by default.
+
         """
         return self.operate(in_op, other)
 
@@ -467,7 +478,16 @@ class ColumnOperators(Operators):
         This is equivalent to using negation with
         :meth:`.ColumnOperators.in_`, i.e. ``~x.in_(y)``.
 
-        .. versionadded:: 0.8
+        In the case that ``other`` is an empty sequence, the compiler
+        produces an "empty not in" expression.   This defaults to the
+        expression "1 = 1" to produce true in all cases.  The
+        :paramref:`.create_engine.empty_in_strategy` may be used to
+        alter this behavior.
+
+        .. versionchanged:: 1.2  The :meth:`.ColumnOperators.in_` and
+           :meth:`.ColumnOperators.notin_` operators
+           now produce a "static" expression for an empty IN sequence
+           by default.
 
         .. seealso::
 
@@ -541,6 +561,31 @@ class ColumnOperators(Operators):
 
         In a column context, produces the clause ``LIKE '<other>%'``
 
+        E.g.::
+
+            select([sometable]).where(sometable.c.column.startswith("foobar"))
+
+        :param other: expression to be compared, with SQL wildcard
+          matching (``%`` and ``_``) enabled, e.g.::
+
+            somecolumn.startswith("foo%bar")
+
+        :param escape: optional escape character, renders the ``ESCAPE``
+          keyword allowing that escape character to be used to manually
+          disable SQL wildcard matching (``%`` and ``_``) in the expression,
+          e.g.::
+
+            somecolumn.startswith("foo/%bar", escape="/")
+
+        :param autoescape: optional escape character, renders the ``ESCAPE``
+          keyword and uses that escape character to auto escape the
+          expression, disabling all SQL wildcard matching (``%`` and ``_``),
+          e.g.::
+
+            somecolumn.startswith("foo%bar", autoescape="/")
+
+          .. versionadded:: 1.2
+
         """
         return self.operate(startswith_op, other, **kwargs)
 
@@ -549,6 +594,31 @@ class ColumnOperators(Operators):
 
         In a column context, produces the clause ``LIKE '%<other>'``
 
+        E.g.::
+
+            select([sometable]).where(sometable.c.column.endswith("foobar"))
+
+        :param other: expression to be compared, with SQL wildcard
+          matching (``%`` and ``_``) enabled, e.g.::
+
+            somecolumn.endswith("foo%bar")
+
+        :param escape: optional escape character, renders the ``ESCAPE``
+          keyword allowing that escape character to be used to manually
+          disable SQL wildcard matching (``%`` and ``_``) in the expression,
+          e.g.::
+
+            somecolumn.endswith("foo/%bar", escape="/")
+
+        :param autoescape: optional escape character, renders the ``ESCAPE``
+          keyword and uses that escape character to auto escape the
+          expression, disabling all SQL wildcard matching (``%`` and ``_``),
+          e.g.::
+
+            somecolumn.endswith("foo%bar", autoescape="/")
+
+          .. versionadded:: 1.2
+
         """
         return self.operate(endswith_op, other, **kwargs)
 
@@ -556,6 +626,31 @@ class ColumnOperators(Operators):
         """Implement the 'contains' operator.
 
         In a column context, produces the clause ``LIKE '%<other>%'``
+
+        E.g.::
+
+            select([sometable]).where(sometable.c.column.contains("foobar"))
+
+        :param other: expression to compare, with SQL wildcard
+          matching (``%`` and ``_``) enabled, e.g.::
+
+            somecolumn.contains("foo%bar")
+
+        :param escape: optional escape character, renders the ``ESCAPE``
+          keyword allowing that escape character to be used to manually
+          disable SQL wildcard matching (``%`` and ``_``) in the expression,
+          e.g.::
+
+            somecolumn.contains("foo/%bar", escape="/")
+
+        :param autoescape: optional escape character, renders the ``ESCAPE``
+          keyword and uses that escape character to auto escape the
+          expression, disabling all SQL wildcard matching (``%`` and ``_``),
+          e.g.::
+
+            somecolumn.contains("foo%bar", autoescape="/")
+
+          .. versionadded:: 1.2
 
         """
         return self.operate(contains_op, other, **kwargs)
@@ -600,7 +695,13 @@ class ColumnOperators(Operators):
 
     def collate(self, collation):
         """Produce a :func:`~.expression.collate` clause against
-        the parent object, given the collation string."""
+        the parent object, given the collation string.
+
+        .. seealso::
+
+            :func:`~.expression.collate`
+
+        """
         return self.operate(collate, collation)
 
     def __radd__(self, other):
@@ -736,6 +837,10 @@ class ColumnOperators(Operators):
         return self.reverse_operate(truediv, other)
 
 
+def _escaped(value, escape):
+    return value.replace('%', escape + '%').replace('_', escape + '_')
+
+
 def from_():
     raise NotImplementedError()
 
@@ -824,28 +929,46 @@ def all_op(a):
     return a.all_()
 
 
-def startswith_op(a, b, escape=None):
-    return a.startswith(b, escape=escape)
+def startswith_op(a, b, escape=None, autoescape=None):
+    if autoescape:
+        return a.startswith(_escaped(b, autoescape), escape=autoescape)
+    else:
+        return a.startswith(b, escape=escape)
 
 
-def notstartswith_op(a, b, escape=None):
-    return ~a.startswith(b, escape=escape)
+def notstartswith_op(a, b, escape=None, autoescape=None):
+    if autoescape:
+        return ~a.startswith(_escaped(b, autoescape), escape=autoescape)
+    else:
+        return ~a.startswith(b, escape=escape)
 
 
-def endswith_op(a, b, escape=None):
-    return a.endswith(b, escape=escape)
+def endswith_op(a, b, escape=None, autoescape=None):
+    if autoescape:
+        return a.endswith(_escaped(b, autoescape), escape=autoescape)
+    else:
+        return a.endswith(b, escape=escape)
 
 
-def notendswith_op(a, b, escape=None):
-    return ~a.endswith(b, escape=escape)
+def notendswith_op(a, b, escape=None, autoescape=None):
+    if autoescape:
+        return ~a.endswith(_escaped(b, autoescape), escape=autoescape)
+    else:
+        return ~a.endswith(b, escape=escape)
 
 
-def contains_op(a, b, escape=None):
-    return a.contains(b, escape=escape)
+def contains_op(a, b, escape=None, autoescape=None):
+    if autoescape:
+        return a.contains(_escaped(b, autoescape), escape=autoescape)
+    else:
+        return a.contains(b, escape=escape)
 
 
-def notcontains_op(a, b, escape=None):
-    return ~a.contains(b, escape=escape)
+def notcontains_op(a, b, escape=None, autoescape=None):
+    if autoescape:
+        return ~a.contains(_escaped(b, autoescape), escape=autoescape)
+    else:
+        return ~a.contains(b, escape=escape)
 
 
 def match_op(a, b, **kw):
@@ -857,6 +980,14 @@ def notmatch_op(a, b, **kw):
 
 
 def comma_op(a, b):
+    raise NotImplementedError()
+
+
+def empty_in_op(a, b):
+    raise NotImplementedError()
+
+
+def empty_notin_op(a, b):
     raise NotImplementedError()
 
 
@@ -888,9 +1019,10 @@ def json_path_getitem_op(a, b):
     raise NotImplementedError()
 
 
-_commutative = set([eq, ne, add, mul])
+_commutative = {eq, ne, add, mul}
 
-_comparison = set([eq, ne, lt, gt, ge, le, between_op, like_op])
+_comparison = {eq, ne, lt, gt, ge, le, between_op, like_op, is_,
+               isnot, is_distinct_from, isnot_distinct_from}
 
 
 def is_comparison(op):
@@ -959,23 +1091,26 @@ _PRECEDENCE = {
     sub: 7,
 
     concat_op: 6,
-    match_op: 6,
-    notmatch_op: 6,
 
-    ilike_op: 6,
-    notilike_op: 6,
-    like_op: 6,
-    notlike_op: 6,
-    in_op: 6,
-    notin_op: 6,
+    match_op: 5,
+    notmatch_op: 5,
 
-    is_: 6,
-    isnot: 6,
+    ilike_op: 5,
+    notilike_op: 5,
+    like_op: 5,
+    notlike_op: 5,
+    in_op: 5,
+    notin_op: 5,
+
+    is_: 5,
+    isnot: 5,
 
     eq: 5,
     ne: 5,
     is_distinct_from: 5,
     isnot_distinct_from: 5,
+    empty_in_op: 5,
+    empty_notin_op: 5,
     gt: 5,
     lt: 5,
     ge: 5,

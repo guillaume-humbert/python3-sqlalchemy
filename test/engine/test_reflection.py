@@ -12,6 +12,8 @@ from sqlalchemy.testing import eq_, is_true, assert_raises, \
 from sqlalchemy import testing
 from sqlalchemy.util import ue
 from sqlalchemy.testing import config
+from sqlalchemy.testing import mock
+from sqlalchemy.testing import expect_warnings
 
 metadata, users = None, None
 
@@ -972,6 +974,35 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
             m9.reflect()
             self.assert_(not m9.tables)
 
+    @testing.provide_metadata
+    def test_reflect_all_unreflectable_table(self):
+        names = ['rt_%s' % name for name in ('a', 'b', 'c', 'd', 'e')]
+
+        for name in names:
+            Table(name, self.metadata,
+                  Column('id', sa.Integer, primary_key=True))
+        self.metadata.create_all()
+
+        m = MetaData()
+
+        reflecttable = testing.db.dialect.reflecttable
+
+        def patched(conn, table, *arg, **kw):
+            if table.name == 'rt_c':
+                raise sa.exc.UnreflectableTableError("Can't reflect rt_c")
+            else:
+                return reflecttable(conn, table, *arg, **kw)
+
+        with mock.patch.object(testing.db.dialect, "reflecttable", patched):
+            with expect_warnings("Skipping table rt_c: Can't reflect rt_c"):
+                m.reflect(bind=testing.db)
+
+            assert_raises_message(
+                sa.exc.UnreflectableTableError,
+                "Can't reflect rt_c",
+                Table, 'rt_c', m, autoload_with=testing.db
+            )
+
     def test_reflect_all_conn_closing(self):
         m1 = MetaData()
         c = testing.db.connect()
@@ -1009,6 +1040,24 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
         assert set([t2.c.id]) == set(r1.columns)
         assert set([t2.c.name, t2.c.id]) == set(r2.columns)
         assert set([t2.c.name]) == set(r3.columns)
+
+    @testing.requires.comment_reflection
+    @testing.provide_metadata
+    def test_comment_reflection(self):
+        m1 = self.metadata
+        Table('sometable', m1,
+                   Column('id', sa.Integer, comment='c1 comment'),
+                   comment='t1 comment')
+        m1.create_all()
+        m2 = MetaData(testing.db)
+        t2 = Table('sometable', m2, autoload=True)
+
+        eq_(t2.comment, 't1 comment')
+        eq_(t2.c.id.comment, 'c1 comment')
+
+        t3 = Table('sometable', m2, extend_existing=True)
+        eq_(t3.comment, 't1 comment')
+        eq_(t3.c.id.comment, 'c1 comment')
 
     @testing.requires.check_constraint_reflection
     @testing.provide_metadata

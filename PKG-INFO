@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: SQLAlchemy
-Version: 1.1.11
+Version: 1.2.0b1
 Summary: Database Abstraction Library
 Home-page: http://www.sqlalchemy.org
 Author: Mike Bayer
@@ -149,7 +149,6 @@ Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: Implementation :: CPython
-Classifier: Programming Language :: Python :: Implementation :: Jython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Topic :: Database :: Front-Ends
 Classifier: Operating System :: OS Independent

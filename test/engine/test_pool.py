@@ -20,7 +20,16 @@ def MockDBAPI():  # noqa
         return Mock()
 
     def connect(*arg, **kw):
-        return Mock(cursor=Mock(side_effect=cursor))
+        def close():
+            conn.closed = True
+
+        # mock seems like it might have an issue logging
+        # call_count correctly under threading, not sure.
+        # adding a side_effect for close seems to help.
+        conn = Mock(
+            cursor=Mock(side_effect=cursor),
+            close=Mock(side_effect=close), closed=False)
+        return conn
 
     def shutdown(value):
         if value:
@@ -2042,7 +2051,7 @@ class SingletonThreadPoolTest(PoolTestBase):
             threads.append(th)
         for th in threads:
             th.join(join_timeout)
-        assert len(p._all_conns) == 3
+        eq_(len(p._all_conns), 3)
 
         if strong_refs:
             still_opened = len([c for c in sr if not c.close.call_count])

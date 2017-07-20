@@ -254,7 +254,7 @@ class Dialect(object):
           a dictionary of the form
               {'name' : str, 'start' :int, 'increment': int, 'minvalue': int,
                'maxvalue': int, 'nominvalue': bool, 'nomaxvalue': bool,
-               'cycle': bool}
+               'cycle': bool, 'cache': int, 'order': bool}
 
         Additional column attributes may be present.
         """
@@ -417,6 +417,25 @@ class Dialect(object):
           method.
 
         .. versionadded:: 1.1.0
+
+        """
+
+        raise NotImplementedError()
+
+    def get_table_comment(
+            self, connection, table_name, schema=None, **kw):
+        r"""Return the "comment" for the table identified by `table_name`.
+
+        Given a string `table_name` and an optional string `schema`, return
+        table comment information as a dictionary with this key:
+
+        text
+           text of the comment
+
+        Raises ``NotImplementedError`` for dialects that don't support
+        comments.
+
+        .. versionadded:: 1.2
 
         """
 

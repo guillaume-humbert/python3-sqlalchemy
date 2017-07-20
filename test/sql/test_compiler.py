@@ -1386,7 +1386,6 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             dialect=mysql.dialect()
         )
 
-    @testing.emits_warning('.*empty sequence.*')
     def test_render_binds_as_literal(self):
         """test a compiler that renders binds inline into
         SQL in the columns clause."""
@@ -1423,7 +1422,7 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
 
         self.assert_compile(
             select([literal("foo").in_([])]),
-            "SELECT 'foo' != 'foo' AS anon_1",
+            "SELECT 1 != 1 AS anon_1",
             dialect=dialect
         )
 
@@ -1440,13 +1439,16 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             dialect=dialect
         )
 
+        empty_in_dialect = default.DefaultDialect(empty_in_strategy='dynamic')
+        empty_in_dialect.statement_compiler = Compiler
+
         assert_raises_message(
             exc.CompileError,
             "Bind parameter 'foo' without a "
             "renderable value not allowed here.",
             bindparam("foo").in_(
                 []).compile,
-            dialect=dialect)
+            dialect=empty_in_dialect)
 
     def test_literal(self):
 
@@ -2170,6 +2172,18 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             ),
             "(mytable.myid, mytable.name) IN (SELECT "
             "myothertable.otherid, myothertable.othername FROM myothertable)"
+        )
+
+    def test_expanding_parameter(self):
+        self.assert_compile(
+            tuple_(table1.c.myid, table1.c.name).in_(
+                bindparam('foo', expanding=True)),
+            "(mytable.myid, mytable.name) IN ([EXPANDING_foo])"
+        )
+
+        self.assert_compile(
+            table1.c.myid.in_(bindparam('foo', expanding=True)),
+            "mytable.myid IN ([EXPANDING_foo])"
         )
 
     def test_cast(self):
