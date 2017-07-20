@@ -4,7 +4,7 @@
 90b7e85174d67e0152f7ce144a2956afc2e8f6c3
 90b7e85174d67e0152f7ce144a2956afc2e8f6c3
 sqlalchemy_1.2.0~b1+ds1.orig.tar.gz
-77bfc29adf9a523e1bbf72553b753e48897a1a65
+152c493af49cc6daf6f2562ddf9ad687d77a536b
 2852192
 debianTag="debian/%e%v"
 patchedTag="patched/%e%v"
