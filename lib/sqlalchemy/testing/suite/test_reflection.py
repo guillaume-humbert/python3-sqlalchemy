@@ -70,7 +70,8 @@ class ComponentReflectionTest(fixtures.TablesTest):
                           Column('test2', sa.Float(5), nullable=False),
                           Column('parent_user_id', sa.Integer,
                                  sa.ForeignKey('%susers.user_id' %
-                                               schema_prefix)),
+                                               schema_prefix,
+                                               name='user_id_fk')),
                           schema=schema,
                           test_needs_fk=True,
                           )
@@ -101,6 +102,11 @@ class ComponentReflectionTest(fixtures.TablesTest):
               schema=schema,
               test_needs_fk=True,
               )
+        Table('comment_test', metadata,
+              Column('id', sa.Integer, primary_key=True, comment='id comment'),
+              Column('data', sa.String(20), comment='data comment'),
+              schema=schema,
+              comment='the test table comment')
 
         if testing.requires.index_reflection.enabled:
             cls.define_index(metadata, users)
@@ -202,8 +208,11 @@ class ComponentReflectionTest(fixtures.TablesTest):
             answer = ['email_addresses_v', 'users_v']
             eq_(sorted(table_names), answer)
         else:
-            table_names = insp.get_table_names(schema,
-                                               order_by=order_by)
+            table_names = [
+                t for t in insp.get_table_names(
+                    schema,
+                    order_by=order_by) if t not in ('comment_test', )]
+
             if order_by == 'foreign_key':
                 answer = ['users', 'email_addresses', 'dingalings']
                 eq_(table_names, answer)
@@ -233,6 +242,40 @@ class ComponentReflectionTest(fixtures.TablesTest):
     @testing.requires.foreign_key_constraint_reflection
     def test_get_table_names_fks(self):
         self._test_get_table_names(order_by='foreign_key')
+
+    @testing.requires.comment_reflection
+    def test_get_comments(self):
+        self._test_get_comments()
+
+    @testing.requires.comment_reflection
+    @testing.requires.schemas
+    def test_get_comments_with_schema(self):
+        self._test_get_comments(testing.config.test_schema)
+
+    def _test_get_comments(self, schema=None):
+        insp = inspect(testing.db)
+
+        eq_(
+            insp.get_table_comment("comment_test", schema=schema),
+            {"text": "the test table comment"}
+        )
+
+        eq_(
+            insp.get_table_comment("users", schema=schema),
+            {"text": None}
+        )
+
+        eq_(
+            [
+                {"name": rec['name'], "comment": rec['comment']}
+                for rec in
+                insp.get_columns("comment_test", schema=schema)
+            ],
+            [
+                {'comment': 'id comment', 'name': 'id'},
+                {'comment': 'data comment', 'name': 'data'}
+            ]
+        )
 
     @testing.requires.table_reflection
     @testing.requires.schemas
@@ -444,7 +487,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
             fkey1 = users_fkeys[0]
 
             with testing.requires.named_constraints.fail_if():
-                self.assert_(fkey1['name'] is not None)
+                eq_(fkey1['name'], "user_id_fk")
 
             eq_(fkey1['referred_schema'], expected_schema)
             eq_(fkey1['referred_table'], users.name)
@@ -457,7 +500,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
                                            schema=schema)
         fkey1 = addr_fkeys[0]
 
-        with testing.requires.named_constraints.fail_if():
+        with testing.requires.implicitly_named_constraints.fail_if():
             self.assert_(fkey1['name'] is not None)
 
         eq_(fkey1['referred_schema'], expected_schema)
@@ -634,11 +677,35 @@ class ComponentReflectionTest(fixtures.TablesTest):
             key=operator.itemgetter('name')
         )
 
+        names_that_duplicate_index = set()
+
         for orig, refl in zip(uniques, reflected):
             # Different dialects handle duplicate index and constraints
             # differently, so ignore this flag
-            refl.pop('duplicates_index', None)
+            dupe = refl.pop('duplicates_index', None)
+            if dupe:
+                names_that_duplicate_index.add(dupe)
             eq_(orig, refl)
+
+        reflected_metadata = MetaData()
+        reflected = Table(
+            'testtbl', reflected_metadata, autoload_with=orig_meta.bind,
+            schema=schema)
+
+        # test "deduplicates for index" logic.   MySQL and Oracle
+        # "unique constraints" are actually unique indexes (with possible
+        # exception of a unique that is a dupe of another one in the case
+        # of Oracle).  make sure # they aren't duplicated.
+        idx_names = set([idx.name for idx in reflected.indexes])
+        uq_names = set([
+            uq.name for uq in reflected.constraints
+            if isinstance(uq, sa.UniqueConstraint)]).difference(
+            ['unique_c_a_b'])
+
+        assert not idx_names.intersection(uq_names)
+        if names_that_duplicate_index:
+            eq_(names_that_duplicate_index, idx_names)
+            eq_(uq_names, set())
 
     @testing.provide_metadata
     def _test_get_view_definition(self, schema=None):
@@ -703,7 +770,7 @@ class ComponentReflectionTest(fixtures.TablesTest):
             ('dingalings', 'dingaling_id'),
         ]:
             cols = insp.get_columns(tname)
-            id_ = dict((c['name'], c) for c in cols)[cname]
+            id_ = {c['name']: c for c in cols}[cname]
             assert id_.get('autoincrement', True)
 
 

@@ -41,6 +41,8 @@ class DefaultDialect(interfaces.Dialect):
     type_compiler = compiler.GenericTypeCompiler
     preparer = compiler.IdentifierPreparer
     supports_alter = True
+    supports_comments = False
+    inline_comments = False
 
     # the first value we'd get for an autoincrement
     # column.
@@ -178,6 +180,7 @@ class DefaultDialect(interfaces.Dialect):
                  supports_right_nested_joins=None,
                  case_sensitive=True,
                  supports_native_boolean=None,
+                 empty_in_strategy='static',
                  label_length=None, **kwargs):
 
         if not getattr(self, 'ported_sqla_06', True):
@@ -206,6 +209,17 @@ class DefaultDialect(interfaces.Dialect):
         if supports_native_boolean is not None:
             self.supports_native_boolean = supports_native_boolean
         self.case_sensitive = case_sensitive
+
+        self.empty_in_strategy = empty_in_strategy
+        if empty_in_strategy == 'static':
+            self._use_static_in = True
+        elif empty_in_strategy in ('dynamic', 'dynamic_warn'):
+            self._use_static_in = False
+            self._warn_on_empty_in = empty_in_strategy == 'dynamic_warn'
+        else:
+            raise exc.ArgumentError(
+                "empty_in_strategy may be 'static', "
+                "'dynamic', or 'dynamic_warn'")
 
         if label_length and label_length > self.max_identifier_length:
             raise exc.ArgumentError(
@@ -324,12 +338,12 @@ class DefaultDialect(interfaces.Dialect):
         if additional_tests:
             tests += additional_tests
 
-        results = set([check_unicode(test) for test in tests])
+        results = {check_unicode(test) for test in tests}
 
         if results.issuperset([True, False]):
             return "conditional"
         else:
-            return results == set([True])
+            return results == {True}
 
     def _check_unicode_description(self, connection):
         # all DBAPIs on Py2K return cursor.description as encoded,
@@ -445,6 +459,26 @@ class DefaultDialect(interfaces.Dialect):
     def do_close(self, dbapi_connection):
         dbapi_connection.close()
 
+    @util.memoized_property
+    def _dialect_specific_select_one(self):
+        return str(expression.select([1]).compile(dialect=self))
+
+    def do_ping(self, dbapi_connection):
+        cursor = None
+        try:
+            cursor = dbapi_connection.cursor()
+            try:
+                cursor.execute(self._dialect_specific_select_one)
+            finally:
+                cursor.close()
+        except self.dbapi.Error as err:
+            if self.is_disconnect(err, dbapi_connection, cursor):
+                return False
+            else:
+                raise
+        else:
+            return True
+
     def create_xid(self):
         """Create a random two-phase transaction ID.
 
@@ -517,6 +551,8 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
     # a hook for SQLite's translation of
     # result column names
     _translate_colname = None
+
+    _expanded_parameters = util.immutabledict()
 
     @classmethod
     def _init_ddl(cls, dialect, connection, dbapi_connection, compiled_ddl):
@@ -611,14 +647,19 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
 
         processors = compiled._bind_processors
 
+        if compiled.contains_expanding_parameters:
+            positiontup = self._expand_in_parameters(compiled, processors)
+        elif compiled.positional:
+            positiontup = self.compiled.positiontup
+
         # Convert the dictionary of bind parameter values
         # into a dict or list to be sent to the DBAPI's
         # execute() or executemany() method.
         parameters = []
-        if dialect.positional:
+        if compiled.positional:
             for compiled_params in self.compiled_parameters:
                 param = []
-                for key in self.compiled.positiontup:
+                for key in positiontup:
                     if key in processors:
                         param.append(processors[key](compiled_params[key]))
                     else:
@@ -650,9 +691,96 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
                     )
 
                 parameters.append(param)
+
         self.parameters = dialect.execute_sequence_format(parameters)
 
         return self
+
+    def _expand_in_parameters(self, compiled, processors):
+        """handle special 'expanding' parameters, IN tuples that are rendered
+        on a per-parameter basis for an otherwise fixed SQL statement string.
+
+        """
+        if self.executemany:
+            raise exc.InvalidRequestError(
+                "'expanding' parameters can't be used with "
+                "executemany()")
+
+        if self.compiled.positional and self.compiled._numeric_binds:
+            # I'm not familiar with any DBAPI that uses 'numeric'
+            raise NotImplementedError(
+                "'expanding' bind parameters not supported with "
+                "'numeric' paramstyle at this time.")
+
+        self._expanded_parameters = {}
+
+        compiled_params = self.compiled_parameters[0]
+        if compiled.positional:
+            positiontup = []
+        else:
+            positiontup = None
+
+        replacement_expressions = {}
+        for name in (
+            self.compiled.positiontup if compiled.positional
+            else self.compiled.binds
+        ):
+            parameter = self.compiled.binds[name]
+            if parameter.expanding:
+                values = compiled_params.pop(name)
+                if not values:
+                    raise exc.InvalidRequestError(
+                        "'expanding' parameters can't be used with an "
+                        "empty list"
+                    )
+                elif isinstance(values[0], (tuple, list)):
+                    to_update = [
+                        ("%s_%s_%s" % (name, i, j), value)
+                        for i, tuple_element in enumerate(values, 1)
+                        for j, value in enumerate(tuple_element, 1)
+                    ]
+                    replacement_expressions[name] = ", ".join(
+                        "(%s)" % ", ".join(
+                            self.compiled.bindtemplate % {
+                                "name":
+                                to_update[i * len(tuple_element) + j][0]
+                            }
+                            for j, value in enumerate(tuple_element)
+                        )
+                        for i, tuple_element in enumerate(values)
+
+                    )
+                else:
+                    to_update = [
+                        ("%s_%s" % (name, i), value)
+                        for i, value in enumerate(values, 1)
+                    ]
+                    replacement_expressions[name] = ", ".join(
+                        self.compiled.bindtemplate % {
+                            "name": key}
+                        for key, value in to_update
+                    )
+                compiled_params.update(to_update)
+                processors.update(
+                    (key, processors[name])
+                    for key in to_update if name in processors
+                )
+                if compiled.positional:
+                    positiontup.extend(name for name, value in to_update)
+                self._expanded_parameters[name] = [
+                    expand_key for expand_key, value in to_update]
+            elif compiled.positional:
+                positiontup.append(name)
+
+        def process_expanding(m):
+            return replacement_expressions.pop(m.group(1))
+
+        self.statement = re.sub(
+            r"\[EXPANDING_(.+)\]",
+            process_expanding,
+            self.statement
+        )
+        return positiontup
 
     @classmethod
     def _init_statement(cls, dialect, connection, dbapi_connection,
@@ -680,7 +808,7 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
                 self.parameters = parameters
             else:
                 self.parameters = [
-                    dict((dialect._encoder(k)[0], d[k]) for k in d)
+                    {dialect._encoder(k)[0]: d[k] for k in d}
                     for d in parameters
                 ] or [{}]
         else:
@@ -1005,7 +1133,11 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
                     get_dbapi_type(self.dialect.dbapi)
                 if dbtype is not None and \
                         (not exclude_types or dbtype not in exclude_types):
-                    inputsizes.append(dbtype)
+                    if key in self._expanded_parameters:
+                        inputsizes.extend(
+                            [dbtype] * len(self._expanded_parameters[key]))
+                    else:
+                        inputsizes.append(dbtype)
             try:
                 self.cursor.setinputsizes(*inputsizes)
             except BaseException as e:
@@ -1020,10 +1152,19 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
                 if dbtype is not None and \
                         (not exclude_types or dbtype not in exclude_types):
                     if translate:
+                        # TODO: this part won't work w/ the
+                        # expanded_parameters feature, e.g. for cx_oracle
+                        # quoted bound names
                         key = translate.get(key, key)
                     if not self.dialect.supports_unicode_binds:
                         key = self.dialect._encoder(key)[0]
-                    inputsizes[key] = dbtype
+                    if key in self._expanded_parameters:
+                        inputsizes.update(
+                            (expand_key, dbtype) for expand_key
+                            in self._expanded_parameters[key]
+                        )
+                    else:
+                        inputsizes[key] = dbtype
             try:
                 self.cursor.setinputsizes(**inputsizes)
             except BaseException as e:
@@ -1039,7 +1180,11 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
             # TODO: expensive branching here should be
             # pulled into _exec_scalar()
             conn = self.connection
-            c = expression.select([default.arg]).compile(bind=conn)
+            if not default._arg_is_typed:
+                default_arg = expression.type_coerce(default.arg, type_)
+            else:
+                default_arg = default.arg
+            c = expression.select([default_arg]).compile(bind=conn)
             return conn._execute_compiled(c, (), {}).scalar()
         else:
             return default.arg

@@ -41,12 +41,18 @@ def collate(expression, collation):
 
         mycolumn COLLATE utf8_bin
 
+    The collation expression is also quoted if it is a case sensitive
+    identifier, e.g. contains uppercase characters.
+
+    .. versionchanged:: 1.2 quoting is automatically applied to COLLATE
+       expressions if they are case sensitive.
+
     """
 
     expr = _literal_as_binds(expression)
     return BinaryExpression(
         expr,
-        _literal_as_text(collation),
+        ColumnClause(collation),
         operators.collate, type_=expr.type)
 
 
@@ -861,6 +867,7 @@ class BindParameter(ColumnElement):
     def __init__(self, key, value=NO_ARG, type_=None,
                  unique=False, required=NO_ARG,
                  quote=None, callable_=None,
+                 expanding=False,
                  isoutparam=False,
                  _compared_to_operator=None,
                  _compared_to_type=None):
@@ -1046,6 +1053,23 @@ class BindParameter(ColumnElement):
           "OUT" parameter.  This applies to backends such as Oracle which
           support OUT parameters.
 
+        :param expanding:
+          if True, this parameter will be treated as an "expanding" parameter
+          at execution time; the parameter value is expected to be a sequence,
+          rather than a scalar value, and the string SQL statement will
+          be transformed on a per-execution basis to accomodate the sequence
+          with a variable number of parameter slots passed to the DBAPI.
+          This is to allow statement caching to be used in conjunction with
+          an IN clause.
+
+          .. note:: The "expanding" feature does not support "executemany"-
+             style parameter sets, nor does it support empty IN expressions.
+
+          .. note:: The "expanding" feature should be considered as
+             **experimental** within the 1.2 series.
+
+          .. versionadded:: 1.2
+
         .. seealso::
 
             :ref:`coretutorial_bind_param`
@@ -1087,6 +1111,8 @@ class BindParameter(ColumnElement):
         self.callable = callable_
         self.isoutparam = isoutparam
         self.required = required
+        self.expanding = expanding
+
         if type_ is None:
             if _compared_to_type is not None:
                 self.type = \
@@ -3551,7 +3577,13 @@ class Label(ColumnElement):
         return self._element.self_group(against=operators.as_)
 
     def self_group(self, against=None):
-        sub_element = self._element.self_group(against=against)
+        return self._apply_to_inner(self._element.self_group, against=against)
+
+    def _negate(self):
+        return self._apply_to_inner(self._element._negate)
+
+    def _apply_to_inner(self, fn, *arg, **kw):
+        sub_element = fn(*arg, **kw)
         if sub_element is not self._element:
             return Label(self.name,
                          sub_element,
@@ -3899,8 +3931,8 @@ class quoted_name(util.MemoizedSlots, util.text_type):
     can be quoted.  Such as to use the :meth:`.Engine.has_table` method with
     an unconditionally quoted name::
 
-        from sqlaclchemy import create_engine
-        from sqlalchemy.sql.elements import quoted_name
+        from sqlalchemy import create_engine
+        from sqlalchemy.sql import quoted_name
 
         engine = create_engine("oracle+cx_oracle://some_dsn")
         engine.has_table(quoted_name("some_table", True))
@@ -3910,6 +3942,10 @@ class quoted_name(util.MemoizedSlots, util.text_type):
     upper case.
 
     .. versionadded:: 0.9.0
+
+    .. versionchanged:: 1.2 The :class:`.quoted_name` construct is now
+       importable from ``sqlalchemy.sql``, in addition to the previous
+       location of ``sqlalchemy.sql.elements``.
 
     """
 

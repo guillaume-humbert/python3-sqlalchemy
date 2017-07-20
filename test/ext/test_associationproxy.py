@@ -1,4 +1,4 @@
-from sqlalchemy.testing import eq_, assert_raises
+from sqlalchemy.testing import eq_, assert_raises, is_
 import copy
 import pickle
 
@@ -50,6 +50,103 @@ class ObjectCollection(object):
         return iter(self.values)
 
 
+class AutoFlushTest(fixtures.TablesTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        Table(
+            'parent', metadata,
+            Column('id', Integer, primary_key=True,
+                   test_needs_autoincrement=True))
+        Table(
+            'association', metadata,
+            Column('parent_id', ForeignKey('parent.id'), primary_key=True),
+            Column('child_id', ForeignKey('child.id'), primary_key=True),
+            Column('name', String(50))
+        )
+        Table(
+            'child', metadata,
+            Column('id', Integer, primary_key=True,
+                   test_needs_autoincrement=True),
+            Column('name', String(50))
+        )
+
+    def _fixture(self, collection_class, is_dict=False):
+        class Parent(object):
+            collection = association_proxy("_collection", "child")
+
+        class Child(object):
+            def __init__(self, name):
+                self.name = name
+
+        class Association(object):
+            if is_dict:
+                def __init__(self, key, child):
+                    self.child = child
+            else:
+                def __init__(self, child):
+                    self.child = child
+
+        mapper(Parent, self.tables.parent, properties={
+            "_collection": relationship(Association,
+                                        collection_class=collection_class,
+                                        backref="parent")
+        })
+        mapper(Association, self.tables.association, properties={
+            "child": relationship(Child, backref="association")
+        })
+        mapper(Child, self.tables.child)
+
+        return Parent, Child, Association
+
+    def _test_premature_flush(self, collection_class, fn, is_dict=False):
+        Parent, Child, Association = self._fixture(
+            collection_class, is_dict=is_dict)
+
+        session = Session(testing.db, autoflush=True, expire_on_commit=True)
+
+        p1 = Parent()
+        c1 = Child('c1')
+        c2 = Child('c2')
+        session.add(p1)
+        session.add(c1)
+        session.add(c2)
+
+        fn(p1.collection, c1)
+        session.commit()
+
+        fn(p1.collection, c2)
+        session.commit()
+
+        is_(c1.association[0].parent, p1)
+        is_(c2.association[0].parent, p1)
+
+        session.close()
+
+    def test_list_append(self):
+        self._test_premature_flush(
+            list, lambda collection, obj: collection.append(obj))
+
+    def test_list_extend(self):
+        self._test_premature_flush(
+            list, lambda collection, obj: collection.extend([obj]))
+
+    def test_set_add(self):
+        self._test_premature_flush(
+            set, lambda collection, obj: collection.add(obj))
+
+    def test_set_extend(self):
+        self._test_premature_flush(
+            set, lambda collection, obj: collection.update([obj]))
+
+    def test_dict_set(self):
+        def set_(collection, obj):
+            collection[obj.name] = obj
+
+        self._test_premature_flush(
+            collections.attribute_mapped_collection('name'),
+            set_, is_dict=True)
+
+
 class _CollectionOperations(fixtures.TestBase):
     def setup(self):
         collection_class = self.collection_class
@@ -84,7 +181,7 @@ class _CollectionOperations(fixtures.TestBase):
                     self.name = name
 
         mapper(Parent, parents_table, properties={
-            '_children': relationship(Child, lazy='joined',
+            '_children': relationship(Child, lazy='joined', backref='parent',
                                       collection_class=collection_class)})
         mapper(Child, children_table)
 
@@ -258,6 +355,7 @@ class _CollectionOperations(fixtures.TestBase):
             assert False
         except TypeError:
             assert True
+
 
 
 class DefaultTest(_CollectionOperations):
@@ -501,6 +599,30 @@ class SetTest(_CollectionOperations):
             self.assert_((p1.children <= other) == (control <= other))
             self.assert_((p1.children > other) == (control > other))
             self.assert_((p1.children >= other) == (control >= other))
+
+    def test_set_comparison_empty_to_empty(self):
+        # test issue #3265 which appears to be python 2.6 specific
+        Parent = self.Parent
+
+        p1 = Parent('P1')
+        p1.children = []
+
+        p2 = Parent('P2')
+        p2.children = []
+
+        set_0 = set()
+        set_a = p1.children
+        set_b = p2.children
+
+        is_(set_a == set_a, True)
+        is_(set_a == set_b, True)
+        is_(set_a == set_0, True)
+        is_(set_0 == set_a, True)
+
+        is_(set_a != set_a, False)
+        is_(set_a != set_b, False)
+        is_(set_a != set_0, False)
+        is_(set_0 != set_a, False)
 
     def test_set_mutation(self):
         Parent, Child = self.Parent, self.Child
@@ -1138,6 +1260,18 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
             # o2m -> scalar
             singular_collection = association_proxy('user_keywords', 'value')
 
+            # uselist assoc_proxy -> assoc_proxy -> obj
+            common_users = association_proxy("user_keywords", "common_users")
+
+            # non uselist assoc_proxy -> assoc_proxy -> obj
+            common_singular = association_proxy("singular", "keyword")
+
+            # non uselist assoc_proxy -> assoc_proxy -> scalar
+            singular_keyword = association_proxy("singular", "keyword")
+
+            # uselist assoc_proxy -> assoc_proxy -> scalar
+            common_keyword_name = association_proxy("user_keywords", "keyword_name")
+
         class Keyword(cls.Comparable):
             def __init__(self, keyword):
                 self.keyword = keyword
@@ -1151,9 +1285,14 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
                 self.user = user
                 self.keyword = keyword
 
+            common_users = association_proxy("keyword", "user")
+            keyword_name = association_proxy("keyword", "keyword")
+
         class Singular(cls.Comparable):
             def __init__(self, value=None):
                 self.value = value
+
+            keyword = association_proxy("keywords", "keyword")
 
     @classmethod
     def setup_mappers(cls):
@@ -1433,6 +1572,140 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
                 )
         )
 
+    def test_filter_any_chained(self):
+        User = self.classes.User
+
+        UserKeyword, User = self.classes.UserKeyword, self.classes.User
+        Keyword = self.classes.Keyword
+
+        q1 = self.session.query(User).filter(
+            User.common_users.any(User.name == 'user7')
+        )
+        self.assert_compile(
+            q1,
+
+            "SELECT users.id AS users_id, users.name AS users_name, "
+            "users.singular_id AS users_singular_id "
+            "FROM users "
+            "WHERE EXISTS (SELECT 1 "
+            "FROM userkeywords "
+            "WHERE users.id = userkeywords.user_id AND (EXISTS (SELECT 1 "
+            "FROM keywords "
+            "WHERE keywords.id = userkeywords.keyword_id AND (EXISTS (SELECT 1 "
+            "FROM userkeywords "
+            "WHERE keywords.id = userkeywords.keyword_id AND (EXISTS (SELECT 1 "
+            "FROM users "
+            "WHERE users.id = userkeywords.user_id AND users.name = :name_1)))))))",
+            checkparams={'name_1': 'user7'}
+        )
+
+        q2 = self.session.query(User).filter(
+            User.user_keywords.any(
+                UserKeyword.keyword.has(
+                    Keyword.user_keyword.has(
+                        UserKeyword.user.has(
+                            User.name == 'user7'
+                        )
+                    )
+                )))
+        self._equivalent(q1, q2)
+
+    def test_filter_has_chained_has_to_any(self):
+        User = self.classes.User
+        Singular = self.classes.Singular
+        Keyword = self.classes.Keyword
+
+        q1 = self.session.query(User).filter(
+            User.common_singular.has(Keyword.keyword == 'brown')
+        )
+        self.assert_compile(
+            q1,
+
+            "SELECT users.id AS users_id, users.name AS users_name, "
+            "users.singular_id AS users_singular_id "
+            "FROM users "
+            "WHERE EXISTS (SELECT 1 "
+            "FROM singular "
+            "WHERE singular.id = users.singular_id AND (EXISTS (SELECT 1 "
+            "FROM keywords "
+            "WHERE singular.id = keywords.singular_id AND "
+            "keywords.keyword = :keyword_1)))",
+            checkparams={'keyword_1': 'brown'}
+        )
+
+        q2 = self.session.query(User).filter(
+            User.singular.has(
+                Singular.keywords.any(Keyword.keyword == 'brown')))
+        self._equivalent(q1, q2)
+
+    def test_filter_has_scalar_raises(self):
+        User = self.classes.User
+        assert_raises_message(
+            exc.ArgumentError,
+            r"Can't apply keyword arguments to column-targeted",
+            User.singular_keyword.has, keyword="brown"
+        )
+
+    def test_filter_contains_chained_has_to_any(self):
+        User = self.classes.User
+        Keyword = self.classes.Keyword
+        Singular = self.classes.Singular
+
+        q1 = self.session.query(User).filter(
+            User.singular_keyword.contains("brown")
+        )
+        self.assert_compile(
+            q1,
+            "SELECT users.id AS users_id, users.name AS users_name, "
+            "users.singular_id AS users_singular_id "
+            "FROM users "
+            "WHERE EXISTS (SELECT 1 "
+            "FROM singular "
+            "WHERE singular.id = users.singular_id AND (EXISTS (SELECT 1 "
+            "FROM keywords "
+            "WHERE singular.id = keywords.singular_id "
+            "AND keywords.keyword = :keyword_1)))",
+            checkparams={'keyword_1': 'brown'}
+        )
+        q2 = self.session.query(User).filter(
+            User.singular.has(
+                Singular.keywords.any(
+                    Keyword.keyword == 'brown'
+                )
+            )
+        )
+
+        self._equivalent(q1, q2)
+
+    def test_filter_contains_chained_any_to_has(self):
+        User = self.classes.User
+        Keyword = self.classes.Keyword
+        UserKeyword = self.classes.UserKeyword
+
+        q1 = self.session.query(User).filter(
+            User.common_keyword_name.contains("brown")
+        )
+        self.assert_compile(
+            q1,
+            "SELECT users.id AS users_id, users.name AS users_name, "
+            "users.singular_id AS users_singular_id "
+            "FROM users "
+            "WHERE EXISTS (SELECT 1 "
+            "FROM userkeywords "
+            "WHERE users.id = userkeywords.user_id AND (EXISTS (SELECT 1 "
+            "FROM keywords "
+            "WHERE keywords.id = userkeywords.keyword_id AND "
+            "keywords.keyword = :keyword_1)))",
+            checkparams={'keyword_1': 'brown'}
+        )
+
+        q2 = self.session.query(User).filter(
+            User.user_keywords.any(
+                UserKeyword.keyword.has(Keyword.keyword == "brown")
+            )
+        )
+        self._equivalent(q1, q2)
+
     def test_has_criterion_nul(self):
         # but we don't allow that with any criterion...
         User = self.classes.User
@@ -1452,7 +1725,7 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
 
         assert_raises_message(
             exc.ArgumentError,
-            r"Non-empty has\(\) not allowed",
+            r"Can't apply keyword arguments to column-targeted",
             User.singular_value.has, singular_value="singular4"
         )
 

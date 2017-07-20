@@ -973,8 +973,19 @@ class INTERVAL(sqltypes.TypeEngine):
     """
     __visit_name__ = 'INTERVAL'
 
-    def __init__(self, precision=None):
+    def __init__(self, precision=None, fields=None):
+        """Construct an INTERVAL.
+
+        :param precision: optional integer precision value
+        :param fields: string fields specifier.  allows storage of fields
+         to be limited, such as ``"YEAR"``, ``"MONTH"``, ``"DAY TO HOUR"``,
+         etc.
+
+         .. versionadded:: 1.2
+
+        """
         self.precision = precision
+        self.fields = fields
 
     @classmethod
     def _adapt_from_generic_interval(cls, interval):
@@ -1312,8 +1323,6 @@ ischema_names = {
     'bytea': BYTEA,
     'boolean': BOOLEAN,
     'interval': INTERVAL,
-    'interval year to month': INTERVAL,
-    'interval day to second': INTERVAL,
     'tsvector': TSVECTOR
 }
 
@@ -1838,10 +1847,12 @@ class PGTypeCompiler(compiler.GenericTypeCompiler):
         )
 
     def visit_INTERVAL(self, type_, **kw):
+        text = "INTERVAL"
+        if type_.fields is not None:
+            text += " " + type_.fields
         if type_.precision is not None:
-            return "INTERVAL(%d)" % type_.precision
-        else:
-            return "INTERVAL"
+            text += " (%d)" % type_.precision
+        return text
 
     def visit_BIT(self, type_, **kw):
         if type_.varying:
@@ -2039,6 +2050,7 @@ class PGDialect(default.DefaultDialect):
     preexecute_autoincrement_sequences = True
     postfetch_lastrowid = False
 
+    supports_comments = True
     supports_default_values = True
     supports_empty_insert = False
     supports_multivalues_insert = True
@@ -2420,8 +2432,11 @@ class PGDialect(default.DefaultDialect):
                WHERE d.adrelid = a.attrelid AND d.adnum = a.attnum
                AND a.atthasdef)
               AS DEFAULT,
-              a.attnotnull, a.attnum, a.attrelid as table_oid
+              a.attnotnull, a.attnum, a.attrelid as table_oid,
+              pgd.description as comment
             FROM pg_catalog.pg_attribute a
+            LEFT JOIN pg_catalog.pg_description pgd ON (
+                pgd.objoid = a.attrelid AND pgd.objsubid = a.attnum)
             WHERE a.attrelid = :table_oid
             AND a.attnum > 0 AND NOT a.attisdropped
             ORDER BY a.attnum
@@ -2445,14 +2460,16 @@ class PGDialect(default.DefaultDialect):
 
         # format columns
         columns = []
-        for name, format_type, default, notnull, attnum, table_oid in rows:
+        for name, format_type, default, notnull, attnum, table_oid, \
+                comment in rows:
             column_info = self._get_column_info(
-                name, format_type, default, notnull, domains, enums, schema)
+                name, format_type, default, notnull, domains, enums,
+                schema, comment)
             columns.append(column_info)
         return columns
 
     def _get_column_info(self, name, format_type, default,
-                         notnull, domains, enums, schema):
+                         notnull, domains, enums, schema, comment):
         # strip (*) from character varying(5), timestamp(5)
         # with time zone, geometry(POLYGON), etc.
         attype = re.sub(r'\(.*\)', '', format_type)
@@ -2500,10 +2517,13 @@ class PGDialect(default.DefaultDialect):
                 args = (int(charlen),)
             else:
                 args = ()
-        elif attype in ('interval', 'interval year to month',
-                        'interval day to second'):
+        elif attype.startswith('interval'):
+            field_match = re.match(r'interval (.+)', attype, re.I)
             if charlen:
                 kwargs['precision'] = int(charlen)
+            if field_match:
+                kwargs['fields'] = field_match.group(1)
+            attype = "interval"
             args = ()
         elif charlen:
             args = (int(charlen),)
@@ -2560,7 +2580,8 @@ class PGDialect(default.DefaultDialect):
                         match.group(2) + match.group(3)
 
         column_info = dict(name=name, type=coltype, nullable=nullable,
-                           default=default, autoincrement=autoincrement)
+                           default=default, autoincrement=autoincrement,
+                           comment=comment)
         return column_info
 
     @reflection.cache
@@ -2890,6 +2911,24 @@ class PGDialect(default.DefaultDialect):
              'column_names': [uc["cols"][i] for i in uc["key"]]}
             for name, uc in uniques.items()
         ]
+
+    @reflection.cache
+    def get_table_comment(self, connection, table_name, schema=None, **kw):
+        table_oid = self.get_table_oid(connection, table_name, schema,
+                                       info_cache=kw.get('info_cache'))
+
+        COMMENT_SQL = """
+            SELECT
+                pgd.description as table_comment
+            FROM
+                pg_catalog.pg_description pgd
+            WHERE
+                pgd.objsubid = 0 AND
+                pgd.objoid = :table_oid
+        """
+
+        c = connection.execute(sql.text(COMMENT_SQL), table_oid=table_oid)
+        return {"text": c.scalar()}
 
     @reflection.cache
     def get_check_constraints(

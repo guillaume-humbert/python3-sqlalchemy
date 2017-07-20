@@ -2,6 +2,7 @@ from sqlalchemy import Integer, ForeignKey, String, func
 from sqlalchemy.types import PickleType, TypeDecorator, VARCHAR
 from sqlalchemy.orm import mapper, Session, composite, column_property
 from sqlalchemy.orm.mapper import Mapper
+from sqlalchemy.orm import attributes
 from sqlalchemy.orm.instrumentation import ClassManager
 from sqlalchemy.testing.schema import Table, Column
 from sqlalchemy.testing import eq_, assert_raises_message, assert_raises
@@ -9,6 +10,8 @@ from sqlalchemy.testing.util import picklers
 from sqlalchemy.testing import fixtures
 from sqlalchemy.ext.mutable import MutableComposite
 from sqlalchemy.ext.mutable import MutableDict, MutableList, MutableSet
+from sqlalchemy.testing import mock
+from sqlalchemy import event
 
 
 class Foo(fixtures.BasicEntity):
@@ -111,6 +114,19 @@ class _MutableDictTestBase(_MutableDictTestFixture):
         sess.commit()
 
         eq_(f1.data, {'a': 'c'})
+
+    def test_modified_event(self):
+        canary = mock.Mock()
+        event.listen(Foo.data, "modified", canary)
+
+        f1 = Foo(data={"a": "b"})
+        f1.data["a"] = "c"
+
+        eq_(
+            canary.mock_calls,
+            [mock.call(
+                f1, attributes.Event(Foo.data.impl, attributes.OP_MODIFIED))]
+        )
 
     def test_clear(self):
         sess = Session()
@@ -385,6 +401,18 @@ class _MutableListTestBase(_MutableListTestFixture):
 
         eq_(f1.data, [1, 2, 5])
 
+    def test_operator_extend(self):
+        sess = Session()
+
+        f1 = Foo(data=[1, 2])
+        sess.add(f1)
+        sess.commit()
+
+        f1.data += [5]
+        sess.commit()
+
+        eq_(f1.data, [1, 2, 5])
+
     def test_insert(self):
         sess = Session()
 
@@ -545,6 +573,18 @@ class _MutableSetTestBase(_MutableSetTestFixture):
 
         eq_(f1.data, set([1, 2, 5]))
 
+    def test_binary_update(self):
+        sess = Session()
+
+        f1 = Foo(data=set([1, 2]))
+        sess.add(f1)
+        sess.commit()
+
+        f1.data |= set([2, 5])
+        sess.commit()
+
+        eq_(f1.data, set([1, 2, 5]))
+
     def test_intersection_update(self):
         sess = Session()
 
@@ -553,6 +593,18 @@ class _MutableSetTestBase(_MutableSetTestFixture):
         sess.commit()
 
         f1.data.intersection_update(set([2, 5]))
+        sess.commit()
+
+        eq_(f1.data, set([2]))
+
+    def test_binary_intersection_update(self):
+        sess = Session()
+
+        f1 = Foo(data=set([1, 2]))
+        sess.add(f1)
+        sess.commit()
+
+        f1.data &= set([2, 5])
         sess.commit()
 
         eq_(f1.data, set([2]))
@@ -569,6 +621,18 @@ class _MutableSetTestBase(_MutableSetTestFixture):
 
         eq_(f1.data, set([1]))
 
+    def test_operator_difference_update(self):
+        sess = Session()
+
+        f1 = Foo(data=set([1, 2]))
+        sess.add(f1)
+        sess.commit()
+
+        f1.data -= set([2, 5])
+        sess.commit()
+
+        eq_(f1.data, set([1]))
+
     def test_symmetric_difference_update(self):
         sess = Session()
 
@@ -577,6 +641,18 @@ class _MutableSetTestBase(_MutableSetTestFixture):
         sess.commit()
 
         f1.data.symmetric_difference_update(set([2, 5]))
+        sess.commit()
+
+        eq_(f1.data, set([1, 5]))
+
+    def test_binary_symmetric_difference_update(self):
+        sess = Session()
+
+        f1 = Foo(data=set([1, 2]))
+        sess.add(f1)
+        sess.commit()
+
+        f1.data ^= set([2, 5])
         sess.commit()
 
         eq_(f1.data, set([1, 5]))

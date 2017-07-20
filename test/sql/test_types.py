@@ -29,6 +29,8 @@ from sqlalchemy.testing.util import picklers
 from sqlalchemy.testing.util import round_decimal
 from sqlalchemy.testing import fixtures
 from sqlalchemy.testing import mock
+from sqlalchemy.sql import column
+import operator
 
 
 class AdaptTest(fixtures.TestBase):
@@ -2025,6 +2027,23 @@ class ExpressionTest(
         expr = column('foo', CHAR) == "asdf"
         eq_(expr.right.type.__class__, CHAR)
 
+    def test_actual_literal_adapters(self):
+        for data, expected in [
+            (5, Integer),
+            (2.65, Float),
+            (True, Boolean),
+            (decimal.Decimal("2.65"), Numeric),
+            (datetime.date(2015, 7, 20), Date),
+            (datetime.time(10, 15, 20), Time),
+            (datetime.datetime(2015, 7, 20, 10, 15, 20), DateTime),
+            (datetime.timedelta(seconds=5), Interval),
+            (None, types.NullType)
+        ]:
+            is_(
+                literal(data).type.__class__,
+                expected
+            )
+
     def test_typedec_operator_adapt(self):
         expr = test_table.c.bvalue + "hi"
 
@@ -2186,8 +2205,6 @@ class ExpressionTest(
         eq_(expr.type._type_affinity, types.Interval)
 
     def test_numerics_coercion(self):
-        from sqlalchemy.sql import column
-        import operator
 
         for op in (operator.add, operator.mul, operator.truediv, operator.sub):
             for other in (Numeric(10, 2), Integer):
@@ -2201,6 +2218,28 @@ class ExpressionTest(
                     column('bar', types.Numeric(10, 2))
                 )
                 assert isinstance(expr.type, types.Numeric)
+
+    def test_asdecimal_int_to_numeric(self):
+        expr = column('a', Integer) * column('b', Numeric(asdecimal=False))
+        is_(expr.type.asdecimal, False)
+
+        expr = column('a', Integer) * column('b', Numeric())
+        is_(expr.type.asdecimal, True)
+
+        expr = column('a', Integer) * column('b', Float())
+        is_(expr.type.asdecimal, False)
+        assert isinstance(expr.type, Float)
+
+    def test_asdecimal_numeric_to_int(self):
+        expr = column('a', Numeric(asdecimal=False)) * column('b', Integer)
+        is_(expr.type.asdecimal, False)
+
+        expr = column('a', Numeric()) * column('b', Integer)
+        is_(expr.type.asdecimal, True)
+
+        expr = column('a', Float()) * column('b', Integer)
+        is_(expr.type.asdecimal, False)
+        assert isinstance(expr.type, Float)
 
     def test_null_comparison(self):
         eq_(

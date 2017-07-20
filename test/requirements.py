@@ -59,6 +59,12 @@ class DefaultRequirements(SuiteRequirements):
     def named_constraints(self):
         """target database must support names for constraints."""
 
+        return exclusions.open()
+
+    @property
+    def implicitly_named_constraints(self):
+        """target database must apply names to unnamed constraints."""
+
         return skip_if([
             no_support('sqlite', 'not supported by database'),
             ])
@@ -98,6 +104,10 @@ class DefaultRequirements(SuiteRequirements):
     @property
     def foreign_key_constraint_option_reflection(self):
         return only_on(['postgresql', 'mysql', 'sqlite'])
+
+    @property
+    def comment_reflection(self):
+        return only_on(['postgresql', 'mysql', 'oracle'])
 
     @property
     def unbounded_varchar(self):
@@ -200,11 +210,21 @@ class DefaultRequirements(SuiteRequirements):
         return skip_if(["oracle", "mssql"], "not supported by database/driver")
 
     @property
+    def tuple_in(self):
+        return only_on(["mysql", "postgresql"])
+
+    @property
     def independent_cursors(self):
         """Target must support simultaneous, independent database cursors
         on a single connection."""
 
-        return skip_if(["mssql+pyodbc", "mssql+mxodbc"], "no driver support")
+        return skip_if(
+            [
+                "mssql+pyodbc",
+                "mssql+mxodbc",
+                "mysql+mysqldb",
+                "mysql+pymysql"], "no driver support"
+        )
 
     @property
     def independent_connections(self):
@@ -320,18 +340,21 @@ class DefaultRequirements(SuiteRequirements):
         return fails_on_everything_except(
                     "postgresql",
                     "mysql",
-                    "sqlite"
+                    "sqlite",
+                    "oracle"
                 )
 
     @property
     def unique_constraint_reflection_no_index_overlap(self):
-        return self.unique_constraint_reflection + skip_if("mysql")
+        return self.unique_constraint_reflection + \
+            skip_if("mysql")  + skip_if("oracle")
 
     @property
     def check_constraint_reflection(self):
         return fails_on_everything_except(
                     "postgresql",
-                    "sqlite"
+                    "sqlite",
+                    "oracle"
                 )
 
     @property

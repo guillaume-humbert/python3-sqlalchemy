@@ -277,9 +277,9 @@ class SessionTransaction(object):
                     )
                 elif not deactive_ok:
                     raise sa_exc.InvalidRequestError(
-                        "This Session's transaction has been rolled back "
-                        "by a nested rollback() call.  To begin a new "
-                        "transaction, issue Session.rollback() first."
+                        "This session is in 'inactive' state, due to the "
+                        "SQL transaction being rolled back; no further "
+                        "SQL can be emitted within this transaction."
                     )
         elif self._state is CLOSED:
             raise sa_exc.ResourceClosedError(closed_msg)
@@ -487,10 +487,17 @@ class SessionTransaction(object):
             for transaction in self._iterate_self_and_parents():
                 if transaction._parent is None or transaction.nested:
                     try:
-                        transaction._rollback_impl()
+                        for t in set(transaction._connections.values()):
+                            t[1].rollback()
+
+                        transaction._state = DEACTIVE
+                        self.session.dispatch.after_rollback(self.session)
                     except:
                         rollback_err = sys.exc_info()
-                    transaction._state = DEACTIVE
+                    finally:
+                        if self.session._enable_transaction_accounting:
+                            transaction._restore_snapshot(
+                                dirty_only=transaction.nested)
                     boundary = transaction
                     break
                 else:
@@ -521,15 +528,6 @@ class SessionTransaction(object):
 
         return self._parent
 
-    def _rollback_impl(self):
-        try:
-            for t in set(self._connections.values()):
-                t[1].rollback()
-        finally:
-            if self.session._enable_transaction_accounting:
-                self._restore_snapshot(dirty_only=self.nested)
-
-        self.session.dispatch.after_rollback(self.session)
 
     def close(self, invalidate=False):
         self.session.transaction = self._parent
@@ -590,6 +588,7 @@ class Session(_SessionClassMethods):
                  _enable_transaction_accounting=True,
                  autocommit=False, twophase=False,
                  weak_identity_map=True, binds=None, extension=None,
+                 enable_baked_queries=True,
                  info=None,
                  query_cls=query.Query):
         r"""Construct a new Session.
@@ -662,6 +661,21 @@ class Session(_SessionClassMethods):
            returned class. This is the only argument that is local to the
            :class:`.sessionmaker` function, and is not sent directly to the
            constructor for ``Session``.
+
+        :param enable_baked_queries: defaults to ``True``.  A flag consumed
+           by the :mod:`sqlalchemy.ext.baked` extension to determine if
+           "baked queries" should be cached, as is the normal operation
+           of this extension.  When set to ``False``, all caching is disabled,
+           including baked queries defined by the calling application as
+           well as those used internally.  Setting this flag to ``False``
+           can significantly reduce memory use, however will also degrade
+           performance for those areas that make use of baked queries
+           (such as relationship loaders).   Additionally, baked query
+           logic in the calling application or potentially within the ORM
+           that may be malfunctioning due to cache key collisions or similar
+           can be flagged by observing if this flag resolves the issue.
+
+           .. versionadded:: 1.2
 
         :param _enable_transaction_accounting:  Defaults to ``True``.  A
            legacy-only flag which when ``False`` disables *all* 0.5-style
@@ -737,6 +751,7 @@ class Session(_SessionClassMethods):
         self.autoflush = autoflush
         self.autocommit = autocommit
         self.expire_on_commit = expire_on_commit
+        self.enable_baked_queries = enable_baked_queries
         self._enable_transaction_accounting = _enable_transaction_accounting
         self.twophase = twophase
         self._query_cls = query_cls
@@ -1406,7 +1421,9 @@ class Session(_SessionClassMethods):
                     "flush is occurring prematurely")
                 util.raise_from_cause(e)
 
-    def refresh(self, instance, attribute_names=None, lockmode=None):
+    def refresh(
+            self, instance, attribute_names=None, with_for_update=None,
+            lockmode=None):
         """Expire and refresh the attributes on the given instance.
 
         A query will be issued to the database and all attributes will be
@@ -1430,8 +1447,17 @@ class Session(_SessionClassMethods):
           string attribute names indicating a subset of attributes to
           be refreshed.
 
+        :param with_for_update: optional boolean ``True`` indicating FOR UPDATE
+          should be used, or may be a dictionary containing flags to
+          indicate a more specific set of FOR UPDATE flags for the SELECT;
+          flags should match the parameters of :meth:`.Query.with_for_update`.
+          Supersedes the :paramref:`.Session.refresh.lockmode` parameter.
+
+          .. versionadded:: 1.2
+
         :param lockmode: Passed to the :class:`~sqlalchemy.orm.query.Query`
           as used by :meth:`~sqlalchemy.orm.query.Query.with_lockmode`.
+          Superseded by :paramref:`.Session.refresh.with_for_update`.
 
         .. seealso::
 
@@ -1449,10 +1475,26 @@ class Session(_SessionClassMethods):
 
         self._expire_state(state, attribute_names)
 
+        if with_for_update == {}:
+            raise sa_exc.ArgumentError(
+                "with_for_update should be the boolean value "
+                "True, or a dictionary with options.  "
+                "A blank dictionary is ambiguous.")
+
+        if lockmode:
+            with_for_update = query.LockmodeArg.parse_legacy_query(lockmode)
+        elif with_for_update is not None:
+            if with_for_update is True:
+                with_for_update = query.LockmodeArg()
+            elif with_for_update:
+                with_for_update = query.LockmodeArg(**with_for_update)
+            else:
+                with_for_update = None
+
         if loading.load_on_ident(
                 self.query(object_mapper(instance)),
                 state.key, refresh_state=state,
-                lockmode=lockmode,
+                with_for_update=with_for_update,
                 only_load_props=attribute_names) is None:
             raise sa_exc.InvalidRequestError(
                 "Could not refresh instance '%s'" %

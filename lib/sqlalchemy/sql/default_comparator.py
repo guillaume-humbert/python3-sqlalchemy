@@ -50,11 +50,15 @@ def _boolean_compare(expr, op, obj, negate=None, reverse=False,
             if op in (operators.eq, operators.is_):
                 return BinaryExpression(expr, _const_expr(obj),
                                         operators.is_,
-                                        negate=operators.isnot)
+                                        negate=operators.isnot,
+                                        type_=result_type
+                                        )
             elif op in (operators.ne, operators.isnot):
                 return BinaryExpression(expr, _const_expr(obj),
                                         operators.isnot,
-                                        negate=operators.is_)
+                                        negate=operators.is_,
+                                        type_=result_type
+                                        )
             else:
                 raise exc.ArgumentError(
                     "Only '=', '!=', 'is_()', 'isnot()', "
@@ -127,10 +131,18 @@ def _in_impl(expr, op, seq_or_selectable, negate_op, **kw):
         return _boolean_compare(expr, op, seq_or_selectable,
                                 negate=negate_op, **kw)
     elif isinstance(seq_or_selectable, ClauseElement):
-        raise exc.InvalidRequestError(
-            'in_() accepts'
-            ' either a list of expressions '
-            'or a selectable: %r' % seq_or_selectable)
+        if isinstance(seq_or_selectable, BindParameter) and \
+                seq_or_selectable.expanding:
+            return _boolean_compare(
+                expr, op,
+                seq_or_selectable,
+                negate=negate_op)
+        else:
+            raise exc.InvalidRequestError(
+                'in_() accepts'
+                ' either a list of expressions, '
+                'a selectable, or an "expanding" bound parameter: %r'
+                % seq_or_selectable)
 
     # Handle non selectable arguments as sequences
     args = []
@@ -139,30 +151,21 @@ def _in_impl(expr, op, seq_or_selectable, negate_op, **kw):
             if not isinstance(o, operators.ColumnOperators):
                 raise exc.InvalidRequestError(
                     'in_() accepts'
-                    ' either a list of expressions '
-                    'or a selectable: %r' % o)
+                    ' either a list of expressions, '
+                    'a selectable, or an "expanding" bound parameter: %r' % o)
         elif o is None:
             o = Null()
         else:
             o = expr._bind_param(op, o)
         args.append(o)
+
     if len(args) == 0:
-
-        # Special case handling for empty IN's, behave like
-        # comparison against zero row selectable.  We use != to
-        # build the contradiction as it handles NULL values
-        # appropriately, i.e. "not (x IN ())" should not return NULL
-        # values for x.
-
-        util.warn('The IN-predicate on "%s" was invoked with an '
-                  'empty sequence. This results in a '
-                  'contradiction, which nonetheless can be '
-                  'expensive to evaluate.  Consider alternative '
-                  'strategies for improved performance.' % expr)
-        if op is operators.in_op:
-            return expr != expr
-        else:
-            return expr == expr
+        op, negate_op = (
+            operators.empty_in_op,
+            operators.empty_notin_op) if op is operators.in_op \
+            else (
+                operators.empty_notin_op,
+                operators.empty_in_op)
 
     return _boolean_compare(expr, op,
                             ClauseList(*args).self_group(against=op),

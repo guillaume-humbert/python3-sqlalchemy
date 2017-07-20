@@ -86,6 +86,7 @@ a serialized file, or from itself being reflected using
 explicit table declaration::
 
     from sqlalchemy import create_engine, MetaData, Table, Column, ForeignKey
+    from sqlalchemy.ext.automap import automap_base
     engine = create_engine("sqlite:///mydatabase.db")
 
     # produce our own MetaData object
@@ -906,7 +907,7 @@ def _relationships_for_fks(automap_base, map_config, table_to_map_config,
             )
 
             o2m_kws = {}
-            nullable = False not in set([fk.parent.nullable for fk in fks])
+            nullable = False not in {fk.parent.nullable for fk in fks}
             if not nullable:
                 o2m_kws['cascade'] = "all, delete-orphan"
 

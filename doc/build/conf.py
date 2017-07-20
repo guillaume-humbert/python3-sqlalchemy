@@ -34,11 +34,9 @@ import sqlalchemy
 
 extensions = [
             'sphinx.ext.autodoc',
-#            'sphinx.ext.intersphinx',
-                'zzzeeksphinx',
-                'changelog',
-                'sphinx_paramlinks',
-                #'corrections'
+            'zzzeeksphinx',
+            'changelog',
+            'sphinx_paramlinks',
             ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -105,11 +103,11 @@ copyright = u'2007-2017, the SQLAlchemy authors and contributors'
 # built documents.
 #
 # The short X.Y version.
-version = "1.1"
+version = "1.2"
 # The full version, including alpha/beta/rc tags.
-release = "1.1.11"
+release = "1.2.0b1"
 
-release_date = "June 19, 2017"
+release_date = "July 10, 2017"
 
 site_base = os.environ.get("RTD_SITE_BASE", "http://www.sqlalchemy.org")
 site_adapter_template = "docs_adapter.mako"
@@ -340,10 +338,5 @@ epub_copyright = u'2007-2015, SQLAlchemy authors'
 
 # Allow duplicate toc entries.
 #epub_tocdup = True
-
-intersphinx_mapping = {
-    'alembic': ('http://alembic.zzzcomputing.com/en/latest/', None),
-    'psycopg2': ('http://pythonhosted.org/psycopg2', None),
-}
 
 

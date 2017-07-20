@@ -20,6 +20,79 @@ def make_uuid():
     return uuid.uuid4().hex
 
 
+class NullVersionIdTest(fixtures.MappedTest):
+    __backend__ = True
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('version_table', metadata,
+              Column('id', Integer, primary_key=True,
+                     test_needs_autoincrement=True),
+              Column('version_id', Integer),
+              Column('value', String(40), nullable=False))
+
+    @classmethod
+    def setup_classes(cls):
+        class Foo(cls.Basic):
+            pass
+
+    def _fixture(self):
+        Foo, version_table = self.classes.Foo, self.tables.version_table
+
+        mapper(
+            Foo, version_table,
+            version_id_col=version_table.c.version_id,
+            version_id_generator=False,
+        )
+
+        s1 = Session()
+        return s1
+
+    def test_null_version_id_insert(self):
+        Foo = self.classes.Foo
+
+        s1 = self._fixture()
+        f1 = Foo(value='f1')
+        s1.add(f1)
+
+        # Prior to the fix for #3673, you would have been allowed to insert
+        # the above record with a NULL version_id and you would have gotten
+        # the following error when you tried to update it. Now you should
+        # get a FlushError on the initial insert.
+        #
+        # A value is required for bind parameter 'version_table_version_id'
+        # UPDATE version_table SET value=?
+        #    WHERE version_table.id = ?
+        #    AND version_table.version_id = ?
+        # parameters: [{'version_table_id': 1, 'value': 'f1rev2'}]]
+
+        assert_raises_message(
+            sa.orm.exc.FlushError,
+            "Instance does not contain a non-NULL version value",
+            s1.commit)
+
+    def test_null_version_id_update(self):
+        Foo = self.classes.Foo
+
+        s1 = self._fixture()
+        f1 = Foo(value='f1', version_id=1)
+        s1.add(f1)
+        s1.commit()
+
+        # Prior to the fix for #3673, you would have been allowed to update
+        # the above record with a NULL version_id, and it would look like
+        # this, post commit: Foo(id=1, value='f1rev2', version_id=None). Now
+        # you should get a FlushError on update.
+
+        f1.value = 'f1rev2'
+        f1.version_id = None
+
+        assert_raises_message(
+            sa.orm.exc.FlushError,
+            "Instance does not contain a non-NULL version value",
+            s1.commit)
+
+
 class VersioningTest(fixtures.MappedTest):
     __backend__ = True
 
@@ -224,6 +297,42 @@ class VersioningTest(fixtures.MappedTest):
             sa.orm.exc.StaleDataError,
             r"Instance .* has version id '\d+' which does not "
             r"match database-loaded version id '\d+'",
+            s1.query(Foo).with_for_update(read=True).get, f1s1.id
+        )
+
+        # reload it - this expires the old version first
+        s1.refresh(f1s1, with_for_update={"read": True})
+
+        # now assert version OK
+        s1.query(Foo).with_for_update(read=True).get(f1s1.id)
+
+        # assert brand new load is OK too
+        s1.close()
+        s1.query(Foo).with_for_update(read=True).get(f1s1.id)
+
+    @testing.emits_warning(r'.*does not support updated rowcount')
+    @engines.close_open_connections
+    def test_versioncheck_legacy(self):
+        """query.with_lockmode performs a 'version check' on an already loaded
+        instance"""
+
+        Foo = self.classes.Foo
+
+        s1 = self._fixture()
+        f1s1 = Foo(value='f1 value')
+        s1.add(f1s1)
+        s1.commit()
+
+        s2 = create_session(autocommit=False)
+        f1s2 = s2.query(Foo).get(f1s1.id)
+        f1s2.value = 'f1 new value'
+        s2.commit()
+
+        # load, version is wrong
+        assert_raises_message(
+            sa.orm.exc.StaleDataError,
+            r"Instance .* has version id '\d+' which does not "
+            r"match database-loaded version id '\d+'",
             s1.query(Foo).with_lockmode('read').get, f1s1.id
         )
 
@@ -255,6 +364,36 @@ class VersioningTest(fixtures.MappedTest):
     @engines.close_open_connections
     @testing.requires.update_nowait
     def test_versioncheck_for_update(self):
+        """query.with_lockmode performs a 'version check' on an already loaded
+        instance"""
+
+        Foo = self.classes.Foo
+
+        s1 = self._fixture()
+        f1s1 = Foo(value='f1 value')
+        s1.add(f1s1)
+        s1.commit()
+
+        s2 = create_session(autocommit=False)
+        f1s2 = s2.query(Foo).get(f1s1.id)
+        # not sure if I like this API
+        s2.refresh(f1s2, with_for_update=True)
+        f1s2.value = 'f1 new value'
+
+        assert_raises(
+            exc.DBAPIError,
+            s1.refresh, f1s1, lockmode='update_nowait'
+        )
+        s1.rollback()
+
+        s2.commit()
+        s1.refresh(f1s1, with_for_update={"nowait": True})
+        assert f1s1.version_id == f1s2.version_id
+
+    @testing.emits_warning(r'.*does not support updated rowcount')
+    @engines.close_open_connections
+    @testing.requires.update_nowait
+    def test_versioncheck_for_update_legacy(self):
         """query.with_lockmode performs a 'version check' on an already loaded
         instance"""
 
@@ -407,6 +546,142 @@ class VersioningTest(fixtures.MappedTest):
             "Leave the version attribute unset when "
             "merging to update the most recent version.",
             s1.merge, f2
+        )
+
+
+class VersionOnPostUpdateTest(fixtures.MappedTest):
+    __backend__ = True
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table(
+            'node', metadata,
+            Column('id', Integer, primary_key=True),
+            Column('version_id', Integer),
+            Column('parent_id', ForeignKey('node.id'))
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class Node(cls.Basic):
+            pass
+
+    def _fixture(self, o2m, post_update, insert=True):
+        Node = self.classes.Node
+        node = self.tables.node
+
+        mapper(Node, node, properties={
+            'related': relationship(
+                Node,
+                remote_side=node.c.id if not o2m else node.c.parent_id,
+                post_update=post_update
+            )
+        }, version_id_col=node.c.version_id)
+
+        s = Session()
+        n1 = Node(id=1)
+        n2 = Node(id=2)
+
+        if insert:
+            s.add_all([n1, n2])
+            s.flush()
+        return s, n1, n2
+
+    def test_o2m_plain(self):
+        s, n1, n2 = self._fixture(o2m=True, post_update=False)
+
+        n1.related.append(n2)
+        s.flush()
+
+        eq_(n1.version_id, 1)
+        eq_(n2.version_id, 2)
+
+    def test_m2o_plain(self):
+        s, n1, n2 = self._fixture(o2m=False, post_update=False)
+
+        n1.related = n2
+        s.flush()
+
+        eq_(n1.version_id, 2)
+        eq_(n2.version_id, 1)
+
+    def test_o2m_post_update(self):
+        s, n1, n2 = self._fixture(o2m=True, post_update=True)
+
+        n1.related.append(n2)
+        s.flush()
+
+        eq_(n1.version_id, 1)
+        eq_(n2.version_id, 2)
+
+    def test_m2o_post_update(self):
+        s, n1, n2 = self._fixture(o2m=False, post_update=True)
+
+        n1.related = n2
+        s.flush()
+
+        eq_(n1.version_id, 2)
+        eq_(n2.version_id, 1)
+
+    def test_o2m_post_update_not_assoc_w_insert(self):
+        s, n1, n2 = self._fixture(o2m=True, post_update=True, insert=False)
+
+        n1.related.append(n2)
+        s.add_all([n1, n2])
+        s.flush()
+
+        eq_(n1.version_id, 1)
+        eq_(n2.version_id, 1)
+
+    def test_m2o_post_update_not_assoc_w_insert(self):
+        s, n1, n2 = self._fixture(o2m=False, post_update=True, insert=False)
+
+        n1.related = n2
+        s.add_all([n1, n2])
+        s.flush()
+
+        eq_(n1.version_id, 1)
+        eq_(n2.version_id, 1)
+
+    def test_o2m_post_update_version_assert(self):
+        Node = self.classes.Node
+        s, n1, n2 = self._fixture(o2m=True, post_update=True)
+
+        n1.related.append(n2)
+
+        # outwit the database transaction isolation and SQLA's
+        # expiration at the same time by using different Session on
+        # same transaction
+        s2 = Session(bind=s.connection(Node))
+        s2.query(Node).filter(Node.id == n2.id).update({"version_id": 3})
+        s2.commit()
+
+        assert_raises_message(
+            orm_exc.StaleDataError,
+            "UPDATE statement on table 'node' expected to "
+            r"update 1 row\(s\); 0 were matched.",
+            s.flush
+        )
+
+    def test_m2o_post_update_version_assert(self):
+        Node = self.classes.Node
+
+        s, n1, n2 = self._fixture(o2m=False, post_update=True)
+
+        n1.related = n2
+
+        # outwit the database transaction isolation and SQLA's
+        # expiration at the same time by using different Session on
+        # same transaction
+        s2 = Session(bind=s.connection(Node))
+        s2.query(Node).filter(Node.id == n1.id).update({"version_id": 3})
+        s2.commit()
+
+        assert_raises_message(
+            orm_exc.StaleDataError,
+            "UPDATE statement on table 'node' expected to "
+            r"update 1 row\(s\); 0 were matched.",
+            s.flush
         )
 
 
@@ -1284,3 +1559,65 @@ class ManualVersionTest(fixtures.MappedTest):
         sess.commit()
 
         eq_(a1.vid, 2)
+
+
+class ManualInheritanceVersionTest(fixtures.MappedTest):
+    run_define_tables = 'each'
+    __backend__ = True
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table(
+            "a", metadata,
+            Column(
+                'id', Integer, primary_key=True,
+                test_needs_autoincrement=True),
+            Column('data', String(30)),
+            Column('vid', Integer, nullable=False)
+        )
+
+        Table(
+            "b", metadata,
+            Column(
+                'id', Integer, ForeignKey('a.id'), primary_key=True),
+            Column('b_data', String(30)),
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class A(cls.Basic):
+            pass
+
+        class B(A):
+            pass
+
+    @classmethod
+    def setup_mappers(cls):
+        mapper(
+            cls.classes.A, cls.tables.a, version_id_col=cls.tables.a.c.vid,
+            version_id_generator=False)
+
+        mapper(
+            cls.classes.B, cls.tables.b, inherits=cls.classes.A)
+
+    def test_no_increment(self):
+        sess = Session()
+        b1 = self.classes.B()
+
+        b1.vid = 1
+        b1.data = 'd1'
+        sess.add(b1)
+        sess.commit()
+
+        # change col on subtable only without
+        # incrementing version id
+        b1.b_data = 'bd2'
+        sess.commit()
+
+        eq_(b1.vid, 1)
+
+        b1.b_data = 'd3'
+        b1.vid = 2
+        sess.commit()
+
+        eq_(b1.vid, 2)

@@ -371,6 +371,12 @@ class Table(DialectKWArgs, SchemaItem, TableClause):
 
     :param useexisting: Deprecated.  Use :paramref:`.Table.extend_existing`.
 
+    :param comment: Optional string that will render an SQL comment on table
+         creation.
+
+         .. versionadded:: 1.2 Added the :paramref:`.Table.comment` parameter
+            to :class:`.Table`.
+
     :param \**kw: Additional keyword arguments not mentioned above are
         dialect specific, and passed in the form ``<dialectname>_<argname>``.
         See the documentation regarding an individual dialect at
@@ -494,6 +500,8 @@ class Table(DialectKWArgs, SchemaItem, TableClause):
 
         self.implicit_returning = kwargs.pop('implicit_returning', True)
 
+        self.comment = kwargs.pop('comment', None)
+
         if 'info' in kwargs:
             self.info = kwargs.pop('info')
         if 'listeners' in kwargs:
@@ -584,6 +592,9 @@ class Table(DialectKWArgs, SchemaItem, TableClause):
             if key in kwargs:
                 raise exc.ArgumentError(
                     "Can't redefine 'quote' or 'quote_schema' arguments")
+
+        if 'comment' in kwargs:
+            self.comment = kwargs.pop('comment', None)
 
         if 'info' in kwargs:
             self.info = kwargs.pop('info')
@@ -1044,8 +1055,9 @@ class Column(SchemaItem, ColumnClause):
                 :ref:`metadata_defaults_toplevel`
 
         :param doc: optional String that can be used by the ORM or similar
-            to document attributes.   This attribute does not render SQL
-            comments (a future attribute 'comment' will achieve that).
+            to document attributes on the Python side.   This attribute does
+            **not** render SQL comments; use the :paramref:`.Column.comment`
+            parameter for this purpose.
 
         :param key: An optional string identifier which will identify this
             ``Column`` object on the :class:`.Table`. When a key is provided,
@@ -1159,6 +1171,13 @@ class Column(SchemaItem, ColumnClause):
              .. versionadded:: 0.8.3 Added the ``system=True`` parameter to
                 :class:`.Column`.
 
+        :param comment: Optional string that will render an SQL comment on
+             table creation.
+
+             .. versionadded:: 1.2 Added the :paramref:`.Column.comment`
+                parameter to :class:`.Column`.
+
+
         """
 
         name = kwargs.pop('name', None)
@@ -1205,6 +1224,7 @@ class Column(SchemaItem, ColumnClause):
         self.autoincrement = kwargs.pop('autoincrement', "auto")
         self.constraints = set()
         self.foreign_keys = set()
+        self.comment = kwargs.pop('comment', None)
 
         # check if this Column is proxying another column
         if '_proxies' in kwargs:
@@ -2048,6 +2068,14 @@ class ColumnDefault(DefaultGenerator):
             not self.is_clause_element and \
             not self.is_sequence
 
+    @util.memoized_property
+    @util.dependencies("sqlalchemy.sql.sqltypes")
+    def _arg_is_typed(self, sqltypes):
+        if self.is_clause_element:
+            return not isinstance(self.arg.type, sqltypes.NullType)
+        else:
+            return False
+
     def _maybe_wrap_callable(self, fn):
         """Wrap callables that don't accept a context.
 
@@ -2120,8 +2148,8 @@ class Sequence(DefaultGenerator):
 
     def __init__(self, name, start=None, increment=None, minvalue=None,
                  maxvalue=None, nominvalue=None, nomaxvalue=None, cycle=None,
-                 schema=None, optional=False, quote=None, metadata=None,
-                 quote_schema=None,
+                 schema=None, cache=None, order=None, optional=False,
+                 quote=None, metadata=None, quote_schema=None,
                  for_update=False):
         """Construct a :class:`.Sequence` object.
 
@@ -2188,6 +2216,19 @@ class Sequence(DefaultGenerator):
          schema name when a :class:`.MetaData` is also present are the same
          as that of :paramref:`.Table.schema`.
 
+        :param cache: optional integer value; number of future values in the
+         sequence which are calculated in advance.  Renders the CACHE keyword
+         understood by Oracle and PostgreSQL.
+
+         .. versionadded:: 1.1.12
+
+        :param order: optional boolean value; if true, renders the
+         ORDER keyword, understood by Oracle, indicating the sequence is
+         definitively ordered.   May be necessary to provide deterministic
+         ordering using Oracle RAC.
+
+         .. versionadded:: 1.1.12
+
         :param optional: boolean value, when ``True``, indicates that this
          :class:`.Sequence` object only needs to be explicitly generated
          on backends that don't provide another way to generate primary
@@ -2243,6 +2284,8 @@ class Sequence(DefaultGenerator):
         self.nominvalue = nominvalue
         self.nomaxvalue = nomaxvalue
         self.cycle = cycle
+        self.cache = cache
+        self.order = order
         self.optional = optional
         if schema is BLANK_SCHEMA:
             self.schema = schema = None
@@ -2315,6 +2358,7 @@ class Sequence(DefaultGenerator):
             "to produce a 'next value' function that's usable "
             "as a column element."
             % self.__class__.__name__)
+
 
 
 @inspection._self_inspects
@@ -2591,7 +2635,7 @@ class ColumnCollectionMixin(object):
 
         columns = cols_w_table
 
-        tables = set([c.table for c in columns])
+        tables = {c.table for c in columns}
         if len(tables) == 1:
             self._set_parent_with_dispatch(tables.pop())
         elif len(tables) > 1 and not self._allow_multiple_tables:
@@ -3891,7 +3935,10 @@ class MetaData(SchemaItem):
                         name not in current]
 
             for name in load:
-                Table(name, self, **reflect_opts)
+                try:
+                    Table(name, self, **reflect_opts)
+                except exc.UnreflectableTableError as uerr:
+                    util.warn("Skipping table %s: %s" % (name, uerr))
 
     def append_ddl_listener(self, event_name, listener):
         """Append a DDL event listener to this ``MetaData``.
