@@ -10,8 +10,8 @@ Build-Depends-Indep: python-sphinx (>= 1.1.2), python-mako (>= 0.4.1),
  python-changelog, python-sphinx-paramlinks, python-zzzeeksphinx
 Standards-Version: 4.0.0
 Homepage: http://www.sqlalchemy.org/
-Vcs-Git: https://anonscm.debian.org/git/python-modules/packages/sqlalchemy.git
-Vcs-Browser: https://anonscm.debian.org/cgit/python-modules/packages/sqlalchemy.git
+Vcs-Git: https://salsa.debian.org/python-team/modules/sqlalchemy.git
+Vcs-Browser: https://salsa.debian.org/python-team/modules/sqlalchemy
 X-Python-Version: >= 2.5
 
 Package: python-sqlalchemy
