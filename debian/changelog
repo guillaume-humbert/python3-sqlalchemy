@@ -1,6 +1,7 @@
 sqlalchemy (1.2.0~b1+ds1-2) UNRELEASED; urgency=medium
 
   * d/control: Set Vcs-* to salsa.debian.org
+  * d/copyright: Use https protocol in Format field
 
  -- Ondřej Nový <onovy@debian.org>  Tue, 13 Feb 2018 09:59:31 +0100
 
