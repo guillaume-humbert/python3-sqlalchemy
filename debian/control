@@ -71,7 +71,6 @@ Description: SQL toolkit and Object Relational Mapper for Python - C extension
 Package: python-sqlalchemy-doc
 Section: doc
 Architecture: all
-Priority: extra
 Depends: ${misc:Depends}, libjs-jquery, libjs-underscore
 Recommends: python-sqlalchemy
 Conflicts: python-sqlalchemy (<= 0.3.0-1)
