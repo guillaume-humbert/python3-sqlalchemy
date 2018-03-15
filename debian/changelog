@@ -11,6 +11,7 @@ sqlalchemy (1.2.5+ds1-1) unstable; urgency=medium
   * New upstream release
     - requires Sphinx >= 1.6 to build docs, B-D updated
   * Use Python 3 to generate Sphinx documentation
+  * python3-sqlalchemy now recommends python3-sqlalchemy-ext (closes: 880126)
   * Standards-Version bumped to 4.1.3
     - package priorities updated
 

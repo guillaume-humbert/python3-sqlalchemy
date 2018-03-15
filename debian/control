@@ -84,6 +84,7 @@ Description: documentation for the SQLAlchemy Python library
 Package: python3-sqlalchemy
 Architecture: all
 Depends: ${python3:Depends}, ${misc:Depends}
+Recommends: python3-sqlalchemy-ext
 Suggests: python-sqlalchemy-doc, python3-psycopg2, python3-mysqldb, python3-fdb
 Description: SQL toolkit and Object Relational Mapper for Python 3
  SQLAlchemy is an SQL database abstraction library for Python.
