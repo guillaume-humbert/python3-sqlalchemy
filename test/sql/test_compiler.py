@@ -1450,6 +1450,25 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
                 []).compile,
             dialect=empty_in_dialect)
 
+    def test_collate(self):
+        # columns clause
+        self.assert_compile(
+            select([column('x').collate('bar')]),
+            "SELECT x COLLATE bar AS anon_1"
+        )
+
+        # WHERE clause
+        self.assert_compile(
+            select([column('x')]).where(column('x').collate('bar') == 'foo'),
+            "SELECT x WHERE (x COLLATE bar) = :param_1"
+        )
+
+        # ORDER BY clause
+        self.assert_compile(
+            select([column('x')]).order_by(column('x').collate('bar')),
+            "SELECT x ORDER BY x COLLATE bar"
+        )
+
     def test_literal(self):
 
         self.assert_compile(select([literal('foo')]),
@@ -2426,31 +2445,37 @@ class SelectTest(fixtures.TestBase, AssertsCompiledSQL):
             "(ORDER BY mytable.myid RANGE BETWEEN "
             ":param_1 PRECEDING AND :param_2 FOLLOWING)"
             " AS anon_1 FROM mytable",
-            {'param_1': 5, 'param_2': 10}
+            checkparams={'param_1': 5, 'param_2': 10}
+        )
+
+        self.assert_compile(
+            select([func.row_number().over(order_by=expr, range_=(1, 10))]),
+            "SELECT row_number() OVER "
+            "(ORDER BY mytable.myid RANGE BETWEEN "
+            ":param_1 FOLLOWING AND :param_2 FOLLOWING)"
+            " AS anon_1 FROM mytable",
+            checkparams={'param_1': 1, 'param_2': 10}
+        )
+
+        self.assert_compile(
+            select([func.row_number().over(order_by=expr, range_=(-10, -1))]),
+            "SELECT row_number() OVER "
+            "(ORDER BY mytable.myid RANGE BETWEEN "
+            ":param_1 PRECEDING AND :param_2 PRECEDING)"
+            " AS anon_1 FROM mytable",
+            checkparams={'param_1': 10, 'param_2': 1}
         )
 
     def test_over_invalid_framespecs(self):
         assert_raises_message(
             exc.ArgumentError,
-            "Preceding value must be a negative integer, zero, or None",
-            func.row_number().over, range_=(5, 10)
-        )
-
-        assert_raises_message(
-            exc.ArgumentError,
-            "Following value must be a positive integer, zero, or None",
-            func.row_number().over, range_=(-5, -8)
-        )
-
-        assert_raises_message(
-            exc.ArgumentError,
-            "Integer or None expected for preceding value",
+            "Integer or None expected for range value",
             func.row_number().over, range_=("foo", 8)
         )
 
         assert_raises_message(
             exc.ArgumentError,
-            "Integer or None expected for following value",
+            "Integer or None expected for range value",
             func.row_number().over, range_=(-5, "foo")
         )
 
@@ -2920,7 +2945,7 @@ class ExecutionOptionsTest(fixtures.TestBase):
 
 
 class CRUDTest(fixtures.TestBase, AssertsCompiledSQL):
-    __dialect__ = 'default'
+    __dialect__ = 'default_enhanced'
 
     def test_insert_literal_binds(self):
         stmt = table1.insert().values(myid=3, name='jack')

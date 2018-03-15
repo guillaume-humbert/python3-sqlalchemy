@@ -14,6 +14,7 @@ from sqlalchemy.dialects.mysql import reflection as _reflection
 from sqlalchemy.testing import fixtures, AssertsExecutionResults
 from sqlalchemy import testing
 from sqlalchemy.testing import assert_raises_message, expect_warnings
+import re
 
 
 class TypeReflectionTest(fixtures.TestBase):
@@ -233,9 +234,9 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
         assert reflected.c.c5.default is None
         assert reflected.c.c5.server_default is None
         assert reflected.c.c6.default is None
-        eq_(
-            str(reflected.c.c6.server_default.arg).upper(),
-            "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        assert re.match(
+            r"CURRENT_TIMESTAMP(\(\))? ON UPDATE CURRENT_TIMESTAMP(\(\))?",
+            str(reflected.c.c6.server_default.arg).upper()
         )
         reflected.create()
         try:
@@ -251,9 +252,9 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
         assert reflected.c.c5.default is None
         assert reflected.c.c5.server_default is None
         assert reflected.c.c6.default is None
-        eq_(
-            str(reflected.c.c6.server_default.arg).upper(),
-            "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+        assert re.match(
+            r"CURRENT_TIMESTAMP(\(\))? ON UPDATE CURRENT_TIMESTAMP(\(\))?",
+            str(reflected.c.c6.server_default.arg).upper()
         )
 
     def test_reflection_with_table_options(self):
@@ -263,7 +264,7 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
             'mysql_def', MetaData(testing.db),
             Column('c1', Integer()),
             mysql_engine='MEMORY',
-            mysql_comment=comment,
+            comment=comment,
             mysql_default_charset='utf8',
             mysql_auto_increment='5',
             mysql_avg_row_length='3',
@@ -280,7 +281,7 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
             def_table.drop()
 
         assert def_table.kwargs['mysql_engine'] == 'MEMORY'
-        assert def_table.kwargs['mysql_comment'] == comment
+        assert def_table.comment == comment
         assert def_table.kwargs['mysql_default_charset'] == 'utf8'
         assert def_table.kwargs['mysql_auto_increment'] == '5'
         assert def_table.kwargs['mysql_avg_row_length'] == '3'
@@ -288,6 +289,8 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
         assert def_table.kwargs['mysql_connection'] == 'fish'
 
         assert reflected.kwargs['mysql_engine'] == 'MEMORY'
+
+        assert reflected.comment == comment
         assert reflected.kwargs['mysql_comment'] == comment
         assert reflected.kwargs['mysql_default charset'] == 'utf8'
         assert reflected.kwargs['mysql_avg_row_length'] == '3'
@@ -509,6 +512,11 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
                 for d in inspect(testing.db).get_columns("nn_t%d" % idx)
             )
 
+        if testing.db.dialect._is_mariadb_102:
+            current_timestamp = "current_timestamp()"
+        else:
+            current_timestamp = "CURRENT_TIMESTAMP"
+
         eq_(
             reflected,
             [
@@ -517,15 +525,19 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
                 {'name': 'z', 'nullable': True, 'default': None},
                 {'name': 'q', 'nullable': True, 'default': None},
                 {'name': 'p', 'nullable': True,
-                 'default': 'CURRENT_TIMESTAMP'},
+                 'default': current_timestamp},
                 {'name': 'r', 'nullable': False,
-                 'default': "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"},
+                 'default':
+                 "%(current_timestamp)s ON UPDATE %(current_timestamp)s" %
+                 {"current_timestamp": current_timestamp}},
                 {'name': 's', 'nullable': False,
-                 'default': 'CURRENT_TIMESTAMP'},
+                 'default': current_timestamp},
                 {'name': 't', 'nullable': False,
-                 'default': "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"},
+                 'default':
+                 "%(current_timestamp)s ON UPDATE %(current_timestamp)s" %
+                 {"current_timestamp": current_timestamp}},
                 {'name': 'u', 'nullable': False,
-                 'default': 'CURRENT_TIMESTAMP'},
+                 'default': current_timestamp},
             ]
         )
 
@@ -563,6 +575,8 @@ class ReflectionTest(fixtures.TestBase, AssertsExecutionResults):
 
 
 class RawReflectionTest(fixtures.TestBase):
+    __backend__ = True
+
     def setup(self):
         dialect = mysql.dialect()
         self.parser = _reflection.MySQLTableDefinitionParser(
@@ -599,7 +613,7 @@ class RawReflectionTest(fixtures.TestBase):
             "  KEY (`id`) USING BTREE COMMENT 'prefix''text''suffix'")
 
     def test_fk_reflection(self):
-        regex = self.parser._re_constraint
+        regex = self.parser._re_fk_constraint
 
         m = regex.match('  CONSTRAINT `addresses_user_id_fkey` '
                         'FOREIGN KEY (`user_id`) '

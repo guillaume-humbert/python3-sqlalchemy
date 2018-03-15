@@ -1,6 +1,7 @@
 from sqlalchemy.testing import fixtures, eq_, is_, is_not_
 from sqlalchemy import testing
 from sqlalchemy.testing import assert_raises_message
+from sqlalchemy.testing import expect_warnings
 from sqlalchemy.sql import column, desc, asc, literal, collate, null, \
     true, false, any_, all_
 from sqlalchemy.sql import sqltypes
@@ -2299,9 +2300,9 @@ class ComposedLikeOperatorsTest(fixtures.TestBase, testing.AssertsCompiledSQL):
 
     def test_contains_autoescape(self):
         self.assert_compile(
-            column('x').contains('a%b_c', autoescape='\\'),
-            "x LIKE '%' || :x_1 || '%' ESCAPE '\\'",
-            checkparams={'x_1': 'a\\%b\\_c'}
+            column('x').contains('a%b_c/d', autoescape=True),
+            "x LIKE '%' || :x_1 || '%' ESCAPE '/'",
+            checkparams={'x_1': 'a/%b/_c//d'}
         )
 
     def test_contains_literal(self):
@@ -2334,9 +2335,9 @@ class ComposedLikeOperatorsTest(fixtures.TestBase, testing.AssertsCompiledSQL):
 
     def test_not_contains_autoescape(self):
         self.assert_compile(
-            ~column('x').contains('a%b_c', autoescape='\\'),
-            "x NOT LIKE '%' || :x_1 || '%' ESCAPE '\\'",
-            checkparams={'x_1': 'a\\%b\\_c'}
+            ~column('x').contains('a%b_c/d', autoescape=True),
+            "x NOT LIKE '%' || :x_1 || '%' ESCAPE '/'",
+            checkparams={'x_1': 'a/%b/_c//d'}
         )
 
     def test_contains_concat(self):
@@ -2443,9 +2444,16 @@ class ComposedLikeOperatorsTest(fixtures.TestBase, testing.AssertsCompiledSQL):
 
     def test_startswith_autoescape(self):
         self.assert_compile(
-            column('x').startswith('a%b_c', autoescape='\\'),
-            "x LIKE :x_1 || '%' ESCAPE '\\'",
-            checkparams={'x_1': 'a\\%b\\_c'}
+            column('x').startswith('a%b_c/d', autoescape=True),
+            "x LIKE :x_1 || '%' ESCAPE '/'",
+            checkparams={'x_1': 'a/%b/_c//d'}
+        )
+
+    def test_startswith_autoescape_custom_escape(self):
+        self.assert_compile(
+            column('x').startswith('a%b_c/d^e', autoescape=True, escape='^'),
+            "x LIKE :x_1 || '%' ESCAPE '^'",
+            checkparams={'x_1': 'a^%b^_c/d^^e'}
         )
 
     def test_not_startswith(self):
@@ -2464,9 +2472,9 @@ class ComposedLikeOperatorsTest(fixtures.TestBase, testing.AssertsCompiledSQL):
 
     def test_not_startswith_autoescape(self):
         self.assert_compile(
-            ~column('x').startswith('a%b_c', autoescape='\\'),
-            "x NOT LIKE :x_1 || '%' ESCAPE '\\'",
-            checkparams={'x_1': 'a\\%b\\_c'}
+            ~column('x').startswith('a%b_c/d', autoescape=True),
+            "x NOT LIKE :x_1 || '%' ESCAPE '/'",
+            checkparams={'x_1': 'a/%b/_c//d'}
         )
 
     def test_startswith_literal(self):
@@ -2547,9 +2555,32 @@ class ComposedLikeOperatorsTest(fixtures.TestBase, testing.AssertsCompiledSQL):
 
     def test_endswith_autoescape(self):
         self.assert_compile(
-            column('x').endswith('a%b_c', autoescape='\\'),
-            "x LIKE '%' || :x_1 ESCAPE '\\'",
-            checkparams={'x_1': 'a\\%b\\_c'}
+            column('x').endswith('a%b_c/d', autoescape=True),
+            "x LIKE '%' || :x_1 ESCAPE '/'",
+            checkparams={'x_1': 'a/%b/_c//d'}
+        )
+
+    def test_endswith_autoescape_custom_escape(self):
+        self.assert_compile(
+            column('x').endswith('a%b_c/d^e', autoescape=True, escape="^"),
+            "x LIKE '%' || :x_1 ESCAPE '^'",
+            checkparams={'x_1': 'a^%b^_c/d^^e'}
+        )
+
+    def test_endswith_autoescape_warning(self):
+        with expect_warnings("The autoescape parameter is now a simple"):
+            self.assert_compile(
+                column('x').endswith('a%b_c/d', autoescape='P'),
+                "x LIKE '%' || :x_1 ESCAPE '/'",
+                checkparams={'x_1': 'a/%b/_c//d'}
+            )
+
+    def test_endswith_autoescape_nosqlexpr(self):
+        assert_raises_message(
+            TypeError,
+            "String value expected when autoescape=True",
+            column('x').endswith,
+            literal_column("'a%b_c/d'"), autoescape=True
         )
 
     def test_not_endswith(self):
@@ -2568,9 +2599,9 @@ class ComposedLikeOperatorsTest(fixtures.TestBase, testing.AssertsCompiledSQL):
 
     def test_not_endswith_autoescape(self):
         self.assert_compile(
-            ~column('x').endswith('a%b_c', autoescape='\\'),
-            "x NOT LIKE '%' || :x_1 ESCAPE '\\'",
-            checkparams={'x_1': 'a\\%b\\_c'}
+            ~column('x').endswith('a%b_c/d', autoescape=True),
+            "x NOT LIKE '%' || :x_1 ESCAPE '/'",
+            checkparams={'x_1': 'a/%b/_c//d'}
         )
 
     def test_endswith_literal(self):
@@ -2631,8 +2662,37 @@ class CustomOpTest(fixtures.TestBase):
         assert operators.is_comparison(op1)
         assert not operators.is_comparison(op2)
 
-        expr = c.op('$', is_comparison=True)(None)
-        is_(expr.type, sqltypes.BOOLEANTYPE)
+    def test_return_types(self):
+        some_return_type = sqltypes.DECIMAL()
+
+        for typ in [
+            sqltypes.NULLTYPE,
+            Integer(),
+            ARRAY(String),
+            String(50),
+            Boolean(),
+            DateTime(),
+            sqltypes.JSON(),
+            postgresql.ARRAY(Integer),
+            sqltypes.Numeric(5, 2),
+        ]:
+            c = column('x', typ)
+            expr = c.op('$', is_comparison=True)(None)
+            is_(expr.type, sqltypes.BOOLEANTYPE)
+
+            c = column('x', typ)
+            expr = c.bool_op('$')(None)
+            is_(expr.type, sqltypes.BOOLEANTYPE)
+
+            expr = c.op('$')(None)
+            is_(expr.type, typ)
+
+            expr = c.op('$', return_type=some_return_type)(None)
+            is_(expr.type, some_return_type)
+
+            expr = c.op(
+                '$', is_comparison=True, return_type=some_return_type)(None)
+            is_(expr.type, some_return_type)
 
 
 class TupleTypingTest(fixtures.TestBase):
@@ -2685,11 +2745,29 @@ class AnyAllTest(fixtures.TestBase, testing.AssertsCompiledSQL):
             checkparams={"param_1": 5}
         )
 
+    def test_any_array_method(self):
+        t = self._fixture()
+
+        self.assert_compile(
+            5 == t.c.arrval.any_(),
+            ":param_1 = ANY (tab1.arrval)",
+            checkparams={"param_1": 5}
+        )
+
     def test_all_array(self):
         t = self._fixture()
 
         self.assert_compile(
             5 == all_(t.c.arrval),
+            ":param_1 = ALL (tab1.arrval)",
+            checkparams={"param_1": 5}
+        )
+
+    def test_all_array_method(self):
+        t = self._fixture()
+
+        self.assert_compile(
+            5 == t.c.arrval.all_(),
             ":param_1 = ALL (tab1.arrval)",
             checkparams={"param_1": 5}
         )
@@ -2802,11 +2880,31 @@ class AnyAllTest(fixtures.TestBase, testing.AssertsCompiledSQL):
             checkparams={'data_1': 10, 'param_1': 5}
         )
 
+    def test_any_subq_method(self):
+        t = self._fixture()
+
+        self.assert_compile(
+            5 == select([t.c.data]).where(t.c.data < 10).as_scalar().any_(),
+            ":param_1 = ANY (SELECT tab1.data "
+            "FROM tab1 WHERE tab1.data < :data_1)",
+            checkparams={'data_1': 10, 'param_1': 5}
+        )
+
     def test_all_subq(self):
         t = self._fixture()
 
         self.assert_compile(
             5 == all_(select([t.c.data]).where(t.c.data < 10)),
+            ":param_1 = ALL (SELECT tab1.data "
+            "FROM tab1 WHERE tab1.data < :data_1)",
+            checkparams={'data_1': 10, 'param_1': 5}
+        )
+
+    def test_all_subq_method(self):
+        t = self._fixture()
+
+        self.assert_compile(
+            5 == select([t.c.data]).where(t.c.data < 10).as_scalar().all_(),
             ":param_1 = ALL (SELECT tab1.data "
             "FROM tab1 WHERE tab1.data < :data_1)",
             checkparams={'data_1': 10, 'param_1': 5}

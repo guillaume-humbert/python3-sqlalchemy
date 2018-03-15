@@ -1,5 +1,5 @@
 # mysql/base.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -23,19 +23,26 @@ supported in any given server release.
 
 .. _mysql_connection_timeouts:
 
-Connection Timeouts
--------------------
+Connection Timeouts and Disconnects
+-----------------------------------
 
 MySQL features an automatic connection close behavior, for connections that
-have been idle for eight hours or more.   To circumvent having this issue, use
-the ``pool_recycle`` option which controls the maximum age of any connection::
+have been idle for a fixed period of time, defaulting to eight hours.
+To circumvent having this issue, use
+the :paramref:`.create_engine.pool_recycle` option which ensures that
+a connection will be discarded and replaced with a new one if it has been
+present in the pool for a fixed number of seconds::
 
     engine = create_engine('mysql+mysqldb://...', pool_recycle=3600)
 
+For more comprehensive disconnect detection of pooled connections, including
+accommodation of  server restarts and network issues, a pre-ping approach may
+be employed.  See :ref:`pool_disconnects` for current approaches.
+
 .. seealso::
 
-    :ref:`pool_setting_recycle` - full description of the pool recycle feature.
-
+    :ref:`pool_disconnects` - Background on several techniques for dealing
+    with timed out connections as well as database restarts.
 
 .. _mysql_storage_engines:
 
@@ -325,8 +332,8 @@ INSERT...ON DUPLICATE KEY UPDATE (Upsert)
 MySQL allows "upserts" (update or insert)
 of rows into a table via the ``ON DUPLICATE KEY UPDATE`` clause of the
 ``INSERT`` statement.  A candidate row will only be inserted if that row does
-not match an existing primary or unique key in the table; otherwise, an UPDATE will
-be performed.   The statement allows for separate specification of the
+not match an existing primary or unique key in the table; otherwise, an UPDATE
+will be performed.   The statement allows for separate specification of the
 values to INSERT versus the values for UPDATE.
 
 SQLAlchemy provides ``ON DUPLICATE KEY UPDATE`` support via the MySQL-specific
@@ -340,7 +347,7 @@ the generative method :meth:`~.mysql.dml.Insert.on_duplicate_key_update`::
         data='inserted value')
 
     on_duplicate_key_stmt = insert_stmt.on_duplicate_key_update(
-        data=insert_stmt.values.data,
+        data=insert_stmt.inserted.data,
         status='U'
     )
 
@@ -374,7 +381,7 @@ as values::
     unless they are manually specified explicitly in the parameters.
 
 In order to refer to the proposed insertion row, the special alias
-:attr:`~.mysql.dml.Insert.values` is available as an attribute on
+:attr:`~.mysql.dml.Insert.inserted` is available as an attribute on
 the :class:`.mysql.dml.Insert` object; this object is a
 :class:`.ColumnCollection` which contains all columns of the target
 table::
@@ -387,11 +394,11 @@ table::
         author='jlh')
     do_update_stmt = stmt.on_duplicate_key_update(
         data="updated value",
-        author=stmt.values.author
+        author=stmt.inserted.author
     )
     conn.execute(do_update_stmt)
 
-When rendered, the "values" namespace will produce the expression
+When rendered, the "inserted" namespace will produce the expression
 ``VALUES(<columnname>)``.
 
 .. versionadded:: 1.2 Added support for MySQL ON DUPLICATE KEY UPDATE clause
@@ -761,8 +768,10 @@ RESERVED_WORDS = set(
 
      'generated', 'optimizer_costs', 'stored', 'virtual',  # 5.7
 
-     'admin', 'except', 'grouping', 'of', 'persist', 'recursive',
-        'role',  # 8.0
+     'admin', 'cume_dist', 'empty', 'except', 'first_value', 'grouping',
+     'groups', 'json_table', 'last_value', 'nth_value', 'ntile', 'of',
+     'over', 'percent_rank', 'persist', 'persist_only', 'rank', 'recursive',
+     'role', 'row', 'rows', 'row_number', 'system', 'window', # 8.0
 
      ])
 
@@ -914,7 +923,7 @@ class MySQLCompiler(compiler.SQLCompiler):
                 val.type = column.type
                 value_text = self.process(val.self_group(), use_schema=False)
             elif isinstance(val, elements.ColumnClause) \
-                    and val.table is on_duplicate.values_alias:
+                    and val.table is on_duplicate.inserted_alias:
                 value_text = 'VALUES(' + self.preparer.quote(column.name) + ')'
             else:
                 value_text = self.process(val.self_group(), use_schema=False)
@@ -934,21 +943,21 @@ class MySQLCompiler(compiler.SQLCompiler):
         return 'ON DUPLICATE KEY UPDATE ' + ', '.join(clauses)
 
     def visit_concat_op_binary(self, binary, operator, **kw):
-        return "concat(%s, %s)" % (self.process(binary.left),
-                                   self.process(binary.right))
+        return "concat(%s, %s)" % (self.process(binary.left, **kw),
+                                   self.process(binary.right, **kw))
 
     def visit_match_op_binary(self, binary, operator, **kw):
         return "MATCH (%s) AGAINST (%s IN BOOLEAN MODE)" % \
-            (self.process(binary.left), self.process(binary.right))
+            (self.process(binary.left, **kw), self.process(binary.right, **kw))
 
     def get_from_hint_text(self, table, text):
         return text
 
-    def visit_typeclause(self, typeclause, type_=None):
+    def visit_typeclause(self, typeclause, type_=None, **kw):
         if type_ is None:
             type_ = typeclause.type.dialect_impl(self.dialect)
         if isinstance(type_, sqltypes.TypeDecorator):
-            return self.visit_typeclause(typeclause, type_.impl)
+            return self.visit_typeclause(typeclause, type_.impl, **kw)
         elif isinstance(type_, sqltypes.Integer):
             if getattr(type_, 'unsigned', False):
                 return 'UNSIGNED INTEGER'
@@ -1095,6 +1104,24 @@ class MySQLCompiler(compiler.SQLCompiler):
                            extra_froms, from_hints, **kw):
         return None
 
+    def delete_table_clause(self, delete_stmt, from_table,
+                            extra_froms):
+        """If we have extra froms make sure we render any alias as hint."""
+        ashint = False
+        if extra_froms:
+            ashint = True
+        return from_table._compiler_dispatch(
+            self, asfrom=True, iscrud=True, ashint=ashint
+        )
+
+    def delete_extra_from_clause(self, delete_stmt, from_table,
+                           extra_froms, from_hints, **kw):
+        """Render the DELETE .. USING clause specific to MySQL."""
+        return "USING " + ', '.join(
+            t._compiler_dispatch(self, asfrom=True,
+                                 fromhints=from_hints, **kw)
+            for t in [from_table] + extra_froms)
+
 
 class MySQLDDLCompiler(compiler.DDLCompiler):
     def get_column_specification(self, column, **kw):
@@ -1164,7 +1191,9 @@ class MySQLDDLCompiler(compiler.DDLCompiler):
         ], nonpart_options):
             arg = opts[opt]
             if opt in _reflection._options_of_type_string:
-                arg = "'%s'" % arg.replace("\\", "\\\\").replace("'", "''")
+
+                arg = self.sql_compiler.render_literal_value(
+                    arg, sqltypes.String())
 
             if opt in ('DATA_DIRECTORY', 'INDEX_DIRECTORY',
                        'DEFAULT_CHARACTER_SET', 'CHARACTER_SET',
@@ -1189,7 +1218,8 @@ class MySQLDDLCompiler(compiler.DDLCompiler):
         ], part_options):
             arg = opts[opt]
             if opt in _reflection._options_of_type_string:
-                arg = "'%s'" % arg.replace("\\", "\\\\").replace("'", "''")
+                arg = self.sql_compiler.render_literal_value(
+                    arg, sqltypes.String())
 
             opt = opt.replace('_', ' ')
             joiner = ' '
@@ -1198,7 +1228,7 @@ class MySQLDDLCompiler(compiler.DDLCompiler):
 
         return ' '.join(table_opts)
 
-    def visit_create_index(self, create):
+    def visit_create_index(self, create, **kw):
         index = create.element
         self._verify_index_table(index)
         preparer = self.preparer
@@ -1215,7 +1245,7 @@ class MySQLDDLCompiler(compiler.DDLCompiler):
 
         index_prefix = index.kwargs.get('mysql_prefix', None)
         if index_prefix:
-          text += index_prefix + ' '
+            text += index_prefix + ' '
 
         text += "INDEX %s ON %s " % (name, table)
 
@@ -1710,12 +1740,36 @@ class MySQLDialect(default.DefaultDialect):
 
     def get_isolation_level(self, connection):
         cursor = connection.cursor()
-        cursor.execute('SELECT @@tx_isolation')
+        if self._is_mysql and self.server_version_info >= (5, 7, 20):
+            cursor.execute('SELECT @@transaction_isolation')
+        else:
+            cursor.execute('SELECT @@tx_isolation')
         val = cursor.fetchone()[0]
         cursor.close()
         if util.py3k and isinstance(val, bytes):
             val = val.decode()
         return val.upper().replace("-", " ")
+
+    def _get_server_version_info(self, connection):
+        # get database server version info explicitly over the wire
+        # to avoid proxy servers like MaxScale getting in the
+        # way with their own values, see #4205
+        dbapi_con = connection.connection
+        cursor = dbapi_con.cursor()
+        cursor.execute("SELECT VERSION()")
+        val = cursor.fetchone()[0]
+        cursor.close()
+        if util.py3k and isinstance(val, bytes):
+            val = val.decode()
+
+        version = []
+        r = re.compile(r'[.\-]')
+        for n in r.split(val):
+            try:
+                version.append(int(n))
+            except ValueError:
+                version.append(n)
+        return tuple(version)
 
     def do_commit(self, dbapi_connection):
         """Execute a COMMIT."""
@@ -1775,7 +1829,8 @@ class MySQLDialect(default.DefaultDialect):
                           self.dbapi.ProgrammingError)):
             return self._extract_error_code(e) in \
                 (2006, 2013, 2014, 2045, 2055)
-        elif isinstance(e, self.dbapi.InterfaceError):
+        elif isinstance(
+                e, (self.dbapi.InterfaceError, self.dbapi.InternalError)):
             # if underlying connection is closed,
             # this is the error you get
             return "(0, '')" in str(e)
@@ -1857,9 +1912,44 @@ class MySQLDialect(default.DefaultDialect):
 
         default.DefaultDialect.initialize(self, connection)
 
+        self._warn_for_known_db_issues()
+
+    def _warn_for_known_db_issues(self):
+        if self._is_mariadb:
+            mdb_version = self._mariadb_normalized_version_info
+            if mdb_version > (10, 2) and mdb_version < (10, 2, 9):
+                util.warn(
+                    "MariaDB %r before 10.2.9 has known issues regarding "
+                    "CHECK constraints, which impact handling of NULL values "
+                    "with SQLAlchemy's boolean datatype (MDEV-13596). An "
+                    "additional issue prevents proper migrations of columns "
+                    "with CHECK constraints (MDEV-11114).  Please upgrade to "
+                    "MariaDB 10.2.9 or greater, or use the MariaDB 10.1 "
+                    "series, to avoid these issues." % (mdb_version, ))
+
     @property
     def _is_mariadb(self):
         return 'MariaDB' in self.server_version_info
+
+    @property
+    def _is_mysql(self):
+        return 'MariaDB' not in self.server_version_info
+
+    @property
+    def _is_mariadb_102(self):
+        return self._is_mariadb and \
+            self._mariadb_normalized_version_info > (10, 2)
+
+    @property
+    def _mariadb_normalized_version_info(self):
+        # MariaDB's wire-protocol prepends the server_version with
+        # the string "5.5"; now that we use @@version we no longer see this.
+
+        if self._is_mariadb:
+            idx = self.server_version_info.index('MariaDB')
+            return self.server_version_info[idx - 3: idx]
+        else:
+            return self.server_version_info
 
     @property
     def _supports_cast(self):
@@ -1944,8 +2034,7 @@ class MySQLDialect(default.DefaultDialect):
 
         fkeys = []
 
-        for spec in parsed_state.constraints:
-            # only FOREIGN KEYs
+        for spec in parsed_state.fk_constraints:
             ref_name = spec['table'][-1]
             ref_schema = len(spec['table']) > 1 and \
                 spec['table'][-2] or schema
@@ -1975,6 +2064,18 @@ class MySQLDialect(default.DefaultDialect):
             }
             fkeys.append(fkey_d)
         return fkeys
+
+    @reflection.cache
+    def get_check_constraints(
+            self, connection, table_name, schema=None, **kw):
+
+        parsed_state = self._parsed_state_or_create(
+            connection, table_name, schema, **kw)
+
+        return [
+            {"name": spec['name'], "sqltext": spec['sqltext']}
+            for spec in parsed_state.ck_constraints
+        ]
 
     @reflection.cache
     def get_table_comment(self, connection, table_name, schema=None, **kw):

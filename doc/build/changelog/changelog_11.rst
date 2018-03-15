@@ -1,5 +1,3 @@
-
-
 =============
 1.1 Changelog
 =============
@@ -18,8 +16,356 @@
     .. include:: changelog_07.rst
         :start-line: 5
 
+
+.. changelog::
+    :version: 1.1.18
+    :include_notes_from: unreleased_11
+
+.. changelog::
+    :version: 1.1.17
+    :released: February 22, 2018
+
+    .. change::
+        :tags: bug, ext
+        :tickets: 4185
+
+        Repaired regression caused in 1.2.3 and 1.1.16 regarding association proxy
+        objects, revising the approach to :ticket:`4185` when calculating the
+        "owning class" of an association proxy to default to choosing the current
+        class if the proxy object is not directly associated with a mapped class,
+        such as a mixin.
+
+.. changelog::
+    :version: 1.1.16
+    :released: February 16, 2018
+
+    .. change::
+        :tags: bug, postgresql
+        :versions: 1.2.3
+
+        Added "SSL SYSCALL error: Operation timed out" to the list
+        of messages that trigger a "disconnect" scenario for the
+        psycopg2 driver.  Pull request courtesy André Cruz.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4187
+        :versions: 1.2.3
+
+        Fixed issue in post_update feature where an UPDATE is emitted
+        when the parent object has been deleted but the dependent object
+        is not.   This issue has existed for a long time however
+        since 1.2 now asserts rows matched for post_update, this
+        was raising an error.
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 4136
+        :versions: 1.2.0b4
+
+        Fixed bug where the MySQL "concat" and "match" operators failed to
+        propagate kwargs to the left and right expressions, causing compiler
+        options such as "literal_binds" to fail.
+
+    .. change::
+        :tags: bug, sql
+        :versions: 1.2.0b4
+
+        Added :func:`.nullsfirst` and :func:`.nullslast` as top level imports
+        in the ``sqlalchemy.`` and ``sqlalchemy.sql.`` namespace.  Pull request
+        courtesy Lele Gaifax.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4185
+        :versions: 1.2.3
+
+        Fixed regression caused by fix for issue :ticket:`4116` affecting versions
+        1.2.2 as well as 1.1.15, which had the effect of mis-calculation of the
+        "owning class" of an :class:`.AssociationProxy` as the ``NoneType`` class
+        in some declarative mixin/inheritance situations as well as if the
+        association proxy were accessed off of an un-mapped class.  The "figure out
+        the owner" logic has been replaced by an in-depth routine that searches
+        through the complete mapper hierarchy assigned to the class or subclass to
+        determine the correct (we hope) match; will not assign the owner if no
+        match is found.  An exception is now raised if the proxy is used
+        against an un-mapped instance.
+
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4162
+        :versions: 1.2.1
+
+        Fixed bug in :meth:`.Insert.values` where using the "multi-values"
+        format in combination with :class:`.Column` objects as keys rather
+        than strings would fail.   Pull request courtesy Aubrey Stark-Toller.
+
+    .. change::
+        :tags: bug, postgresql
+        :versions: 1.2.3
+
+        Added "TRUNCATE" to the list of keywords accepted by the
+        Postgresql dialect as an "autocommit"-triggering keyword.
+        Pull request courtesy Jacob Hayes.
+
+    .. change::
+        :tags: bug, pool
+        :tickets: 4184
+        :versions: 1.2.3
+
+        Fixed a fairly serious connection pool bug where a connection that is
+        acquired after being refreshed as a result of a user-defined
+        :class:`.DisconnectionError` or due to the 1.2-released "pre_ping" feature
+        would not be correctly reset if the connection were returned to the pool by
+        weakref cleanup (e.g. the front-facing object is garbage collected); the
+        weakref would still refer to the previously invalidated DBAPI connection
+        which would have the reset operation erroneously called upon it instead.
+        This would lead to stack traces in the logs and a connection being checked
+        into the pool without being reset, which can cause locking issues.
+
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4151
+        :versions: 1.2.1
+
+        Fixed bug where an object that is expunged during a rollback of
+        a nested or subtransaction which also had its primary key mutated
+        would not be correctly removed from the session, causing subsequent
+        issues in using the session.
+
+.. changelog::
+    :version: 1.1.15
+    :released: November 3, 2017
+
+    .. change:
+        :tags: bug, sqlite
+        :tickets: 4099
+        :versions: 1.2.0b3
+
+        Fixed bug where SQLite CHECK constraint reflection would fail
+        if the referenced table were in a remote schema, e.g. on SQLite a
+        remote database referred to by ATTACH.
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 4097
+        :versions: 1.2.0b3
+
+        Warning emitted when MariaDB 10.2.8 or earlier in the 10.2
+        series is detected as there are major issues with CHECK
+        constraints within these versions that were resolved as of
+        10.2.9.
+
+        Note that this changelog message was NOT released with
+        SQLAlchemy 1.2.0b3 and was added retroactively.
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 4095
+        :versions: 1.2.0b3
+
+        Added a full range of "connection closed" exception codes to the
+        PyODBC dialect for SQL Server, including '08S01', '01002', '08003',
+        '08007', '08S02', '08001', 'HYT00', 'HY010'.  Previously, only '08S01'
+        was covered.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4126
+        :versions: 1.2.0
+
+        Fixed bug where ``__repr__`` of :class:`.ColumnDefault` would fail
+        if the argument were a tuple.  Pull request courtesy Nicolas Caniart.
+
+    .. change::
+        :tags: bug, orm, declarative
+        :tickets: 4124
+        :versions: 1.2.0
+
+        Fixed bug where a descriptor that is elsewhere a mapped column
+        or relationship within a hierarchy based on :class:`.AbstractConcreteBase`
+        would be referred towards during a refresh operation, causing an error
+        as the attribute is not mapped as a mapper property.
+        A similar issue can arise for other attributes like the "type" column
+        added by :class:`.AbstractConcreteBase` if the class fails to include
+        "concrete=True" in its mapper, however the check here should also
+        prevent that scenario from causing a problem.
+
+    .. change:: 4006
+        :tags: bug, postgresql
+        :tickets: 4006
+        :versions: 1.2.0b3
+
+        Made further fixes to the :class:`.ARRAY` class in conjunction with
+        COLLATE, as the fix made in :ticket:`4006` failed to accommodate
+        for a multidimensional array.
+
+    .. change::
+        :tags: bug, orm, ext
+        :tickets: 4116
+        :versions: 1.2.0
+
+        Fixed bug where the association proxy would inadvertently link itself
+        to an :class:`.AliasedClass` object if it were called first with
+        the :class:`.AliasedClass` as a parent, causing errors upon subsequent
+        usage.
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 4120
+        :versions: 1.2.0
+
+        MySQL 5.7.20 now warns for use of the @tx_isolation variable; a version
+        check is now performed and uses @transaction_isolation instead
+        to prevent this warning.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 4107
+        :versions: 1.2.0b3
+
+        Fixed bug in :obj:`.array_agg` function where passing an argument
+        that is already of type :class:`.ARRAY`, such as a Postgresql
+        :obj:`.postgresql.array` construct, would produce a ``ValueError``, due
+        to the function attempting to nest the arrays.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4078
+        :versions: 1.2.0b3
+
+        Fixed bug where ORM relationship would warn against conflicting sync
+        targets (e.g. two relationships would both write to the same column) for
+        sibling classes in an inheritance hierarchy, where the two relationships
+        would never actually conflict during writes.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 4074
+        :versions: 1.2.0b3
+
+        Fixed bug in Postgresql :meth:`.postgresql.dml.Insert.on_conflict_do_update`
+        which would prevent the insert statement from being used as a CTE,
+        e.g. via :meth:`.Insert.cte`, within another statement.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4103
+        :versions: 1.2.0b3
+
+        Fixed bug where correlated select used against single-table inheritance
+        entity would fail to render correctly in the outer query, due to adjustment
+        for single inheritance discriminator criteria inappropriately re-applying
+        the criteria to the outer query.
+
+    .. change:
+        :tags: bug, mysql
+        :tickets: 4096
+        :versions: 1.2.0b3
+
+        Fixed issue where CURRENT_TIMESTAMP would not reflect correctly
+        in the MariaDB 10.2 series due to a syntax change, where the function
+        is now represented as ``current_timestamp()``.
+
+    .. change:
+        :tags: bug, mysql
+        :tickets: 4098
+        :versions: 1.2.0b3
+
+        MariaDB 10.2 now supports CHECK constraints (warning: use version 10.2.9
+        or greater due to upstream issues noted in :ticket:`4097`).  Reflection
+        now takes these CHECK constraints into account when they are present in
+        the ``SHOW CREATE TABLE`` output.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4093
+        :versions: 1.2.0b3
+
+        Fixed bug where the recently added :meth:`.ColumnOperators.any_`
+        and :meth:`.ColumnOperators.all_` methods didn't work when called
+        as methods, as opposed to using the standalone functions
+        :func:`~.expression.any_` and :func:`~.expression.all_`.  Also
+        added documentation examples for these relatively unintuitive
+        SQL operators.
+
+.. changelog::
+    :version: 1.1.14
+    :released: September 5, 2017
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4069
+        :versions: 1.2.0b3
+
+        Fixed bug in :meth:`.Session.merge` following along similar lines as that
+        of :ticket:`4030`, where an internal check for a target object in
+        the identity map could lead to an error if it were to be garbage collected
+        immediately before the merge routine actually retrieves the object.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4048
+        :versions: 1.2.0b3
+
+        Fixed bug where an :func:`.undefer_group` option would not be recognized
+        if it extended from a relationship that was loading using joined eager
+        loading.  Additionally, as the bug led to excess work being performed,
+        Python function call counts are also improved by 20% within the initial
+        calculation of result set columns, complementing the joined eager load
+        improvements of :ticket:`3915`.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4068
+
+        Fixed race condition in ORM identity map which would cause objects
+        to be inappropriately removed during a load operation, causing
+        duplicate object identities to occur, particularly under joined eager
+        loading which involves deduplication of objects.  The issue is specific
+        to garbage collection of weak references and is observed only under the
+        Pypy interpreter.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4056
+        :versions: 1.2.0b3
+
+        Fixed bug in :meth:`.Session.merge` where objects in a collection that had
+        the primary key attribute set to ``None`` for a key that is  typically
+        autoincrementing would be considered to be a database-persisted key for
+        part of the internal deduplication process, causing only one object to
+        actually be inserted in the database.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4053
+
+        Altered the range specification for window functions to allow
+        for two of the same PRECEDING or FOLLOWING keywords in a range
+        by allowing for the left side of the range to be positive
+        and for the right to be negative, e.g. (1, 3) is
+        "1 FOLLOWING AND 3 FOLLOWING".
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4067
+        :versions: 1.2.0b3
+
+        An :class:`.InvalidRequestError` is raised when a :func:`.synonym`
+        is used against an attribute that is not against a :class:`.MapperProperty`,
+        such as an association proxy.  Previously, a recursion overflow would
+        occur trying to locate non-existent attributes.
+
+.. changelog::
+    :version: 1.1.13
+    :released: August 3, 2017
+
 .. changelog::
     :version: 1.1.12
+    :released: July 24, 2017
 
     .. change:: cache_order_sequence
         :tags: feature, oracle, posgresql
@@ -30,6 +376,40 @@
         of the CACHE parameter understood by Oracle and PostgreSQL, and the
         ORDER parameter understood by Oracle.  Pull request
         courtesy David Moore.
+
+
+    .. change:: 4033
+        :tags: bug, orm
+        :tickets: 4033
+        :versions: 1.2.0b2
+
+        Fixed regression from 1.1.11 where adding additional non-entity
+        columns to a query that includes an entity with subqueryload
+        relationships would fail, due to an inspection added in 1.1.11 as a
+        result of :ticket:`4011`.
+
+
+    .. change:: 4031
+        :tags: bug, orm
+        :versions: 1.2.0b2
+        :tickets: 4031
+
+        Fixed bug involving JSON NULL evaluation logic added in 1.1 as part
+        of :ticket:`3514` where the logic would not accommodate ORM
+        mapped attributes named differently from the :class:`.Column`
+        that was mapped.
+
+    .. change:: 4030
+        :tags: bug, orm
+        :versions: 1.2.0b2
+        :tickets: 4030
+
+        Added ``KeyError`` checks to all methods within
+        :class:`.WeakInstanceDict` where a check for ``key in dict`` is
+        followed by indexed access to that key, to guard against a race against
+        garbage collection that under load can remove the key from the dict
+        after the code assumes its present, leading to very infrequent
+        ``KeyError`` raises.
 
 .. changelog::
     :version: 1.1.11
@@ -503,8 +883,8 @@
         processing, as normally takes effect to handle both user-defined
         type level conversions as well as dialect-required conversions, such
         as those required for JSON datatypes.   Additionally, clarified that
-        the keys in the set_ dictionary should match the "key" of the column,
-        if distinct from the column name.  A warning is emitted
+        the keys in the ``set_`` dictionary should match the "key" of the
+        column, if distinct from the column name.  A warning is emitted
         for remaining column names that don't match column keys; for
         compatibility reasons, these are emitted as they were previously.
 
@@ -547,7 +927,7 @@
         :tickets: 3878
 
         Fixed 1.1 regression where "import *" would not work for
-        sqlalchemy.sql.expression, due to mis-spelled "any_" and "all_"
+        sqlalchemy.sql.expression, due to mis-spelled ``any_`` and ``all_``
         functions.
 
     .. change:: 3880

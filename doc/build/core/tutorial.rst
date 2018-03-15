@@ -617,7 +617,7 @@ The above illustrates the SQL that's generated for an
 the ``||`` operator now compiles as MySQL's ``concat()`` function.
 
 If you have come across an operator which really isn't available, you can
-always use the :meth:`.ColumnOperators.op` method; this generates whatever operator you need:
+always use the :meth:`.Operators.op` method; this generates whatever operator you need:
 
 .. sourcecode:: pycon+sql
 
@@ -628,12 +628,29 @@ This function can also be used to make bitwise operators explicit. For example::
 
     somecolumn.op('&')(0xff)
 
-is a bitwise AND of the value in `somecolumn`.
+is a bitwise AND of the value in ``somecolumn``.
+
+When using :meth:`.Operators.op`, the return type of the expression may be important,
+especialy when the operator is used in an expression that will be sent as a result
+column.   For this case, be sure to make the type explicit, if not what's
+normally expected, using :func:`.type_coerce`::
+
+    from sqlalchemy import type_coerce
+    expr = type_coerce(somecolumn.op('-%>')('foo'), MySpecialType())
+    stmt = select([expr])
+
+
+For boolean operators, use the :meth:`.Operators.bool_op` method, which
+will ensure that the return type of the expression is handled as boolean::
+
+    somecolumn.bool_op('-->')('some value')
+
+.. versionadded:: 1.2.0b3  Added the :meth:`.Operators.bool_op` method.
 
 Operator Customization
 ----------------------
 
-While :meth:`.ColumnOperators.op` is handy to get at a custom operator in a hurry,
+While :meth:`.Operators.op` is handy to get at a custom operator in a hurry,
 the Core supports fundamental customization and extension of the operator system at
 the type level.   The behavior of existing operators can be modified on a per-type
 basis, and new operations can be defined which become available for all column
@@ -2038,10 +2055,11 @@ The tables are referenced explicitly in the SET clause::
             users.name=%s WHERE users.id = addresses.id
             AND addresses.email_address LIKE concat(%s, '%')
 
-SQLAlchemy doesn't do anything special when these constructs are used on
-a non-supporting database.  The ``UPDATE FROM`` syntax generates by default
-when multiple tables are present, and the statement will be rejected
-by the database if this syntax is not supported.
+When the construct is used on a non-supporting database, the compiler
+will raise ``NotImplementedError``.   For convenience, when a statement
+is printed as a string without specification of a dialect, the "string SQL"
+compiler will be invoked which provides a non-working SQL representation of the
+construct.
 
 .. _updates_order_parameters:
 
@@ -2111,6 +2129,37 @@ Finally, a delete.  This is accomplished easily enough using the
     ('m',)
     COMMIT
     {stop}<sqlalchemy.engine.result.ResultProxy object at 0x...>
+
+.. _multi_table_deletes:
+
+Multiple Table Deletes
+----------------------
+
+.. versionadded:: 1.2
+
+The PostgreSQL, Microsoft SQL Server, and MySQL backends all support DELETE
+statements that refer to multiple tables within the WHERE criteria.   For PG
+and MySQL, this is the "DELETE USING" syntax, and for SQL Server, it's a
+"DELETE FROM" that refers to more than one table.  The SQLAlchemy
+:func:`.delete` construct supports both of these modes
+implicitly, by specifying multiple tables in the WHERE clause::
+
+    stmt = users.delete().\
+            where(users.c.id == addresses.c.id).\
+            where(addresses.c.email_address.startswith('ed%'))
+    conn.execute(stmt)
+
+On a Postgresql backend, the resulting SQL from the above statement would render as::
+
+    DELETE FROM users USING addresses
+    WHERE users.id = addresses.id
+    AND (addresses.email_address LIKE %(email_address_1)s || '%%')
+
+When the construct is used on a non-supporting database, the compiler
+will raise ``NotImplementedError``.   For convenience, when a statement
+is printed as a string without specification of a dialect, the "string SQL"
+compiler will be invoked which provides a non-working SQL representation of the
+construct.
 
 Matched Row Counts
 ------------------

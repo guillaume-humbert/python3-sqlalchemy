@@ -1,5 +1,5 @@
 # ext/hybrid.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -383,6 +383,10 @@ custom comparators. A comparator object allows one to customize the
 behavior of each SQLAlchemy expression operator individually.  They
 are useful when creating custom types that have some highly
 idiosyncratic behavior on the SQL side.
+
+.. note::  The :meth:`.hybrid_property.comparator` decorator introduced
+   in this section **replaces** the use of the
+   :meth:`.hybrid_property.expression` decorator.  They cannot be used together.
 
 The example class below allows case-insensitive comparisons on the attribute
 named ``word_insensitive``::
@@ -971,6 +975,10 @@ class hybrid_property(interfaces.InspectionAttrInfo):
 
         The return value of the decorated method should be an instance of
         :class:`~.hybrid.Comparator`.
+
+        .. note::  The :meth:`.hybrid_property.comparator` decorator
+           **replaces** the use of the :meth:`.hybrid_property.expression`
+           decorator.  They cannot be used together.
 
         When a hybrid is invoked at the class level, the
         :class:`~.hybrid.Comparator` object given here is wrapped inside of a

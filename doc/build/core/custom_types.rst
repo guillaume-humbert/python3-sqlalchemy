@@ -163,7 +163,9 @@ binary in CHAR(16) if desired::
             if value is None:
                 return value
             else:
-                return uuid.UUID(value)
+                if not isinstance(value, uuid.UUID):
+                    value = uuid.UUID(value)
+                return value
 
 Marshal JSON Strings
 ^^^^^^^^^^^^^^^^^^^^
@@ -513,6 +515,15 @@ expression object produces a new SQL expression construct. Above, we
 could just as well have said ``self.expr.op("goofy")(other)`` instead
 of ``self.op("goofy")(other)``.
 
+When using :meth:`.Operators.op` for comparison operations that return a
+boolean result, the :paramref:`.Operators.op.is_comparison` flag should be
+set to ``True``::
+
+    class MyInt(Integer):
+        class comparator_factory(Integer.Comparator):
+            def is_frobnozzled(self, other):
+                return self.op("--is_frobnozzled->", is_comparison=True)(other)
+
 New methods added to a :class:`.TypeEngine.Comparator` are exposed on an
 owning SQL expression
 using a ``__getattr__`` scheme, which exposes methods added to
@@ -531,7 +542,6 @@ Using the above type::
 
     >>> print(sometable.c.data.log(5))
     log(:log_1, :log_2)
-
 
 Unary operations
 are also possible.  For example, to add an implementation of the
@@ -555,12 +565,12 @@ Using the above type::
     >>> print(column('x', MyInteger).factorial())
     x !
 
-See also:
+.. seealso::
 
-:attr:`.TypeEngine.comparator_factory`
+    :meth:`.Operators.op`
 
-.. versionadded:: 0.8  The expression system was enhanced to support
-  customization of operators on a per-type level.
+    :attr:`.TypeEngine.comparator_factory`
+
 
 
 Creating New Types

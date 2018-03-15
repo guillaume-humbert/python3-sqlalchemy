@@ -1,5 +1,5 @@
 # sql/selectable.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -1391,7 +1391,7 @@ class CTE(Generative, HasSuffixes, Alias):
     def _copy_internals(self, clone=_clone, **kw):
         super(CTE, self)._copy_internals(clone, **kw)
         if self._cte_alias is not None:
-            self._cte_alias = self
+            self._cte_alias = clone(self._cte_alias, **kw)
         self._restates = frozenset([
             clone(elem, **kw) for elem in self._restates
         ])

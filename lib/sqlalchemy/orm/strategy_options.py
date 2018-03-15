@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -85,7 +85,17 @@ class Load(Generative, MapperOption):
 
             endpoint = obj._of_type or obj.path.path[-1]
             chopped = self._chop_path(loader_path, path)
-            if not chopped and not obj._of_type:
+
+            if (
+                # means loader_path and path are unrelated,
+                # this does not need to be part of a cache key
+                chopped is None
+            ) or (
+                # means no additional path with loader_path + path
+                # and the endpoint isn't using of_type so isn't modified into
+                # an alias or other unsafe entity
+                not chopped and not obj._of_type
+            ):
                 continue
 
             serialized_path = []
@@ -110,7 +120,7 @@ class Load(Generative, MapperOption):
             serialized.append(
                 (
                     tuple(serialized_path) +
-                    obj.strategy +
+                    (obj.strategy or ()) +
                     (tuple([
                         (key, obj.local_opts[key])
                         for key in sorted(obj.local_opts)
@@ -211,7 +221,7 @@ class Load(Generative, MapperOption):
 
             if getattr(attr, '_of_type', None):
                 ac = attr._of_type
-                ext_info = inspect(ac)
+                ext_info = of_type_info = inspect(ac)
 
                 existing = path.entity_path[prop].get(
                     self.context, "path_with_polymorphic")
@@ -221,8 +231,23 @@ class Load(Generative, MapperOption):
                         ext_info.mapper, aliased=True,
                         _use_mapper_path=True,
                         _existing_alias=existing)
+                    ext_info = inspect(ac)
+                elif not ext_info.with_polymorphic_mappers:
+                    ext_info = orm_util.AliasedInsp(
+                        ext_info.entity,
+                        ext_info.mapper.base_mapper,
+                        ext_info.selectable,
+                        ext_info.name,
+                        ext_info.with_polymorphic_mappers or [ext_info.mapper],
+                        ext_info.polymorphic_on,
+                        ext_info._base_alias,
+                        ext_info._use_mapper_path,
+                        ext_info._adapt_on_names,
+                        ext_info.represents_outer_join
+                    )
+
                 path.entity_path[prop].set(
-                    self.context, "path_with_polymorphic", inspect(ac))
+                    self.context, "path_with_polymorphic", ext_info)
 
                 # the path here will go into the context dictionary and
                 # needs to match up to how the class graph is traversed.
@@ -235,7 +260,7 @@ class Load(Generative, MapperOption):
                 # it might be better for "path" to really represent,
                 # "the path", but trying to keep the impact of the cache
                 # key feature localized for now
-                self._of_type = ext_info
+                self._of_type = of_type_info
             else:
                 path = path[prop]
 
@@ -414,7 +439,7 @@ class _UnboundLoad(Load):
 
     def __getstate__(self):
         d = self.__dict__.copy()
-        d['path'] = self._serialize_path(self.path)
+        d['path'] = self._serialize_path(self.path, filter_aliased_class=True)
         return d
 
     def __setstate__(self, state):
@@ -424,11 +449,12 @@ class _UnboundLoad(Load):
                 if len(key) == 2:
                     # support legacy
                     cls, propkey = key
+                    of_type = None
                 else:
                     cls, propkey, of_type = key
                 prop = getattr(cls, propkey)
                 if of_type:
-                    prop = prop.of_type(prop)
+                    prop = prop.of_type(of_type)
                 ret.append(prop)
             else:
                 ret.append(key)
@@ -494,19 +520,19 @@ class _UnboundLoad(Load):
 
         return to_chop[i:]
 
-    def _serialize_path(self, path, reject_aliased_class=False):
+    def _serialize_path(self, path, filter_aliased_class=False):
         ret = []
         for token in path:
             if isinstance(token, QueryableAttribute):
-                if reject_aliased_class and (
-                    (token._of_type and
-                        inspect(token._of_type).is_aliased_class)
-                    or
-                    inspect(token.parent).is_aliased_class
-                ):
-                    return False
-                ret.append(
-                    (token._parentmapper.class_, token.key, token._of_type))
+                if filter_aliased_class and token._of_type and \
+                        inspect(token._of_type).is_aliased_class:
+                    ret.append(
+                        (token._parentmapper.class_,
+                         token.key, None))
+                else:
+                    ret.append(
+                        (token._parentmapper.class_, token.key,
+                         token._of_type))
             elif isinstance(token, PropComparator):
                 ret.append((token._parentmapper.class_, token.key, None))
             else:
@@ -753,7 +779,7 @@ def contains_eager(loadopt, attr, alias=None):
     ``User`` entity, and the returned ``Order`` objects would have the
     ``Order.user`` attribute pre-populated.
 
-    :func:`contains_eager` also accepts an `alias` argument, which is the
+    :func:`.contains_eager` also accepts an `alias` argument, which is the
     string name of an alias, an :func:`~sqlalchemy.sql.expression.alias`
     construct, or an :func:`~sqlalchemy.orm.aliased` construct. Use this when
     the eagerly-loaded rows are to come from an aliased table::
@@ -762,6 +788,18 @@ def contains_eager(loadopt, attr, alias=None):
         sess.query(Order).\
                 join((user_alias, Order.user)).\
                 options(contains_eager(Order.user, alias=user_alias))
+
+    When using :func:`.contains_eager` in conjunction with inherited
+    subclasses, the :meth:`.RelationshipProperty.of_type` modifier should
+    also be used in order to set up the pathing properly::
+
+        sess.query(Company).\
+            outerjoin(Company.employees.of_type(Manager)).\
+            options(
+                contains_eager(
+                    Company.employees.of_type(Manager),
+                    alias=Manager)
+            )
 
     .. seealso::
 
@@ -774,6 +812,10 @@ def contains_eager(loadopt, attr, alias=None):
         if not isinstance(alias, str):
             info = inspect(alias)
             alias = info.selectable
+
+    elif getattr(attr, '_of_type', None):
+        ot = inspect(attr._of_type)
+        alias = ot.selectable
 
     cloned = loadopt.set_relationship_strategy(
         attr,
@@ -1414,7 +1456,7 @@ def selectin_polymorphic(loadopt, classes):
     """
     loadopt.set_class_strategy(
         {"selectinload_polymorphic": True},
-        opts={"mappers": tuple(sorted((inspect(cls) for cls in classes), key=id))}
+        opts={"entities": tuple(sorted((inspect(cls) for cls in classes), key=id))}
     )
     return loadopt
 

@@ -1,5 +1,5 @@
 # orm/state.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -61,7 +61,9 @@ class InstanceState(interfaces.InspectionAttr):
     expired = False
     _deleted = False
     _load_pending = False
+    _orphaned_outside_of_session = False
     is_instance = True
+    identity_token = None
 
     callables = ()
     """A namespace where a per-state loader callable can be associated.
@@ -461,21 +463,34 @@ class InstanceState(interfaces.InspectionAttr):
         if 'callables' in state_dict:
             self.callables = state_dict['callables']
 
-        try:
-            self.expired_attributes = state_dict['expired_attributes']
-        except KeyError:
-            self.expired_attributes = set()
-            # 0.9 and earlier compat
-            for k in list(self.callables):
-                if self.callables[k] is self:
-                    self.expired_attributes.add(k)
-                    del self.callables[k]
+            try:
+                self.expired_attributes = state_dict['expired_attributes']
+            except KeyError:
+                self.expired_attributes = set()
+                # 0.9 and earlier compat
+                for k in list(self.callables):
+                    if self.callables[k] is self:
+                        self.expired_attributes.add(k)
+                        del self.callables[k]
+        else:
+            if 'expired_attributes' in state_dict:
+                self.expired_attributes = state_dict['expired_attributes']
+            else:
+                self.expired_attributes = set()
 
         self.__dict__.update([
             (k, state_dict[k]) for k in (
-                'key', 'load_options',
+                'key', 'load_options'
             ) if k in state_dict
         ])
+        if self.key:
+            try:
+                self.identity_token = self.key[2]
+            except IndexError:
+                # 1.1 and earlier compat before identity_token
+                assert len(self.key) == 2
+                self.key = self.key + (None, )
+                self.identity_token = None
 
         if 'load_path' in state_dict:
             self.load_path = PathRegistry.\
@@ -609,6 +624,7 @@ class InstanceState(interfaces.InspectionAttr):
     def unmodified_intersection(self, keys):
         """Return self.unmodified.intersection(keys)."""
 
+
         return set(keys).intersection(self.manager).\
             difference(self.committed_state)
 
@@ -623,6 +639,18 @@ class InstanceState(interfaces.InspectionAttr):
         return set(self.manager).\
             difference(self.committed_state).\
             difference(self.dict)
+
+    @property
+    def unloaded_expirable(self):
+        """Return the set of keys which do not have a loaded value.
+
+        This includes expired attributes and any other attribute that
+        was never populated or modified.
+
+        """
+        return self.unloaded.intersection(
+            attr for attr in self.manager
+            if self.manager[attr].impl.expire_missing)
 
     @property
     def _unloaded_non_object(self):

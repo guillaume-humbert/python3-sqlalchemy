@@ -456,7 +456,7 @@ three new ``User`` objects we've added:
     ('fred', 'Fred Flinstone', 'blah')
     COMMIT
 
-:meth:`~.Session.commit` flushes whatever remaining changes remain to the
+:meth:`~.Session.commit` flushes the remaining changes to the
 database, and commits the transaction. The connection resources referenced by
 the session are now returned to the connection pool. Subsequent operations
 with this session will occur in a **new** transaction, which will again
@@ -1386,7 +1386,7 @@ is an important method at the center of usage for any SQL-fluent application.
     ON clause is a plain SQL expression.  To control the first entity in the list
     of JOINs, use the :meth:`.Query.select_from` method::
 
-        query = Session.query(User, Address).select_from(Address).join(User)
+        query = session.query(User, Address).select_from(Address).join(User)
 
 
 .. _ormtutorial_aliases:

@@ -1,5 +1,5 @@
 # orm/relationships.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -963,11 +963,9 @@ class RelationshipProperty(StrategizedProperty):
                 return pj
 
         def of_type(self, cls):
-            """Produce a construct that represents a particular 'subtype' of
-            attribute for the parent class.
+            r"""Redefine this object in terms of a polymorphic subclass.
 
-            Currently this is usable in conjunction with :meth:`.Query.join`
-            and :meth:`.Query.outerjoin`.
+            See :meth:`.PropComparator.of_type` for an example.
 
             """
             return RelationshipProperty.Comparator(
@@ -1802,6 +1800,15 @@ class RelationshipProperty(StrategizedProperty):
             self.mapper.primary_mapper()._delete_orphans.append(
                 (self.key, self.parent.class_)
             )
+
+    def _persists_for(self, mapper):
+        """Return True if this property will persist values on behalf
+        of the given mapper.
+
+        """
+
+        return self.key in mapper.relationships and \
+            mapper.relationships[self.key] is self
 
     def _columns_are_mapped(self, *cols):
         """Return True if all columns in the given collection are
@@ -2691,10 +2698,16 @@ class JoinCondition(object):
             else:
                 other_props = []
                 prop_to_from = self._track_overlapping_sync_targets[to_]
+
                 for pr, fr_ in prop_to_from.items():
                     if pr.mapper in mapperlib._mapper_registry and \
+                        (
+                            self.prop._persists_for(pr.parent) or
+                            pr._persists_for(self.prop.parent)
+                        ) and \
                         fr_ is not from_ and \
                             pr not in self.prop._reverse_property:
+
                         other_props.append((pr, fr_))
 
                 if other_props:

@@ -1,5 +1,5 @@
 # oracle/base.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -422,6 +422,28 @@ class DOUBLE_PRECISION(sqltypes.Numeric):
             precision=precision, scale=scale, asdecimal=asdecimal)
 
 
+class BINARY_DOUBLE(sqltypes.Numeric):
+    __visit_name__ = 'BINARY_DOUBLE'
+
+    def __init__(self, precision=None, scale=None, asdecimal=None):
+        if asdecimal is None:
+            asdecimal = False
+
+        super(BINARY_DOUBLE, self).__init__(
+            precision=precision, scale=scale, asdecimal=asdecimal)
+
+
+class BINARY_FLOAT(sqltypes.Numeric):
+    __visit_name__ = 'BINARY_FLOAT'
+
+    def __init__(self, precision=None, scale=None, asdecimal=None):
+        if asdecimal is None:
+            asdecimal = False
+
+        super(BINARY_FLOAT, self).__init__(
+            precision=precision, scale=scale, asdecimal=asdecimal)
+
+
 class BFILE(sqltypes.LargeBinary):
     __visit_name__ = 'BFILE'
 
@@ -556,6 +578,12 @@ class OracleTypeCompiler(compiler.GenericTypeCompiler):
 
     def visit_DOUBLE_PRECISION(self, type_, **kw):
         return self._generate_numeric(type_, "DOUBLE PRECISION", **kw)
+
+    def visit_BINARY_DOUBLE(self, type_, **kw):
+        return self._generate_numeric(type_, "BINARY_DOUBLE", **kw)
+
+    def visit_BINARY_FLOAT(self, type_, **kw):
+        return self._generate_numeric(type_, "BINARY_FLOAT", **kw)
 
     def visit_NUMBER(self, type_, **kw):
         return self._generate_numeric(type_, "NUMBER", **kw)
@@ -705,12 +733,17 @@ class OracleCompiler(compiler.SQLCompiler):
 
         def visit_join(join):
             if join.isouter:
+                # https://docs.oracle.com/database/121/SQLRF/queries006.htm#SQLRF52354
+                # "apply the outer join operator (+) to all columns of B in
+                # the join condition in the WHERE clause" - that is,
+                # unconditionally regardless of operator or the other side
                 def visit_binary(binary):
-                    if binary.operator == sql_operators.eq:
-                        if join.right.is_derived_from(binary.left.table):
-                            binary.left = _OuterJoinColumn(binary.left)
-                        elif join.right.is_derived_from(binary.right.table):
-                            binary.right = _OuterJoinColumn(binary.right)
+                    if isinstance(binary.left, expression.ColumnClause) \
+                            and join.right.is_derived_from(binary.left.table):
+                        binary.left = _OuterJoinColumn(binary.left)
+                    elif isinstance(binary.right, expression.ColumnClause) \
+                            and join.right.is_derived_from(binary.right.table):
+                        binary.right = _OuterJoinColumn(binary.right)
                 clauses.append(visitors.cloned_traverse(
                     join.onclause, {}, {'binary': visit_binary}))
             else:
@@ -746,12 +779,14 @@ class OracleCompiler(compiler.SQLCompiler):
     def returning_clause(self, stmt, returning_cols):
         columns = []
         binds = []
+
         for i, column in enumerate(
                 expression._select_iterables(returning_cols)):
             if column.type._has_column_expression:
                 col_expr = column.type.column_expression(column)
             else:
                 col_expr = column
+
             outparam = sql.outparam("ret_%d" % i, type_=column.type)
             self.binds[outparam.key] = outparam
             binds.append(
@@ -760,7 +795,8 @@ class OracleCompiler(compiler.SQLCompiler):
                 self.process(col_expr, within_columns_clause=False))
 
             self._add_to_result_map(
-                outparam.key, outparam.key,
+                getattr(col_expr, 'name', col_expr.anon_label),
+                getattr(col_expr, 'name', col_expr.anon_label),
                 (column, getattr(column, 'name', None),
                  getattr(column, 'key', None)),
                 column.type
@@ -1469,21 +1505,9 @@ class OracleDialect(default.DefaultDialect):
 
         oracle_sys_col = re.compile(r'SYS_NC\d+\$', re.IGNORECASE)
 
-        def upper_name_set(names):
-            return {i.upper() for i in names}
-
-        pk_names = upper_name_set(pkeys)
-
-        def remove_if_primary_key(index):
-            # don't include the primary key index
-            if index is not None and \
-               upper_name_set(index['column_names']) == pk_names:
-                indexes.pop()
-
         index = None
         for rset in rp:
             if rset.index_name != last_index_name:
-                remove_if_primary_key(index)
                 index = dict(name=self.normalize_name(rset.index_name),
                              column_names=[], dialect_options={})
                 indexes.append(index)
@@ -1500,7 +1524,17 @@ class OracleDialect(default.DefaultDialect):
                 index['column_names'].append(
                     self.normalize_name(rset.column_name))
             last_index_name = rset.index_name
-        remove_if_primary_key(index)
+
+        def upper_name_set(names):
+            return {i.upper() for i in names}
+
+        pk_names = upper_name_set(pkeys)
+        if pk_names:
+            def is_pk_index(index):
+                # don't include the primary key index
+                return upper_name_set(index['column_names']) == pk_names
+            indexes = [idx for idx in indexes if not is_pk_index(idx)]
+
         return indexes
 
     @reflection.cache
@@ -1509,34 +1543,37 @@ class OracleDialect(default.DefaultDialect):
 
         params = {'table_name': table_name}
 
-        text = \
-            "SELECT"\
-            "\nac.constraint_name,"\
-            "\nac.constraint_type,"\
-            "\nloc.column_name AS local_column,"\
-            "\nrem.table_name AS remote_table,"\
-            "\nrem.column_name AS remote_column,"\
-            "\nrem.owner AS remote_owner,"\
-            "\nloc.position as loc_pos,"\
-            "\nrem.position as rem_pos,"\
-            "\nac.search_condition"\
-            "\nFROM all_constraints%(dblink)s ac,"\
-            "\nall_cons_columns%(dblink)s loc,"\
-            "\nall_cons_columns%(dblink)s rem"\
-            "\nWHERE ac.table_name = :table_name"\
+        text = (
+            "SELECT"
+            "\nac.constraint_name,"  # 0
+            "\nac.constraint_type,"  # 1
+            "\nloc.column_name AS local_column,"  # 2
+            "\nrem.table_name AS remote_table,"  # 3
+            "\nrem.column_name AS remote_column,"  # 4
+            "\nrem.owner AS remote_owner,"  # 5
+            "\nloc.position as loc_pos,"  # 6
+            "\nrem.position as rem_pos,"  # 7
+            "\nac.search_condition,"  # 8
+            "\nac.delete_rule"  # 9
+            "\nFROM all_constraints%(dblink)s ac,"
+            "\nall_cons_columns%(dblink)s loc,"
+            "\nall_cons_columns%(dblink)s rem"
+            "\nWHERE ac.table_name = :table_name"
             "\nAND ac.constraint_type IN ('R','P', 'U', 'C')"
+        )
 
         if schema is not None:
             params['owner'] = schema
             text += "\nAND ac.owner = :owner"
 
-        text += \
-            "\nAND ac.owner = loc.owner"\
-            "\nAND ac.constraint_name = loc.constraint_name"\
-            "\nAND ac.r_owner = rem.owner(+)"\
-            "\nAND ac.r_constraint_name = rem.constraint_name(+)"\
-            "\nAND (rem.position IS NULL or loc.position=rem.position)"\
+        text += (
+            "\nAND ac.owner = loc.owner"
+            "\nAND ac.constraint_name = loc.constraint_name"
+            "\nAND ac.r_owner = rem.owner(+)"
+            "\nAND ac.r_constraint_name = rem.constraint_name(+)"
+            "\nAND (rem.position IS NULL or loc.position=rem.position)"
             "\nORDER BY ac.constraint_name, loc.position"
+        )
 
         text = text % {'dblink': dblink}
         rp = connection.execute(sql.text(text), **params)
@@ -1579,7 +1616,6 @@ class OracleDialect(default.DefaultDialect):
             dblink
 
         """
-
         requested_schema = schema  # to check later on
         resolve_synonyms = kw.get('oracle_resolve_synonyms', False)
         dblink = kw.get('dblink', '')
@@ -1600,7 +1636,8 @@ class OracleDialect(default.DefaultDialect):
                 'constrained_columns': [],
                 'referred_schema': None,
                 'referred_table': None,
-                'referred_columns': []
+                'referred_columns': [],
+                'options': {},
             }
 
         fkeys = util.defaultdict(fkey_rec)
@@ -1645,6 +1682,9 @@ class OracleDialect(default.DefaultDialect):
                     if requested_schema is not None or \
                        self.denormalize_name(remote_owner) != schema:
                         rec['referred_schema'] = remote_owner
+
+                    if row[9] != 'NO ACTION':
+                        rec['options']['ondelete'] = row[9]
 
                 local_cols.append(local_column)
                 remote_cols.append(remote_column)

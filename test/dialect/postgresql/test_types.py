@@ -842,6 +842,29 @@ class ArrayTest(AssertsCompiledSQL, fixtures.TestBase):
             'VARCHAR(30)[] COLLATE "en_US"'
         )
 
+    def test_array_type_render_str_multidim(self):
+        self.assert_compile(
+            postgresql.ARRAY(Unicode(30), dimensions=2),
+            "VARCHAR(30)[][]"
+        )
+
+        self.assert_compile(
+            postgresql.ARRAY(Unicode(30), dimensions=3),
+            "VARCHAR(30)[][][]"
+        )
+
+    def test_array_type_render_str_collate_multidim(self):
+        self.assert_compile(
+            postgresql.ARRAY(Unicode(30, collation="en_US"), dimensions=2),
+            'VARCHAR(30)[][] COLLATE "en_US"'
+        )
+
+        self.assert_compile(
+            postgresql.ARRAY(Unicode(30, collation="en_US"), dimensions=3),
+            'VARCHAR(30)[][][] COLLATE "en_US"'
+        )
+
+
     def test_array_int_index(self):
         col = column('x', postgresql.ARRAY(Integer))
         self.assert_compile(
@@ -1583,6 +1606,15 @@ class TimestampTest(fixtures.TestBase, AssertsExecutionResults):
         result = connection.execute(s).first()
         eq_(result[0], datetime.timedelta(40))
 
+    def test_interval_coercion(self):
+        expr = column('bar', postgresql.INTERVAL) + column('foo', types.Date)
+        eq_(expr.type._type_affinity, types.DateTime)
+
+        expr = column('bar', postgresql.INTERVAL) * \
+            column('foo', types.Numeric)
+        eq_(expr.type._type_affinity, types.Interval)
+        assert isinstance(expr.type, postgresql.INTERVAL)
+
 
 class SpecialTypesTest(fixtures.TestBase, ComparesTables, AssertsCompiledSQL):
 
@@ -1618,6 +1650,7 @@ class SpecialTypesTest(fixtures.TestBase, ComparesTables, AssertsCompiledSQL):
                 'bitstring', postgresql.BIT(4)),
             Column('addr', postgresql.INET),
             Column('addr2', postgresql.MACADDR),
+            Column('price', postgresql.MONEY),
             Column('addr3', postgresql.CIDR),
             Column('doubleprec', postgresql.DOUBLE_PRECISION),
             Column('plain_interval', postgresql.INTERVAL),
@@ -1701,7 +1734,6 @@ class UUIDTest(fixtures.TestBase):
         'postgresql+zxjdbc',
         'column "data" is of type uuid but expression '
         'is of type character varying')
-    @testing.fails_on('postgresql+pg8000', 'No support for UUID type')
     def test_uuid_string(self):
         import uuid
         self._test_round_trip(
@@ -1716,7 +1748,6 @@ class UUIDTest(fixtures.TestBase):
         'postgresql+zxjdbc',
         'column "data" is of type uuid but expression is '
         'of type character varying')
-    @testing.fails_on('postgresql+pg8000', 'No support for UUID type')
     def test_uuid_uuid(self):
         import uuid
         self._test_round_trip(
@@ -1730,7 +1761,7 @@ class UUIDTest(fixtures.TestBase):
     @testing.fails_on('postgresql+zxjdbc',
                       'column "data" is of type uuid[] but '
                       'expression is of type character varying')
-    @testing.fails_on('postgresql+pg8000', 'No support for UUID type')
+    @testing.fails_on('postgresql+pg8000', 'No support for UUID with ARRAY')
     def test_uuid_array(self):
         import uuid
         self._test_round_trip(
@@ -1745,7 +1776,7 @@ class UUIDTest(fixtures.TestBase):
     @testing.fails_on('postgresql+zxjdbc',
                       'column "data" is of type uuid[] but '
                       'expression is of type character varying')
-    @testing.fails_on('postgresql+pg8000', 'No support for UUID type')
+    @testing.fails_on('postgresql+pg8000', 'No support for UUID with ARRAY')
     def test_uuid_string_array(self):
         import uuid
         self._test_round_trip(

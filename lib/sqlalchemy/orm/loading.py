@@ -1,5 +1,5 @@
 # orm/loading.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -37,7 +37,8 @@ def instances(query, cursor, context):
 
     filtered = query._has_mapper_entities
 
-    single_entity = len(query._entities) == 1 and \
+    single_entity = not query._only_return_tuples and \
+        len(query._entities) == 1 and \
         query._entities[0].supports_single_entity
 
     if filtered:
@@ -322,9 +323,24 @@ def _instance_processor(
                 # be present in some unexpected way.
                 populators["expire"].append((prop.key, False))
             else:
+                getter = None
+                # the "adapter" can be here via different paths,
+                # e.g. via adapter present at setup_query or adapter
+                # applied to the query afterwards via eager load subquery.
+                # If the column here
+                # were already a product of this adapter, sending it through
+                # the adapter again can return a totally new expression that
+                # won't be recognized in the result, and the ColumnAdapter
+                # currently does not accommodate for this.   OTOH, if the
+                # column were never applied through this adapter, we may get
+                # None back, in which case we still won't get our "getter".
+                # so try both against result._getter().  See issue #4048
                 if adapter:
-                    col = adapter.columns[col]
-                getter = result._getter(col, False)
+                    adapted_col = adapter.columns[col]
+                    if adapted_col is not None:
+                        getter = result._getter(adapted_col, False)
+                if not getter:
+                    getter = result._getter(col, False)
                 if getter:
                     populators["quick"].append((prop.key, getter))
                 else:
@@ -354,26 +370,34 @@ def _instance_processor(
     session_id = context.session.hash_key
     version_check = context.version_check
     runid = context.runid
+    identity_token = context.identity_token
 
     if not refresh_state and _polymorphic_from is not None:
         key = ('loader', path.path)
         if (
                 key in context.attributes and
                 context.attributes[key].strategy ==
-                (('selectinload_polymorphic', True), ) and
-                mapper in context.attributes[key].local_opts['mappers']
-        ) or mapper.polymorphic_load == 'selectin':
+                (('selectinload_polymorphic', True), )
+        ):
+            selectin_load_via = mapper._should_selectin_load(
+                context.attributes[key].local_opts['entities'],
+                _polymorphic_from)
+        else:
+            selectin_load_via = mapper._should_selectin_load(
+                None, _polymorphic_from)
 
+        if selectin_load_via and selectin_load_via is not _polymorphic_from:
             # only_load_props goes w/ refresh_state only, and in a refresh
             # we are a single row query for the exact entity; polymorphic
             # loading does not apply
             assert only_load_props is None
 
-            callable_ = _load_subclass_via_in(context, path, mapper)
+            callable_ = _load_subclass_via_in(context, path, selectin_load_via)
 
             PostLoad.callable_for_path(
-                context, load_path, mapper,
-                callable_, mapper)
+                context, load_path, selectin_load_via.mapper,
+                selectin_load_via,
+                callable_, selectin_load_via)
 
     post_load = PostLoad.for_context(context, load_path, only_load_props)
 
@@ -409,7 +433,8 @@ def _instance_processor(
             # session, or we have to create a new one
             identitykey = (
                 identity_class,
-                tuple([row[column] for column in pk_cols])
+                tuple([row[column] for column in pk_cols]),
+                identity_token
             )
 
             instance = session_identity_map.get(identitykey)
@@ -443,6 +468,7 @@ def _instance_processor(
                 dict_ = instance_dict(instance)
                 state = instance_state(instance)
                 state.key = identitykey
+                state.identity_token = identity_token
 
                 # attach instance to session.
                 state.session_id = session_id
@@ -523,12 +549,15 @@ def _instance_processor(
     return _instance
 
 
-@util.dependencies("sqlalchemy.ext.baked")
-def _load_subclass_via_in(baked, context, path, mapper):
+def _load_subclass_via_in(context, path, entity):
+    mapper = entity.mapper
 
     zero_idx = len(mapper.base_mapper.primary_key) == 1
 
-    q, enable_opt, disable_opt = mapper._subclass_load_via_in
+    if entity.is_aliased_class:
+        q, enable_opt, disable_opt = mapper._subclass_load_via_in(entity)
+    else:
+        q, enable_opt, disable_opt = mapper._subclass_load_via_in_mapper
 
     def do_load(context, path, states, load_only, effective_entity):
         orig_query = context.query
@@ -547,7 +576,6 @@ def _load_subclass_via_in(baked, context, path, mapper):
             primary_keys=[
                 state.key[1][0] if zero_idx else state.key[1]
                 for state, load_attrs in states
-                if state.mapper.isa(mapper)
             ]
         ).all()
 
@@ -711,16 +739,25 @@ class PostLoad(object):
         self.load_keys = None
 
     def add_state(self, state, overwrite):
+        # the states for a polymorphic load here are all shared
+        # within a single PostLoad object among multiple subtypes.
+        # Filtering of callables on a per-subclass basis needs to be done at
+        # the invocation level
         self.states[state] = overwrite
 
     def invoke(self, context, path):
         if not self.states:
             return
         path = path_registry.PathRegistry.coerce(path)
-        for key, loader, arg, kw in self.loaders.values():
-            loader(
-                context, path, self.states.items(),
-                self.load_keys, *arg, **kw)
+        for token, limit_to_mapper, loader, arg, kw in self.loaders.values():
+            states = [
+                (state, overwrite)
+                for state, overwrite
+                in self.states.items()
+                if state.manager.mapper.isa(limit_to_mapper)
+            ]
+            if states:
+                loader(context, path, states, self.load_keys, *arg, **kw)
         self.states.clear()
 
     @classmethod
@@ -737,12 +774,13 @@ class PostLoad(object):
 
     @classmethod
     def callable_for_path(
-            cls, context, path, attr_key, loader_callable, *arg, **kw):
+            cls, context, path, limit_to_mapper, token,
+            loader_callable, *arg, **kw):
         if path.path in context.post_load_paths:
             pl = context.post_load_paths[path.path]
         else:
             pl = context.post_load_paths[path.path] = PostLoad()
-        pl.loaders[attr_key] = (attr_key, loader_callable, arg, kw)
+        pl.loaders[token] = (token, limit_to_mapper, loader_callable, arg, kw)
 
 
 def load_scalar_attributes(mapper, state, attribute_names):
@@ -759,6 +797,15 @@ def load_scalar_attributes(mapper, state, attribute_names):
     has_key = bool(state.key)
 
     result = False
+
+    # in the case of inheritance, particularly concrete and abstract
+    # concrete inheritance, the class manager might have some keys
+    # of attributes on the superclass that we didn't actually map.
+    # These could be mapped as "concrete, dont load" or could be completely
+    # exluded from the mapping and we know nothing about them.  Filter them
+    # here to prevent them from coming through.
+    if attribute_names:
+        attribute_names = attribute_names.intersection(mapper.attrs.keys())
 
     if mapper.inherits and not mapper.concrete:
         # because we are using Core to produce a select() that we

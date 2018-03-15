@@ -1,5 +1,5 @@
 # sqlalchemy/pool.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -226,7 +226,7 @@ class Pool(log.Identified):
             to the :class:`.Pool`.
 
         :param pre_ping: if True, the pool will emit a "ping" (typically
-        "SELECT 1", but is dialect-specific) on the connection
+         "SELECT 1", but is dialect-specific) on the connection
          upon checkout, to test if the connection is alive or not.   If not,
          the connection is transparently re-connected and upon success, all
          other pooled connections established prior to that timestamp are
@@ -234,6 +234,7 @@ class Pool(log.Identified):
          interpret the disconnection error.
 
          .. versionadded:: 1.2
+
         """
         if logging_name:
             self.logging_name = self._orig_logging_name = logging_name
@@ -540,7 +541,7 @@ class _ConnectionRecord(object):
             fairy,
             lambda ref: _finalize_fairy and
             _finalize_fairy(
-                dbapi_connection,
+                None,
                 rec, pool, ref, echo)
         )
         _refs.add(rec)
@@ -686,9 +687,11 @@ def _finalize_fairy(connection, connection_record,
     """
     _refs.discard(connection_record)
 
-    if ref is not None and \
-            connection_record.fairy_ref is not ref:
-        return
+    if ref is not None:
+        if connection_record.fairy_ref is not ref:
+            return
+        assert connection is None
+        connection = connection_record.connection
 
     if connection is not None:
         if connection_record and echo:
@@ -825,13 +828,14 @@ class _ConnectionFairy(object):
                     pool.logger.info(
                         "Disconnection detected on checkout, "
                         "invalidating all pooled connections prior to "
-                        "current timestamp: %r", e)
+                        "current timestamp (reason: %r)", e)
                     fairy._connection_record.invalidate(e)
                     pool._invalidate(fairy, e, _checkin=False)
                 else:
                     pool.logger.info(
                         "Disconnection detected on checkout, "
-                        "invalidating individual connection: %r", e)
+                        "invalidating individual connection %s (reason: %r)",
+                        fairy.connection, e)
                     fairy._connection_record.invalidate(e)
                 try:
                     fairy.connection = \
@@ -1164,23 +1168,27 @@ class QueuePool(Pool):
             wait = use_overflow and self._overflow >= self._max_overflow
             return self._pool.get(wait, self._timeout)
         except sqla_queue.Empty:
-            if use_overflow and self._overflow >= self._max_overflow:
-                if not wait:
-                    return self._do_get()
-                else:
-                    raise exc.TimeoutError(
-                        "QueuePool limit of size %d overflow %d reached, "
-                        "connection timed out, timeout %d" %
-                        (self.size(), self.overflow(), self._timeout))
-
-            if self._inc_overflow():
-                try:
-                    return self._create_connection()
-                except:
-                    with util.safe_reraise():
-                        self._dec_overflow()
-            else:
+            # don't do things inside of "except Empty", because when we say
+            # we timed out or can't connect and raise, Python 3 tells
+            # people the real error is queue.Empty which it isn't.
+            pass
+        if use_overflow and self._overflow >= self._max_overflow:
+            if not wait:
                 return self._do_get()
+            else:
+                raise exc.TimeoutError(
+                    "QueuePool limit of size %d overflow %d reached, "
+                    "connection timed out, timeout %d" %
+                    (self.size(), self.overflow(), self._timeout), code="3o7r")
+
+        if self._inc_overflow():
+            try:
+                return self._create_connection()
+            except:
+                with util.safe_reraise():
+                    self._dec_overflow()
+        else:
+            return self._do_get()
 
     def _inc_overflow(self):
         if self._max_overflow == -1:

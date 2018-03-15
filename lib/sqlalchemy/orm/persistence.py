@@ -1,5 +1,5 @@
 # orm/persistence.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -398,7 +398,7 @@ def _collect_insert_commands(
         for propkey in set(propkey_to_col).intersection(state_dict):
             value = state_dict[propkey]
             col = propkey_to_col[propkey]
-            if value is None and propkey not in eval_none and not render_nulls:
+            if value is None and col not in eval_none and not render_nulls:
                 continue
             elif not bulk and hasattr(value, '__clause_element__') or \
                     isinstance(value, sql.ClauseElement):
@@ -693,22 +693,28 @@ def _emit_update_statements(base_mapper, uowtransaction,
         records = list(records)
 
         statement = cached_stmt
-
-        # TODO: would be super-nice to not have to determine this boolean
-        # inside the loop here, in the 99.9999% of the time there's only
-        # one connection in use
-        assert_singlerow = connection.dialect.supports_sane_rowcount
-        assert_multirow = assert_singlerow and \
-            connection.dialect.supports_sane_multi_rowcount
-        allow_multirow = has_all_defaults and not needs_version_id
+        return_defaults = False
 
         if not has_all_pks:
             statement = statement.return_defaults()
+            return_defaults = True
         elif bookkeeping and not has_all_defaults and \
                 mapper.base_mapper.eager_defaults:
             statement = statement.return_defaults()
+            return_defaults = True
         elif mapper.version_id_col is not None:
             statement = statement.return_defaults(mapper.version_id_col)
+            return_defaults = True
+
+        assert_singlerow = (
+            connection.dialect.supports_sane_rowcount
+            if not return_defaults
+            else connection.dialect.supports_sane_rowcount_returning
+        )
+
+        assert_multirow = assert_singlerow and \
+            connection.dialect.supports_sane_multi_rowcount
+        allow_multirow = has_all_defaults and not needs_version_id
 
         if hasvalue:
             for state, state_dict, params, mapper, \
@@ -728,7 +734,7 @@ def _emit_update_statements(base_mapper, uowtransaction,
                         c.context.compiled_parameters[0],
                         value_params)
                 rows += c.rowcount
-                check_rowcount = True
+                check_rowcount = assert_singlerow
         else:
             if not allow_multirow:
                 check_rowcount = assert_singlerow
@@ -928,10 +934,15 @@ def _emit_post_update_statements(base_mapper, uowtransaction,
         records = list(records)
         connection = key[0]
 
-        assert_singlerow = connection.dialect.supports_sane_rowcount
+        assert_singlerow = (
+            connection.dialect.supports_sane_rowcount
+            if mapper.version_id_col is None
+            else connection.dialect.supports_sane_rowcount_returning
+        )
         assert_multirow = assert_singlerow and \
             connection.dialect.supports_sane_multi_rowcount
         allow_multirow = not needs_version_id or assert_multirow
+
 
         if not allow_multirow:
             check_rowcount = assert_singlerow
@@ -1037,7 +1048,12 @@ def _emit_delete_statements(base_mapper, uowtransaction, cached_connections,
                     stacklevel=12)
                 connection.execute(statement, del_objects)
         else:
-            connection.execute(statement, del_objects)
+            c = connection.execute(statement, del_objects)
+
+            if not need_version_id:
+                only_warn = True
+
+            rows_matched = c.rowcount
 
         if base_mapper.confirm_deleted_rows and \
                 rows_matched > -1 and expected != rows_matched:
@@ -1111,7 +1127,8 @@ def _finalize_insert_update_commands(base_mapper, uowtransaction, states):
         else:
             mapper.dispatch.after_update(mapper, connection, state)
 
-        if mapper.version_id_col is not None:
+        if mapper.version_id_generator is False and \
+                mapper.version_id_col is not None:
             if state_dict[mapper._version_id_prop.key] is None:
                 raise orm_exc.FlushError(
                     "Instance does not contain a non-NULL version value")
@@ -1378,15 +1395,15 @@ class BulkEvaluate(BulkUD):
 
             self._additional_evaluators(evaluator_compiler)
 
-        except evaluator.UnevaluatableError:
+        except evaluator.UnevaluatableError as err:
             raise sa_exc.InvalidRequestError(
-                "Could not evaluate current criteria in Python. "
-                "Specify 'fetch' or False for the "
-                "synchronize_session parameter.")
+                'Could not evaluate current criteria in Python: "%s". '
+                'Specify \'fetch\' or False for the '
+                'synchronize_session parameter.' % err)
 
         # TODO: detect when the where clause is a trivial primary key match
         self.matched_objects = [
-            obj for (cls, pk), obj in
+            obj for (cls, pk, identity_token), obj in
             query.session.identity_map.items()
             if issubclass(cls, target_cls) and
             eval_condition(obj)]

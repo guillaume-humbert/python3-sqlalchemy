@@ -1,5 +1,5 @@
 # orm/query.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -70,6 +70,7 @@ class Query(object):
 
     """
 
+    _only_return_tuples = False
     _enable_eagerloads = True
     _enable_assertions = True
     _with_labels = False
@@ -604,6 +605,16 @@ class Query(object):
         return self.enable_eagerloads(False).with_labels().statement
 
     @_generative()
+    def only_return_tuples(self, value):
+        """When set to True, the query results will always be a tuple,
+        specifically for single element queries. The default is False.
+
+    .   .. versionadded:: 1.2.5
+
+        """
+        self._only_return_tuples = value
+
+    @_generative()
     def enable_eagerloads(self, value):
         """Control whether or not eager joins and subqueries are
         rendered.
@@ -867,9 +878,10 @@ class Query(object):
         :return: The object instance, or ``None``.
 
         """
-        return self._get_impl(ident, loading.load_on_ident)
+        return self._get_impl(
+            ident, loading.load_on_ident)
 
-    def _get_impl(self, ident, fallback_fn):
+    def _get_impl(self, ident, fallback_fn, identity_token=None):
         # convert composite types to individual args
         if hasattr(ident, '__composite_values__'):
             ident = ident.__composite_values__()
@@ -884,7 +896,8 @@ class Query(object):
                 "primary key for query.get(); primary key columns are %s" %
                 ','.join("'%s'" % c for c in mapper.primary_key))
 
-        key = mapper.identity_key_from_primary_key(ident)
+        key = mapper.identity_key_from_primary_key(
+            ident, identity_token=identity_token)
 
         if not self._populate_existing and \
                 not mapper.always_refresh and \
@@ -1279,7 +1292,7 @@ class Query(object):
 
     @_generative()
     def with_entities(self, *entities):
-        """Return a new :class:`.Query` replacing the SELECT list with the
+        r"""Return a new :class:`.Query` replacing the SELECT list with the
         given entities.
 
         e.g.::
@@ -3066,7 +3079,8 @@ class Query(object):
         # omitting the FROM clause from a query(X) (#2818);
         # .with_only_columns() after we have a core select() so that
         # we get just "SELECT 1" without any entities.
-        return sql.exists(self.add_columns('1').with_labels().
+        return sql.exists(self.enable_eagerloads(False).add_columns('1').
+                          with_labels().
                           statement.with_only_columns([1]))
 
     def count(self):
@@ -3890,6 +3904,10 @@ class _BundleEntity(_QueryEntity):
         self.supports_single_entity = self.bundle.single_entity
 
     @property
+    def mapper(self):
+        return self.entity_zero.mapper
+
+    @property
     def entities(self):
         entities = []
         for ent in self._entities:
@@ -4031,7 +4049,8 @@ class _ColumnEntity(_QueryEntity):
             self._from_entities = set(self.entities)
         else:
             all_elements = [
-                elem for elem in sql_util.surface_column_elements(column)
+                elem for elem in sql_util.surface_column_elements(
+                    column, include_scalar_selects=False)
                 if 'parententity' in elem._annotations
             ]
 
@@ -4125,7 +4144,7 @@ class QueryContext(object):
         'eager_joins', 'create_eager_joins', 'propagate_options',
         'attributes', 'statement', 'from_clause', 'whereclause',
         'order_by', 'labels', '_for_update_arg', 'runid', 'partials',
-        'post_load_paths'
+        'post_load_paths', 'identity_token'
     )
 
     def __init__(self, query):
@@ -4162,6 +4181,7 @@ class QueryContext(object):
         self.propagate_options = set(o for o in query._with_options if
                                      o.propagate_to_loaders)
         self.attributes = query._attributes.copy()
+        self.identity_token = None
 
 
 class AliasOption(interfaces.MapperOption):

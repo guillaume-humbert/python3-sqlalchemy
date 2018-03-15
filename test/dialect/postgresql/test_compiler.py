@@ -1091,6 +1091,22 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             "FROM table1 AS foo"
         )
 
+    def test_delete_extra_froms(self):
+        t1 = table('t1', column('c1'))
+        t2 = table('t2', column('c1'))
+        q = delete(t1).where(t1.c.c1 == t2.c.c1)
+        self.assert_compile(
+            q, "DELETE FROM t1 USING t2 WHERE t1.c1 = t2.c1"
+        )
+
+    def test_delete_extra_froms_alias(self):
+        a1 = table('t1', column('c1')).alias('a1')
+        t2 = table('t2', column('c1'))
+        q = delete(a1).where(a1.c.c1 == t2.c.c1)
+        self.assert_compile(
+            q, "DELETE FROM t1 AS a1 USING t2 WHERE a1.c1 = t2.c1"
+        )
+
 
 class InsertOnConflictTest(fixtures.TestBase, AssertsCompiledSQL):
     __dialect__ = postgresql.dialect()
@@ -1395,6 +1411,30 @@ class InsertOnConflictTest(fixtures.TestBase, AssertsCompiledSQL):
                                     "description_1": "foo",
                                     "param_1": "somename",
                                     "param_2": "unknown"})
+
+    def test_on_conflict_as_cte(self):
+        i = insert(
+            self.table1, values=dict(name='foo'))
+        i = i.on_conflict_do_update(
+            constraint=self.excl_constr_anon,
+            set_=dict(name=i.excluded.name),
+            where=(
+                (self.table1.c.name != i.excluded.name))
+        ).returning(literal_column("1")).cte("i_upsert")
+
+        stmt = select([i])
+
+        self.assert_compile(
+            stmt,
+            "WITH i_upsert AS "
+            "(INSERT INTO mytable (name) VALUES (%(name)s) "
+            "ON CONFLICT (name, description) "
+            "WHERE description != %(description_1)s "
+            "DO UPDATE SET name = excluded.name "
+            "WHERE mytable.name != excluded.name RETURNING 1) "
+            "SELECT i_upsert.1 "
+            "FROM i_upsert"
+        )
 
     def test_quote_raw_string_col(self):
         t = table('t', column("FancyName"), column("other name"))

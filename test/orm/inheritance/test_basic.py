@@ -517,7 +517,7 @@ class SortOnlyOnImportantFKsTest(fixtures.MappedTest):
               Column('id', Integer, primary_key=True,
                      test_needs_autoincrement=True),
               Column('b_id', Integer,
-                     ForeignKey('b.id', use_alter=True, name='b')))
+                     ForeignKey('b.id', use_alter=True, name='b_fk')))
         Table('b', metadata,
               Column('id', Integer, ForeignKey('a.id'), primary_key=True))
 
@@ -1619,6 +1619,7 @@ class VersioningTest(fixtures.MappedTest):
               Column('parent', Integer, ForeignKey('base.id')))
 
     @testing.emits_warning(r".*updated rowcount")
+    @testing.requires.sane_rowcount_w_returning
     @engines.close_open_connections
     def test_save_update(self):
         subtable, base, stuff = (self.tables.subtable,
@@ -1675,6 +1676,7 @@ class VersioningTest(fixtures.MappedTest):
         sess2.flush()
 
     @testing.emits_warning(r".*(update|delete)d rowcount")
+    @testing.requires.sane_rowcount_w_returning
     def test_delete(self):
         subtable, base = self.tables.subtable, self.tables.base
 

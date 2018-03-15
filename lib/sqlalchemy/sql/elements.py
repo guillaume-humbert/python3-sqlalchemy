@@ -1,5 +1,5 @@
 # sql/elements.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -52,7 +52,7 @@ def collate(expression, collation):
     expr = _literal_as_binds(expression)
     return BinaryExpression(
         expr,
-        ColumnClause(collation),
+        CollationClause(collation),
         operators.collate, type_=expr.type)
 
 
@@ -571,7 +571,7 @@ class ColumnElement(operators.ColumnOperators, ClauseElement):
 
     """
 
-    __visit_name__ = 'column'
+    __visit_name__ = 'column_element'
     primary_key = False
     foreign_keys = []
 
@@ -3162,6 +3162,10 @@ class Over(ColumnElement):
 
             func.row_number().over(order_by='x', range_=(-2, None))
 
+        * RANGE BETWEEN 1 FOLLOWING AND 3 FOLLOWING::
+
+            func.row_number().over(order_by='x', range_=(1, 3))
+
         .. versionadded:: 1.1 support for RANGE / ROWS within a window
 
 
@@ -3223,42 +3227,30 @@ class Over(ColumnElement):
             raise exc.ArgumentError("2-tuple expected for range/rows")
 
         if range_[0] is None:
-            preceding = RANGE_UNBOUNDED
+            lower = RANGE_UNBOUNDED
         else:
             try:
-                preceding = int(range_[0])
+                lower = int(range_[0])
             except ValueError:
                 raise exc.ArgumentError(
-                    "Integer or None expected for preceding value")
+                    "Integer or None expected for range value")
             else:
-                if preceding > 0:
-                    raise exc.ArgumentError(
-                        "Preceding value must be a "
-                        "negative integer, zero, or None")
-                elif preceding < 0:
-                    preceding = literal(abs(preceding))
-                else:
-                    preceding = RANGE_CURRENT
+                if lower == 0:
+                    lower = RANGE_CURRENT
 
         if range_[1] is None:
-            following = RANGE_UNBOUNDED
+            upper = RANGE_UNBOUNDED
         else:
             try:
-                following = int(range_[1])
+                upper = int(range_[1])
             except ValueError:
                 raise exc.ArgumentError(
-                    "Integer or None expected for following value")
+                    "Integer or None expected for range value")
             else:
-                if following < 0:
-                    raise exc.ArgumentError(
-                        "Following value must be a positive "
-                        "integer, zero, or None")
-                elif following > 0:
-                    following = literal(following)
-                else:
-                    following = RANGE_CURRENT
+                if upper == 0:
+                    upper = RANGE_CURRENT
 
-        return preceding, following
+        return lower, upper
 
     @property
     def func(self):
@@ -3301,7 +3293,7 @@ class WithinGroup(ColumnElement):
     """Represent a WITHIN GROUP (ORDER BY) clause.
 
     This is a special operator against so-called
-    so-called "ordered set aggregate" and "hypothetical
+    "ordered set aggregate" and "hypothetical
     set aggregate" functions, including ``percentile_cont()``,
     ``rank()``, ``dense_rank()``, etc.
 
@@ -3664,6 +3656,8 @@ class ColumnClause(Immutable, ColumnElement):
 
     onupdate = default = server_default = server_onupdate = None
 
+    _is_multiparam_column = False
+
     _memoized_property = util.group_expirable_memoized_property()
 
     def __init__(self, text, type_=None, is_literal=False, _selectable=None):
@@ -3877,6 +3871,13 @@ class ColumnClause(Immutable, ColumnElement):
         if attach:
             selectable._columns[c.key] = c
         return c
+
+
+class CollationClause(ColumnElement):
+    __visit_name__ = "collation"
+
+    def __init__(self, collation):
+        self.collation = collation
 
 
 class _IdentifiedClause(Executable, ClauseElement):

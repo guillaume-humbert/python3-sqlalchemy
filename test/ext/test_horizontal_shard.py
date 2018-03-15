@@ -9,6 +9,7 @@ from sqlalchemy.sql import operators
 from sqlalchemy.testing import fixtures
 from sqlalchemy.testing.engines import testing_engine
 from sqlalchemy.testing import eq_
+from sqlalchemy import testing
 
 # TODO: ShardTest can be turned into a base for further subclasses
 
@@ -125,8 +126,10 @@ class ShardTest(object):
                 self.city = city
 
         class Report(object):
-            def __init__(self, temperature):
+            def __init__(self, temperature, id_=None):
                 self.temperature = temperature
+                if id_:
+                    self.id = id_
 
         mapper(WeatherLocation, weather_locations, properties={
             'reports': relationship(Report, backref='location'),
@@ -143,8 +146,8 @@ class ShardTest(object):
         dublin = WeatherLocation('Europe', 'Dublin')
         brasilia = WeatherLocation('South America', 'Brasila')
         quito = WeatherLocation('South America', 'Quito')
-        tokyo.reports.append(Report(80.0))
-        newyork.reports.append(Report(75))
+        tokyo.reports.append(Report(80.0, id_=1))
+        newyork.reports.append(Report(75, id_=1))
         quito.reports.append(Report(85))
         sess = create_session()
         for c in [
@@ -157,6 +160,13 @@ class ShardTest(object):
             quito,
         ]:
             sess.add(c)
+        sess.flush()
+
+        eq_(inspect(newyork).key[2], "north_america")
+        eq_(inspect(newyork).identity_token, "north_america")
+        eq_(inspect(dublin).key[2], "europe")
+        eq_(inspect(dublin).identity_token, "europe")
+
         sess.commit()
         sess.close()
         return sess
@@ -165,7 +175,7 @@ class ShardTest(object):
         sess = self._fixture_data()
         tokyo = sess.query(WeatherLocation).filter_by(city="Tokyo").one()
         tokyo.city  # reload 'city' attribute on tokyo
-        sess.expunge_all()
+        sess.expire_all()
         eq_(db2.execute(weather_locations.select()).fetchall(), [(1,
             'Asia', 'Tokyo')])
         eq_(db1.execute(weather_locations.select()).fetchall(), [(2,
@@ -185,6 +195,85 @@ class ShardTest(object):
                 WeatherLocation.continent.in_(['Europe', 'Asia']))
         eq_(set([c.city for c in asia_and_europe]), set(['Tokyo',
             'London', 'Dublin']))
+
+        # inspect the shard token stored with each instance
+        eq_(
+            set(inspect(c).key[2] for c in asia_and_europe),
+            set(['europe', 'asia']))
+
+        eq_(
+            set(inspect(c).identity_token for c in asia_and_europe),
+            set(['europe', 'asia']))
+
+        newyork = sess.query(WeatherLocation).filter_by(city="New York").one()
+        newyork_report = newyork.reports[0]
+        tokyo_report = tokyo.reports[0]
+
+        # same primary key, two identity keys
+        eq_(
+            inspect(newyork_report).identity_key,
+            (Report, (1, ), "north_america")
+        )
+        eq_(
+            inspect(tokyo_report).identity_key,
+            (Report, (1, ), "asia")
+        )
+
+        # the token representing the originating shard is available
+        eq_(inspect(newyork_report).identity_token, "north_america")
+        eq_(inspect(tokyo_report).identity_token, "asia")
+
+    def test_get_baked_query(self):
+        sess = self._fixture_data()
+
+        tokyo = sess.query(WeatherLocation).filter_by(city="Tokyo").one()
+        tokyo.city
+        sess.expunge_all()
+
+        from sqlalchemy.ext.baked import BakedQuery
+
+        bakery = BakedQuery.bakery()
+
+        bq = bakery(lambda session: session.query(WeatherLocation))
+        t = bq(sess).get(tokyo.id)
+        eq_(t.city, tokyo.city)
+
+        eq_(inspect(t).key[2], 'asia')
+
+    def test_get_baked_query_shard_id(self):
+        sess = self._fixture_data()
+
+        tokyo = sess.query(WeatherLocation).filter_by(city="Tokyo").one()
+        tokyo.city
+        sess.expunge_all()
+
+        from sqlalchemy.ext.baked import BakedQuery
+
+        bakery = BakedQuery.bakery()
+
+        bq = bakery(lambda session: session.query(WeatherLocation))
+        t = bq(sess).with_post_criteria(
+            lambda q: q.set_shard("asia")).get(tokyo.id)
+        eq_(t.city, tokyo.city)
+
+        eq_(inspect(t).key[2], 'asia')
+
+    def test_filter_baked_query_shard_id(self):
+        sess = self._fixture_data()
+
+        tokyo = sess.query(WeatherLocation).filter_by(city="Tokyo").one()
+        tokyo.city
+        sess.expunge_all()
+
+        from sqlalchemy.ext.baked import BakedQuery
+
+        bakery = BakedQuery.bakery()
+
+        bq = bakery(lambda session: session.query(WeatherLocation)).\
+            with_criteria(lambda q: q.filter_by(id=tokyo.id))
+        t = bq(sess).with_post_criteria(
+            lambda q: q.set_shard("asia")).one()
+        eq_(t.city, tokyo.city)
 
     def test_shard_id_event(self):
         canary = []
@@ -208,7 +297,6 @@ class ShardTest(object):
 
 
 class DistinctEngineShardTest(ShardTest, fixtures.TestBase):
-
     def _init_dbs(self):
         db1 = testing_engine('sqlite:///shard1.db',
                              options=dict(pool_threadlocal=True))
@@ -250,3 +338,37 @@ class AttachedFileShardTest(ShardTest, fixtures.TestBase):
             return stmt, params
 
         return db1, db2, db3, db4
+
+
+class SelectinloadRegressionTest(fixtures.DeclarativeMappedTest):
+    @classmethod
+    def setup_classes(cls):
+        Base = cls.DeclarativeBasic
+
+        class Book(Base):
+            __tablename__ = 'book'
+            id = Column(Integer, primary_key=True)
+            pages = relationship('Page')
+
+        class Page(Base):
+            __tablename__ = 'page'
+            id = Column(Integer, primary_key=True)
+            book_id = Column(ForeignKey('book.id'))
+
+    def test_selectinload_query(self):
+        session = ShardedSession(
+            shards={"test": testing.db},
+            shard_chooser=lambda *args: 'test',
+            id_chooser=lambda *args: None,
+            query_chooser=lambda *args: ['test']
+        )
+
+        Book, Page = self.classes("Book", "Page")
+        book = Book()
+        book.pages.append(Page())
+
+        session.add(book)
+        session.commit()
+
+        result = session.query(Book).options(selectinload('pages')).all()
+        eq_(result, [book])

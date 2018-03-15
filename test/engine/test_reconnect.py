@@ -13,6 +13,7 @@ from sqlalchemy.testing import fixtures
 from sqlalchemy.testing.engines import testing_engine
 from sqlalchemy.testing.mock import Mock, call, patch
 from sqlalchemy import event
+from sqlalchemy.testing.util import gc_collect
 
 
 class MockError(Exception):
@@ -204,6 +205,34 @@ class PrePingMockTest(fixtures.TestBase):
             MockDisconnect,
             "Lost the DB connection on execute",
             cursor.execute, "foo"
+        )
+
+    @testing.requires.predictable_gc
+    def test_pre_ping_weakref_finalizer(self):
+        pool = self._pool_fixture(pre_ping=True)
+
+        conn = pool.connect()
+        old_dbapi_conn = conn.connection
+        conn.close()
+
+        eq_(old_dbapi_conn.mock_calls, [call.cursor(), call.rollback()])
+
+        self.dbapi.shutdown("execute", stop=True)
+        self.dbapi.restart()
+
+        conn = pool.connect()
+        dbapi_conn = conn.connection
+        del conn
+        gc_collect()
+
+        # new connection was reset on return appropriately
+        eq_(dbapi_conn.mock_calls, [call.cursor(), call.rollback()])
+
+        # old connection was just closed - did not get an
+        # erroneous reset on return
+        eq_(
+            old_dbapi_conn.mock_calls,
+            [call.cursor(), call.rollback(), call.cursor(), call.close()]
         )
 
 
@@ -1003,6 +1032,9 @@ class InvalidateDuringResultTest(fixtures.TestBase):
         self.meta.drop_all()
         self.engine.dispose()
 
+    @testing.crashes(
+        "oracle",
+        "cx_oracle 6 doesn't allow a close like this due to open cursors")
     @testing.fails_if([
         '+mysqlconnector', '+mysqldb', '+cymysql', '+pymysql', '+pg8000'],
         "Buffers the result set and doesn't check for connection close")

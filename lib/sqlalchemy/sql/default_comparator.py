@@ -1,5 +1,5 @@
 # sql/default_comparator.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -15,7 +15,7 @@ from .elements import BindParameter, True_, False_, BinaryExpression, \
     Null, _const_expr, _clause_element_as_expr, \
     ClauseList, ColumnElement, TextClause, UnaryExpression, \
     collate, _is_literal, _literal_as_text, ClauseElement, and_, or_, \
-    Slice, Visitable, _literal_as_binds
+    Slice, Visitable, _literal_as_binds, CollectionAggregate
 from .selectable import SelectBase, Alias, Selectable, ScalarSelect
 
 
@@ -79,6 +79,18 @@ def _boolean_compare(expr, op, obj, negate=None, reverse=False,
                                 op,
                                 type_=result_type,
                                 negate=negate, modifiers=kwargs)
+
+
+def _custom_op_operate(expr, op, obj, reverse=False, result_type=None,
+                       **kw):
+    if result_type is None:
+        if op.return_type:
+            result_type = op.return_type
+        elif op.is_comparison:
+            result_type = type_api.BOOLEANTYPE
+
+    return _binary_operate(
+        expr, op, obj, reverse=reverse, result_type=result_type, **kw)
 
 
 def _binary_operate(expr, op, obj, reverse=False, result_type=None,
@@ -249,10 +261,12 @@ operator_lookup = {
     "div": (_binary_operate,),
     "mod": (_binary_operate,),
     "truediv": (_binary_operate,),
-    "custom_op": (_binary_operate,),
+    "custom_op": (_custom_op_operate,),
     "json_path_getitem_op": (_binary_operate, ),
     "json_getitem_op": (_binary_operate, ),
     "concat_op": (_binary_operate,),
+    "any_op": (_scalar, CollectionAggregate._create_any),
+    "all_op": (_scalar, CollectionAggregate._create_all),
     "lt": (_boolean_compare, operators.ge),
     "le": (_boolean_compare, operators.gt),
     "ne": (_boolean_compare, operators.eq),
