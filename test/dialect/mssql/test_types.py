@@ -4,10 +4,12 @@ from sqlalchemy.testing import is_, is_not_
 import datetime
 import os
 from sqlalchemy import Table, Column, MetaData, Float, \
-    Integer, String, Boolean, TIMESTAMP, Sequence, Numeric, select, \
+    Integer, String, Boolean, Sequence, Numeric, select, \
     Date, Time, DateTime, DefaultClause, PickleType, text, Text, \
     UnicodeText, LargeBinary
+from sqlalchemy.dialects.mssql import TIMESTAMP, ROWVERSION
 from sqlalchemy import types, schema
+from sqlalchemy import util
 from sqlalchemy.databases import mssql
 from sqlalchemy.dialects.mssql.base import TIME, _MSDate
 from sqlalchemy.dialects.mssql.base import MS_2005_VERSION, MS_2008_VERSION
@@ -17,6 +19,10 @@ from sqlalchemy import testing
 from sqlalchemy.testing import emits_warning_on
 import decimal
 from sqlalchemy.util import b
+from sqlalchemy import inspect
+from sqlalchemy.sql import sqltypes
+import sqlalchemy as sa
+import codecs
 
 
 class TimeTypeTest(fixtures.TestBase):
@@ -46,6 +52,8 @@ class TimeTypeTest(fixtures.TestBase):
 
 
 class MSDateTypeTest(fixtures.TestBase):
+    __only_on__ = 'mssql'
+    __backend__ = True
 
     def test_result_processor(self):
         expected = datetime.date(2000, 1, 2)
@@ -76,6 +84,95 @@ class MSDateTypeTest(fixtures.TestBase):
                     extract(field, fivedaysago)])
             ).scalar()
             eq_(r, exp)
+
+
+class RowVersionTest(fixtures.TablesTest):
+    __only_on__ = 'mssql'
+    __backend__ = True
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table(
+            'rv_t', metadata,
+            Column('data', String(50)),
+            Column('rv', ROWVERSION)
+        )
+
+        Table(
+            'ts_t', metadata,
+            Column('data', String(50)),
+            Column('rv', TIMESTAMP)
+        )
+
+    def test_rowversion_reflection(self):
+        # ROWVERSION is only a synonym for TIMESTAMP
+        insp = inspect(testing.db)
+        assert isinstance(
+            insp.get_columns('rv_t')[1]['type'], TIMESTAMP
+        )
+
+    def test_timestamp_reflection(self):
+        insp = inspect(testing.db)
+        assert isinstance(
+            insp.get_columns('ts_t')[1]['type'], TIMESTAMP
+        )
+
+    def test_class_hierarchy(self):
+        """TIMESTAMP and ROWVERSION aren't datetime types, theyre binary."""
+
+        assert issubclass(TIMESTAMP, sqltypes._Binary)
+        assert issubclass(ROWVERSION, sqltypes._Binary)
+
+    def test_round_trip_ts(self):
+        self._test_round_trip('ts_t', TIMESTAMP, False)
+
+    def test_round_trip_rv(self):
+        self._test_round_trip('rv_t', ROWVERSION, False)
+
+    def test_round_trip_ts_int(self):
+        self._test_round_trip('ts_t', TIMESTAMP, True)
+
+    def test_round_trip_rv_int(self):
+        self._test_round_trip('rv_t', ROWVERSION, True)
+
+    def _test_round_trip(self, tab, cls, convert_int):
+        t = Table(
+            tab, MetaData(),
+            Column('data', String(50)),
+            Column('rv', cls(convert_int=convert_int))
+        )
+
+        with testing.db.connect() as conn:
+            conn.execute(t.insert().values(data='foo'))
+            last_ts_1 = conn.scalar("SELECT @@DBTS")
+
+            if convert_int:
+                last_ts_1 = int(codecs.encode(last_ts_1, 'hex'), 16)
+
+            eq_(conn.scalar(select([t.c.rv])), last_ts_1)
+
+            conn.execute(
+                t.update().values(data='bar').where(t.c.data == 'foo'))
+            last_ts_2 = conn.scalar("SELECT @@DBTS")
+            if convert_int:
+                last_ts_2 = int(codecs.encode(last_ts_2, 'hex'), 16)
+
+            eq_(conn.scalar(select([t.c.rv])), last_ts_2)
+
+    def test_cant_insert_rowvalue(self):
+        self._test_cant_insert(self.tables.rv_t)
+
+    def test_cant_insert_timestamp(self):
+        self._test_cant_insert(self.tables.ts_t)
+
+    def _test_cant_insert(self, tab):
+        with testing.db.connect() as conn:
+            assert_raises_message(
+                sa.exc.DBAPIError,
+                r".*Cannot insert an explicit value into a timestamp column.",
+                conn.execute,
+                tab.insert().values(data='ins', rv=b'000')
+            )
 
 
 class TypeDDLTest(fixtures.TestBase):
@@ -340,21 +437,6 @@ class TypeDDLTest(fixtures.TestBase):
                 "IMAGE"
             )
 
-    def test_timestamp(self):
-        """Exercise TIMESTAMP column."""
-
-        dialect = mssql.dialect()
-
-        metadata = MetaData()
-        spec, expected = (TIMESTAMP, 'TIMESTAMP')
-        t = Table(
-            'mssql_ts', metadata,
-            Column('id', Integer, primary_key=True),
-            Column('t', spec, nullable=None))
-        gen = dialect.ddl_compiler(dialect, schema.CreateTable(t))
-        testing.eq_(gen.get_column_specification(t.c.t), "t %s" % expected)
-        self.assert_(repr(t.c.t))
-
     def test_money(self):
         """Exercise type specification for money types."""
 
@@ -435,6 +517,8 @@ class TypeRoundTripTest(
         fixtures.TestBase, AssertsExecutionResults, ComparesTables):
     __only_on__ = 'mssql'
 
+    __backend__ = True
+
     @classmethod
     def setup_class(cls):
         global metadata
@@ -443,9 +527,6 @@ class TypeRoundTripTest(
     def teardown(self):
         metadata.drop_all()
 
-    @testing.fails_on_everything_except(
-        'mssql+pyodbc',
-        'mssql+mxodbc')
     def test_decimal_notation(self):
         numeric_table = Table(
             'numeric_table', metadata,
@@ -491,10 +572,16 @@ class TypeRoundTripTest(
             '45125E-2',
             '1234.58965E-2',
             '1.521E+15',
-            '-1E-25',
-            '1E-25',
-            '1254E-25',
-            '-1203E-25',
+
+            # previously, these were at -1E-25, which were inserted
+            # cleanly howver we only got back 20 digits of accuracy.
+            # pyodbc as of 4.0.22 now disallows the silent truncation.
+            '-1E-20',
+            '1E-20',
+            '1254E-20',
+            '-1203E-20',
+
+
             '0',
             '-0.00',
             '-0',
@@ -502,14 +589,29 @@ class TypeRoundTripTest(
             '000000000000000000012',
             '000000000000.32E12',
             '00000000000000.1E+12',
-            '000000000000.2E-32',
+
+            # these are no longer accepted by pyodbc 4.0.22 but it seems
+            # they were not actually round-tripping correctly before that
+            # in any case
+            # '-1E-25',
+            # '1E-25',
+            # '1254E-25',
+            # '-1203E-25',
+            # '000000000000.2E-32',
         )]
 
-        for value in test_items:
-            numeric_table.insert().execute(numericcol=value)
-
-        for value in select([numeric_table.c.numericcol]).execute():
-            assert value[0] in test_items, "%r not in test_items" % value[0]
+        with testing.db.connect() as conn:
+            for value in test_items:
+                result = conn.execute(
+                    numeric_table.insert(),
+                    dict(numericcol=value)
+                )
+                primary_key = result.inserted_primary_key
+                returned = conn.scalar(
+                    select([numeric_table.c.numericcol]).
+                    where(numeric_table.c.id == primary_key[0])
+                )
+                eq_(value, returned)
 
     def test_float(self):
         float_table = Table(
@@ -640,7 +742,13 @@ class TypeRoundTripTest(
         t1 = datetime.time(11, 2, 32)
         d2 = datetime.datetime(2007, 10, 30, 11, 2, 32)
         t.insert().execute(adate=d1, adatetime=d2, atime=t1)
-        t.insert().execute(adate=d2, adatetime=d2, atime=d2)
+
+        # NOTE: this previously passed 'd2' for "adate" even though
+        # "adate" is a date column; we asserted that it truncated w/o issue.
+        # As of pyodbc 4.0.22, this is no longer accepted, was accepted
+        # in 4.0.21.  See also the new pyodbc assertions regarding numeric
+        # precision.
+        t.insert().execute(adate=d1, adatetime=d2, atime=d2)
 
         x = t.select().execute().fetchall()[0]
         self.assert_(x.adate.__class__ == datetime.date)
@@ -812,178 +920,184 @@ class TypeRoundTripTest(
                 engine.execute(tbl.delete())
 
 
-class MonkeyPatchedBinaryTest(fixtures.TestBase):
-    __only_on__ = 'mssql+pymssql'
-
-    def test_unicode(self):
-        module = __import__('pymssql')
-        result = module.Binary('foo')
-        eq_(result, 'foo')
-
-    def test_bytes(self):
-        module = __import__('pymssql')
-        input = b('\x80\x03]q\x00X\x03\x00\x00\x00oneq\x01a.')
-        expected_result = input
-        result = module.Binary(input)
-        eq_(result, expected_result)
-
-
-binary_table = None
-MyPickleType = None
-
-
-class BinaryTest(fixtures.TestBase, AssertsExecutionResults):
-
-    """Test the Binary and VarBinary types"""
-
+class BinaryTest(fixtures.TestBase):
     __only_on__ = 'mssql'
+    __requires__ = "non_broken_binary",
+    __backend__ = True
 
-    @classmethod
-    def setup_class(cls):
-        global MyPickleType
+    def test_character_binary(self):
+        self._test_round_trip(
+            mssql.MSVarBinary(800), b("some normal data")
+        )
+
+    @testing.provide_metadata
+    def _test_round_trip(
+            self, type_, data, deprecate_large_types=True,
+            expected=None):
+        if testing.db.dialect.deprecate_large_types is not \
+                deprecate_large_types:
+            engine = engines.testing_engine(
+                options={"deprecate_large_types": deprecate_large_types})
+        else:
+            engine = testing.db
+
+        binary_table = Table(
+            'binary_table', self.metadata,
+            Column('id', Integer, primary_key=True),
+            Column('data', type_)
+        )
+        binary_table.create(engine)
+
+        if expected is None:
+            expected = data
+
+        with engine.connect() as conn:
+            conn.execute(
+                binary_table.insert(),
+                data=data
+            )
+
+            eq_(
+                conn.scalar(select([binary_table.c.data])),
+                expected
+            )
+
+            eq_(
+                conn.scalar(
+                    text("select data from binary_table").
+                    columns(binary_table.c.data)
+                ),
+                expected
+            )
+
+            conn.execute(binary_table.delete())
+
+            conn.execute(binary_table.insert(), data=None)
+            eq_(
+                conn.scalar(select([binary_table.c.data])),
+                None
+            )
+
+            eq_(
+                conn.scalar(
+                    text("select data from binary_table").
+                    columns(binary_table.c.data)
+                ),
+                None
+            )
+
+    def test_plain_pickle(self):
+        self._test_round_trip(
+            PickleType, pickleable.Foo("im foo 1")
+        )
+
+    def test_custom_pickle(self):
 
         class MyPickleType(types.TypeDecorator):
             impl = PickleType
 
             def process_bind_param(self, value, dialect):
                 if value:
-                    value.stuff = 'this is modified stuff'
+                    value.stuff = "BIND" + value.stuff
                 return value
 
             def process_result_value(self, value, dialect):
                 if value:
-                    value.stuff = 'this is the right stuff'
+                    value.stuff = value.stuff + "RESULT"
                 return value
 
-    def teardown(self):
-        self.binary_table.drop(testing.db)
+        data = pickleable.Foo("im foo 1")
+        expected = pickleable.Foo("im foo 1")
+        expected.stuff = "BINDim stuffRESULT"
 
-    def _fixture(self, engine):
-        self.binary_table = binary_table = Table(
-            'binary_table',
-            MetaData(),
-            Column('primary_id', Integer, Sequence('binary_id_seq',
-                   optional=True), primary_key=True),
-            Column('data', mssql.MSVarBinary(8000)),
-            Column('data_image', mssql.MSImage),
-            Column('data_slice', types.BINARY(100)),
-            Column('misc', String(30)),
-            Column('pickled', PickleType),
-            Column('mypickle', MyPickleType),
+        self._test_round_trip(
+            MyPickleType, data,
+            expected=expected
         )
-        binary_table.create(engine)
-        return binary_table
 
-    def test_binary_legacy_types(self):
-        self._test_binary(False)
-
-    @testing.only_on('mssql >= 11')
-    def test_binary_updated_types(self):
-        self._test_binary(True)
-
-    def test_binary_none_legacy_types(self):
-        self._test_binary_none(False)
-
-    @testing.only_on('mssql >= 11')
-    def test_binary_none_updated_types(self):
-        self._test_binary_none(True)
-
-    def _test_binary(self, deprecate_large_types):
-        testobj1 = pickleable.Foo('im foo 1')
-        testobj2 = pickleable.Foo('im foo 2')
-        testobj3 = pickleable.Foo('im foo 3')
+    def test_image(self):
         stream1 = self._load_stream('binary_data_one.dat')
+        self._test_round_trip(
+            mssql.MSImage,
+            stream1
+        )
+
+    def test_large_binary(self):
+        stream1 = self._load_stream('binary_data_one.dat')
+        self._test_round_trip(
+            sqltypes.LargeBinary,
+            stream1
+        )
+
+    def test_large_legacy_types(self):
+        stream1 = self._load_stream('binary_data_one.dat')
+        self._test_round_trip(
+            sqltypes.LargeBinary,
+            stream1,
+            deprecate_large_types=False
+        )
+
+    def test_mssql_varbinary_max(self):
+        stream1 = self._load_stream('binary_data_one.dat')
+        self._test_round_trip(
+            mssql.VARBINARY("max"),
+            stream1
+        )
+
+    def test_mssql_legacy_varbinary_max(self):
+        stream1 = self._load_stream('binary_data_one.dat')
+        self._test_round_trip(
+            mssql.VARBINARY("max"),
+            stream1,
+            deprecate_large_types=False
+        )
+
+    def test_binary_slice(self):
+        self._test_var_slice(types.BINARY)
+
+    def test_binary_slice_zeropadding(self):
+        self._test_var_slice_zeropadding(types.BINARY, True)
+
+    def test_varbinary_slice(self):
+        self._test_var_slice(types.VARBINARY)
+
+    def test_varbinary_slice_zeropadding(self):
+        self._test_var_slice_zeropadding(types.VARBINARY, False)
+
+    def test_mssql_varbinary_slice(self):
+        self._test_var_slice(mssql.VARBINARY)
+
+    def test_mssql_varbinary_slice_zeropadding(self):
+        self._test_var_slice_zeropadding(mssql.VARBINARY, False)
+
+    def _test_var_slice(self, type_):
+        stream1 = self._load_stream('binary_data_one.dat')
+
+        data = stream1[0:100]
+
+        self._test_round_trip(
+            type_(100),
+            data
+        )
+
+    def _test_var_slice_zeropadding(
+            self, type_, pad, deprecate_large_types=True):
         stream2 = self._load_stream('binary_data_two.dat')
-        engine = engines.testing_engine(
-            options={"deprecate_large_types": deprecate_large_types})
 
-        binary_table = self._fixture(engine)
+        data = stream2[0:99]
 
-        with engine.connect() as conn:
-            conn.execute(
-                binary_table.insert(),
-                primary_id=1,
-                misc='binary_data_one.dat',
-                data=stream1,
-                data_image=stream1,
-                data_slice=stream1[0:100],
-                pickled=testobj1,
-                mypickle=testobj3,
-            )
-            conn.execute(
-                binary_table.insert(),
-                primary_id=2,
-                misc='binary_data_two.dat',
-                data=stream2,
-                data_image=stream2,
-                data_slice=stream2[0:99],
-                pickled=testobj2,
-            )
+        # the type we used here is 100 bytes
+        # so we will get 100 bytes zero-padded
 
-        for stmt in \
-            binary_table.select(order_by=binary_table.c.primary_id), \
-                text(
-                    'select * from binary_table order by '
-                    'binary_table.primary_id',
-                    typemap=dict(
-                        data=mssql.MSVarBinary(8000),
-                        data_image=mssql.MSImage,
-                        data_slice=types.BINARY(100), pickled=PickleType,
-                        mypickle=MyPickleType),
-                    bind=testing.db):
-            with engine.connect() as conn:
-                result = conn.execute(stmt).fetchall()
-            eq_(list(stream1), list(result[0]['data']))
-            paddedstream = list(stream1[0:100])
-            paddedstream.extend(['\x00'] * (100 - len(paddedstream)))
-            eq_(paddedstream, list(result[0]['data_slice']))
-            eq_(list(stream2), list(result[1]['data']))
-            eq_(list(stream2), list(result[1]['data_image']))
-            eq_(testobj1, result[0]['pickled'])
-            eq_(testobj2, result[1]['pickled'])
-            eq_(testobj3.moredata, result[0]['mypickle'].moredata)
-            eq_(result[0]['mypickle'].stuff, 'this is the right stuff')
+        if pad:
+            paddedstream = stream2[0:99] + b'\x00'
+        else:
+            paddedstream = stream2[0:99]
 
-    def _test_binary_none(self, deprecate_large_types):
-        engine = engines.testing_engine(
-            options={"deprecate_large_types": deprecate_large_types})
-
-        binary_table = self._fixture(engine)
-
-        stream2 = self._load_stream('binary_data_two.dat')
-
-        with engine.connect() as conn:
-            conn.execute(
-                binary_table.insert(),
-                primary_id=3,
-                misc='binary_data_two.dat', data_image=None,
-                data_slice=stream2[0:99], pickled=None)
-            for stmt in \
-                binary_table.select(), \
-                    text(
-                        'select * from binary_table',
-                        typemap=dict(
-                            data=mssql.MSVarBinary(8000),
-                            data_image=mssql.MSImage,
-                            data_slice=types.BINARY(100),
-                            pickled=PickleType,
-                            mypickle=MyPickleType),
-                        bind=testing.db):
-                row = conn.execute(stmt).first()
-                eq_(
-                    row['pickled'], None
-                )
-                eq_(
-                    row['data_image'], None
-                )
-
-                # the type we used here is 100 bytes
-                # so we will get 100 bytes zero-padded
-                paddedstream = list(stream2[0:99])
-                paddedstream.extend(['\x00'] * (100 - len(paddedstream)))
-                eq_(
-                    list(row['data_slice']), paddedstream
-                )
+        self._test_round_trip(
+            type_(100),
+            data, expected=paddedstream
+        )
 
     def _load_stream(self, name, len=3000):
         fp = open(

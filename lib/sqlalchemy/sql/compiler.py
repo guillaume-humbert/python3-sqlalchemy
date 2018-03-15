@@ -1,5 +1,5 @@
 # sql/compiler.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -121,7 +121,10 @@ FUNCTIONS = {
     functions.random: 'random%(expr)s',
     functions.sysdate: 'sysdate',
     functions.session_user: 'SESSION_USER',
-    functions.user: 'USER'
+    functions.user: 'USER',
+    functions.cube: 'CUBE%(expr)s',
+    functions.rollup: 'ROLLUP%(expr)s',
+    functions.grouping_sets: 'GROUPING SETS%(expr)s',
 }
 
 EXTRACT_MAP = {
@@ -268,7 +271,7 @@ class Compiled(object):
         if e is None:
             raise exc.UnboundExecutionError(
                 "This Compiled object is not bound to any Engine "
-                "or Connection.")
+                "or Connection.", code="2afi")
         return e._execute_compiled(self, multiparams, params)
 
     def scalar(self, *multiparams, **params):
@@ -537,11 +540,11 @@ class SQLCompiler(Compiled):
                         raise exc.InvalidRequestError(
                             "A value is required for bind parameter %r, "
                             "in parameter group %d" %
-                            (bindparam.key, _group_number))
+                            (bindparam.key, _group_number), code="cd3x")
                     else:
                         raise exc.InvalidRequestError(
                             "A value is required for bind parameter %r"
-                            % bindparam.key)
+                            % bindparam.key, code="cd3x")
 
                 elif bindparam.callable:
                     pd[name] = bindparam.effective_value
@@ -556,11 +559,11 @@ class SQLCompiler(Compiled):
                         raise exc.InvalidRequestError(
                             "A value is required for bind parameter %r, "
                             "in parameter group %d" %
-                            (bindparam.key, _group_number))
+                            (bindparam.key, _group_number), code="cd3x")
                     else:
                         raise exc.InvalidRequestError(
                             "A value is required for bind parameter %r"
-                            % bindparam.key)
+                            % bindparam.key, code="cd3x")
 
                 if bindparam.callable:
                     pd[self.bind_names[bindparam]] = bindparam.effective_value
@@ -730,6 +733,9 @@ class SQLCompiler(Compiled):
                 self.preparer.quote(tablename) + \
                 "." + name
 
+    def visit_collation(self, element, **kw):
+        return self.preparer.format_collation(element.collation)
+
     def visit_fromclause(self, fromclause, **kwargs):
         return fromclause.name
 
@@ -848,16 +854,25 @@ class SQLCompiler(Compiled):
              cast.typeclause._compiler_dispatch(self, **kwargs))
 
     def _format_frame_clause(self, range_, **kw):
+
         return '%s AND %s' % (
             "UNBOUNDED PRECEDING"
             if range_[0] is elements.RANGE_UNBOUNDED
             else "CURRENT ROW" if range_[0] is elements.RANGE_CURRENT
-            else "%s PRECEDING" % (self.process(range_[0], **kw), ),
+            else "%s PRECEDING" % (
+                self.process(elements.literal(abs(range_[0])), **kw), )
+            if range_[0] < 0
+            else "%s FOLLOWING" % (
+                self.process(elements.literal(range_[0]), **kw), ),
 
             "UNBOUNDED FOLLOWING"
             if range_[1] is elements.RANGE_UNBOUNDED
             else "CURRENT ROW" if range_[1] is elements.RANGE_CURRENT
-            else "%s FOLLOWING" % (self.process(range_[1], **kw), )
+            else "%s PRECEDING" % (
+                self.process(elements.literal(abs(range_[1])), **kw), )
+            if range_[1] < 0
+            else "%s FOLLOWING" % (
+                self.process(elements.literal(range_[1]), **kw), ),
         )
 
     def visit_over(self, over, **kwargs):
@@ -1340,12 +1355,13 @@ class SQLCompiler(Compiled):
         else:
             cte_name = cte.name
 
+        is_new_cte = True
         if cte_name in self.ctes_by_name:
             existing_cte = self.ctes_by_name[cte_name]
             # we've generated a same-named CTE that we are enclosed in,
             # or this is the same CTE.  just return the name.
             if cte in existing_cte._restates or cte is existing_cte:
-                return self.preparer.format_alias(cte, cte_name)
+                is_new_cte = False
             elif existing_cte in cte._restates:
                 # we've generated a same-named CTE that is
                 # enclosed in us - we take precedence, so
@@ -1357,65 +1373,72 @@ class SQLCompiler(Compiled):
                     "the same name: %r" %
                     cte_name)
 
-        self.ctes_by_name[cte_name] = cte
+        if asfrom or is_new_cte:
+            if cte._cte_alias is not None:
+                pre_alias_cte = cte._cte_alias
+                cte_pre_alias_name = cte._cte_alias.name
+                if isinstance(cte_pre_alias_name, elements._truncated_label):
+                    cte_pre_alias_name = self._truncated_identifier(
+                        "alias", cte_pre_alias_name)
+            else:
+                pre_alias_cte = cte
+                cte_pre_alias_name = None
 
-        # look for embedded DML ctes and propagate autocommit
-        if 'autocommit' in cte.element._execution_options and \
-                'autocommit' not in self.execution_options:
-            self.execution_options = self.execution_options.union(
-                {"autocommit": cte.element._execution_options['autocommit']})
+        if is_new_cte:
+            self.ctes_by_name[cte_name] = cte
 
-        if cte._cte_alias is not None:
-            orig_cte = cte._cte_alias
-            if orig_cte not in self.ctes:
-                self.visit_cte(orig_cte, **kwargs)
-            cte_alias_name = cte._cte_alias.name
-            if isinstance(cte_alias_name, elements._truncated_label):
-                cte_alias_name = self._truncated_identifier(
-                    "alias", cte_alias_name)
-        else:
-            orig_cte = cte
-            cte_alias_name = None
-        if not cte_alias_name and cte not in self.ctes:
-            if cte.recursive:
-                self.ctes_recursive = True
-            text = self.preparer.format_alias(cte, cte_name)
-            if cte.recursive:
-                if isinstance(cte.original, selectable.Select):
-                    col_source = cte.original
-                elif isinstance(cte.original, selectable.CompoundSelect):
-                    col_source = cte.original.selects[0]
-                else:
-                    assert False
-                recur_cols = [c for c in
-                              util.unique_list(col_source.inner_columns)
-                              if c is not None]
+            # look for embedded DML ctes and propagate autocommit
+            if 'autocommit' in cte.element._execution_options and \
+                    'autocommit' not in self.execution_options:
+                self.execution_options = self.execution_options.union(
+                    {"autocommit":
+                     cte.element._execution_options['autocommit']})
 
-                text += "(%s)" % (", ".join(
-                    self.preparer.format_column(ident)
-                    for ident in recur_cols))
+            if pre_alias_cte not in self.ctes:
+                self.visit_cte(pre_alias_cte, **kwargs)
 
-            if self.positional:
-                kwargs['positional_names'] = self.cte_positional[cte] = []
+            if not cte_pre_alias_name and cte not in self.ctes:
+                if cte.recursive:
+                    self.ctes_recursive = True
+                text = self.preparer.format_alias(cte, cte_name)
+                if cte.recursive:
+                    if isinstance(cte.original, selectable.Select):
+                        col_source = cte.original
+                    elif isinstance(cte.original, selectable.CompoundSelect):
+                        col_source = cte.original.selects[0]
+                    else:
+                        assert False
+                    recur_cols = [c for c in
+                                  util.unique_list(col_source.inner_columns)
+                                  if c is not None]
 
-            text += " AS \n" + \
-                cte.original._compiler_dispatch(
-                    self, asfrom=True, **kwargs
-                )
+                    text += "(%s)" % (", ".join(
+                        self.preparer.format_column(ident)
+                        for ident in recur_cols))
 
-            if cte._suffixes:
-                text += " " + self._generate_prefixes(
-                    cte, cte._suffixes, **kwargs)
+                if self.positional:
+                    kwargs['positional_names'] = self.cte_positional[cte] = []
 
-            self.ctes[cte] = text
+                text += " AS \n" + \
+                    cte.original._compiler_dispatch(
+                        self, asfrom=True, **kwargs
+                    )
+
+                if cte._suffixes:
+                    text += " " + self._generate_prefixes(
+                        cte, cte._suffixes, **kwargs)
+
+                self.ctes[cte] = text
 
         if asfrom:
-            if cte_alias_name:
-                text = self.preparer.format_alias(cte, cte_alias_name)
+            if cte_pre_alias_name:
+                text = self.preparer.format_alias(cte, cte_pre_alias_name)
+                if self.preparer._requires_quotes(cte_name):
+                    cte_name = self.preparer.quote(cte_name)
                 text += self.get_render_as_alias_suffix(cte_name)
+                return text
             else:
                 return self.preparer.format_alias(cte, cte_name)
-            return text
 
     def visit_alias(self, alias, asfrom=False, ashint=False,
                     iscrud=False,
@@ -2134,10 +2157,9 @@ class SQLCompiler(Compiled):
         MySQL and MSSQL override this.
 
         """
-        return "FROM " + ', '.join(
-            t._compiler_dispatch(self, asfrom=True,
-                                 fromhints=from_hints, **kw)
-            for t in extra_froms)
+        raise NotImplementedError(
+            "This backend does not support multiple-table "
+            "criteria within UPDATE")
 
     def visit_update(self, update_stmt, asfrom=False, **kw):
         toplevel = not self.stack
@@ -2220,6 +2242,25 @@ class SQLCompiler(Compiled):
     def _key_getters_for_crud_column(self):
         return crud._key_getters_for_crud_column(self, self.statement)
 
+    def delete_extra_from_clause(self, update_stmt,
+                                 from_table, extra_froms,
+                                 from_hints, **kw):
+        """Provide a hook to override the generation of an
+        DELETE..FROM clause.
+
+        This can be used to implement DELETE..USING for example.
+
+        MySQL and MSSQL override this.
+
+        """
+        raise NotImplementedError(
+            "This backend does not support multiple-table "
+            "criteria within DELETE")
+
+    def delete_table_clause(self, delete_stmt, from_table,
+                            extra_froms):
+        return from_table._compiler_dispatch(self, asfrom=True, iscrud=True)
+
     def visit_delete(self, delete_stmt, asfrom=False, **kw):
         toplevel = not self.stack
 
@@ -2229,6 +2270,8 @@ class SQLCompiler(Compiled):
 
         crud._setup_crud_params(self, delete_stmt, crud.ISDELETE, **kw)
 
+        extra_froms = delete_stmt._extra_froms
+
         text = "DELETE "
 
         if delete_stmt._prefixes:
@@ -2236,12 +2279,14 @@ class SQLCompiler(Compiled):
                                             delete_stmt._prefixes, **kw)
 
         text += "FROM "
-        table_text = delete_stmt.table._compiler_dispatch(
-            self, asfrom=True, iscrud=True)
+        table_text = self.delete_table_clause(delete_stmt, delete_stmt.table,
+                                              extra_froms)
 
         if delete_stmt._hints:
             dialect_hints, table_text = self._setup_crud_hints(
                 delete_stmt, table_text)
+        else:
+            dialect_hints = None
 
         text += table_text
 
@@ -2249,6 +2294,15 @@ class SQLCompiler(Compiled):
             if self.returning_precedes_values:
                 text += " " + self.returning_clause(
                     delete_stmt, delete_stmt._returning)
+
+        if extra_froms:
+            extra_from_text = self.delete_extra_from_clause(
+                delete_stmt,
+                delete_stmt.table,
+                extra_froms,
+                dialect_hints, **kw)
+            if extra_from_text:
+                text += " " + extra_from_text
 
         if delete_stmt._whereclause is not None:
             t = delete_stmt._whereclause._compiler_dispatch(self, **kw)
@@ -2311,6 +2365,24 @@ class StrSQLCompiler(SQLCompiler):
         ]
 
         return 'RETURNING ' + ', '.join(columns)
+
+    def update_from_clause(self, update_stmt,
+                           from_table, extra_froms,
+                           from_hints,
+                           **kw):
+        return "FROM " + ', '.join(
+            t._compiler_dispatch(self, asfrom=True,
+                                 fromhints=from_hints, **kw)
+            for t in extra_froms)
+
+    def delete_extra_from_clause(self, update_stmt,
+                           from_table, extra_froms,
+                           from_hints,
+                           **kw):
+        return ', ' + ', '.join(
+            t._compiler_dispatch(self, asfrom=True,
+                                 fromhints=from_hints, **kw)
+            for t in extra_froms)
 
 
 class DDLCompiler(Compiled):
@@ -2900,7 +2972,8 @@ class IdentifierPreparer(object):
     schema_for_object = schema._schema_getter(None)
 
     def __init__(self, dialect, initial_quote='"',
-                 final_quote=None, escape_quote='"', omit_schema=False):
+                 final_quote=None, escape_quote='"',
+                 quote_case_sensitive_collations=True, omit_schema=False):
         """Construct a new ``IdentifierPreparer`` object.
 
         initial_quote
@@ -2921,6 +2994,7 @@ class IdentifierPreparer(object):
         self.escape_quote = escape_quote
         self.escape_to_quote = self.escape_quote * 2
         self.omit_schema = omit_schema
+        self.quote_case_sensitive_collations = quote_case_sensitive_collations
         self._strings = {}
         self._double_percents = self.dialect.paramstyle in ('format', 'pyformat')
 
@@ -3002,6 +3076,12 @@ class IdentifierPreparer(object):
             return self.quote_identifier(ident)
         else:
             return ident
+
+    def format_collation(self, collation_name):
+        if self.quote_case_sensitive_collations:
+            return self.quote(collation_name)
+        else:
+            return collation_name
 
     def format_sequence(self, sequence, use_schema=True):
         name = self.quote(sequence.name)

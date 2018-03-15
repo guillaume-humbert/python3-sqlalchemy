@@ -11,7 +11,7 @@ from sqlalchemy.orm import mapper, relationship, create_session, \
     sessionmaker, attributes, interfaces,\
     clear_mappers, exc as orm_exc,\
     configure_mappers, Session, lazyload_all,\
-    lazyload, aliased
+    lazyload, aliased, subqueryload
 from sqlalchemy.orm import state as sa_state
 from sqlalchemy.orm import instrumentation
 from sqlalchemy.orm.collections import attribute_mapped_collection, \
@@ -21,6 +21,10 @@ from test.orm import _fixtures
 from sqlalchemy.testing.pickleable import User, Address, Dingaling, Order, \
     Child1, Child2, Parent, Screen, EmailUser
 
+from sqlalchemy.orm import with_polymorphic
+
+from .inheritance._poly_fixtures import Company, Person, Engineer, Manager, \
+    Boss, Machine, Paperwork, _Polymorphic
 
 class PickleTest(fixtures.MappedTest):
 
@@ -290,10 +294,44 @@ class PickleTest(fixtures.MappedTest):
         manager.class_ = User
         state_09['manager'] = manager
         state.__setstate__(state_09)
+        eq_(state.expired_attributes, {'name', 'id'})
 
         sess = Session()
         sess.add(inst)
         eq_(inst.name, 'ed')
+        # test identity_token expansion
+        eq_(sa.inspect(inst).key, (User, (1, ), None))
+
+    def test_11_pickle(self):
+        users = self.tables.users
+        mapper(User, users)
+        sess = Session()
+        u1 = User(id=1, name='ed')
+        sess.add(u1)
+        sess.commit()
+
+        sess.close()
+
+        manager = instrumentation._SerializeManager.__new__(
+            instrumentation._SerializeManager)
+        manager.class_ = User
+
+        state_11 = {
+
+            'class_': User,
+            'modified': False,
+            'committed_state': {},
+            'instance': u1,
+            'manager': manager,
+            'key': (User, (1,)),
+            'expired_attributes': set(),
+            'expired': True}
+
+        state = sa_state.InstanceState.__new__(sa_state.InstanceState)
+        state.__setstate__(state_11)
+
+        eq_(state.identity_token, None)
+        eq_(state.identity_key, (User, (1,), None))
 
     @testing.requires.non_broken_pickle
     def test_options_with_descriptors(self):
@@ -431,6 +469,33 @@ class PickleTest(fixtures.MappedTest):
             eq_(u1.addresses, repickled.addresses)
             eq_(repickled.addresses[(1, 'email1')],
                 Address(id=1, email_address="email1"))
+
+
+class OptionsTest(_Polymorphic):
+    @testing.requires.non_broken_pickle
+    def test_options_of_type(self):
+
+        with_poly = with_polymorphic(Person, [Engineer, Manager], flat=True)
+        for opt, serialized in [
+            (
+                sa.orm.joinedload(Company.employees.of_type(Engineer)),
+                [(Company, "employees", Engineer)]),
+            (
+                sa.orm.joinedload(Company.employees.of_type(with_poly)),
+                [(Company, "employees", None)]),
+        ]:
+            opt2 = pickle.loads(pickle.dumps(opt))
+            eq_(opt.__getstate__()['path'], serialized)
+            eq_(opt2.__getstate__()['path'], serialized)
+
+    def test_load(self):
+        s = Session()
+
+        with_poly = with_polymorphic(Person, [Engineer, Manager], flat=True)
+        emp = s.query(Company).options(
+            subqueryload(Company.employees.of_type(with_poly))).first()
+
+        e2 = pickle.loads(pickle.dumps(emp))
 
 
 class PolymorphicDeferredTest(fixtures.MappedTest):

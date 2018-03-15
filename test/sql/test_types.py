@@ -140,6 +140,7 @@ class AdaptTest(fixtures.TestBase):
                             "sqlalchemy" in subcl.__module__:
                         yield True, subcl, [typ]
 
+        from sqlalchemy.sql import sqltypes
         for is_down_adaption, typ, target_adaptions in adaptions():
             if typ in (types.TypeDecorator, types.TypeEngine, types.Variant):
                 continue
@@ -148,9 +149,14 @@ class AdaptTest(fixtures.TestBase):
             else:
                 t1 = typ()
             for cls in target_adaptions:
-                if not issubclass(typ, types.Enum) and \
-                        issubclass(cls, types.Enum):
+                if (
+                    (is_down_adaption and
+                        issubclass(typ, sqltypes.Emulated)) or
+                    (not is_down_adaption and
+                        issubclass(cls, sqltypes.Emulated))
+                ):
                     continue
+
                 if cls.__module__.startswith("test"):
                     continue
 
@@ -162,7 +168,11 @@ class AdaptTest(fixtures.TestBase):
                     t2, t1 = t1, t2
 
                 for k in t1.__dict__:
-                    if k in ('impl', '_is_oracle_number', '_create_events'):
+                    if k in (
+                            'impl', '_is_oracle_number',
+                            '_create_events', 'create_constraint',
+                            'inherit_schema', 'schema', 'metadata',
+                            'name', ):
                         continue
                     # assert each value was copied, or that
                     # the adapted type has a more specific
@@ -289,21 +299,137 @@ class PickleTypesTest(fixtures.TestBase):
                 loads(dumps(meta))
 
 
-class UserDefinedTest(fixtures.TablesTest, AssertsCompiledSQL):
+class _UserDefinedTypeFixture(object):
+    @classmethod
+    def define_tables(cls, metadata):
+        class MyType(types.UserDefinedType):
 
-    """tests user-defined types."""
+            def get_col_spec(self):
+                return "VARCHAR(100)"
+
+            def bind_processor(self, dialect):
+                def process(value):
+                    return "BIND_IN" + value
+                return process
+
+            def result_processor(self, dialect, coltype):
+                def process(value):
+                    return value + "BIND_OUT"
+                return process
+
+            def adapt(self, typeobj):
+                return typeobj()
+
+        class MyDecoratedType(types.TypeDecorator):
+            impl = String
+
+            def bind_processor(self, dialect):
+                impl_processor = super(MyDecoratedType, self).\
+                    bind_processor(dialect) or (lambda value: value)
+
+                def process(value):
+                    return "BIND_IN" + impl_processor(value)
+                return process
+
+            def result_processor(self, dialect, coltype):
+                impl_processor = super(MyDecoratedType, self).\
+                    result_processor(dialect, coltype) or (lambda value: value)
+
+                def process(value):
+                    return impl_processor(value) + "BIND_OUT"
+                return process
+
+            def copy(self):
+                return MyDecoratedType()
+
+        class MyNewUnicodeType(types.TypeDecorator):
+            impl = Unicode
+
+            def process_bind_param(self, value, dialect):
+                return "BIND_IN" + value
+
+            def process_result_value(self, value, dialect):
+                return value + "BIND_OUT"
+
+            def copy(self):
+                return MyNewUnicodeType(self.impl.length)
+
+        class MyNewIntType(types.TypeDecorator):
+            impl = Integer
+
+            def process_bind_param(self, value, dialect):
+                return value * 10
+
+            def process_result_value(self, value, dialect):
+                return value * 10
+
+            def copy(self):
+                return MyNewIntType()
+
+        class MyNewIntSubClass(MyNewIntType):
+
+            def process_result_value(self, value, dialect):
+                return value * 15
+
+            def copy(self):
+                return MyNewIntSubClass()
+
+        class MyUnicodeType(types.TypeDecorator):
+            impl = Unicode
+
+            def bind_processor(self, dialect):
+                impl_processor = super(MyUnicodeType, self).\
+                    bind_processor(dialect) or (lambda value: value)
+
+                def process(value):
+                    return "BIND_IN" + impl_processor(value)
+                return process
+
+            def result_processor(self, dialect, coltype):
+                impl_processor = super(MyUnicodeType, self).\
+                    result_processor(dialect, coltype) or (lambda value: value)
+
+                def process(value):
+                    return impl_processor(value) + "BIND_OUT"
+                return process
+
+            def copy(self):
+                return MyUnicodeType(self.impl.length)
+
+        Table(
+            'users', metadata,
+            Column('user_id', Integer, primary_key=True),
+            # totall custom type
+            Column('goofy', MyType, nullable=False),
+
+            # decorated type with an argument, so its a String
+            Column('goofy2', MyDecoratedType(50), nullable=False),
+
+            Column('goofy4', MyUnicodeType(50), nullable=False),
+            Column('goofy7', MyNewUnicodeType(50), nullable=False),
+            Column('goofy8', MyNewIntType, nullable=False),
+            Column('goofy9', MyNewIntSubClass, nullable=False),
+        )
+
+class UserDefinedRoundTripTest(_UserDefinedTypeFixture, fixtures.TablesTest):
+    __backend__ = True
+
+    def _data_fixture(self):
+        users = self.tables.users
+        with testing.db.connect() as conn:
+            conn.execute(users.insert(), dict(
+                user_id=2, goofy='jack', goofy2='jack', goofy4=util.u('jack'),
+                goofy7=util.u('jack'), goofy8=12, goofy9=12))
+            conn.execute(users.insert(), dict(
+                user_id=3, goofy='lala', goofy2='lala', goofy4=util.u('lala'),
+                goofy7=util.u('lala'), goofy8=15, goofy9=15))
+            conn.execute(users.insert(), dict(
+                user_id=4, goofy='fred', goofy2='fred', goofy4=util.u('fred'),
+                goofy7=util.u('fred'), goofy8=9, goofy9=9))
 
     def test_processing(self):
         users = self.tables.users
-        users.insert().execute(
-            user_id=2, goofy='jack', goofy2='jack', goofy4=util.u('jack'),
-            goofy7=util.u('jack'), goofy8=12, goofy9=12)
-        users.insert().execute(
-            user_id=3, goofy='lala', goofy2='lala', goofy4=util.u('lala'),
-            goofy7=util.u('lala'), goofy8=15, goofy9=15)
-        users.insert().execute(
-            user_id=4, goofy='fred', goofy2='fred', goofy4=util.u('fred'),
-            goofy7=util.u('fred'), goofy8=9, goofy9=9)
+        self._data_fixture()
 
         result = users.select().order_by(users.c.user_id).execute().fetchall()
         for assertstr, assertint, assertint2, row in zip(
@@ -320,6 +446,36 @@ class UserDefinedTest(fixtures.TablesTest, AssertsCompiledSQL):
             eq_(row[6], assertint2)
             for col in row[3], row[4]:
                 assert isinstance(col, util.text_type)
+
+    def test_plain_in(self):
+        users = self.tables.users
+        self._data_fixture()
+
+        stmt = select([users.c.user_id, users.c.goofy8]).where(
+                users.c.goofy8.in_([15, 9])
+            ).order_by(users.c.user_id)
+        result = testing.db.execute(stmt, {"goofy": [15, 9]})
+        eq_(result.fetchall(), [(3, 1500), (4, 900)])
+
+    def test_expanding_in(self):
+        users = self.tables.users
+        self._data_fixture()
+
+        stmt = select([users.c.user_id, users.c.goofy8]).where(
+                users.c.goofy8.in_(bindparam("goofy", expanding=True))
+            ).order_by(users.c.user_id)
+        result = testing.db.execute(stmt, {"goofy": [15, 9]})
+        eq_(result.fetchall(), [(3, 1500), (4, 900)])
+
+
+class UserDefinedTest(
+        _UserDefinedTypeFixture, fixtures.TablesTest, AssertsCompiledSQL):
+
+    run_create_tables = None
+    run_inserts = None
+    run_deletes = None
+
+    """tests user-defined types."""
 
     def test_typedecorator_literal_render(self):
         class MyType(types.TypeDecorator):
@@ -344,13 +500,18 @@ class UserDefinedTest(fixtures.TablesTest, AssertsCompiledSQL):
             def get_col_spec(self):
                 return "BAR"
 
+        t = Table('t', MetaData(), Column('bar', MyType, nullable=False))
+
         self.assert_compile(
-            ddl.CreateColumn(Column('bar', MyType)),
-            "bar FOOB bar"
+            ddl.CreateColumn(t.c.bar),
+            "bar FOOB bar NOT NULL"
         )
+
+        t = Table('t', MetaData(),
+                  Column('bar', MyOtherType, nullable=False))
         self.assert_compile(
-            ddl.CreateColumn(Column('bar', MyOtherType)),
-            "bar BAR"
+            ddl.CreateColumn(t.c.bar),
+            "bar BAR NOT NULL"
         )
 
     def test_typedecorator_literal_render_fallback_bound(self):
@@ -484,117 +645,6 @@ class UserDefinedTest(fixtures.TablesTest, AssertsCompiledSQL):
         a = t.dialect_impl(testing.db.dialect)
         eq_(a.foo, 'foo')
         eq_(a.dialect_specific_args['bar'], 'bar')
-
-    @classmethod
-    def define_tables(cls, metadata):
-        class MyType(types.UserDefinedType):
-
-            def get_col_spec(self):
-                return "VARCHAR(100)"
-
-            def bind_processor(self, dialect):
-                def process(value):
-                    return "BIND_IN" + value
-                return process
-
-            def result_processor(self, dialect, coltype):
-                def process(value):
-                    return value + "BIND_OUT"
-                return process
-
-            def adapt(self, typeobj):
-                return typeobj()
-
-        class MyDecoratedType(types.TypeDecorator):
-            impl = String
-
-            def bind_processor(self, dialect):
-                impl_processor = super(MyDecoratedType, self).\
-                    bind_processor(dialect) or (lambda value: value)
-
-                def process(value):
-                    return "BIND_IN" + impl_processor(value)
-                return process
-
-            def result_processor(self, dialect, coltype):
-                impl_processor = super(MyDecoratedType, self).\
-                    result_processor(dialect, coltype) or (lambda value: value)
-
-                def process(value):
-                    return impl_processor(value) + "BIND_OUT"
-                return process
-
-            def copy(self):
-                return MyDecoratedType()
-
-        class MyNewUnicodeType(types.TypeDecorator):
-            impl = Unicode
-
-            def process_bind_param(self, value, dialect):
-                return "BIND_IN" + value
-
-            def process_result_value(self, value, dialect):
-                return value + "BIND_OUT"
-
-            def copy(self):
-                return MyNewUnicodeType(self.impl.length)
-
-        class MyNewIntType(types.TypeDecorator):
-            impl = Integer
-
-            def process_bind_param(self, value, dialect):
-                return value * 10
-
-            def process_result_value(self, value, dialect):
-                return value * 10
-
-            def copy(self):
-                return MyNewIntType()
-
-        class MyNewIntSubClass(MyNewIntType):
-
-            def process_result_value(self, value, dialect):
-                return value * 15
-
-            def copy(self):
-                return MyNewIntSubClass()
-
-        class MyUnicodeType(types.TypeDecorator):
-            impl = Unicode
-
-            def bind_processor(self, dialect):
-                impl_processor = super(MyUnicodeType, self).\
-                    bind_processor(dialect) or (lambda value: value)
-
-                def process(value):
-                    return "BIND_IN" + impl_processor(value)
-                return process
-
-            def result_processor(self, dialect, coltype):
-                impl_processor = super(MyUnicodeType, self).\
-                    result_processor(dialect, coltype) or (lambda value: value)
-
-                def process(value):
-                    return impl_processor(value) + "BIND_OUT"
-                return process
-
-            def copy(self):
-                return MyUnicodeType(self.impl.length)
-
-        Table(
-            'users', metadata,
-            Column('user_id', Integer, primary_key=True),
-            # totall custom type
-            Column('goofy', MyType, nullable=False),
-
-            # decorated type with an argument, so its a String
-            Column('goofy2', MyDecoratedType(50), nullable=False),
-
-            Column('goofy4', MyUnicodeType(50), nullable=False),
-            Column('goofy7', MyNewUnicodeType(50), nullable=False),
-            Column('goofy8', MyNewIntType, nullable=False),
-            Column('goofy9', MyNewIntSubClass, nullable=False),
-        )
 
 
 class TypeCoerceCastTest(fixtures.TablesTest):
@@ -1146,15 +1196,33 @@ class EnumTest(AssertsCompiledSQL, fixtures.TablesTest):
         # Implements PEP 435 in the minimal fashion needed by SQLAlchemy
         __members__ = OrderedDict()
 
-        def __init__(self, name, value):
+        def __init__(self, name, value, alias=None):
             self.name = name
             self.value = value
             self.__members__[name] = self
             setattr(self.__class__, name, self)
+            if alias:
+                self.__members__[alias] = self
+                setattr(self.__class__, alias, self)
+
+    class SomeOtherEnum(SomeEnum):
+        __members__ = OrderedDict()
 
     one = SomeEnum('one', 1)
     two = SomeEnum('two', 2)
-    three = SomeEnum('three', 3)
+    three = SomeEnum('three', 3, 'four')
+    a_member = SomeEnum('AMember', 'a')
+    b_member = SomeEnum('BMember', 'b')
+
+    other_one = SomeOtherEnum('one', 1)
+    other_two = SomeOtherEnum('two', 2)
+    other_three = SomeOtherEnum('three', 3)
+    other_a_member = SomeOtherEnum('AMember', 'a')
+    other_b_member = SomeOtherEnum('BMember', 'b')
+
+    @staticmethod
+    def get_enum_string_values(some_enum):
+        return [str(v.value) for v in some_enum.__members__.values()]
 
     @classmethod
     def define_tables(cls, metadata):
@@ -1165,7 +1233,7 @@ class EnumTest(AssertsCompiledSQL, fixtures.TablesTest):
 
         Table(
             'non_native_enum_table', metadata,
-            Column("id", Integer, primary_key=True),
+            Column("id", Integer, primary_key=True, autoincrement=False),
             Column('someenum', Enum('one', 'two', 'three', native_enum=False)),
             Column('someotherenum',
                    Enum('one', 'two', 'three',
@@ -1177,6 +1245,14 @@ class EnumTest(AssertsCompiledSQL, fixtures.TablesTest):
             'stdlib_enum_table', metadata,
             Column("id", Integer, primary_key=True),
             Column('someenum', Enum(cls.SomeEnum))
+        )
+
+        Table(
+            'stdlib_enum_table2', metadata,
+            Column("id", Integer, primary_key=True),
+            Column('someotherenum',
+                   Enum(cls.SomeOtherEnum,
+                        values_callable=EnumTest.get_enum_string_values))
         )
 
     def test_python_type(self):
@@ -1369,7 +1445,12 @@ class EnumTest(AssertsCompiledSQL, fixtures.TablesTest):
     @testing.requires.enforces_check_constraints
     def test_check_constraint(self):
         assert_raises(
-            (exc.IntegrityError, exc.ProgrammingError),
+            (
+                exc.IntegrityError, exc.ProgrammingError,
+                exc.OperationalError,
+                # PyMySQL raising InternalError until
+                # https://github.com/PyMySQL/PyMySQL/issues/607 is resolved
+                exc.InternalError),
             testing.db.execute,
             "insert into non_native_enum_table "
             "(id, someenum) values(1, 'four')")
@@ -1381,10 +1462,13 @@ class EnumTest(AssertsCompiledSQL, fixtures.TablesTest):
         t = Table(
             'my_table', self.metadata,
             Column(
-                'data', Enum("one", "two", "three", name="e1").with_variant(
-                    Enum("four", "five", "six", name="e2"), "some_other_db"
+                'data', Enum("one", "two", "three",
+                             native_enum=False, name="e1").with_variant(
+                    Enum("four", "five", "six", native_enum=False,
+                         name="e2"), "some_other_db"
                 )
-            )
+            ),
+            mysql_engine='InnoDB'
         )
 
         eq_(
@@ -1395,7 +1479,7 @@ class EnumTest(AssertsCompiledSQL, fixtures.TablesTest):
         with testing.db.connect() as conn:
             self.metadata.create_all(conn)
             assert_raises(
-                (exc.IntegrityError, exc.ProgrammingError, exc.DataError),
+                (exc.DBAPIError, ),
                 conn.execute,
                 "insert into my_table "
                 "(data) values('four')")
@@ -1408,8 +1492,9 @@ class EnumTest(AssertsCompiledSQL, fixtures.TablesTest):
         t = Table(
             'my_table', self.metadata,
             Column(
-                'data', Enum("one", "two", "three", name="e1").with_variant(
-                    Enum("four", "five", "six", name="e2"),
+                'data', Enum("one", "two", "three", native_enum=False,
+                             name="e1").with_variant(
+                    Enum("four", "five", "six", native_enum=False, name="e2"),
                     testing.db.dialect.name
                 )
             )
@@ -1424,7 +1509,7 @@ class EnumTest(AssertsCompiledSQL, fixtures.TablesTest):
         with testing.db.connect() as conn:
             self.metadata.create_all(conn)
             assert_raises(
-                (exc.IntegrityError, exc.ProgrammingError, exc.DataError),
+                (exc.DBAPIError, ),
                 conn.execute,
                 "insert into my_table "
                 "(data) values('two')")
@@ -1474,6 +1559,10 @@ class EnumTest(AssertsCompiledSQL, fixtures.TablesTest):
             {'id': 1, 'someenum': self.SomeEnum.two},
             {'id': 2, 'someenum': self.SomeEnum.two},
             {'id': 3, 'someenum': self.SomeEnum.one},
+            {'id': 4, 'someenum': self.SomeEnum.three},
+            {'id': 5, 'someenum': self.SomeEnum.four},
+            {'id': 6, 'someenum': 'three'},
+            {'id': 7, 'someenum': 'four'},
         ])
 
         eq_(
@@ -1483,21 +1572,92 @@ class EnumTest(AssertsCompiledSQL, fixtures.TablesTest):
                 (1, self.SomeEnum.two),
                 (2, self.SomeEnum.two),
                 (3, self.SomeEnum.one),
+                (4, self.SomeEnum.three),
+                (5, self.SomeEnum.three),
+                (6, self.SomeEnum.three),
+                (7, self.SomeEnum.three),
+            ]
+        )
+
+    def test_pep435_enum_values_callable_round_trip(self):
+        stdlib_enum_table_custom_values =\
+            self.tables['stdlib_enum_table2']
+
+        stdlib_enum_table_custom_values.insert().execute([
+            {'id': 1, 'someotherenum': self.SomeOtherEnum.AMember},
+            {'id': 2, 'someotherenum': self.SomeOtherEnum.BMember},
+            {'id': 3, 'someotherenum': self.SomeOtherEnum.AMember}
+        ])
+
+        eq_(
+            stdlib_enum_table_custom_values.select().
+            order_by(stdlib_enum_table_custom_values.c.id).execute().
+            fetchall(),
+            [
+                (1, self.SomeOtherEnum.AMember),
+                (2, self.SomeOtherEnum.BMember),
+                (3, self.SomeOtherEnum.AMember)
+            ]
+        )
+
+    def test_pep435_enum_expanding_in(self):
+        stdlib_enum_table_custom_values =\
+            self.tables['stdlib_enum_table2']
+
+        stdlib_enum_table_custom_values.insert().execute([
+            {'id': 1, 'someotherenum': self.SomeOtherEnum.one},
+            {'id': 2, 'someotherenum': self.SomeOtherEnum.two},
+            {'id': 3, 'someotherenum': self.SomeOtherEnum.three}
+        ])
+
+        stmt = stdlib_enum_table_custom_values.select().where(
+            stdlib_enum_table_custom_values.c.someotherenum.in_(
+                bindparam("member", expanding=True)
+            )
+        ).order_by(stdlib_enum_table_custom_values.c.id)
+        eq_(
+            testing.db.execute(
+                stmt,
+                {"member": [
+                    self.SomeOtherEnum.one,
+                    self.SomeOtherEnum.three]}
+            ).fetchall(),
+            [
+                (1, self.SomeOtherEnum.one),
+                (3, self.SomeOtherEnum.three)
             ]
         )
 
     def test_adapt(self):
         from sqlalchemy.dialects.postgresql import ENUM
         e1 = Enum('one', 'two', 'three', native_enum=False)
-        eq_(e1.adapt(ENUM).native_enum, False)
+
+        false_adapt = e1.adapt(ENUM)
+        eq_(false_adapt.native_enum, False)
+        assert not isinstance(false_adapt, ENUM)
+
         e1 = Enum('one', 'two', 'three', native_enum=True)
-        eq_(e1.adapt(ENUM).native_enum, True)
-        e1 = Enum('one', 'two', 'three', name='foo', schema='bar')
+        true_adapt = e1.adapt(ENUM)
+        eq_(true_adapt.native_enum, True)
+        assert isinstance(true_adapt, ENUM)
+
+        e1 = Enum('one', 'two', 'three', name='foo',
+                  schema='bar', metadata=MetaData())
         eq_(e1.adapt(ENUM).name, 'foo')
         eq_(e1.adapt(ENUM).schema, 'bar')
+        is_(e1.adapt(ENUM).metadata, e1.metadata)
+        eq_(e1.adapt(Enum).name, 'foo')
+        eq_(e1.adapt(Enum).schema, 'bar')
+        is_(e1.adapt(Enum).metadata, e1.metadata)
         e1 = Enum(self.SomeEnum)
         eq_(e1.adapt(ENUM).name, 'someenum')
-        eq_(e1.adapt(ENUM).enums, ['one', 'two', 'three'])
+        eq_(e1.adapt(ENUM).enums,
+            ['one', 'two', 'three', 'four', 'AMember', 'BMember'])
+
+        e1_vc = Enum(self.SomeOtherEnum,
+                     values_callable=EnumTest.get_enum_string_values)
+        eq_(e1_vc.adapt(ENUM).name, 'someotherenum')
+        eq_(e1_vc.adapt(ENUM).enums, ['1', '2', '3', 'a', 'b'])
 
     @testing.provide_metadata
     def test_create_metadata_bound_no_crash(self):
@@ -1570,6 +1730,7 @@ binary_table = MyPickleType = metadata = None
 
 
 class BinaryTest(fixtures.TestBase, AssertsExecutionResults):
+    __backend__ = True
 
     @classmethod
     def setup_class(cls):
@@ -1610,6 +1771,7 @@ class BinaryTest(fixtures.TestBase, AssertsExecutionResults):
     def teardown_class(cls):
         metadata.drop_all()
 
+    @testing.requires.non_broken_binary
     def test_round_trip(self):
         testobj1 = pickleable.Foo('im foo 1')
         testobj2 = pickleable.Foo('im foo 2')
@@ -2193,8 +2355,6 @@ class ExpressionTest(
         assert expr.right.type._type_affinity is MyFoobarType
 
     def test_date_coercion(self):
-        from sqlalchemy.sql import column
-
         expr = column('bar', types.NULLTYPE) - column('foo', types.TIMESTAMP)
         eq_(expr.type._type_affinity, types.NullType)
 
@@ -2203,6 +2363,14 @@ class ExpressionTest(
 
         expr = func.current_date() - column('foo', types.TIMESTAMP)
         eq_(expr.type._type_affinity, types.Interval)
+
+    def test_interval_coercion(self):
+        expr = column('bar', types.Interval) + column('foo', types.Date)
+        eq_(expr.type._type_affinity, types.DateTime)
+
+        expr = column('bar', types.Interval) * column('foo', types.Numeric)
+        eq_(expr.type._type_affinity, types.Interval)
+
 
     def test_numerics_coercion(self):
 
@@ -2395,10 +2563,10 @@ class TestKWArgPassThru(AssertsCompiledSQL, fixtures.TestBase):
                 return "FOOB %s" % kw['type_expression'].name
 
         m = MetaData()
-        t = Table('t', m, Column('bar', MyType))
+        t = Table('t', m, Column('bar', MyType, nullable=False))
         self.assert_compile(
             ddl.CreateColumn(t.c.bar),
-            "bar FOOB bar"
+            "bar FOOB bar NOT NULL"
         )
 
 
@@ -2492,12 +2660,6 @@ class IntervalTest(fixtures.TestBase, AssertsExecutionResults):
         assert adapted.native is False
         eq_(str(adapted), "DATETIME")
 
-    @testing.fails_on(
-        "postgresql+zxjdbc",
-        "Not yet known how to pass values of the INTERVAL type")
-    @testing.fails_on(
-        "oracle+zxjdbc",
-        "Not yet known how to pass values of the INTERVAL type")
     def test_roundtrip(self):
         small_delta = datetime.timedelta(days=15, seconds=5874)
         delta = datetime.timedelta(414)
@@ -2509,9 +2671,6 @@ class IntervalTest(fixtures.TestBase, AssertsExecutionResults):
         eq_(row['native_interval_args'], delta)
         eq_(row['non_native_interval'], delta)
 
-    @testing.fails_on(
-        "oracle+zxjdbc",
-        "Not yet known how to pass values of the INTERVAL type")
     def test_null(self):
         interval_table.insert().execute(
             id=1, native_inverval=None, non_native_interval=None)
@@ -2586,15 +2745,14 @@ class BooleanTest(
     def test_nonnative_processor_coerces_to_onezero(self):
         boolean_table = self.tables.boolean_table
         with testing.db.connect() as conn:
-            conn.execute(
+            assert_raises_message(
+                exc.StatementError,
+                "Value 5 is not None, True, or False",
+                conn.execute,
                 boolean_table.insert(),
                 {"id": 1, "unconstrained_value": 5}
             )
 
-            eq_(
-                conn.scalar("select unconstrained_value from boolean_table"),
-                1
-            )
 
     @testing.skip_if(lambda: testing.db.dialect.supports_native_boolean)
     def test_nonnative_processor_coerces_integer_to_boolean(self):
@@ -2614,6 +2772,169 @@ class BooleanTest(
                 conn.scalar(select([boolean_table.c.unconstrained_value])),
                 True
             )
+
+    def test_bind_processor_coercion_native_true(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=True))
+        is_(proc(True), True)
+
+    def test_bind_processor_coercion_native_false(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=True))
+        is_(proc(False), False)
+
+    def test_bind_processor_coercion_native_none(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=True))
+        is_(proc(None), None)
+
+    def test_bind_processor_coercion_native_0(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=True))
+        is_(proc(0), False)
+
+    def test_bind_processor_coercion_native_1(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=True))
+        is_(proc(1), True)
+
+    def test_bind_processor_coercion_native_str(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=True))
+        assert_raises_message(
+            TypeError,
+            "Not a boolean value: 'foo'",
+            proc, "foo"
+        )
+
+    def test_bind_processor_coercion_native_int_out_of_range(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=True))
+        assert_raises_message(
+            ValueError,
+            "Value 15 is not None, True, or False",
+            proc, 15
+        )
+
+    def test_bind_processor_coercion_nonnative_true(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=False))
+        eq_(proc(True), 1)
+
+    def test_bind_processor_coercion_nonnative_false(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=False))
+        eq_(proc(False), 0)
+
+    def test_bind_processor_coercion_nonnative_none(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=False))
+        is_(proc(None), None)
+
+    def test_bind_processor_coercion_nonnative_0(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=False))
+        eq_(proc(0), 0)
+
+    def test_bind_processor_coercion_nonnative_1(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=False))
+        eq_(proc(1), 1)
+
+    def test_bind_processor_coercion_nonnative_str(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=False))
+        assert_raises_message(
+            TypeError,
+            "Not a boolean value: 'foo'",
+            proc, "foo"
+        )
+
+    def test_bind_processor_coercion_nonnative_int_out_of_range(self):
+        proc = Boolean().bind_processor(
+            mock.Mock(supports_native_boolean=False))
+        assert_raises_message(
+            ValueError,
+            "Value 15 is not None, True, or False",
+            proc, 15
+        )
+
+    def test_literal_processor_coercion_native_true(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=True))
+        eq_(proc(True), "true")
+
+    def test_literal_processor_coercion_native_false(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=True))
+        eq_(proc(False), "false")
+
+    def test_literal_processor_coercion_native_1(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=True))
+        eq_(proc(1), "true")
+
+    def test_literal_processor_coercion_native_0(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=True))
+        eq_(proc(0), "false")
+
+    def test_literal_processor_coercion_native_str(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=True))
+        assert_raises_message(
+            TypeError,
+            "Not a boolean value: 'foo'",
+            proc, "foo"
+        )
+
+    def test_literal_processor_coercion_native_int_out_of_range(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=True))
+        assert_raises_message(
+            ValueError,
+            "Value 15 is not None, True, or False",
+            proc, 15
+        )
+
+    def test_literal_processor_coercion_nonnative_true(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=False))
+        eq_(proc(True), "1")
+
+    def test_literal_processor_coercion_nonnative_false(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=False))
+        eq_(proc(False), "0")
+
+    def test_literal_processor_coercion_nonnative_1(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=False))
+        eq_(proc(1), "1")
+
+    def test_literal_processor_coercion_nonnative_0(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=False))
+        eq_(proc(0), "0")
+
+    def test_literal_processor_coercion_nonnative_str(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=False))
+        assert_raises_message(
+            TypeError,
+            "Not a boolean value: 'foo'",
+            proc, "foo"
+        )
+
+    def test_literal_processor_coercion_native_int_out_of_range(self):
+        proc = Boolean().literal_processor(
+            default.DefaultDialect(supports_native_boolean=True))
+        assert_raises_message(
+            ValueError,
+            "Value 15 is not None, True, or False",
+            proc, 15
+        )
+
 
 
 class PickleTest(fixtures.TestBase):

@@ -17,7 +17,36 @@
 
 
 .. changelog::
+    :version: 1.0.19
+    :released: August 3, 2017
+
+    .. change::
+        :tags: bug, oracle, performance, py2k
+        :tickets: 4035
+        :versions: 1.0.19, 1.1.13, 1.2.0b3
+
+        Fixed performance regression caused by the fix for :ticket:`3937` where
+        cx_Oracle as of version 5.3 dropped the ``.UNICODE`` symbol from its
+        namespace,  which was interpreted as cx_Oracle's "WITH_UNICODE" mode being
+        turned on unconditionally, which invokes functions on the SQLAlchemy
+        side which convert all strings to unicode unconditionally and causing
+        a performance impact.  In fact, per cx_Oracle's author the
+        "WITH_UNICODE" mode has been removed entirely as of 5.1, so the expensive unicode
+        conversion functions are no longer necessary and are disabled if
+        cx_Oracle 5.1 or greater is detected under Python 2.  The warning against
+        "WITH_UNICODE" mode that was removed under :ticket:`3937` is also restored.
+
+.. changelog::
     :version: 1.0.18
+    :released: July 24, 2017
+
+    .. change::
+        :tags: bug, tests, py3k
+        :tickets: 4034
+        :versions: 1.0.18, 1.1.12, 1.2.0b2
+
+        Fixed issue in testing fixtures which was incompatible with a change
+        made as of Python 3.6.2 involving context managers.
 
     .. change:: 3937
         :tags: bug, oracle

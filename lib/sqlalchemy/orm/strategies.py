@@ -1,5 +1,5 @@
 # orm/strategies.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -643,18 +643,7 @@ class LazyLoader(AbstractRelationshipLoader, util.MemoizedSlots):
 
     @util.dependencies("sqlalchemy.ext.baked")
     def _memoized_attr__bakery(self, baked):
-        return baked.bakery(size=50, _size_alert=self._alert_lru_cache_limit)
-
-    def _alert_lru_cache_limit(self, lru_cache):
-        util.warn(
-            "Compiled statement cache for lazy loader on attribute %s is "
-            "reaching its size threshold of %d.  Consider setting "
-            "bake_queries=False for this relationship.  Please refer to "
-            "http://docs.sqlalchemy.org/en/latest/faq/performance.html"
-            "#faq_compiled_cache_threshold"
-            " for best practices." %
-            (self.parent_property,
-             lru_cache.size_threshold))
+        return baked.bakery(size=50)
 
     @util.dependencies(
         "sqlalchemy.orm.strategy_options")
@@ -985,6 +974,7 @@ class SubqueryLoader(AbstractRelationshipLoader):
             q._set_select_from(
                 list(set([
                     ent['entity'] for ent in orig_query.column_descriptions
+                    if ent['entity'] is not None
                 ])),
                 False
             )
@@ -1850,18 +1840,7 @@ class SelectInLoader(AbstractRelationshipLoader, util.MemoizedSlots):
 
     @util.dependencies("sqlalchemy.ext.baked")
     def _memoized_attr__bakery(self, baked):
-        return baked.bakery(size=50, _size_alert=self._alert_lru_cache_limit)
-
-    def _alert_lru_cache_limit(self, lru_cache):
-        util.warn(
-            "Compiled statement cache for selectin loader on attribute %s is "
-            "reaching its size threshold of %d.  Consider setting "
-            "bake_queries=False for this relationship.  Please refer to "
-            "http://docs.sqlalchemy.org/en/latest/faq/performance.html"
-            "#faq_compiled_cache_threshold"
-            " for best practices." %
-            (self.parent_property,
-             lru_cache.size_threshold))
+        return baked.bakery(size=50)
 
     def create_row_processor(
             self, context, path, loadopt, mapper,
@@ -1904,7 +1883,7 @@ class SelectInLoader(AbstractRelationshipLoader, util.MemoizedSlots):
                 return
 
         loading.PostLoad.callable_for_path(
-            context, selectin_path, self.key,
+            context, selectin_path, self.parent, self.key,
             self._load_for_path, effective_entity)
 
     @util.dependencies("sqlalchemy.ext.baked")

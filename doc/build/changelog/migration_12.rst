@@ -245,6 +245,31 @@ if not specified, the attribute defaults to ``None``::
 
 :ticket:`3058`
 
+.. _change_orm_959:
+
+ORM Support of multiple-table deletes
+-------------------------------------
+
+The ORM :meth:`.Query.delete` method supports multiple-table criteria
+for DELETE, as introduced in :ref:`change_959`.   The feature works
+in the same manner as multiple-table criteria for UPDATE, first
+introduced in 0.8 and described at :ref:`change_orm_2365`.
+
+Below, we emit a DELETE against ``SomeEntity``, adding
+a FROM clause (or equivalent, depending on backend)
+against ``SomeOtherEntity``::
+
+    query(SomeEntity).\
+        filter(SomeEntity.id==SomeOtherEntity.id).\
+        filter(SomeOtherEntity.foo=='bar').\
+        delete()
+
+.. seealso::
+
+    :ref:`change_959`
+
+:ticket:`959`
+
 .. _change_3229:
 
 Support for bulk updates of hybrids, composites
@@ -542,8 +567,95 @@ to query across the two proxies ``A.c_values``, ``AtoB.c_value``:
 
 :ticket:`3769`
 
+.. _change_4137:
+
+Identity key enhancements to support sharding
+---------------------------------------------
+
+The identity key structure used by the ORM now contains an additional
+member, so that two identical primary keys that originate from different
+contexts can co-exist within the same identity map.
+
+The example at :ref:`examples_sharding` has been updated to illustrate this
+behavior.  The example shows a sharded class ``WeatherLocation`` that
+refers to a dependent ``WeatherReport`` object, where the ``WeatherReport``
+class is mapped to a table that stores a simple integer primary key.  Two
+``WeatherReport`` objects from different databases may have the same
+primary key value.   The example now illustrates that a new ``identity_token``
+field tracks this difference so that the two objects can co-exist in the
+same identity map::
+
+    tokyo = WeatherLocation('Asia', 'Tokyo')
+    newyork = WeatherLocation('North America', 'New York')
+
+    tokyo.reports.append(Report(80.0))
+    newyork.reports.append(Report(75))
+
+    sess = create_session()
+
+    sess.add_all([tokyo, newyork, quito])
+
+    sess.commit()
+
+    # the Report class uses a simple integer primary key.  So across two
+    # databases, a primary key will be repeated.  The "identity_token" tracks
+    # in memory that these two identical primary keys are local to different
+    # databases.
+
+    newyork_report = newyork.reports[0]
+    tokyo_report = tokyo.reports[0]
+
+    assert inspect(newyork_report).identity_key == (Report, (1, ), "north_america")
+    assert inspect(tokyo_report).identity_key == (Report, (1, ), "asia")
+
+    # the token representing the originating shard is also available directly
+
+    assert inspect(newyork_report).identity_token == "north_america"
+    assert inspect(tokyo_report).identity_token == "asia"
+
+
+:ticket:`4137`
+
 New Features and Improvements - Core
 ====================================
+
+.. _change_4102:
+
+Boolean datatype now enforces strict True/False/None values
+-----------------------------------------------------------
+
+In version 1.1, the change described in :ref:`change_3730` produced an
+unintended side effect of altering the way :class:`.Boolean` behaves when
+presented with a non-integer value, such as a string.   In particular, the
+string value ``"0"``, which would previously result in the value ``False``
+being generated, would now produce ``True``.  Making matters worse, the change
+in behavior was only for some backends and not others, meaning code that sends
+string ``"0"`` values to :class:`.Boolean` would break inconsistently across
+backends.
+
+The ultimate solution to this problem is that **string values are not supported
+with Boolean**, so in 1.2 a hard ``TypeError`` is raised if a non-integer /
+True/False/None value is passed.  Additionally, only the integer values
+0 and 1 are accepted.
+
+To accomodate for applications that wish to have more liberal interpretation
+of boolean values, the :class:`.TypeDecorator` should be used.   Below
+illustrates a recipe that will allow for the "liberal" behavior of the pre-1.1
+:class:`.Boolean` datatype::
+
+    from sqlalchemy import Boolean
+    from sqlalchemy import TypeDecorator
+
+    class LiberalBoolean(TypeDecorator):
+        impl = Boolean
+
+        def process_bind_param(self, value, dialect):
+            if value is not None:
+                value = bool(int(value))
+            return value
+
+
+:ticket:`4102`
 
 .. _change_3919:
 
@@ -738,6 +850,37 @@ Current backend support includes MySQL, Postgresql, and Oracle.
 
 :ticket:`1546`
 
+.. _change_959:
+
+Multiple-table criteria support for DELETE
+------------------------------------------
+
+The :class:`.Delete` construct now supports multiple-table criteria,
+implemented for those backends which support it, currently these are
+Postgresql, MySQL and Microsoft SQL Server (support is also added to the
+currently non-working Sybase dialect).   The feature works in the same
+was as that of multiple-table criteria for UPDATE, first introduced in
+the 0.7 and 0.8 series.
+
+Given a statement as::
+
+    stmt = users.delete().\
+            where(users.c.id == addresses.c.id).\
+            where(addresses.c.email_address.startswith('ed%'))
+    conn.execute(stmt)
+
+The resulting SQL from the above statement on a Postgresql backend
+would render as::
+
+    DELETE FROM users USING addresses
+    WHERE users.id = addresses.id
+    AND (addresses.email_address LIKE %(email_address_1)s || '%%')
+
+.. seealso::
+
+    :ref:`multi_table_deletes`
+
+:ticket:`959`
 
 .. _change_2694:
 
@@ -745,21 +888,36 @@ New "autoescape" option for startswith(), endswith()
 ----------------------------------------------------
 
 The "autoescape" parameter is added to :meth:`.ColumnOperators.startswith`,
-:meth:`.ColumnOperators.endswith`, :meth:`.ColumnOperators.contains`.  This parameter
-does what "escape" does, except that it also automatically performs a search-
-and-replace of any wildcard characters to be escaped by that character, as
-these operators already add the wildcard expression on the outside of the
-given value.
+:meth:`.ColumnOperators.endswith`, :meth:`.ColumnOperators.contains`.
+This parameter when set to ``True`` will automatically escape all occurrences
+of ``%``, ``_`` with an escape character, which defaults to a forwards slash ``/``;
+occurrences of the escape character itself are also escaped.  The forwards slash
+is used to avoid conflicts with settings like Postgresql's
+``standard_confirming_strings``, whose default value changed as of Postgresql
+9.1, and MySQL's ``NO_BACKSLASH_ESCAPES`` settings.  The existing "escape" parameter
+can now be used to change the autoescape character, if desired.
+
+.. note::  This feature has been changed as of 1.2.0 from its initial
+   implementation in 1.2.0b2 such that autoescape is now passed as a boolean
+   value, rather than a specific character to use as the escape character.
 
 An expression such as::
 
-    >>> column('x').startswith('total%score', autoescape='/')
+    >>> column('x').startswith('total%score', autoescape=True)
 
 Renders as::
 
-    x LIKE :x_1 || '%%' ESCAPE '/'
+    x LIKE :x_1 || '%' ESCAPE '/'
 
 Where the value of the parameter "x_1" is ``'total/%score'``.
+
+Similarly, an expression that has backslashes::
+
+    >>> column('x').startswith('total/score', autoescape=True)
+
+Will render the same way, with the value of the parameter "x_1" as
+``'total//score'``.
+
 
 :ticket:`2694`
 
@@ -812,43 +970,72 @@ if the application is working with plain floats.
 
 :ticket:`4020`
 
+.. change_3249:
+
+Support for GROUPING SETS, CUBE, ROLLUP
+---------------------------------------
+
+All three of GROUPING SETS, CUBE, ROLLUP are available via the
+:attr:`.func` namespace.  In the case of CUBE and ROLLUP, these functions
+already work in previous versions, however for GROUPING SETS, a placeholder
+is added to the compiler to allow for the space.  All three functions
+are named in the documentation now::
+
+    >>> from sqlalchemy import select, table, column, func, tuple_
+    >>> t = table('t',
+    ...           column('value'), column('x'),
+    ...           column('y'), column('z'), column('q'))
+    >>> stmt = select([func.sum(t.c.value)]).group_by(
+    ...     func.grouping_sets(
+    ...         tuple_(t.c.x, t.c.y),
+    ...         tuple_(t.c.z, t.c.q),
+    ...     )
+    ... )
+    >>> print(stmt)
+    SELECT sum(t.value) AS sum_1
+    FROM t GROUP BY GROUPING SETS((t.x, t.y), (t.z, t.q))
+
+:ticket:`3429`
+
+.. _change_4075:
+
+Parameter helper for multi-valued INSERT with contextual default generator
+--------------------------------------------------------------------------
+
+A default generation function, e.g. that described at
+:ref:`context_default_functions`, can look at the current parameters relevant
+to the statment via the :attr:`.DefaultExecutionContext.current_parameters`
+attribute.  However, in the case of a :class:`.Insert` construct that specifies
+multiple VALUES clauses via the :meth:`.Insert.values` method, the user-defined
+function is called multiple times, once for each parameter set, however there
+was no way to know which subset of keys in
+:attr:`.DefaultExecutionContext.current_parameters` apply to that column.  A
+new function :meth:`.DefaultExecutionContext.get_current_parameters` is added,
+which includes a keyword argument
+:paramref:`.DefaultExecutionContext.get_current_parameters.isolate_multiinsert_groups`
+defaulting to ``True``, which performs the extra work of delivering a sub-dictionary of
+:attr:`.DefaultExecutionContext.current_parameters` which has the names
+localized to the current VALUES clause being processed::
+
+
+    def mydefault(context):
+        return context.get_current_parameters()['counter'] + 12
+
+    mytable = Table('mytable', meta,
+        Column('counter', Integer),
+        Column('counter_plus_twelve',
+               Integer, default=mydefault, onupdate=mydefault)
+    )
+
+    stmt = mytable.insert().values(
+        [{"counter": 5}, {"counter": 18}, {"counter": 20}])
+
+    conn.execute(stmt)
+
+:ticket:`4075`
+
 Key Behavioral Changes - ORM
 ============================
-
-.. _change_3740:
-
-Percent signs in literal_column() now conditionally escaped
------------------------------------------------------------
-
-The :obj:`.literal_column` construct now escapes percent sign characters
-conditionally, based on whether or not the DBAPI in use makes use of a
-percent-sign-sensitive paramstyle or not (e.g. 'format' or 'pyformat').
-
-Previously, it was not possible to produce a :obj:`.literal_column`
-construct that stated a single percent sign::
-
-    >>> from sqlalchemy import literal_column
-    >>> print(literal_column('some%symbol'))
-    some%%symbol
-
-The percent sign is now unaffected for dialects that are not set to
-use the 'format' or 'pyformat' paramstyles; dialects such most MySQL
-dialects which do state one of these paramstyles will continue to escape
-as is appropriate::
-
-    >>> from sqlalchemy import literal_column
-    >>> print(literal_column('some%symbol'))
-    some%symbol
-    >>> from sqlalchemy.dialects import mysql
-    >>> print(literal_column('some%symbol').compile(dialect=mysql.dialect()))
-    some%%symbol
-
-As part of this change, the doubling that has been present when using
-operators like :meth:`.ColumnOperators.contains`,
-:meth:`.ColumnOperators.startswith` and :meth:`.ColumnOperators.endswith`
-is also refined to only occur when appropriate.
-
-:ticket:`3740`
 
 .. _change_3934:
 
@@ -1207,6 +1394,92 @@ The reason post_update emits an UPDATE even for an UPDATE is now discussed at
 Key Behavioral Changes - Core
 =============================
 
+.. _change_4063:
+
+The typing behavior of custom operators has been made consistent
+----------------------------------------------------------------
+
+User defined operators can be made on the fly using the
+:meth:`.Operators.op` function.   Previously, the typing behavior of
+an expression against such an operator was inconsistent and also not
+controllable.
+
+Whereas in 1.1, an expression such as the following would produce
+a result with no return type (assume ``-%>`` is some special operator
+supported by the database)::
+
+    >>> column('x', types.DateTime).op('-%>')(None).type
+    NullType()
+
+Other types would use the default behavior of using the left-hand type
+as the return type::
+
+    >>> column('x', types.String(50)).op('-%>')(None).type
+    String(length=50)
+
+These behaviors were mostly by accident, so the behavior has been made
+consistent with the second form, that is the default return type is the
+same as the left-hand expression::
+
+    >>> column('x', types.DateTime).op('-%>')(None).type
+    DateTime()
+
+As most user-defined operators tend to be "comparison" operators, often
+one of the many special operators defined by Postgresql, the
+:paramref:`.Operators.op.is_comparison` flag has been repaired to follow
+its documented behavior of allowing the return type to be :class:`.Boolean`
+in all cases, including for :class:`.ARRAY` and :class:`.JSON`::
+
+    >>> column('x', types.String(50)).op('-%>', is_comparison=True)(None).type
+    Boolean()
+    >>> column('x', types.ARRAY(types.Integer)).op('-%>', is_comparison=True)(None).type
+    Boolean()
+    >>> column('x', types.JSON()).op('-%>', is_comparison=True)(None).type
+    Boolean()
+
+To assist with boolean comparison operators, a new shorthand method
+:meth:`.Operators.bool_op` has been added.    This method should be preferred
+for on-the-fly boolean operators::
+
+    >>> print(column('x', types.Integer).bool_op('-%>')(5))
+    x -%> :x_1
+
+
+.. _change_3740:
+
+Percent signs in literal_column() now conditionally escaped
+-----------------------------------------------------------
+
+The :obj:`.literal_column` construct now escapes percent sign characters
+conditionally, based on whether or not the DBAPI in use makes use of a
+percent-sign-sensitive paramstyle or not (e.g. 'format' or 'pyformat').
+
+Previously, it was not possible to produce a :obj:`.literal_column`
+construct that stated a single percent sign::
+
+    >>> from sqlalchemy import literal_column
+    >>> print(literal_column('some%symbol'))
+    some%%symbol
+
+The percent sign is now unaffected for dialects that are not set to
+use the 'format' or 'pyformat' paramstyles; dialects such most MySQL
+dialects which do state one of these paramstyles will continue to escape
+as is appropriate::
+
+    >>> from sqlalchemy import literal_column
+    >>> print(literal_column('some%symbol'))
+    some%symbol
+    >>> from sqlalchemy.dialects import mysql
+    >>> print(literal_column('some%symbol').compile(dialect=mysql.dialect()))
+    some%%symbol
+
+As part of this change, the doubling that has been present when using
+operators like :meth:`.ColumnOperators.contains`,
+:meth:`.ColumnOperators.startswith` and :meth:`.ColumnOperators.endswith`
+is also refined to only occur when appropriate.
+
+:ticket:`3740`
+
 
 .. _change_3785:
 
@@ -1236,6 +1509,34 @@ is already applied.
 
 Dialect Improvements and Changes - PostgreSQL
 =============================================
+
+.. _change_4109:
+
+Support for Batch Mode / Fast Execution Helpers
+------------------------------------------------
+
+The psycopg2 ``cursor.executemany()`` method has been identified as performing
+poorly, particularly with INSERT statements.   To alleviate this, psycopg2
+has added `Fast Execution Helpers <http://initd.org/psycopg/docs/extras.html#fast-execution-helpers>`_
+which rework statements into fewer server round trips by sending multiple
+DML statements in batch.   SQLAlchemy 1.2 now includes support for these
+helpers to be used transparently whenever the :class:`.Engine` makes use
+of ``cursor.executemany()`` to invoke a statement against multiple parameter
+sets.   The feature is off by default and can be enabled using the
+``use_batch_mode`` argument on :func:`.create_engine`::
+
+    engine = create_engine(
+        "postgresql+psycopg2://scott:tiger@host/dbname",
+        use_batch_mode=True)
+
+The feature is considered to be experimental for the moment but may become
+on by default in a future release.
+
+.. seealso::
+
+    :ref:`psycopg2_batch_mode`
+
+:ticket:`4109`
 
 .. _change_3959:
 
@@ -1280,17 +1581,17 @@ is now supported using a MySQL-specific version of the
 This :class:`~.expression.Insert` subclass adds a new method
 :meth:`~.mysql.dml.Insert.on_duplicate_key_update` that implements MySQL's syntax::
 
-    from sqlalchemy.dialect.mysql import insert
+    from sqlalchemy.dialects.mysql import insert
 
-    insert_stmt = insert(my_table). \\
+    insert_stmt = insert(my_table). \
         values(id='some_id', data='some data to insert')
 
     on_conflict_stmt = insert_stmt.on_duplicate_key_update(
-        data=stmt.values.data,
+        data=insert_stmt.inserted.data,
         status='U'
     )
 
-    conn.execute(do_update_stmt)
+    conn.execute(on_conflict_stmt)
 
 The above will render::
 
@@ -1307,6 +1608,72 @@ The above will render::
 
 Dialect Improvements and Changes - Oracle
 =========================================
+
+.. _change_cxoracle_12:
+
+Major Refactor to cx_Oracle Dialect, Typing System
+--------------------------------------------------
+
+With the introduction of the 6.x series of the cx_Oracle DBAPI, SQLAlchemy's
+cx_Oracle dialect has been reworked and simplified to take advantage of recent
+improvements in cx_Oracle as well as dropping support for patterns that were
+more relevant before the 5.x series of cx_Oracle.
+
+* The minimum cx_Oracle version supported is now 5.1.3; 5.3 or the most recent
+  6.x series are recommended.
+
+* The handling of datatypes has been refactored.  The ``cursor.setinputsizes()``
+  method is no longer used for any datatype except LOB types, per advice from
+  cx_Oracle's developers. As a result, the parameters ``auto_setinputsizes``
+  and ``exclude_setinputsizes`` are deprecated and no longer have any effect.
+
+* The ``coerce_to_decimal`` flag, when set to False to indicate that coercion
+  of numeric types with precision and scale to ``Decimal`` should not occur,
+  only impacts untyped (e.g. plain string with no :class:`.TypeEngine` objects)
+  statements. A Core expression that includes a :class:`.Numeric` type or
+  subtype will now follow the decimal coercion rules of that type.
+
+* The "two phase" transaction support in the dialect, already dropped for the
+  6.x series of cx_Oracle, has now been removed entirely as this feature has
+  never worked correctly and is unlikely to have been in production use.
+  As a result, the ``allow_twophase`` dialect flag is deprecated and also has no
+  effect.
+
+* Fixed a bug involving the column keys present with RETURNING.  Given
+  a statement as follows::
+
+    result = conn.execute(table.insert().values(x=5).returning(table.c.a, table.c.b))
+
+  Previously, the keys in each row of the result would be ``ret_0`` and ``ret_1``,
+  which are identifiers internal to the cx_Oracle RETURNING implementation.
+  The keys will now be ``a`` and ``b`` as is expected for other dialects.
+
+* cx_Oracle's LOB datatype represents return values as a ``cx_Oracle.LOB``
+  object, which is a cursor-associated proxy that returns the ultimate data
+  value via a ``.read()`` method.  Historically, if more rows were read before
+  these LOB objects were consumed (specifically, more rows than the value of
+  cursor.arraysize which causes a new batch of rows to be read), these LOB
+  objects would raise the error "LOB variable no longer valid after subsequent
+  fetch". SQLAlchemy worked around this by both automatically calling
+  ``.read()`` upon these LOBs within its typing system, as well as using a
+  special ``BufferedColumnResultSet`` which would ensure this data was buffered
+  in case a call like ``cursor.fetchmany()`` or ``cursor.fetchall()`` were
+  used.
+
+  The dialect now makes use of a cx_Oracle outpttypehandler to handle these
+  ``.read()`` calls, so that they are always called up front regardless of how
+  many rows are being fetched, so that this error can no longer occur.  As a
+  result, the use of the ``BufferedColumnResultSet``, as well as some other
+  internals to the Core ``ResultSet`` that were specific to this use case,
+  have been removed.   The type objects are also simplified as they no longer
+  need to process a binary column result.
+
+  Additionally, cx_Oracle 6.x has removed the conditions under which this error
+  occurs in any case, so the error is no longer possible.   The error
+  can occur on SQLAlchemy in the case that the seldom (if ever) used
+  ``auto_convert_lobs=False`` option is in use, in conjunction with the
+  previous 5.x series of cx_Oracle, and more rows are read before the LOB
+  objects can be consumed.  Upgrading to cx_Oracle 6.x will resolve that issue.
 
 .. _change_4003:
 
@@ -1406,3 +1773,10 @@ as the "owner".
     :ref:`multipart_schema_names`
 
 :ticket:`2626`
+
+AUTOCOMMIT isolation level support
+----------------------------------
+
+Both the PyODBC and pymssql dialects now support the "AUTOCOMMIT" isolation
+level as set by :meth:`.Connection.execution_options` which will establish
+the correct flags on the DBAPI connection object.

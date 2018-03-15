@@ -8,7 +8,7 @@ from sqlalchemy import Table, MetaData, Column, select, String, \
     NUMERIC, DECIMAL, Numeric, Float, FLOAT, TIMESTAMP, DATE, \
     DATETIME, TIME, \
     DateTime, Time, Date, Interval, NCHAR, CHAR, CLOB, TEXT, Boolean, \
-    BOOLEAN, LargeBinary, BLOB, SmallInteger, INT, func, cast
+    BOOLEAN, LargeBinary, BLOB, SmallInteger, INT, func, cast, literal
 
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.dialects.mysql import base as mysql
@@ -202,6 +202,22 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             matchtable.c.title.match('somstr'),
             "MATCH (matchtable.title) AGAINST (%s IN BOOLEAN MODE)")
 
+    def test_match_compile_kw(self):
+        expr = literal('x').match(literal('y'))
+        self.assert_compile(
+            expr,
+            "MATCH ('x') AGAINST ('y' IN BOOLEAN MODE)",
+            literal_binds=True
+        )
+
+    def test_concat_compile_kw(self):
+        expr = literal('x', type_=String) + literal('y', type_=String)
+        self.assert_compile(
+            expr,
+            "concat('x', 'y')",
+            literal_binds=True
+        )
+
     def test_for_update(self):
         table1 = table('mytable',
                        column('myid'), column('name'), column('description'))
@@ -215,6 +231,23 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             table1.select(table1.c.myid == 7).with_for_update(read=True),
             "SELECT mytable.myid, mytable.name, mytable.description "
             "FROM mytable WHERE mytable.myid = %s LOCK IN SHARE MODE")
+
+    def test_delete_extra_froms(self):
+        t1 = table('t1', column('c1'))
+        t2 = table('t2', column('c1'))
+        q = sql.delete(t1).where(t1.c.c1 == t2.c.c1)
+        self.assert_compile(
+            q, "DELETE FROM t1 USING t1, t2 WHERE t1.c1 = t2.c1"
+        )
+
+    def test_delete_extra_froms_alias(self):
+        a1 = table('t1', column('c1')).alias('a1')
+        t2 = table('t2', column('c1'))
+        q = sql.delete(a1).where(a1.c.c1 == t2.c.c1)
+        self.assert_compile(
+            q, "DELETE FROM a1 USING t1 AS a1, t2 WHERE a1.c1 = t2.c1"
+        )
+        self.assert_compile(sql.delete(a1), "DELETE FROM t1 AS a1")
 
 
 class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -704,10 +737,10 @@ class InsertOnDuplicateTest(fixtures.TestBase, AssertsCompiledSQL):
         )
 
     def test_from_values(self):
-        stmt = insert(
-            self.table, [{'id': 1, 'bar': 'ab'}, {'id': 2, 'bar': 'b'}])
+        stmt = insert(self.table).values(
+            [{'id': 1, 'bar': 'ab'}, {'id': 2, 'bar': 'b'}])
         stmt = stmt.on_duplicate_key_update(
-            bar=stmt.values.bar, baz=stmt.values.baz)
+            bar=stmt.inserted.bar, baz=stmt.inserted.baz)
         expected_sql = (
             'INSERT INTO foos (id, bar) VALUES (%s, %s), (%s, %s) '
             'ON DUPLICATE KEY UPDATE bar = VALUES(bar), baz = VALUES(baz)'
@@ -715,8 +748,8 @@ class InsertOnDuplicateTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(stmt, expected_sql)
 
     def test_from_literal(self):
-        stmt = insert(
-            self.table, [{'id': 1, 'bar': 'ab'}, {'id': 2, 'bar': 'b'}])
+        stmt = insert(self.table).values(
+            [{'id': 1, 'bar': 'ab'}, {'id': 2, 'bar': 'b'}])
         stmt = stmt.on_duplicate_key_update(bar=literal_column('bb'))
         expected_sql = (
             'INSERT INTO foos (id, bar) VALUES (%s, %s), (%s, %s) '
@@ -725,8 +758,8 @@ class InsertOnDuplicateTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(stmt, expected_sql)
 
     def test_python_values(self):
-        stmt = insert(
-            self.table, [{'id': 1, 'bar': 'ab'}, {'id': 2, 'bar': 'b'}])
+        stmt = insert(self.table).values(
+            [{'id': 1, 'bar': 'ab'}, {'id': 2, 'bar': 'b'}])
         stmt = stmt.on_duplicate_key_update(bar="foobar")
         expected_sql = (
             'INSERT INTO foos (id, bar) VALUES (%s, %s), (%s, %s) '

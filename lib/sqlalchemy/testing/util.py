@@ -1,5 +1,5 @@
 # testing/util.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -161,7 +161,7 @@ def run_as_contextmanager(ctx, fn, *arg, **kw):
     except:
         exc_info = sys.exc_info()
         raise_ = ctx.__exit__(*exc_info)
-        if raise_ is None:
+        if not raise_:
             raise
         else:
             return raise_

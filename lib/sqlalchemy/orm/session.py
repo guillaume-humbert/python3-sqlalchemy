@@ -1,5 +1,5 @@
 # orm/session.py
-# Copyright (C) 2005-2017 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -179,25 +179,25 @@ class SessionTransaction(object):
 
     .. seealso::
 
-    :meth:`.Session.rollback`
+        :meth:`.Session.rollback`
 
-    :meth:`.Session.commit`
+        :meth:`.Session.commit`
 
-    :meth:`.Session.begin`
+        :meth:`.Session.begin`
 
-    :meth:`.Session.begin_nested`
+        :meth:`.Session.begin_nested`
 
-    :attr:`.Session.is_active`
+        :attr:`.Session.is_active`
 
-    :meth:`.SessionEvents.after_transaction_create`
+        :meth:`.SessionEvents.after_transaction_create`
 
-    :meth:`.SessionEvents.after_transaction_end`
+        :meth:`.SessionEvents.after_transaction_end`
 
-    :meth:`.SessionEvents.after_commit`
+        :meth:`.SessionEvents.after_commit`
 
-    :meth:`.SessionEvents.after_rollback`
+        :meth:`.SessionEvents.after_rollback`
 
-    :meth:`.SessionEvents.after_soft_rollback`
+        :meth:`.SessionEvents.after_soft_rollback`
 
     """
 
@@ -339,14 +339,20 @@ class SessionTransaction(object):
         """
         assert self._is_transaction_boundary
 
-        self.session._expunge_states(
-            set(self._new).union(self.session._new),
-            to_transient=True)
+        to_expunge = set(self._new).union(self.session._new)
+        self.session._expunge_states(to_expunge, to_transient=True)
 
         for s, (oldkey, newkey) in self._key_switches.items():
+            # we probably can do this conditionally based on
+            # if we expunged or not, but safe_discard does that anyway
             self.session.identity_map.safe_discard(s)
+
+            # restore the old key
             s.key = oldkey
-            self.session.identity_map.replace(s)
+
+            # now restore the object, but only if we didn't expunge
+            if s not in to_expunge:
+                self.session.identity_map.replace(s)
 
         for s in set(self._deleted).union(self.session._deleted):
             self.session._update_impl(s, revert_deletion=True)
@@ -495,6 +501,7 @@ class SessionTransaction(object):
                     except:
                         rollback_err = sys.exc_info()
                     finally:
+                        transaction._state = DEACTIVE
                         if self.session._enable_transaction_accounting:
                             transaction._restore_snapshot(
                                 dirty_only=transaction.nested)
@@ -793,20 +800,35 @@ class Session(_SessionClassMethods):
     def begin(self, subtransactions=False, nested=False):
         """Begin a transaction on this :class:`.Session`.
 
-        The :meth:`.Session.begin` method is only
-        meaningful if this session is in **autocommit mode** prior to
-        it being called; see :ref:`session_autocommit` for background
-        on this setting.
+        .. warning::
 
-        The method will raise an error if this :class:`.Session`
-        is already inside of a transaction, unless
-        :paramref:`.Session.begin.subtransactions` or
-        :paramref:`.Session.begin.nested` are specified.
+            The :meth:`.Session.begin` method is part of a larger pattern
+            of use with the :class:`.Session` known as **autocommit mode**.
+            This is essentially a **legacy mode of use** and is
+            not necessary for new applications.    The :class:`.Session`
+            normally handles the work of "begin" transparently, which in
+            turn relies upon the Python DBAPI to transparently "begin"
+            transactions; there is **no need to explcitly begin transactions**
+            when using modern :class:`.Session` programming patterns.
+            In its default mode of ``autocommit=False``, the
+            :class:`.Session` does all of its work within
+            the context of a transaction, so as soon as you call
+            :meth:`.Session.commit`, the next transaction is implicitly
+            started when the next database operation is invoked.  See
+            :ref:`session_autocommit` for further background.
+
+        The method will raise an error if this :class:`.Session` is already
+        inside of a transaction, unless
+        :paramref:`~.Session.begin.subtransactions` or
+        :paramref:`~.Session.begin.nested` are specified.  A "subtransaction"
+        is essentially a code embedding pattern that does not affect the
+        transactional state of the database connection unless a rollback is
+        emitted, in which case the whole transaction is rolled back.  For
+        documentation on subtransactions, please see
+        :ref:`session_subtransactions`.
 
         :param subtransactions: if True, indicates that this
-         :meth:`~.Session.begin` can create a subtransaction if a transaction
-         is already in progress. For documentation on subtransactions, please
-         see :ref:`session_subtransactions`.
+         :meth:`~.Session.begin` can create a "subtransaction".
 
         :param nested: if True, begins a SAVEPOINT transaction and is equivalent
          to calling :meth:`~.Session.begin_nested`. For documentation on
@@ -1688,6 +1710,7 @@ class Session(_SessionClassMethods):
                     state.key = instance_key
 
                 self.identity_map.replace(state)
+                state._orphaned_outside_of_session = False
 
         statelib.InstanceState._commit_all_states(
             ((state, state.dict) for state in states),
@@ -1762,6 +1785,7 @@ class Session(_SessionClassMethods):
             self.add(instance, _warn=False)
 
     def _save_or_update_state(self, state):
+        state._orphaned_outside_of_session = False
         self._save_or_update_impl(state)
 
         mapper = _state_mapper(state)
@@ -1868,6 +1892,11 @@ class Session(_SessionClassMethods):
          method.
 
 
+        .. seealso::
+
+            :func:`.make_transient_to_detached` - provides for an alternative
+            means of "merging" a single object into the :class:`.Session`
+
         """
 
         if self._warn_on_events:
@@ -1909,34 +1938,40 @@ class Session(_SessionClassMethods):
                     "all changes on mapped instances before merging with "
                     "load=False.")
             key = mapper._identity_key_from_state(state)
-            key_is_persistent = attributes.NEVER_SET not in key[1]
+            key_is_persistent = attributes.NEVER_SET not in key[1] and (
+                not _none_set.intersection(key[1]) or
+                (mapper.allow_partial_pks and not _none_set.issuperset(key[1]))
+            )
         else:
             key_is_persistent = True
 
         if key in self.identity_map:
-            merged = self.identity_map[key]
-        elif key_is_persistent and key in _resolve_conflict_map:
-            merged = _resolve_conflict_map[key]
-
-        elif not load:
-            if state.modified:
-                raise sa_exc.InvalidRequestError(
-                    "merge() with load=False option does not support "
-                    "objects marked as 'dirty'.  flush() all changes on "
-                    "mapped instances before merging with load=False.")
-            merged = mapper.class_manager.new_instance()
-            merged_state = attributes.instance_state(merged)
-            merged_state.key = key
-            self._update_impl(merged_state)
-            new_instance = True
-
-        elif key_is_persistent and (
-            not _none_set.intersection(key[1]) or
-            (mapper.allow_partial_pks and
-             not _none_set.issuperset(key[1]))):
-            merged = self.query(mapper.class_).get(key[1])
+            try:
+                merged = self.identity_map[key]
+            except KeyError:
+                # object was GC'ed right as we checked for it
+                merged = None
         else:
             merged = None
+
+        if merged is None:
+            if key_is_persistent and key in _resolve_conflict_map:
+                merged = _resolve_conflict_map[key]
+
+            elif not load:
+                if state.modified:
+                    raise sa_exc.InvalidRequestError(
+                        "merge() with load=False option does not support "
+                        "objects marked as 'dirty'.  flush() all changes on "
+                        "mapped instances before merging with load=False.")
+                merged = mapper.class_manager.new_instance()
+                merged_state = attributes.instance_state(merged)
+                merged_state.key = key
+                self._update_impl(merged_state)
+                new_instance = True
+
+            elif key_is_persistent:
+                merged = self.query(mapper.class_).get(key[1])
 
         if merged is None:
             merged = mapper.class_manager.new_instance()
@@ -2082,9 +2117,9 @@ class Session(_SessionClassMethods):
         Accesses of attributes mapped with :func:`.relationship`
         will attempt to load a value from the database using this
         :class:`.Session` as the source of connectivity.  The values
-        will be loaded based on foreign key values present on this
-        object - it follows that this functionality
-        generally only works for many-to-one-relationships.
+        will be loaded based on foreign key and primary key values
+        present on this object - if not present, then those relationships
+        will be unavailable.
 
         The object will be attached to this session, but will
         **not** participate in any persistence operations; its state
@@ -2105,6 +2140,8 @@ class Session(_SessionClassMethods):
         To make a transient object associated with a :class:`.Session`
         via :meth:`.Session.enable_relationship_loading` pending, add
         it to the :class:`.Session` using :meth:`.Session.add` normally.
+        If the object instead represents an existing idenity in the database,
+        it should be merged using :meth:`.Session.merge`.
 
         :meth:`.Session.enable_relationship_loading` does not improve
         behavior when the ORM is used normally - object references should be
@@ -2119,6 +2156,10 @@ class Session(_SessionClassMethods):
             ``load_on_pending`` at :func:`.relationship` - this flag
             allows per-relationship loading of many-to-ones on items that
             are pending.
+
+            :func:`.make_transient_to_detached` - allows for an object to
+            be added to a :class:`.Session` without SQL emitted, which then
+            will unexpire attributes on access.
 
         """
         state = attributes.instance_state(obj)
@@ -2271,11 +2312,17 @@ class Session(_SessionClassMethods):
             proc = new.union(dirty).difference(deleted)
 
         for state in proc:
-            is_orphan = (
-                _state_mapper(state)._is_orphan(state) and state.has_identity)
-            _reg = flush_context.register_object(state, isdelete=is_orphan)
-            assert _reg, "Failed to add object to the flush context!"
-            processed.add(state)
+            is_orphan = _state_mapper(state)._is_orphan(state)
+
+            is_persistent_orphan = is_orphan and state.has_identity
+
+            if is_orphan and not is_persistent_orphan and state._orphaned_outside_of_session:
+                self._expunge_states([state])
+            else:
+                _reg = flush_context.register_object(
+                    state, isdelete=is_persistent_orphan)
+                assert _reg, "Failed to add object to the flush context!"
+                processed.add(state)
 
         # put all remaining deletes into the flush context.
         if objset:
@@ -2914,7 +2961,7 @@ class sessionmaker(_SessionClassMethods):
         self.kw.update(new_kw)
 
     def __repr__(self):
-        return "%s(class_=%r,%s)" % (
+        return "%s(class_=%r, %s)" % (
             self.__class__.__name__,
             self.class_.__name__,
             ", ".join("%s=%r" % (k, v) for k, v in self.kw.items())
@@ -3013,6 +3060,8 @@ def make_transient_to_detached(instance):
 
         :func:`.make_transient`
 
+        :meth:`.Session.enable_relationship_loading`
+
     """
     state = attributes.instance_state(instance)
     if state.session_id or state.key:
@@ -3022,7 +3071,7 @@ def make_transient_to_detached(instance):
     if state._deleted:
         del state._deleted
     state._commit_all(state.dict)
-    state._expire_attributes(state.dict, state.unloaded)
+    state._expire_attributes(state.dict, state.unloaded_expirable)
 
 
 def object_session(instance):

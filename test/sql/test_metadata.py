@@ -7,7 +7,7 @@ from sqlalchemy import Integer, String, UniqueConstraint, \
     ForeignKeyConstraint, PrimaryKeyConstraint, ColumnDefault, Index, event,\
     events, Unicode, types as sqltypes, bindparam, \
     Table, Column, Boolean, Enum, func, text, TypeDecorator, \
-    BLANK_SCHEMA
+    BLANK_SCHEMA, ARRAY
 from sqlalchemy import schema, exc
 from sqlalchemy.engine import default
 from sqlalchemy.sql import elements, naming
@@ -18,7 +18,7 @@ from sqlalchemy.testing import ComparesTables, AssertsCompiledSQL
 from sqlalchemy.testing import eq_, is_, mock, is_true
 from contextlib import contextmanager
 from sqlalchemy import util
-
+from sqlalchemy.testing import engines
 
 class MetaDataTest(fixtures.TestBase, ComparesTables):
 
@@ -550,6 +550,7 @@ class MetaDataTest(fixtures.TestBase, ComparesTables):
              "CheckConstraint("
              "%s"
              ", name='someconstraint')" % repr(ck.sqltext)),
+            (ColumnDefault(('foo', 'bar')), "ColumnDefault(('foo', 'bar'))")
         ):
             eq_(
                 repr(const),
@@ -610,18 +611,27 @@ class ToMetaDataTest(fixtures.TestBase, ComparesTables):
             ),
             test_needs_fk=True)
 
+        table3 = Table(
+            'has_comments', meta,
+            Column('foo', Integer, comment='some column'),
+            comment='table comment'
+        )
+
         def test_to_metadata():
             meta2 = MetaData()
             table_c = table.tometadata(meta2)
             table2_c = table2.tometadata(meta2)
-            return (table_c, table2_c)
+            table3_c = table3.tometadata(meta2)
+            return (table_c, table2_c, table3_c)
 
         def test_pickle():
             meta.bind = testing.db
             meta2 = pickle.loads(pickle.dumps(meta))
             assert meta2.bind is None
             pickle.loads(pickle.dumps(meta2))
-            return (meta2.tables['mytable'], meta2.tables['othertable'])
+            return (
+                meta2.tables['mytable'],
+                meta2.tables['othertable'], meta2.tables['has_comments'])
 
         def test_pickle_via_reflect():
             # this is the most common use case, pickling the results of a
@@ -629,11 +639,15 @@ class ToMetaDataTest(fixtures.TestBase, ComparesTables):
             meta2 = MetaData(bind=testing.db)
             t1 = Table('mytable', meta2, autoload=True)
             Table('othertable', meta2, autoload=True)
+            Table('has_comments', meta2, autoload=True)
             meta3 = pickle.loads(pickle.dumps(meta2))
             assert meta3.bind is None
             assert meta3.tables['mytable'] is not t1
 
-            return (meta3.tables['mytable'], meta3.tables['othertable'])
+            return (
+                meta3.tables['mytable'], meta3.tables['othertable'],
+                meta3.tables['has_comments']
+            )
 
         meta.create_all(testing.db)
         try:
@@ -641,7 +655,7 @@ class ToMetaDataTest(fixtures.TestBase, ComparesTables):
                     (test_to_metadata, True, False), \
                     (test_pickle, True, False), \
                     (test_pickle_via_reflect, False, True):
-                table_c, table2_c = test()
+                table_c, table2_c, table3_c = test()
                 self.assert_tables_equal(table, table_c)
                 self.assert_tables_equal(table2, table2_c)
                 assert table is not table_c
@@ -676,6 +690,10 @@ class ToMetaDataTest(fixtures.TestBase, ComparesTables):
                         assert False
                     assert c.columns.contains_column(table_c.c.name)
                     assert not c.columns.contains_column(table.c.name)
+
+                if testing.requires.comment_reflection.enabled:
+                    eq_(table3_c.comment, "table comment")
+                    eq_(table3_c.c.foo.comment, "some column")
 
         finally:
             meta.drop_all(testing.db)
@@ -1029,8 +1047,11 @@ class ToMetaDataTest(fixtures.TestBase, ComparesTables):
                       Column('id', Integer, primary_key=True),
                       Column('data1', Integer, index=True),
                       Column('data2', Integer),
+                      Index('text', text('data1 + 1')),
                       )
-        Index('multi', table.c.data1, table.c.data2),
+        Index('multi', table.c.data1, table.c.data2)
+        Index('func', func.abs(table.c.data1))
+        Index('multi-func', table.c.data1, func.abs(table.c.data2))
 
         meta2 = MetaData()
         table_c = table.tometadata(meta2)
@@ -1038,7 +1059,7 @@ class ToMetaDataTest(fixtures.TestBase, ComparesTables):
         def _get_key(i):
             return [i.name, i.unique] + \
                 sorted(i.kwargs.items()) + \
-                list(i.columns.keys())
+                [str(col) for col in i.expressions]
 
         eq_(
             sorted([_get_key(i) for i in table.indexes]),
@@ -1632,6 +1653,14 @@ class SchemaTypeTest(fixtures.TestBase):
         typ = MyType()
         self._test_before_parent_attach(typ, target_typ, double=True)
 
+    def test_before_parent_attach_array_enclosing_schematype(self):
+        # test for [ticket:4141] which is the same idea as [ticket:3832]
+        # for ARRAY
+
+        typ = ARRAY(String)
+
+        self._test_before_parent_attach(typ)
+
     def test_before_parent_attach_typedec_of_schematype(self):
         class MyType(TypeDecorator, sqltypes.SchemaType):
             impl = String
@@ -1791,6 +1820,24 @@ class SchemaTypeTest(fixtures.TestBase):
         m = MetaData()
 
         type_ = self.WrapEnum('a', 'b', 'c', name='foo')
+        y = Column('y', type_)
+        y_copy = y.copy()
+        t1 = Table('x', m, y_copy)
+
+        is_true(y_copy.type._create_events)
+
+        # for Postgresql, this will emit CREATE TYPE
+        m.dispatch.before_create(t1, testing.db)
+        try:
+            eq_(t1.c.y.type.evt_targets, (t1, ))
+        finally:
+            # do the drop so that Postgresql emits DROP TYPE
+            m.dispatch.after_drop(t1, testing.db)
+
+    def test_enum_nonnative_column_copy_transfers_events(self):
+        m = MetaData()
+
+        type_ = self.WrapEnum('a', 'b', 'c', name='foo', native_enum=False)
         y = Column('y', type_)
         y_copy = y.copy()
         t1 = Table('x', m, y_copy)
@@ -2254,6 +2301,21 @@ class ConstraintTest(fixtures.TestBase):
         t = Table('t', m, Column('x', Integer))
         i = Index('i', func.foo(t.c.x))
         self._assert_index_col_x(t, i)
+
+    def test_index_no_cols_private_table_arg(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer))
+        i = Index('i', _table=t)
+        is_(i.table, t)
+        eq_(list(i.columns), [])
+
+    def test_index_w_cols_private_table_arg(self):
+        m = MetaData()
+        t = Table('t', m, Column('x', Integer))
+        i = Index('i', t.c.x, _table=t)
+        is_(i.table, t)
+
+        eq_(i.columns, [t.c.x])
 
     def test_inline_decl_columns(self):
         m = MetaData()

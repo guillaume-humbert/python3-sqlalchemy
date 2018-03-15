@@ -86,6 +86,42 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         ]:
             self.assert_compile(func.random(), ret, dialect=dialect)
 
+    def test_cube_operators(self):
+
+        t = table('t', column('value'),
+                  column('x'), column('y'), column('z'), column('q'))
+
+        stmt = select([func.sum(t.c.value)])
+
+        self.assert_compile(
+            stmt.group_by(func.cube(t.c.x, t.c.y)),
+            "SELECT sum(t.value) AS sum_1 FROM t GROUP BY CUBE(t.x, t.y)"
+        )
+
+        self.assert_compile(
+            stmt.group_by(func.rollup(t.c.x, t.c.y)),
+            "SELECT sum(t.value) AS sum_1 FROM t GROUP BY ROLLUP(t.x, t.y)"
+        )
+
+        self.assert_compile(
+            stmt.group_by(
+                func.grouping_sets(t.c.x, t.c.y)
+            ),
+            "SELECT sum(t.value) AS sum_1 FROM t "
+            "GROUP BY GROUPING SETS(t.x, t.y)"
+        )
+
+        self.assert_compile(
+            stmt.group_by(
+                func.grouping_sets(
+                    sql.tuple_(t.c.x, t.c.y),
+                    sql.tuple_(t.c.z, t.c.q),
+                )
+            ),
+            "SELECT sum(t.value) AS sum_1 FROM t GROUP BY "
+            "GROUPING SETS((t.x, t.y), (t.z, t.q))"
+        )
+
     def test_generic_annotation(self):
         fn = func.coalesce('x', 'y')._annotate({"foo": "bar"})
         self.assert_compile(
@@ -554,12 +590,48 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         )
 
 
-class ReturnTypeTest(fixtures.TestBase):
+class ReturnTypeTest(AssertsCompiledSQL, fixtures.TestBase):
 
     def test_array_agg(self):
         expr = func.array_agg(column('data', Integer))
         is_(expr.type._type_affinity, ARRAY)
         is_(expr.type.item_type._type_affinity, Integer)
+
+    def test_array_agg_array_datatype(self):
+        expr = func.array_agg(column('data', ARRAY(Integer)))
+        is_(expr.type._type_affinity, ARRAY)
+        is_(expr.type.item_type._type_affinity, Integer)
+
+    def test_array_agg_array_literal_implicit_type(self):
+        from sqlalchemy.dialects.postgresql import array, ARRAY as PG_ARRAY
+        expr = array([column('data', Integer), column('d2', Integer)])
+
+        assert isinstance(expr.type, PG_ARRAY)
+
+        agg_expr = func.array_agg(expr)
+        assert isinstance(agg_expr.type, PG_ARRAY)
+        is_(agg_expr.type._type_affinity, ARRAY)
+        is_(agg_expr.type.item_type._type_affinity, Integer)
+
+        self.assert_compile(
+            agg_expr,
+            "array_agg(ARRAY[data, d2])",
+            dialect="postgresql"
+        )
+
+    def test_array_agg_array_literal_explicit_type(self):
+        from sqlalchemy.dialects.postgresql import array
+        expr = array([column('data', Integer), column('d2', Integer)])
+
+        agg_expr = func.array_agg(expr, type_=ARRAY(Integer))
+        is_(agg_expr.type._type_affinity, ARRAY)
+        is_(agg_expr.type.item_type._type_affinity, Integer)
+
+        self.assert_compile(
+            agg_expr,
+            "array_agg(ARRAY[data, d2])",
+            dialect="postgresql"
+        )
 
     def test_mode(self):
         expr = func.mode(0.5).within_group(
@@ -594,6 +666,7 @@ class ReturnTypeTest(fixtures.TestBase):
 
 
 class ExecuteTest(fixtures.TestBase):
+    __backend__ = True
 
     @engines.close_first
     def tearDown(self):
@@ -708,14 +781,7 @@ class ExecuteTest(fixtures.TestBase):
         w = select(['*'], from_obj=[func.current_date(bind=testing.db)]).\
             scalar()
 
-        # construct a column-based FROM object out of a function,
-        # like in [ticket:172]
-        s = select([sql.column('date', type_=DateTime)],
-                   from_obj=[func.current_date(bind=testing.db)])
-        q = s.execute().first()[s.c.date]
-        r = s.alias('datequery').select().scalar()
-
-        assert x == y == z == w == q == r
+        assert x == y == z == w
 
     def test_extract_bind(self):
         """Basic common denominator execution tests for extract()"""

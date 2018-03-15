@@ -1,6 +1,8 @@
 from __future__ import with_statement
 from sqlalchemy import (
     testing, exc as sa_exc, event, String, Column, Table, select, func)
+from sqlalchemy.sql import elements
+from sqlalchemy.orm.util import identity_key
 from sqlalchemy.testing import (
     fixtures, engines, eq_, assert_raises, assert_raises_message,
     assert_warnings, mock, expect_warnings, is_, is_not_)
@@ -12,7 +14,7 @@ from test.orm._fixtures import FixtureTest
 from sqlalchemy import inspect
 
 
-class SessionTransactionTest(FixtureTest):
+class SessionTransactionTest(fixtures.RemovesEvents, FixtureTest):
     run_inserts = None
     __backend__ = True
 
@@ -477,6 +479,116 @@ class SessionTransactionTest(FixtureTest):
             "being rolled back; no further SQL can be emitted within this "
             "transaction.",
             sess.rollback)
+
+    @testing.emits_warning(".*previous exception")
+    def test_failed_rollback_deactivates_transaction(self):
+        # test #4050
+        users, User = self.tables.users, self.classes.User
+
+        mapper(User, users)
+        session = Session(bind=testing.db)
+
+        rollback_error = testing.db.dialect.dbapi.InterfaceError(
+            "Can't roll back to savepoint")
+
+        def prevent_savepoint_rollback(
+                cursor, statement, parameters, context=None):
+            if context is not None and context.compiled and isinstance(
+                    context.compiled.statement,
+                    elements.RollbackToSavepointClause):
+                raise rollback_error
+
+        self.event_listen(
+            testing.db.dialect,
+            "do_execute", prevent_savepoint_rollback)
+
+        with session.transaction:
+            session.add(User(id=1, name='x'))
+
+        session.begin_nested()
+        # raises IntegrityError on flush
+        session.add(User(id=1, name='x'))
+        assert_raises_message(
+            sa_exc.InterfaceError,
+            "Can't roll back to savepoint",
+            session.commit,
+        )
+
+        # rollback succeeds, because the Session is deactivated
+        eq_(session.transaction._state, _session.DEACTIVE)
+        session.rollback()
+
+        # back to normal
+        eq_(session.transaction._state, _session.ACTIVE)
+
+        trans = session.transaction
+
+        # leave the outermost trans
+        session.rollback()
+
+        # trans is now closed
+        eq_(trans._state, _session.CLOSED)
+
+        # outermost transction is new
+        is_not_(session.transaction, trans)
+
+        # outermost is active
+        eq_(session.transaction._state, _session.ACTIVE)
+
+    @testing.emits_warning(".*previous exception")
+    def test_failed_rollback_deactivates_transaction_ctx_integration(self):
+        # test #4050 in the same context as that of oslo.db
+
+        users, User = self.tables.users, self.classes.User
+
+        mapper(User, users)
+        session = Session(bind=testing.db, autocommit=True)
+
+        evented_exceptions = []
+        caught_exceptions = []
+
+        def canary(context):
+            evented_exceptions.append(context.original_exception)
+
+        rollback_error = testing.db.dialect.dbapi.InterfaceError(
+            "Can't roll back to savepoint")
+
+        def prevent_savepoint_rollback(
+                cursor, statement, parameters, context=None):
+            if context is not None and context.compiled and isinstance(
+                    context.compiled.statement,
+                    elements.RollbackToSavepointClause):
+                raise rollback_error
+
+        self.event_listen(testing.db, "handle_error", canary, retval=True)
+        self.event_listen(
+            testing.db.dialect, "do_execute", prevent_savepoint_rollback)
+
+        with session.begin():
+            session.add(User(id=1, name='x'))
+
+        try:
+            with session.begin():
+                try:
+                    with session.begin_nested():
+                        # raises IntegrityError on flush
+                        session.add(User(id=1, name='x'))
+
+                # outermost is the failed SAVEPOINT rollback
+                # from the "with session.begin_nested()"
+                except sa_exc.DBAPIError as dbe_inner:
+                    caught_exceptions.append(dbe_inner.orig)
+                    raise
+        except sa_exc.DBAPIError as dbe_outer:
+            caught_exceptions.append(dbe_outer.orig)
+
+        is_(
+            type(evented_exceptions[0]),
+            testing.db.dialect.dbapi.IntegrityError
+        )
+        eq_(evented_exceptions[1], rollback_error)
+        eq_(len(evented_exceptions), 2)
+        eq_(caught_exceptions, [rollback_error, rollback_error])
 
     def test_no_prepare_wo_twophase(self):
         sess = create_session(bind=testing.db, autocommit=False)
@@ -1605,8 +1717,36 @@ class NaturalPKRollbackTest(fixtures.MappedTest):
         assert u1 in s
         assert u2 in s
 
-        assert s.identity_map[(User, ('u1',))] is u1
-        assert s.identity_map[(User, ('u2',))] is u2
+        assert s.identity_map[identity_key(User, ('u1',))] is u1
+        assert s.identity_map[identity_key(User, ('u2',))] is u2
+
+    @testing.requires.savepoints
+    def test_key_replaced_by_update_nested(self):
+        users, User = self.tables.users, self.classes.User
+
+        mapper(User, users)
+
+        u1 = User(name='u1')
+
+        s = Session()
+        s.add(u1)
+        s.commit()
+
+        with s.begin_nested():
+            u2 = User(name='u2')
+            s.add(u2)
+            s.flush()
+
+            u2.name = 'u3'
+
+        s.rollback()
+
+        assert u1 in s
+        assert u2 not in s
+
+        u1.name = 'u5'
+
+        s.commit()
 
     def test_multiple_key_replaced_by_update(self):
         users, User = self.tables.users, self.classes.User
@@ -1637,9 +1777,9 @@ class NaturalPKRollbackTest(fixtures.MappedTest):
         assert u2 in s
         assert u3 in s
 
-        assert s.identity_map[(User, ('u1',))] is u1
-        assert s.identity_map[(User, ('u2',))] is u2
-        assert s.identity_map[(User, ('u3',))] is u3
+        assert s.identity_map[identity_key(User, ('u1',))] is u1
+        assert s.identity_map[identity_key(User, ('u2',))] is u2
+        assert s.identity_map[identity_key(User, ('u3',))] is u3
 
     def test_key_replaced_by_oob_insert(self):
         users, User = self.tables.users, self.classes.User
@@ -1664,4 +1804,4 @@ class NaturalPKRollbackTest(fixtures.MappedTest):
         assert u1 in s
         assert u2 not in s
 
-        assert s.identity_map[(User, ('u1',))] is u1
+        assert s.identity_map[identity_key(User, ('u1',))] is u1
