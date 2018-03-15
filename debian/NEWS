@@ -1,3 +1,13 @@
+python-sqlalchemy (1.2.5+ds1-1) unstable; urgency=medium
+
+  SQLAlchemy 1.1 → 1.2 migration notes can be found in the
+  python-sqlalchemy-doc package:
+  /usr/share/doc/python-sqlalchemy-doc/rst/changelog/migration_12.txt or
+  /usr/share/doc/python-sqlalchemy-doc/html/changelog/migration_12.html or
+  https://docs.sqlalchemy.org/en/latest/changelog/migration_12.html
+
+ -- Piotr Ożarowski <piotr@debian.org>  Thu, 15 Mar 2018 15:37:44 +0100
+
 python-sqlalchemy (1.1.1+ds1-1) experimental; urgency=medium
 
   SQLAlchemy 1.0 → 1.1 migration notes can be found in the
