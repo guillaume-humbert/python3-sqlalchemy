@@ -9,6 +9,8 @@ sqlalchemy (1.2.5+ds1-1) unstable; urgency=medium
 
   [ Piotr Ożarowski ]
   * New upstream release
+    - requires Sphinx >= 1.6 to build docs, B-D updated
+  * Use Python 3 to generate Sphinx documentation
 
  -- Ondřej Nový <onovy@debian.org>  Tue, 13 Feb 2018 09:59:31 +0100
 

@@ -38,17 +38,17 @@ build-indep: build-docs
 build-docs:
 	dh_testdir
 	dh_installdirs -i
-	cd doc/build && sphinx-build -N -E -b html . \
-	 $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/html/
-	rm -rf $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/html/.doctrees
+	cd doc/build && python3 -m sphinx -N -E -b html . \
+	 ../../debian/${p_name}-doc/usr/share/doc/${p_name}-doc/html/
+	rm -rf debian/${p_name}-doc/usr/share/doc/${p_name}-doc/html/.doctrees
 	touch $@
 
 install-docs: build-docs
 	dh_testdir
 	dh_installdirs -i
-
-	cp -r doc/build/ debian/python-sqlalchemy-doc/usr/share/doc/python-sqlalchemy-doc/rst/
-	cd debian/python-sqlalchemy-doc/usr/share/doc/python-sqlalchemy-doc/rst/\
+	
+	cp -r doc/build/ debian/${p_name}-doc/usr/share/doc/${p_name}-doc/rst/
+	cd debian/${p_name}-doc/usr/share/doc/${p_name}-doc/rst/\
 		&& rm -f '*.py' '*.html' '*.png' \
 	       	&& rm -rf texinputs/
 	dh_link -p${p_name}-doc /usr/share/javascript/jquery/jquery.js \
@@ -84,10 +84,10 @@ binary-indep: build install install-docs
 	dh_installchangelogs -i -N python-sqlalchemy-doc -X doc/changelog -X CHANGES
 	dh_installdocs -i
 	dh_installexamples -i
-	rm -rf $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/doc/build \
-	       $(call pkgdir,2.X)-doc/usr/share/doc/${p_name}-doc/examples/README
-	rm -f $(call pkgdir,3.X)/usr/share/doc/python3-sqlalchemy/NEWS.Debian
-	find debian/python-sqlalchemy-doc/. -name '*\.py[co]' -delete
+	rm -rf debian/${p_name}-doc/usr/share/doc/${p_name}-doc/doc/build \
+	       debian/${p_name}-doc/usr/share/doc/${p_name}-doc/examples/README
+	rm -f debian/python3-sqlalchemy/usr/share/doc/python3-sqlalchemy/NEWS.Debian
+	-find debian/python-sqlalchemy-doc/. -type d -name __pycache__ -exec rm -rf {} \;
 	dh_python2 -i
 	dh_python3 -i
 	dh_compress -i -X.py -X.js -X.html -X.inv -Xrst
