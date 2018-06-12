@@ -1,6 +1,7 @@
 sqlalchemy (1.2.8+ds1-1) unstable; urgency=medium
 
   * New upstream release
+  * Drop ancient X-Python-Version header from debian/control
 
  -- Piotr Ożarowski <piotr@debian.org>  Tue, 12 Jun 2018 22:20:17 +0200
 
