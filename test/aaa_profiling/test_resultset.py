@@ -20,8 +20,8 @@ class ResultSetTest(fixtures.TestBase, AssertsExecutionResults):
     def setup_class(cls):
         global t, t2, metadata
         metadata = MetaData(testing.db)
-        t = Table('table', metadata, *[Column('field%d' % fnum, String(50))
-                                       for fnum in range(NUM_FIELDS)])
+        t = Table('table1', metadata, *[Column('field%d' % fnum, String(50))
+                                        for fnum in range(NUM_FIELDS)])
         t2 = Table(
             'table2', metadata, *
             [Column('field%d' % fnum, Unicode(50))
@@ -39,6 +39,12 @@ class ResultSetTest(fixtures.TestBase, AssertsExecutionResults):
         # warm up type caches
         t.select().execute().fetchall()
         t2.select().execute().fetchall()
+        testing.db.execute('SELECT %s FROM table1' % (
+            ", ".join("field%d" % fnum for fnum in range(NUM_FIELDS))
+        )).fetchall()
+        testing.db.execute("SELECT %s FROM table2" % (
+            ", ".join("field%d" % fnum for fnum in range(NUM_FIELDS))
+        )).fetchall()
 
     def teardown(self):
         metadata.drop_all()
@@ -51,14 +57,14 @@ class ResultSetTest(fixtures.TestBase, AssertsExecutionResults):
     def test_unicode(self):
         [tuple(row) for row in t2.select().execute().fetchall()]
 
-    @profiling.function_call_count()
+    @profiling.function_call_count(variance=0.10)
     def test_raw_string(self):
-        stmt = 'SELECT %s FROM "table"' % (
+        stmt = 'SELECT %s FROM table1' % (
             ", ".join("field%d" % fnum for fnum in range(NUM_FIELDS))
         )
         [tuple(row) for row in testing.db.execute(stmt).fetchall()]
 
-    @profiling.function_call_count()
+    @profiling.function_call_count(variance=0.10)
     def test_raw_unicode(self):
         stmt = "SELECT %s FROM table2" % (
             ", ".join("field%d" % fnum for fnum in range(NUM_FIELDS))
