@@ -13,7 +13,7 @@ from sqlalchemy import Table, Column, MetaData, Integer, String, \
 from sqlalchemy import exc
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import base as postgresql
-from sqlalchemy.dialects.postgresql import ARRAY, INTERVAL, TSRANGE
+from sqlalchemy.dialects.postgresql import ARRAY, INTERVAL, INTEGER, TSRANGE
 from sqlalchemy.dialects.postgresql import ExcludeConstraint
 import re
 
@@ -176,7 +176,8 @@ class DomainReflectionTest(fixtures.TestBase, AssertsExecutionResults):
                 'CREATE DOMAIN testdomain INTEGER NOT NULL DEFAULT 42', \
                 'CREATE DOMAIN test_schema.testdomain INTEGER DEFAULT 0', \
                 "CREATE TYPE testtype AS ENUM ('test')", \
-                'CREATE DOMAIN enumdomain AS testtype':
+                'CREATE DOMAIN enumdomain AS testtype', \
+                'CREATE DOMAIN arraydomain AS INTEGER[]':
             try:
                 con.execute(ddl)
             except exc.DBAPIError as e:
@@ -192,6 +193,8 @@ class DomainReflectionTest(fixtures.TestBase, AssertsExecutionResults):
 
         con.execute('CREATE TABLE enum_test (id integer, data enumdomain)')
 
+        con.execute('CREATE TABLE array_test (id integer, data arraydomain)')
+
     @classmethod
     def teardown_class(cls):
         con = testing.db.connect()
@@ -203,6 +206,8 @@ class DomainReflectionTest(fixtures.TestBase, AssertsExecutionResults):
         con.execute("DROP TABLE enum_test")
         con.execute("DROP DOMAIN enumdomain")
         con.execute("DROP TYPE testtype")
+        con.execute('DROP TABLE array_test')
+        con.execute('DROP DOMAIN arraydomain')
 
     def test_table_is_reflected(self):
         metadata = MetaData(testing.db)
@@ -225,6 +230,18 @@ class DomainReflectionTest(fixtures.TestBase, AssertsExecutionResults):
         eq_(
             table.c.data.type.enums,
             ['test']
+        )
+
+    def test_array_domain_is_reflected(self):
+        metadata = MetaData(testing.db)
+        table = Table('array_test', metadata, autoload=True)
+        eq_(
+            table.c.data.type.__class__,
+            ARRAY
+        )
+        eq_(
+            table.c.data.type.item_type.__class__,
+            INTEGER
         )
 
     def test_table_is_reflected_test_schema(self):
@@ -907,6 +924,41 @@ class ReflectionTest(fixtures.TestBase):
                 'name': 'pet',
                 'schema': 'public'
             }])
+
+    @testing.provide_metadata
+    def test_inspect_enums_case_sensitive(self):
+        enum_type = postgresql.ENUM(
+            'CapsOne', 'CapsTwo', name='UpperCase', metadata=self.metadata)
+        enum_type.create(testing.db)
+        inspector = reflection.Inspector.from_engine(testing.db)
+        eq_(inspector.get_enums(), [
+            {
+                'visible': True,
+                'labels': ['CapsOne', 'CapsTwo'],
+                'name': 'UpperCase',
+                'schema': 'public'
+            }])
+
+    @testing.provide_metadata
+    def test_inspect_enums_case_sensitive_from_table(self):
+        enum_type = postgresql.ENUM(
+            'CapsOne', 'CapsTwo', name='UpperCase', metadata=self.metadata)
+
+        t = Table('t', self.metadata, Column('q', enum_type))
+
+        enum_type.create(testing.db)
+        t.create(testing.db)
+
+        inspector = reflection.Inspector.from_engine(testing.db)
+        cols = inspector.get_columns("t")
+        cols[0]['type'] = (cols[0]['type'].name, cols[0]['type'].enums)
+        eq_(cols, [
+            {
+                'name': 'q',
+                'type': ('UpperCase', ['CapsOne', 'CapsTwo']),
+                'nullable': True, 'default': None,
+                'autoincrement': False, 'comment': None}
+        ])
 
     @testing.provide_metadata
     def test_inspect_enums_star(self):

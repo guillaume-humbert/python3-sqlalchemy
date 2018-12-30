@@ -16,13 +16,44 @@
 Additional Connect Arguments
 ----------------------------
 
-When connecting with ``dbname`` present, the host, port, and dbname tokens are
-converted to a TNS name using
-the cx_oracle ``makedsn()`` function.  Otherwise, the host token is taken
-directly as a TNS name.
+When connecting with the ``dbname`` URL token present, the ``hostname``,
+``port``, and ``dbname`` tokens are converted to a TNS name using the
+``cx_Oracle.makedsn()`` function. The URL below::
 
-Additional arguments which may be specified either as query string arguments
-on the URL, or as keyword arguments to :func:`.create_engine()` are:
+    e = create_engine("oracle+cx_oracle://user:pass@hostname/dbname")
+
+Will be used to create the DSN as follows::
+
+    >>> import cx_Oracle
+    >>> cx_Oracle.makedsn("hostname", 1521, sid="dbname")
+    '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=hostname)(PORT=1521))(CONNECT_DATA=(SID=dbname)))'
+
+The ``service_name`` parameter, also consumed by ``cx_Oracle.makedsn()``, may
+be specified in the URL query string, e.g. ``?service_name=my_service``.
+
+If ``dbname`` is not present, then the value of ``hostname`` in the
+URL is used directly as the DSN passed to ``cx_Oracle.connect()``.
+
+Additional connection arguments may be sent to the ``cx_Oracle.connect()``
+function using the :paramref:`.create_engine.connect_args` dictionary.
+Any cx_Oracle parameter value and/or constant may be passed, such as::
+
+    import cx_Oracle
+    e = create_engine(
+        "oracle+cx_oracle://user:pass@dsn",
+        connect_args={
+            "mode": cx_Oracle.SYSDBA,
+            "events": True
+        }
+    )
+
+There are also options that are consumed by the SQLAlchemy cx_oracle dialect
+itself.  These options are always passed directly to :func:`.create_engine`,
+such as::
+
+    e = create_engine("oracle+cx_oracle://user:pass@dsn", coerce_to_unicode=False)
+
+The parameters accepted by the cx_oracle dialect are as follows:
 
 * ``arraysize`` - set the cx_oracle.arraysize value on cursors, defaulted
   to 50.  This setting is significant with cx_Oracle as the contents of LOB
@@ -35,21 +66,10 @@ on the URL, or as keyword arguments to :func:`.create_engine()` are:
 
 * ``coerce_to_decimal`` - see :ref:`cx_oracle_numeric` for detail.
 
-* ``mode`` - This is given the string value of SYSDBA or SYSOPER, or
-  alternatively an integer value.  This value is only available as a URL query
-  string argument.
-
-* ``threaded`` - enable multithreaded access to cx_oracle connections.
-  Defaults to ``True``.  Note that this is the opposite default of the
-  cx_Oracle DBAPI itself.
-
-* ``service_name`` - An option to use connection string (DSN) with
-  ``SERVICE_NAME`` instead of ``SID``. It can't be passed when a ``database``
-  part is given.
-  E.g. ``oracle+cx_oracle://scott:tiger@host:1521/?service_name=hr``
-  is a valid url. This value is only available as a URL query string argument.
-
-  .. versionadded:: 1.0.0
+* ``threaded`` - this parameter is passed as the value of "threaded" to
+  ``cx_Oracle.connect()`` and defaults to True, which is the opposite of
+  cx_Oracle's default.   This parameter is deprecated and will default to
+  ``False`` in version 1.3 of SQLAlchemy.
 
 .. _cx_oracle_unicode:
 
@@ -94,7 +114,7 @@ Python 2:
   of plain string values.
 
 Sending String Values as Unicode or Non-Unicode
-------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As of SQLAlchemy 1.2.2, the cx_Oracle dialect unconditionally calls
 ``setinputsizes()`` for bound values that are passed as Python unicode objects.
@@ -123,6 +143,75 @@ with an explicit non-unicode type::
     conn.execute(
         func.trunc(func.sysdate(), literal('dd', String))
     )
+
+For full control over this ``setinputsizes()`` behavior, see the section
+:ref:`cx_oracle_setinputsizes`
+
+.. _cx_oracle_setinputsizes:
+
+Fine grained control over cx_Oracle data binding and performance with setinputsizes
+-----------------------------------------------------------------------------------
+
+The cx_Oracle DBAPI has a deep and fundamental reliance upon the usage of the
+DBAPI ``setinputsizes()`` call.   The purpose of this call is to establish the
+datatypes that are bound to a SQL statement for Python values being passed as
+parameters.  While virtually no other DBAPI assigns any use to the
+``setinputsizes()`` call, the cx_Oracle DBAPI relies upon it heavily in its
+interactions with the Oracle client interface, and in some scenarios it is  not
+possible for SQLAlchemy to know exactly how data should be bound, as some
+settings can cause profoundly different performance characteristics, while
+altering the type coercion behavior at the same time.
+
+Users of the cx_Oracle dialect are **strongly encouraged** to read through
+cx_Oracle's list of built-in datatype symbols at http://cx-oracle.readthedocs.io/en/latest/module.html#types.
+Note that in some cases, signficant performance degradation can occur when using
+these types vs. not, in particular when specifying ``cx_Oracle.CLOB``.
+
+On the SQLAlchemy side, the :meth:`.DialectEvents.do_setinputsizes` event
+can be used both for runtime visibliity (e.g. logging) of the setinputsizes
+step as well as to fully control how ``setinputsizes()`` is used on a per-statement
+basis.
+
+.. versionadded:: 1.2.9 Added :meth:`.DialectEvents.setinputsizes`
+
+
+Example 1 - logging all setinputsizes calls
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following example illustrates how to log the intermediary values from
+a SQLAlchemy perspective before they are converted to the raw ``setinputsizes()``
+parameter dictionary.  The keys of the dictionary are :class:`.BindParameter`
+objects which have a ``.key`` and a ``.type`` attribute::
+
+    from sqlalchemy import create_engine, event
+
+    engine = create_engine("oracle+cx_oracle://scott:tiger@host/xe")
+
+    @event.listens_for(engine, "do_setinputsizes")
+    def _log_setinputsizes(inputsizes, cursor, statement, parameters, context):
+        for bindparam, dbapitype in inputsizes.items():
+                log.info(
+                    "Bound parameter name: %s  SQLAlchemy type: %r  "
+                    "DBAPI object: %s",
+                    bindparam.key, bindparam.type, dbapitype)
+
+Example 2 - remove all bindings to CLOB
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``CLOB`` datatype in cx_Oracle incurs a significant performance overhead,
+however is set by default for the ``Text`` type within the SQLAlchemy 1.2
+series.   This setting can be modified as follows::
+
+    from sqlalchemy import create_engine, event
+    from cx_Oracle import CLOB
+
+    engine = create_engine("oracle+cx_oracle://scott:tiger@host/xe")
+
+    @event.listens_for(engine, "do_setinputsizes")
+    def _remove_clob(inputsizes, cursor, statement, parameters, context):
+        for bindparam, dbapitype in list(inputsizes.items()):
+            if dbapitype is CLOB:
+                del inputsizes[bindparam]
 
 
 .. _cx_oracle_returning:
@@ -224,6 +313,10 @@ import time
 
 
 class _OracleInteger(sqltypes.Integer):
+    def get_dbapi_type(self, dbapi):
+        # see https://github.com/oracle/python-cx_Oracle/issues/208#issuecomment-409715955
+        return int
+
     def _cx_oracle_var(self, dialect, cursor):
         cx_Oracle = dialect.dbapi
         return cursor.var(
@@ -536,7 +629,9 @@ class OracleExecutionContext_cx_oracle(OracleExecutionContext):
     def get_result_proxy(self):
         if self.out_parameters and self.compiled.returning:
             returning_params = [
-                self.out_parameters["ret_%d" % i].getvalue()
+                self.dialect._returningval(
+                    self.out_parameters["ret_%d" % i]
+                )
                 for i in range(len(self.out_parameters))
             ]
             return ReturningResultProxy(self, returning_params)
@@ -560,13 +655,15 @@ class OracleExecutionContext_cx_oracle(OracleExecutionContext):
                         if result_processor is not None:
                             out_parameters[name] = \
                                 result_processor(
-                                    self.out_parameters[name].getvalue())
+                                    self.dialect._paramval(
+                                        self.out_parameters[name]
+                                    ))
                         else:
-                            out_parameters[name] = self.out_parameters[
-                                name].getvalue()
+                            out_parameters[name] = self.dialect._paramval(
+                                self.out_parameters[name])
             else:
                 result.out_parameters = dict(
-                                            (k, v.getvalue())
+                                            (k, self._dialect._paramval(v))
                     for k, v in self.out_parameters.items()
                 )
 
@@ -670,6 +767,24 @@ class OracleDialect_cx_oracle(OracleDialect):
                 cx_Oracle.BLOB, cx_Oracle.FIXED_CHAR, cx_Oracle.TIMESTAMP,
                 _OracleInteger, _OracleBINARY_FLOAT, _OracleBINARY_DOUBLE
             }
+
+            self._paramval = lambda value: value.getvalue()
+
+            # https://github.com/oracle/python-cx_Oracle/issues/176#issuecomment-386821291
+            # https://github.com/oracle/python-cx_Oracle/issues/224
+            self._values_are_lists = self.cx_oracle_ver >= (6, 3)
+            if self._values_are_lists:
+                cx_Oracle.__future__.dml_ret_array_val = True
+
+                def _returningval(value):
+                    try:
+                        return value.values[0][0]
+                    except IndexError:
+                        return None
+
+                self._returningval = _returningval
+            else:
+                self._returningval = self._paramval
 
         self._is_cx_oracle_6 = self.cx_oracle_ver >= (6, )
 

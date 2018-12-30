@@ -15,7 +15,7 @@ import sqlalchemy as tsa
 from sqlalchemy.testing import fixtures
 from sqlalchemy import testing
 from sqlalchemy.testing import ComparesTables, AssertsCompiledSQL
-from sqlalchemy.testing import eq_, is_, mock, is_true
+from sqlalchemy.testing import eq_, is_, mock, is_true, is_false
 from contextlib import contextmanager
 from sqlalchemy import util
 from sqlalchemy.testing import engines
@@ -1066,6 +1066,38 @@ class ToMetaDataTest(fixtures.TestBase, ComparesTables):
             sorted([_get_key(i) for i in table_c.indexes])
         )
 
+    def test_indexes_with_col_redefine(self):
+        meta = MetaData()
+
+        table = Table('mytable', meta,
+                      Column('id', Integer, primary_key=True),
+                      Column('data1', Integer),
+                      Column('data2', Integer),
+                      Index('text', text('data1 + 1')),
+                      )
+        Index('multi', table.c.data1, table.c.data2)
+        Index('func', func.abs(table.c.data1))
+        Index('multi-func', table.c.data1, func.abs(table.c.data2))
+
+        table = Table('mytable', meta,
+                      Column('data1', Integer),
+                      Column('data2', Integer),
+                      extend_existing=True
+                      )
+
+        meta2 = MetaData()
+        table_c = table.tometadata(meta2)
+
+        def _get_key(i):
+            return [i.name, i.unique] + \
+                sorted(i.kwargs.items()) + \
+                [str(col) for col in i.expressions]
+
+        eq_(
+            sorted([_get_key(i) for i in table.indexes]),
+            sorted([_get_key(i) for i in table_c.indexes])
+        )
+
     @emits_warning("Table '.+' already exists within the given MetaData")
     def test_already_exists(self):
 
@@ -1847,6 +1879,18 @@ class SchemaTypeTest(fixtures.TestBase):
         m.dispatch.before_create(t1, testing.db)
         eq_(t1.c.y.type.evt_targets, (t1, ))
 
+    def test_enum_nonnative_column_copy_transfers_constraintpref(self):
+        m = MetaData()
+
+        type_ = self.WrapEnum(
+            'a', 'b', 'c', name='foo',
+            native_enum=False, create_constraint=False)
+        y = Column('y', type_)
+        y_copy = y.copy()
+        Table('x', m, y_copy)
+
+        is_false(y_copy.type.create_constraint)
+
     def test_boolean_column_copy_transfers_events(self):
         m = MetaData()
 
@@ -1856,6 +1900,16 @@ class SchemaTypeTest(fixtures.TestBase):
         t1 = Table('x', m, y_copy)
 
         is_true(y_copy.type._create_events)
+
+    def test_boolean_nonnative_column_copy_transfers_constraintpref(self):
+        m = MetaData()
+
+        type_ = self.WrapBoolean(create_constraint=False)
+        y = Column('y', type_)
+        y_copy = y.copy()
+        Table('x', m, y_copy)
+
+        is_false(y_copy.type.create_constraint)
 
     def test_metadata_dispatch_no_new_impl(self):
         m1 = MetaData()

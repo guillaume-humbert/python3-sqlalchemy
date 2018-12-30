@@ -219,6 +219,16 @@ class AppenderMixin(object):
 
         mapper = object_mapper(instance)
         prop = mapper._props[self.attr.key]
+
+        if prop.secondary is not None:
+            # this is a hack right now.  The Query only knows how to
+            # make subsequent joins() without a given left-hand side
+            # from self._from_obj[0].  We need to ensure prop.secondary
+            # is in the FROM.  So we purposly put the mapper selectable
+            # in _from_obj[0] to ensure a user-defined join() later on
+            # doesn't fail, and secondary is then in _from_obj[1].
+            self._from_obj = (prop.mapper.selectable, prop.secondary)
+
         self._criterion = prop._with_parent(
             instance,
             alias_secondary=False)
@@ -284,6 +294,7 @@ class AppenderMixin(object):
             query = sess.query(self.attr.target_mapper)
 
         query._criterion = self._criterion
+        query._from_obj = self._from_obj
         query._order_by = self._order_by
 
         return query

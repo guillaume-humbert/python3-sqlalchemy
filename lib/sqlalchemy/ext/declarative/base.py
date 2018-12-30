@@ -11,7 +11,7 @@ from ...orm import mapper, class_mapper, synonym
 from ...orm.interfaces import MapperProperty
 from ...orm.properties import ColumnProperty, CompositeProperty
 from ...orm.attributes import QueryableAttribute
-from ...orm.base import _is_mapped_class
+from ...orm.base import _is_mapped_class, InspectionAttr
 from ... import util, exc
 from ...util import topological
 from ...sql import expression
@@ -35,26 +35,50 @@ def _declared_mapping_info(cls):
         return None
 
 
-def _resolve_for_abstract(cls):
+def _resolve_for_abstract_or_classical(cls):
     if cls is object:
         return None
 
     if _get_immediate_cls_attr(cls, '__abstract__', strict=True):
         for sup in cls.__bases__:
-            sup = _resolve_for_abstract(sup)
+            sup = _resolve_for_abstract_or_classical(sup)
             if sup is not None:
                 return sup
         else:
             return None
     else:
+        classical = _dive_for_classically_mapped_class(cls)
+        if classical is not None:
+            return classical
+        else:
+            return cls
+
+
+def _dive_for_classically_mapped_class(cls):
+    # support issue #4321
+
+    # if we are within a base hierarchy, don't
+    # search at all for classical mappings
+    if hasattr(cls, '_decl_class_registry'):
+        return None
+
+    manager = instrumentation.manager_of_class(cls)
+    if manager is not None:
         return cls
+    else:
+        for sup in cls.__bases__:
+            mapper = _dive_for_classically_mapped_class(sup)
+            if mapper is not None:
+                return sup
+        else:
+            return None
 
 
 def _get_immediate_cls_attr(cls, attrname, strict=False):
     """return an attribute of the class that is either present directly
     on the class, e.g. not on a superclass, or is from a superclass but
-    this superclass is a mixin, that is, not a descendant of
-    the declarative base.
+    this superclass is a non-mapped mixin, that is, not a descendant of
+    the declarative base and is also not classically mapped.
 
     This is used to detect attributes that indicate something about
     a mapped class independently from any mapped classes that it may
@@ -66,10 +90,14 @@ def _get_immediate_cls_attr(cls, attrname, strict=False):
 
     for base in cls.__mro__:
         _is_declarative_inherits = hasattr(base, '_decl_class_registry')
+        _is_classicial_inherits = not _is_declarative_inherits and \
+            _dive_for_classically_mapped_class(base) is not None
+
         if attrname in base.__dict__ and (
             base is cls or
             ((base in cls.__bases__ if strict else True)
-                and not _is_declarative_inherits)
+                and not _is_declarative_inherits
+                and not _is_classicial_inherits)
         ):
             return getattr(base, attrname)
     else:
@@ -259,11 +287,27 @@ class _MapperConfig(object):
                                 util.warn_deprecated(
                                     "Use of sqlalchemy.util.classproperty on "
                                     "declarative classes is deprecated.")
-                            dict_[name] = column_copies[obj] = \
-                                ret = getattr(cls, name)
+                            # access attribute using normal class access
+                            ret = getattr(cls, name)
+
+                            # correct for proxies created from hybrid_property
+                            # or similar.  note there is no known case that
+                            # produces nested proxies, so we are only
+                            # looking one level deep right now.
+                            if isinstance(ret, InspectionAttr) and \
+                                    ret._is_internal_proxy and not isinstance(
+                                        ret.original_property, MapperProperty):
+                                ret = ret.descriptor
+
+                            dict_[name] = column_copies[obj] = ret
                         if isinstance(ret, (Column, MapperProperty)) and \
                                 ret.doc is None:
                             ret.doc = obj.__doc__
+                    # here, the attribute is some other kind of property that
+                    # we assume is not part of the declarative mapping.
+                    # however, check for some more common mistakes
+                    else:
+                        self._warn_for_decl_attributes(base, name, obj)
 
         if inherited_table_args and not tablename:
             table_args = None
@@ -271,6 +315,14 @@ class _MapperConfig(object):
         self.table_args = table_args
         self.tablename = tablename
         self.mapper_args_fn = mapper_args_fn
+
+    def _warn_for_decl_attributes(self, cls, key, c):
+        if isinstance(c, expression.ColumnClause):
+            util.warn(
+                "Attribute '%s' on class %s appears to be a non-schema "
+                "'sqlalchemy.sql.column()' "
+                "object; this won't be part of the declarative mapping" %
+                (key, cls))
 
     def _produce_column_copies(self, base):
         cls = self.cls
@@ -334,8 +386,8 @@ class _MapperConfig(object):
             if (isinstance(value, tuple) and len(value) == 1 and
                     isinstance(value[0], (Column, MapperProperty))):
                 util.warn("Ignoring declarative-like tuple value of attribute "
-                          "%s: possibly a copy-and-paste error with a comma "
-                          "left at the end of the line?" % k)
+                          "'%s': possibly a copy-and-paste error with a comma "
+                          "accidentally placed at the end of the line?" % k)
                 continue
             elif not isinstance(value, (Column, MapperProperty)):
                 # using @declared_attr for some object that
@@ -343,6 +395,7 @@ class _MapperConfig(object):
                 # and place the evaluated value onto the class.
                 if not k.startswith('__'):
                     dict_.pop(k)
+                    self._warn_for_decl_attributes(cls, k, value)
                     if not late_mapped:
                         setattr(cls, k, value)
                 continue
@@ -451,15 +504,24 @@ class _MapperConfig(object):
         cls = self.cls
         table_args = self.table_args
         declared_columns = self.declared_columns
+
+        # since we search for classical mappings now, search for
+        # multiple mapped bases as well and raise an error.
+        inherits = []
         for c in cls.__bases__:
-            c = _resolve_for_abstract(c)
+            c = _resolve_for_abstract_or_classical(c)
             if c is None:
                 continue
             if _declared_mapping_info(c) is not None and \
                     not _get_immediate_cls_attr(
                         c, '_sa_decl_prepare_nocascade', strict=True):
-                self.inherits = c
-                break
+                inherits.append(c)
+
+        if inherits:
+            if len(inherits) > 1:
+                raise exc.InvalidRequestError(
+                    "Class %s has multiple mapped bases: %r" % (cls, inherits))
+            self.inherits = inherits[0]
         else:
             self.inherits = None
 
@@ -486,11 +548,6 @@ class _MapperConfig(object):
                     )
                 # add any columns declared here to the inherited table.
                 for c in declared_columns:
-                    if c.primary_key:
-                        raise exc.ArgumentError(
-                            "Can't place primary key columns on an inherited "
-                            "class with no table."
-                        )
                     if c.name in inherited_table.c:
                         if inherited_table.c[c.name] is c:
                             continue
@@ -498,6 +555,11 @@ class _MapperConfig(object):
                             "Column '%s' on class %s conflicts with "
                             "existing column '%s'" %
                             (c, cls, inherited_table.c[c.name])
+                        )
+                    if c.primary_key:
+                        raise exc.ArgumentError(
+                            "Can't place primary key columns on an inherited "
+                            "class with no table."
                         )
                     inherited_table.append_column(c)
                     if inherited_mapped_table is not None and \

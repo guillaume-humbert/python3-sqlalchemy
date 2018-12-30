@@ -330,6 +330,14 @@ class DefaultRequirements(SuiteRequirements):
         ])
 
     @property
+    def sequences_as_server_defaults(self):
+        """Target database must support SEQUENCE as a server side default."""
+
+        return only_on(
+            'postgresql',
+            "doesn't support sequences as a server side default.")
+
+    @property
     def correlated_outer_joins(self):
         """Target must support an outer join to a subquery which
         correlates to the parent."""
@@ -348,12 +356,12 @@ class DefaultRequirements(SuiteRequirements):
     def delete_from(self):
         """Target must support DELETE FROM..FROM or DELETE..USING syntax"""
         return only_on(['postgresql', 'mssql', 'mysql', 'sybase'],
-                       "Backend does not support UPDATE..FROM")
+                       "Backend does not support DELETE..FROM")
 
     @property
     def update_where_target_in_subquery(self):
-        """Target must support UPDATE where the same table is present in a
-        subquery in the WHERE clause.
+        """Target must support UPDATE (or DELETE) where the same table is
+        present in a subquery in the WHERE clause.
 
         This is an ANSI-standard syntax that apparently MySQL can't handle,
         such as:
@@ -363,9 +371,10 @@ class DefaultRequirements(SuiteRequirements):
                 FROM documents GROUP BY documents.user_id
             )
         """
-        return fails_if('mysql',
-                        'MySQL error 1093 "Cant specify target table '
-                        'for update in FROM clause"')
+        return fails_if(
+            self._mysql_not_mariadb_103,
+            'MySQL error 1093 "Cant specify target table '
+            'for update in FROM clause", resolved by MariaDB 10.3')
 
     @property
     def savepoints(self):
@@ -466,14 +475,34 @@ class DefaultRequirements(SuiteRequirements):
     def ctes(self):
         """Target database supports CTEs"""
 
-        return only_if(
-            ['postgresql', 'mssql']
-        )
+        return only_on([
+            lambda config: against(config, "mysql") and (
+                config.db.dialect._is_mariadb and
+                config.db.dialect._mariadb_normalized_version_info >=
+                (10, 2)
+            ),
+            "postgresql",
+            "mssql",
+            "oracle"
+        ])
+
+    @property
+    def ctes_with_update_delete(self):
+        """target database supports CTES that ride on top of a normal UPDATE
+        or DELETE statement which refers to the CTE in a correlated subquery.
+
+        """
+        return only_on([
+            "postgresql",
+            "mssql",
+            # "oracle" - oracle can do this but SQLAlchemy doesn't support
+            # their syntax yet
+        ])
 
     @property
     def ctes_on_dml(self):
         """target database supports CTES which consist of INSERT, UPDATE
-        or DELETE"""
+        or DELETE *within* the CTE, e.g. WITH x AS (UPDATE....)"""
 
         return only_if(
             ['postgresql']
@@ -493,15 +522,17 @@ class DefaultRequirements(SuiteRequirements):
         """Target database must support INTERSECT or equivalent."""
 
         return fails_if([
-                "firebird", "mysql", "sybase",
-            ], 'no support for INTERSECT')
+            "firebird", self._mysql_not_mariadb_103,
+            "sybase",
+        ], 'no support for INTERSECT')
 
     @property
     def except_(self):
         """Target database must support EXCEPT or equivalent (i.e. MINUS)."""
         return fails_if([
-                "firebird", "mysql", "sybase",
-            ], 'no support for EXCEPT')
+            "firebird", self._mysql_not_mariadb_103,
+            "sybase",
+        ], 'no support for EXCEPT')
 
     @property
     def order_by_col_from_union(self):
@@ -1013,7 +1044,9 @@ class DefaultRequirements(SuiteRequirements):
             # will raise without quoting
             "postgresql": "POSIX",
 
-            "mysql": "latin1_general_ci",
+            # note MySQL databases need to be created w/ utf8mb3 charset
+            # for the test suite
+            "mysql": "utf8mb3_bin",
             "sqlite": "NOCASE",
 
             # will raise *with* quoting
@@ -1062,6 +1095,13 @@ class DefaultRequirements(SuiteRequirements):
                        "non-standard SELECT scalar syntax")
 
     @property
+    def mysql_for_update(self):
+        return skip_if(
+            "mysql+mysqlconnector",
+           "lock-sensitive operations crash on mysqlconnector"
+        )
+
+    @property
     def mysql_fsp(self):
         return only_if('mysql >= 5.6.4')
 
@@ -1100,6 +1140,12 @@ class DefaultRequirements(SuiteRequirements):
         return against(config, "mysql") and (
             not config.db.dialect._is_mariadb or
             config.db.dialect._mariadb_normalized_version_info < (10, 2)
+        )
+
+    def _mysql_not_mariadb_103(self, config):
+        return against(config, "mysql") and (
+            not config.db.dialect._is_mariadb or
+            config.db.dialect._mariadb_normalized_version_info < (10, 3)
         )
 
     def _has_mysql_on_windows(self, config):
