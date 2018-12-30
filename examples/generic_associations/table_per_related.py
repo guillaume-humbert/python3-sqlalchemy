@@ -1,4 +1,6 @@
-"""Illustrates a generic association which persists association
+"""table_per_related.py
+
+Illustrates a generic association which persists association
 objects within individual tables, each one generated to persist
 those objects on behalf of a particular parent class.
 

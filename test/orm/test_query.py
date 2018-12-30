@@ -4071,13 +4071,49 @@ class WithTransientOnNone(_fixtures.FixtureTest, AssertsCompiledSQL):
                     users.c.name == addresses.c.email_address))
         })
 
-    def test_filter_with_transient_assume_pk(self):
+    def test_filter_with_transient_dont_assume_pk(self):
         self._fixture1()
         User, Address = self.classes.User, self.classes.Address
 
         sess = Session()
 
         q = sess.query(Address).filter(Address.user == User())
+        assert_raises_message(
+            sa_exc.StatementError,
+            "Can't resolve value for column users.id on object "
+            ".User at .*; no value has been set for this column",
+            q.all
+        )
+
+    def test_filter_with_transient_given_pk(self):
+        self._fixture1()
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = Session()
+
+        q = sess.query(Address).filter(Address.user == User(id=None))
+        with expect_warnings("Got None for value of column "):
+            self.assert_compile(
+                q,
+                "SELECT addresses.id AS addresses_id, "
+                "addresses.user_id AS addresses_user_id, "
+                "addresses.email_address AS addresses_email_address "
+                "FROM addresses WHERE :param_1 = addresses.user_id",
+                checkparams={'param_1': None}
+            )
+
+    def test_filter_with_transient_given_pk_but_only_later(self):
+        self._fixture1()
+        User, Address = self.classes.User, self.classes.Address
+
+        sess = Session()
+
+        u1 = User()
+        # id is not set, so evaluates to NEVER_SET
+        q = sess.query(Address).filter(Address.user == u1)
+
+        # but we set it, so we should get the warning
+        u1.id = None
         with expect_warnings("Got None for value of column "):
             self.assert_compile(
                 q,
@@ -4093,7 +4129,8 @@ class WithTransientOnNone(_fixtures.FixtureTest, AssertsCompiledSQL):
         User, Address = self.classes.User, self.classes.Address
 
         s = Session()
-        q = s.query(Address).filter(Address.special_user == User())
+        q = s.query(Address).filter(
+            Address.special_user == User(id=None, name=None))
         with expect_warnings("Got None for value of column"):
 
             self.assert_compile(
@@ -4112,7 +4149,7 @@ class WithTransientOnNone(_fixtures.FixtureTest, AssertsCompiledSQL):
 
         sess = Session()
 
-        q = sess.query(User).with_parent(Address(), "user")
+        q = sess.query(User).with_parent(Address(user_id=None), "user")
         with expect_warnings("Got None for value of column"):
             self.assert_compile(
                 q,
@@ -4126,7 +4163,8 @@ class WithTransientOnNone(_fixtures.FixtureTest, AssertsCompiledSQL):
         User, Address = self.classes.User, self.classes.Address
 
         s = Session()
-        q = s.query(User).with_parent(Address(), "special_user")
+        q = s.query(User).with_parent(
+            Address(user_id=None, email_address=None), "special_user")
         with expect_warnings("Got None for value of column"):
 
             self.assert_compile(
@@ -4142,7 +4180,7 @@ class WithTransientOnNone(_fixtures.FixtureTest, AssertsCompiledSQL):
         User, Address = self.classes.User, self.classes.Address
 
         s = Session()
-        q = s.query(Address).filter(Address.user != User())
+        q = s.query(Address).filter(Address.user != User(id=None))
         with expect_warnings("Got None for value of column"):
             self.assert_compile(
                 q,
@@ -4164,7 +4202,7 @@ class WithTransientOnNone(_fixtures.FixtureTest, AssertsCompiledSQL):
 
         # this one does *not* warn because we do the criteria
         # without deferral
-        q = s.query(Address).filter(Address.special_user != User())
+        q = s.query(Address).filter(Address.special_user != User(id=None))
         self.assert_compile(
             q,
             "SELECT addresses.id AS addresses_id, "

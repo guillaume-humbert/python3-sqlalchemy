@@ -366,7 +366,7 @@ an error or to skip performing an UPDATE.
 
 ``ON DUPLICATE KEY UPDATE`` is used to perform an update of the already
 existing row, using any combination of new values as well as values
-from the proposed insertion.   These values are specified using
+from the proposed insertion.   These values are normally specified using
 keyword arguments passed to the
 :meth:`~.mysql.dml.Insert.on_duplicate_key_update`
 given column key values (usually the name of the column, unless it
@@ -374,9 +374,32 @@ specifies :paramref:`.Column.key`) as keys and literal or SQL expressions
 as values::
 
     on_duplicate_key_stmt = insert_stmt.on_duplicate_key_update(
-        data="some data"
-        updated_at=func.current_timestamp()
+        data="some data",
+        updated_at=func.current_timestamp(),
     )
+
+In a manner similar to that of :meth:`.UpdateBase.values`, other parameter
+forms are accepted, including a single dictionary::
+
+    on_duplicate_key_stmt = insert_stmt.on_duplicate_key_update(
+        {"data": "some data", "updated_at": func.current_timestamp()},
+    )
+
+as well as a list of 2-tuples, which will automatically provide
+a parameter-ordered UPDATE statement in a manner similar to that described
+at :ref:`updates_order_parameters`.  Unlike the :class:`.Update` object,
+no special flag is needed to specify the intent since the argument form is
+this context is unambiguous::
+
+    on_duplicate_key_stmt = insert_stmt.on_duplicate_key_update(
+        [
+            ("data", "some data"),
+            ("updated_at", func.current_timestamp()),
+        ],
+    )
+
+.. versionchanged:: 1.3 support for parameter-ordered UPDATE clause within
+   MySQL ON DUPLICATE KEY UPDATE
 
 .. warning::
 
@@ -385,6 +408,8 @@ as values::
     e.g. those specified using :paramref:`.Column.onupdate`.
     These values will not be exercised for an ON DUPLICATE KEY style of UPDATE,
     unless they are manually specified explicitly in the parameters.
+
+
 
 In order to refer to the proposed insertion row, the special alias
 :attr:`~.mysql.dml.Insert.inserted` is available as an attribute on
@@ -530,6 +555,19 @@ More information can be found at:
 http://dev.mysql.com/doc/refman/5.0/en/create-index.html
 
 http://dev.mysql.com/doc/refman/5.0/en/create-table.html
+
+Index Parsers
+~~~~~~~~~~~~~
+
+CREATE FULLTEXT INDEX in MySQL also supports a "WITH PARSER" option.  This
+is available using the keyword argument ``mysql_with_parser``::
+
+    Index(
+        'my_index', my_table.c.data,
+        mysql_prefix='FULLTEXT', mysql_with_parser="ngram")
+
+.. versionadded:: 1.3
+
 
 .. _mysql_foreign_keys:
 
@@ -914,10 +952,23 @@ class MySQLCompiler(compiler.SQLCompiler):
             self.process(binary.right, **kw))
 
     def visit_on_duplicate_key_update(self, on_duplicate, **kw):
-        cols = self.statement.table.c
+        if on_duplicate._parameter_ordering:
+            parameter_ordering = [
+                elements._column_as_key(key)
+                for key in on_duplicate._parameter_ordering
+            ]
+            ordered_keys = set(parameter_ordering)
+            cols = [
+                self.statement.table.c[key] for key in parameter_ordering
+                if key in self.statement.table.c
+            ] + [
+                c for c in self.statement.table.c if c.key not in ordered_keys
+            ]
+        else:
+            # traverse in table column order
+            cols = self.statement.table.c
 
         clauses = []
-        # traverse in table column order
         for column in cols:
             val = on_duplicate.update.get(column.key)
             if val is None:
@@ -937,7 +988,7 @@ class MySQLCompiler(compiler.SQLCompiler):
             name_text = self.preparer.quote(column.name)
             clauses.append("%s = %s" % (name_text, value_text))
 
-        non_matching = set(on_duplicate.update) - set(cols.keys())
+        non_matching = set(on_duplicate.update) - set(c.key for c in cols)
         if non_matching:
             util.warn(
                 'Additional column names not matching '
@@ -1129,6 +1180,19 @@ class MySQLCompiler(compiler.SQLCompiler):
                                  fromhints=from_hints, **kw)
             for t in [from_table] + extra_froms)
 
+    def visit_empty_set_expr(self, element_types):
+        return (
+            "SELECT %(outer)s FROM (SELECT %(inner)s) "
+            "as _empty_set WHERE 1!=1" % {
+                "inner": ", ".join(
+                    "1 AS _in_%s" % idx
+                    for idx, type_ in enumerate(element_types)),
+                "outer": ", ".join(
+                    "_in_%s" % idx
+                    for idx, type_ in enumerate(element_types))
+            }
+        )
+
 
 class MySQLDDLCompiler(compiler.DDLCompiler):
     def get_column_specification(self, column, **kw):
@@ -1282,6 +1346,10 @@ class MySQLDDLCompiler(compiler.DDLCompiler):
         else:
             columns = ', '.join(columns)
         text += '(%s)' % columns
+
+        parser = index.dialect_options['mysql']['with_parser']
+        if parser is not None:
+            text += " WITH PARSER %s" % (parser, )
 
         using = index.dialect_options['mysql']['using']
         if using is not None:
@@ -1702,6 +1770,7 @@ class MySQLDialect(default.DefaultDialect):
             "using": None,
             "length": None,
             "prefix": None,
+            "with_parser": None
         })
     ]
 
@@ -2177,20 +2246,31 @@ class MySQLDialect(default.DefaultDialect):
             connection, table_name, schema, **kw)
 
         indexes = []
+
         for spec in parsed_state.keys:
+            dialect_options = {}
             unique = False
             flavor = spec['type']
             if flavor == 'PRIMARY':
                 continue
             if flavor == 'UNIQUE':
                 unique = True
-            elif flavor in (None, 'FULLTEXT', 'SPATIAL'):
+            elif flavor in ('FULLTEXT', 'SPATIAL'):
+                dialect_options["mysql_prefix"] = flavor
+            elif flavor is None:
                 pass
             else:
                 self.logger.info(
                     "Converting unknown KEY type %s to a plain KEY", flavor)
                 pass
+
+            if spec['parser']:
+                dialect_options['mysql_with_parser'] = spec['parser']
+
             index_d = {}
+            if dialect_options:
+                index_d["dialect_options"] = dialect_options
+
             index_d['name'] = spec['name']
             index_d['column_names'] = [s[0] for s in spec['columns']]
             index_d['unique'] = unique

@@ -1561,7 +1561,7 @@ class QueuePoolTest(PoolTestBase):
         self.assert_(p.checkedout() == 0)
 
     def test_recycle(self):
-        with patch("sqlalchemy.pool.time.time") as mock:
+        with patch("sqlalchemy.pool.base.time.time") as mock:
             mock.return_value = 10000
 
             p = self._queuepool_fixture(
@@ -1982,6 +1982,83 @@ class QueuePoolTest(PoolTestBase):
             "Double checkin attempted on %s" % rec,
             rec.checkin
         )
+
+    def test_lifo(self):
+        c1, c2, c3 = Mock(), Mock(), Mock()
+        connections = [c1, c2, c3]
+
+        def creator():
+            return connections.pop(0)
+
+        p = pool.QueuePool(creator, use_lifo=True)
+
+        pc1 = p.connect()
+        pc2 = p.connect()
+        pc3 = p.connect()
+
+        pc1.close()
+        pc2.close()
+        pc3.close()
+
+        for i in range(5):
+            pc1 = p.connect()
+            is_(pc1.connection, c3)
+            pc1.close()
+
+            pc1 = p.connect()
+            is_(pc1.connection, c3)
+
+            pc2 = p.connect()
+            is_(pc2.connection, c2)
+            pc2.close()
+
+            pc3 = p.connect()
+            is_(pc3.connection, c2)
+
+            pc2 = p.connect()
+            is_(pc2.connection, c1)
+
+            pc2.close()
+            pc3.close()
+            pc1.close()
+
+    def test_fifo(self):
+        c1, c2, c3 = Mock(), Mock(), Mock()
+        connections = [c1, c2, c3]
+
+        def creator():
+            return connections.pop(0)
+
+        p = pool.QueuePool(creator)
+
+        pc1 = p.connect()
+        pc2 = p.connect()
+        pc3 = p.connect()
+
+        pc1.close()
+        pc2.close()
+        pc3.close()
+
+        pc1 = p.connect()
+        is_(pc1.connection, c1)
+        pc1.close()
+
+        pc1 = p.connect()
+        is_(pc1.connection, c2)
+
+        pc2 = p.connect()
+        is_(pc2.connection, c3)
+        pc2.close()
+
+        pc3 = p.connect()
+        is_(pc3.connection, c1)
+
+        pc2 = p.connect()
+        is_(pc2.connection, c3)
+
+        pc2.close()
+        pc3.close()
+        pc1.close()
 
 
 class ResetOnReturnTest(PoolTestBase):

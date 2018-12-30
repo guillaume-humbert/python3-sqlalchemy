@@ -913,7 +913,7 @@ class Table(DialectKWArgs, SchemaItem, TableClause):
         return self._schema_item_copy(table)
 
 
-class Column(SchemaItem, ColumnClause):
+class Column(DialectKWArgs, SchemaItem, ColumnClause):
     """Represents a column in a database table."""
 
     __visit_name__ = 'column'
@@ -1098,7 +1098,7 @@ class Column(SchemaItem, ColumnClause):
         :param onupdate: A scalar, Python callable, or
             :class:`~sqlalchemy.sql.expression.ClauseElement` representing a
             default value to be applied to the column within UPDATE
-            statements, which will be invoked upon update if this column is not
+            statements, which wil be invoked upon update if this column is not
             present in the SET clause of the update. This is a shortcut to
             using :class:`.ColumnDefault` as a positional argument with
             ``for_update=True``.
@@ -1284,9 +1284,10 @@ class Column(SchemaItem, ColumnClause):
         if 'info' in kwargs:
             self.info = kwargs.pop('info')
 
-        if kwargs:
-            raise exc.ArgumentError(
-                "Unknown arguments passed to Column: " + repr(list(kwargs)))
+        self._extra_kwargs(**kwargs)
+
+    def _extra_kwargs(self, **kwargs):
+        self._validate_dialect_kwargs(kwargs)
 
 #    @property
 #    def quote(self):
@@ -2748,7 +2749,7 @@ class CheckConstraint(ColumnCollectionConstraint):
 
     def __init__(self, sqltext, name=None, deferrable=None,
                  initially=None, table=None, info=None, _create_rule=None,
-                 _autoattach=True, _type_bound=False):
+                 _autoattach=True, _type_bound=False, **kw):
         r"""Construct a CHECK constraint.
 
         :param sqltext:
@@ -2787,7 +2788,7 @@ class CheckConstraint(ColumnCollectionConstraint):
                 name=name, deferrable=deferrable,
                 initially=initially, _create_rule=_create_rule, info=info,
                 _type_bound=_type_bound, _autoattach=_autoattach,
-                *columns)
+                *columns, **kw)
         if table is not None:
             self._set_parent_with_dispatch(table)
 
@@ -3654,15 +3655,29 @@ class MetaData(SchemaItem):
             * ``%(column_0_name)s`` - the name of the :class:`.Column` at
               index position "0" within the constraint.
 
-            * ``%(column_0_label)s`` - the label of the :class:`.Column` at
-              index position "0", e.g. :attr:`.Column.label`
+            * ``%(column_0N_name)s`` - the name of all :class:`.Column`
+              objects in order within the constraint, joined without a
+              separator.
 
-            * ``%(column_0_key)s`` - the key of the :class:`.Column` at
-              index position "0", e.g. :attr:`.Column.key`
+            * ``%(column_0_N_name)s`` - the name of all :class:`.Column`
+              objects in order within the constraint, joined with an
+              underscore as a separator.
 
-            * ``%(referred_column_0_name)s`` - the name of a :class:`.Column`
-              at index position "0" referenced by a
-              :class:`.ForeignKeyConstraint`.
+            * ``%(column_0_label)s``, ``%(column_0N_label)s``,
+              ``%(column_0_N_label)s`` - the label of either the zeroth
+              :class:`.Column` or all :class:`.Columns`, separated with
+              or without an underscore
+
+            * ``%(column_0_key)s``, ``%(column_0N_key)s``,
+              ``%(column_0_N_key)s`` - the key of either the zeroth
+              :class:`.Column` or all :class:`.Columns`, separated with
+              or without an underscore
+
+            * ``%(referred_column_0_name)s``, ``%(referred_column_0N_name)s``
+              ``%(referred_column_0_N_name)s``,  ``%(referred_column_0_key)s``,
+              ``%(referred_column_0N_key)s``, ...  column tokens which
+              render the names/keys/labels of columns that are referenced
+              by a  :class:`.ForeignKeyConstraint`.
 
             * ``%(constraint_name)s`` - a special key that refers to the
               existing name given to the constraint.  When this key is
@@ -3675,7 +3690,10 @@ class MetaData(SchemaItem):
               it along with a ``fn(constraint, table)`` callable to the
               naming_convention dictionary.
 
-          .. versionadded:: 0.9.2
+          .. versionadded:: 1.3.0 - added new ``%(column_0N_name)s``,
+             ``%(column_0_N_name)s``, and related tokens that produce
+             concatenations of names, keys, or labels for all columns referred
+             to by a given constraint.
 
           .. seealso::
 

@@ -18,7 +18,7 @@ from sqlalchemy.testing.mock import Mock, call
 from sqlalchemy.testing.assertions import expect_warnings
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.declarative import declared_attr
-
+from sqlalchemy.engine import default
 
 class DictCollection(dict):
     @collection.appender
@@ -1424,6 +1424,10 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
         cls.session = session
 
     def _equivalent(self, q_proxy, q_direct):
+        proxy_sql = q_proxy.statement.compile(dialect=default.DefaultDialect())
+        direct_sql = q_direct.statement.compile(
+            dialect=default.DefaultDialect())
+        eq_(str(proxy_sql), str(direct_sql))
         eq_(q_proxy.all(), q_direct.all())
 
     def test_filter_any_criterion_ul_scalar(self):
@@ -1545,11 +1549,12 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
 
     def test_filter_ne_nul_nul(self):
         Keyword = self.classes.Keyword
+        UserKeyword = self.classes.UserKeyword
 
         self._equivalent(
             self.session.query(Keyword).filter(Keyword.user != self.u),
             self.session.query(Keyword).filter(
-                Keyword.user_keyword.has(Keyword.user != self.u)))
+                Keyword.user_keyword.has(UserKeyword.user != self.u)))
 
     def test_filter_eq_null_nul_nul(self):
         UserKeyword, Keyword = self.classes.UserKeyword, self.classes.Keyword
@@ -1569,7 +1574,20 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
                 self.session.query(Keyword).filter(
                     Keyword.user_keyword.has(UserKeyword.user != None)))
 
-    def test_filter_eq_None_nul(self):
+    def test_filter_object_eq_None_nul(self):
+        UserKeyword = self.classes.UserKeyword
+        User = self.classes.User
+
+        self._equivalent(
+            self.session.query(UserKeyword).filter(
+                UserKeyword.singular == None),  # noqa
+            self.session.query(UserKeyword).filter(or_(
+                UserKeyword.user.has(User.singular == None),
+                UserKeyword.user_id == None)
+            )
+        )
+
+    def test_filter_column_eq_None_nul(self):
         User = self.classes.User
         Singular = self.classes.Singular
 
@@ -1578,9 +1596,23 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
                 User.singular_value == None),  # noqa
             self.session.query(User).filter(or_(
                 User.singular.has(Singular.value == None),
-                User.singular == None)))
+                User.singular == None)
+            )
+        )
 
-    def test_filter_ne_value_nul(self):
+    def test_filter_object_ne_value_nul(self):
+        UserKeyword = self.classes.UserKeyword
+        User = self.classes.User
+        Singular = self.classes.Singular
+
+        s4 = self.session.query(Singular).filter_by(value="singular4").one()
+        self._equivalent(
+            self.session.query(UserKeyword).filter(
+                UserKeyword.singular != s4),
+            self.session.query(UserKeyword).filter(
+                UserKeyword.user.has(User.singular != s4)))
+
+    def test_filter_column_ne_value_nul(self):
         User = self.classes.User
         Singular = self.classes.Singular
 
@@ -1713,13 +1745,13 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
             User.singular_keyword.has, keyword="brown"
         )
 
-    def test_filter_contains_chained_has_to_any(self):
+    def test_filter_eq_chained_has_to_any(self):
         User = self.classes.User
         Keyword = self.classes.Keyword
         Singular = self.classes.Singular
 
         q1 = self.session.query(User).filter(
-            User.singular_keyword.contains("brown")
+            User.singular_keyword == "brown"
         )
         self.assert_compile(
             q1,
@@ -1830,17 +1862,73 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
             User.singular_value.has, singular_value="singular4"
         )
 
-    def test_filter_scalar_contains_fails_nul_nul(self):
+    def test_filter_scalar_object_contains_fails_nul_nul(self):
         Keyword = self.classes.Keyword
 
         assert_raises(exc.InvalidRequestError,
                       lambda: Keyword.user.contains(self.u))
 
-    def test_filter_scalar_any_fails_nul_nul(self):
+    def test_filter_scalar_object_any_fails_nul_nul(self):
         Keyword = self.classes.Keyword
 
         assert_raises(exc.InvalidRequestError,
                       lambda: Keyword.user.any(name='user2'))
+
+    def test_filter_scalar_column_like(self):
+        User = self.classes.User
+        Singular = self.classes.Singular
+
+        self._equivalent(
+            self.session.query(User).filter(User.singular_value.like('foo')),
+            self.session.query(User).filter(
+                User.singular.has(Singular.value.like('foo')),
+            )
+        )
+
+    def test_filter_scalar_column_contains(self):
+        User = self.classes.User
+        Singular = self.classes.Singular
+
+        self._equivalent(
+            self.session.query(User).filter(User.singular_value.contains('foo')),
+            self.session.query(User).filter(
+                User.singular.has(Singular.value.contains('foo')),
+            )
+        )
+
+    def test_filter_scalar_column_eq(self):
+        User = self.classes.User
+        Singular = self.classes.Singular
+
+        self._equivalent(
+            self.session.query(User).filter(User.singular_value == 'foo'),
+            self.session.query(User).filter(
+                User.singular.has(Singular.value == 'foo'),
+            )
+        )
+
+    def test_filter_scalar_column_ne(self):
+        User = self.classes.User
+        Singular = self.classes.Singular
+
+        self._equivalent(
+            self.session.query(User).filter(User.singular_value != 'foo'),
+            self.session.query(User).filter(
+                User.singular.has(Singular.value != 'foo'),
+            )
+        )
+
+    def test_filter_scalar_column_eq_nul(self):
+        User = self.classes.User
+        Singular = self.classes.Singular
+
+        self._equivalent(
+            self.session.query(User).filter(User.singular_value == None),
+            self.session.query(User).filter(or_(
+                User.singular.has(Singular.value == None),
+                User.singular == None
+            ))
+        )
 
     def test_filter_collection_has_fails_ul_nul(self):
         User = self.classes.User
@@ -1899,7 +1987,8 @@ class DictOfTupleUpdateTest(fixtures.TestBase):
         m = MetaData()
         a = Table('a', m, Column('id', Integer, primary_key=True))
         b = Table('b', m, Column('id', Integer, primary_key=True),
-                  Column('aid', Integer, ForeignKey('a.id')))
+                  Column('aid', Integer, ForeignKey('a.id')),
+                  Column('elem', String))
         mapper(A, a, properties={
             'orig': relationship(
                 B,
@@ -1997,6 +2086,7 @@ class AttributeAccessTest(fixtures.TestBase):
             __tablename__ = 'child'
             parent_id = Column(
                 Integer, ForeignKey(Parent.id), primary_key=True)
+            value = Column(String)
 
         # 2. declarative builds up SubParent, scans through all attributes
         # over all classes.  Hits Mixin, hits "children", accesses "children"
@@ -2026,12 +2116,14 @@ class AttributeAccessTest(fixtures.TestBase):
             __tablename__ = 'child'
             parent_id = Column(
                 Integer, ForeignKey(Parent.id), primary_key=True)
+            value = Column(String)
 
         class SubParent(Parent):
             __tablename__ = 'subparent'
             id = Column(Integer, ForeignKey(Parent.id), primary_key=True)
 
-        is_(SubParent.children.owning_class, Parent)
+        is_(SubParent.children.owning_class, SubParent)
+        is_(Parent.children.owning_class, Parent)
 
     def test_resolved_to_correct_class_two(self):
         Base = declarative_base()
@@ -2045,6 +2137,7 @@ class AttributeAccessTest(fixtures.TestBase):
             __tablename__ = 'child'
             parent_id = Column(
                 Integer, ForeignKey(Parent.id), primary_key=True)
+            value = Column(String)
 
         class SubParent(Parent):
             __tablename__ = 'subparent'
@@ -2065,6 +2158,7 @@ class AttributeAccessTest(fixtures.TestBase):
             __tablename__ = 'child'
             parent_id = Column(
                 Integer, ForeignKey(Parent.id), primary_key=True)
+            value = Column(String)
 
         class SubParent(Parent):
             __tablename__ = 'subparent'
@@ -2075,7 +2169,8 @@ class AttributeAccessTest(fixtures.TestBase):
             __tablename__ = 'subsubparent'
             id = Column(Integer, ForeignKey(SubParent.id), primary_key=True)
 
-        is_(SubSubParent.children.owning_class, SubParent)
+        is_(SubParent.children.owning_class, SubParent)
+        is_(SubSubParent.children.owning_class, SubSubParent)
 
     def test_resolved_to_correct_class_four(self):
         Base = declarative_base()
@@ -2099,7 +2194,8 @@ class AttributeAccessTest(fixtures.TestBase):
 
         sp = SubParent()
         sp.children = 'c'
-        is_(SubParent.children.owning_class, Parent)
+        is_(SubParent.children.owning_class, SubParent)
+        is_(Parent.children.owning_class, Parent)
 
     def test_resolved_to_correct_class_five(self):
         Base = declarative_base()
@@ -2128,7 +2224,7 @@ class AttributeAccessTest(fixtures.TestBase):
         is_(Parent.children.owning_class, Parent)
         eq_(p1.children, ["c1"])
 
-    def test_never_assign_nonetype(self):
+    def _test_never_assign_nonetype(self):
         foo = association_proxy('x', 'y')
         foo._calc_owner(None, None)
         is_(foo.owning_class, None)
@@ -2157,6 +2253,239 @@ class AttributeAccessTest(fixtures.TestBase):
         is_(Bat.foo.owning_class, Bat)
 
 
+class ScalarRemoveTest(object):
+    useobject = None
+    cascade_scalar_deletes = None
+    uselist = None
+
+    @classmethod
+    def setup_classes(cls):
+        Base = cls.DeclarativeBasic
+
+        class A(Base):
+            __tablename__ = 'test_a'
+            id = Column(Integer, primary_key=True)
+            ab = relationship(
+                'AB', backref='a',
+                uselist=cls.uselist)
+            b = association_proxy(
+                'ab', 'b', creator=lambda b: AB(b=b),
+                cascade_scalar_deletes=cls.cascade_scalar_deletes)
+
+        if cls.useobject:
+            class B(Base):
+                __tablename__ = 'test_b'
+                id = Column(Integer, primary_key=True)
+                ab = relationship('AB', backref="b")
+
+            class AB(Base):
+                __tablename__ = 'test_ab'
+                a_id = Column(Integer, ForeignKey(A.id), primary_key=True)
+                b_id = Column(Integer, ForeignKey(B.id), primary_key=True)
+
+        else:
+            class AB(Base):
+                __tablename__ = 'test_ab'
+                b = Column(Integer)
+                a_id = Column(Integer, ForeignKey(A.id), primary_key=True)
+
+    def test_set_nonnone_to_none(self):
+        if self.useobject:
+            A, AB, B = self.classes("A", "AB", "B")
+        else:
+            A, AB = self.classes("A", "AB")
+
+        a1 = A()
+
+        b1 = B() if self.useobject else 5
+
+        if self.uselist:
+            a1.b.append(b1)
+        else:
+            a1.b = b1
+
+        if self.uselist:
+            assert isinstance(a1.ab[0], AB)
+        else:
+            assert isinstance(a1.ab, AB)
+
+        if self.uselist:
+            a1.b.remove(b1)
+        else:
+            a1.b = None
+
+        if self.uselist:
+            eq_(a1.ab, [])
+        else:
+            if self.cascade_scalar_deletes:
+                assert a1.ab is None
+            else:
+                assert isinstance(a1.ab, AB)
+                assert a1.ab.b is None
+
+    def test_set_none_to_none(self):
+        if self.uselist:
+            return
+
+        if self.useobject:
+            A, AB, B = self.classes("A", "AB", "B")
+        else:
+            A, AB = self.classes("A", "AB")
+
+        a1 = A()
+
+        a1.b = None
+
+        assert a1.ab is None
+
+    def test_del_already_nonpresent(self):
+        if self.useobject:
+            A, AB, B = self.classes("A", "AB", "B")
+        else:
+            A, AB = self.classes("A", "AB")
+
+        a1 = A()
+
+        if self.uselist:
+            del a1.b
+
+            eq_(a1.ab, [])
+
+        else:
+            def go():
+                del a1.b
+
+            assert_raises_message(
+                AttributeError,
+                "A.ab object does not have a value",
+                go
+            )
+
+    def test_del(self):
+        if self.useobject:
+            A, AB, B = self.classes("A", "AB", "B")
+        else:
+            A, AB = self.classes("A", "AB")
+
+        b1 = B() if self.useobject else 5
+
+        a1 = A()
+        if self.uselist:
+            a1.b.append(b1)
+        else:
+            a1.b = b1
+
+        if self.uselist:
+            assert isinstance(a1.ab[0], AB)
+        else:
+            assert isinstance(a1.ab, AB)
+
+        del a1.b
+
+        if self.uselist:
+            eq_(a1.ab, [])
+        else:
+            assert a1.ab is None
+
+    def test_del_no_proxy(self):
+        if not self.uselist:
+            return
+
+        if self.useobject:
+            A, AB, B = self.classes("A", "AB", "B")
+        else:
+            A, AB = self.classes("A", "AB")
+
+        b1 = B() if self.useobject else 5
+        a1 = A()
+        a1.b.append(b1)
+
+        del a1.ab
+
+        # this is what it does for now, so maintain that w/ assoc proxy
+        eq_(a1.ab, [])
+
+    def test_del_already_nonpresent_no_proxy(self):
+        if not self.uselist:
+            return
+
+        if self.useobject:
+            A, AB, B = self.classes("A", "AB", "B")
+        else:
+            A, AB = self.classes("A", "AB")
+
+        a1 = A()
+
+        del a1.ab
+
+        # this is what it does for now, so maintain that w/ assoc proxy
+        eq_(a1.ab, [])
+
+
+class ScalarRemoveListObjectCascade(
+        ScalarRemoveTest, fixtures.DeclarativeMappedTest):
+
+    useobject = True
+    cascade_scalar_deletes = True
+    uselist = True
+
+
+class ScalarRemoveScalarObjectCascade(
+        ScalarRemoveTest, fixtures.DeclarativeMappedTest):
+
+    useobject = True
+    cascade_scalar_deletes = True
+    uselist = False
+
+
+class ScalarRemoveListScalarCascade(
+        ScalarRemoveTest, fixtures.DeclarativeMappedTest):
+
+    useobject = False
+    cascade_scalar_deletes = True
+    uselist = True
+
+
+class ScalarRemoveScalarScalarCascade(
+        ScalarRemoveTest, fixtures.DeclarativeMappedTest):
+
+    useobject = False
+    cascade_scalar_deletes = True
+    uselist = False
+
+
+class ScalarRemoveListObjectNoCascade(
+        ScalarRemoveTest, fixtures.DeclarativeMappedTest):
+
+    useobject = True
+    cascade_scalar_deletes = False
+    uselist = True
+
+
+class ScalarRemoveScalarObjectNoCascade(
+        ScalarRemoveTest, fixtures.DeclarativeMappedTest):
+
+    useobject = True
+    cascade_scalar_deletes = False
+    uselist = False
+
+
+class ScalarRemoveListScalarNoCascade(
+        ScalarRemoveTest, fixtures.DeclarativeMappedTest):
+
+    useobject = False
+    cascade_scalar_deletes = False
+    uselist = True
+
+
+class ScalarRemoveScalarScalarNoCascade(
+        ScalarRemoveTest, fixtures.DeclarativeMappedTest):
+
+    useobject = False
+    cascade_scalar_deletes = False
+    uselist = False
+
+
 class InfoTest(fixtures.TestBase):
     def test_constructor(self):
         assoc = association_proxy('a', 'b', info={'some_assoc': 'some_value'})
@@ -2175,3 +2504,237 @@ class InfoTest(fixtures.TestBase):
         Foob.assoc.info["foo"] = 'bar'
 
         eq_(Foob.assoc.info, {'foo': 'bar'})
+
+
+class MultiOwnerTest(fixtures.DeclarativeMappedTest,
+                                     testing.AssertsCompiledSQL):
+    __dialect__ = 'default'
+
+    @classmethod
+    def setup_classes(cls):
+        Base = cls.DeclarativeBasic
+
+        class A(Base):
+            __tablename__ = 'a'
+            id = Column(Integer, primary_key=True)
+            type = Column(String(5), nullable=False)
+            d_values = association_proxy("ds", "value")
+
+            __mapper_args__ = {"polymorphic_on": type}
+
+        class B(A):
+            __tablename__ = 'b'
+            id = Column(ForeignKey('a.id'), primary_key=True)
+
+            ds = relationship("D", primaryjoin="D.b_id == B.id")
+
+            __mapper_args__ = {"polymorphic_identity": "b"}
+
+        class C(A):
+            __tablename__ = 'c'
+            id = Column(ForeignKey('a.id'), primary_key=True)
+
+            ds = relationship("D", primaryjoin="D.c_id == C.id")
+
+            __mapper_args__ = {"polymorphic_identity": "c"}
+
+        class C2(C):
+            __tablename__ = 'c2'
+            id = Column(ForeignKey('c.id'), primary_key=True)
+
+            ds = relationship("D", primaryjoin="D.c2_id == C2.id")
+
+            __mapper_args__ = {"polymorphic_identity": "c2"}
+
+        class D(Base):
+            __tablename__ = 'd'
+            id = Column(Integer, primary_key=True)
+            value = Column(String(50))
+            b_id = Column(ForeignKey('b.id'))
+            c_id = Column(ForeignKey('c.id'))
+            c2_id = Column(ForeignKey('c2.id'))
+
+    def test_column_collection_expressions(self):
+        B, C, C2 = self.classes("B", "C", "C2")
+
+        self.assert_compile(
+            B.d_values.contains('b1'),
+            "EXISTS (SELECT 1 FROM d, b WHERE d.b_id = b.id "
+            "AND (d.value LIKE '%' || :value_1 || '%'))"
+        )
+
+        self.assert_compile(
+            C2.d_values.contains("c2"),
+            "EXISTS (SELECT 1 FROM d, c2 WHERE d.c2_id = c2.id "
+            "AND (d.value LIKE '%' || :value_1 || '%'))"
+        )
+
+        self.assert_compile(
+            C.d_values.contains('c1'),
+            "EXISTS (SELECT 1 FROM d, c WHERE d.c_id = c.id "
+            "AND (d.value LIKE '%' || :value_1 || '%'))"
+        )
+
+
+class ScopeBehaviorTest(fixtures.DeclarativeMappedTest):
+    # test some GC scenarios, including issue #4268
+
+    @classmethod
+    def setup_classes(cls):
+        Base = cls.DeclarativeBasic
+
+        class A(Base):
+            __tablename__ = 'a'
+
+            id = Column(Integer, primary_key=True)
+            data = Column(String(50))
+            bs = relationship("B")
+
+            b_dyn = relationship("B", lazy="dynamic")
+
+            b_data = association_proxy("bs", "data")
+
+            b_dynamic_data = association_proxy("bs", "data")
+
+        class B(Base):
+            __tablename__ = 'b'
+
+            id = Column(Integer, primary_key=True)
+            aid = Column(ForeignKey('a.id'))
+            data = Column(String(50))
+
+    @classmethod
+    def insert_data(cls):
+        A, B = cls.classes("A", "B")
+
+        s = Session(testing.db)
+        s.add_all([
+            A(id=1, bs=[B(data='b1'), B(data='b2')]),
+            A(id=2, bs=[B(data='b3'), B(data='b4')])])
+        s.commit()
+        s.close()
+
+    def test_plain_collection_gc(self):
+        A, B = self.classes("A", "B")
+
+        s = Session(testing.db)
+        a1 = s.query(A).filter_by(id=1).one()
+
+        a1bs = a1.bs  # noqa
+
+        del a1
+
+        gc_collect()
+
+        assert (A, (1, ), None) not in s.identity_map
+
+    @testing.fails("dynamic relationship strong references parent")
+    def test_dynamic_collection_gc(self):
+        A, B = self.classes("A", "B")
+
+        s = Session(testing.db)
+
+        a1 = s.query(A).filter_by(id=1).one()
+
+        a1bs = a1.b_dyn  # noqa
+
+        del a1
+
+        gc_collect()
+
+        # also fails, AppenderQuery holds onto parent
+        assert (A, (1, ), None) not in s.identity_map
+
+    @testing.fails("association proxy strong references parent")
+    def test_associated_collection_gc(self):
+        A, B = self.classes("A", "B")
+
+        s = Session(testing.db)
+
+        a1 = s.query(A).filter_by(id=1).one()
+
+        a1bs = a1.b_data # noqa
+
+        del a1
+
+        gc_collect()
+
+        assert (A, (1, ), None) not in s.identity_map
+
+    @testing.fails("association proxy strong references parent")
+    def test_associated_dynamic_gc(self):
+        A, B = self.classes("A", "B")
+
+        s = Session(testing.db)
+
+        a1 = s.query(A).filter_by(id=1).one()
+
+        a1bs = a1.b_dynamic_data # noqa
+
+        del a1
+
+        gc_collect()
+
+        assert (A, (1, ), None) not in s.identity_map
+
+    def test_plain_collection_iterate(self):
+        A, B = self.classes("A", "B")
+
+        s = Session(testing.db)
+
+        a1 = s.query(A).filter_by(id=1).one()
+
+        a1bs = a1.bs
+
+        del a1
+
+        gc_collect()
+
+        assert len(a1bs) == 2
+
+    def test_dynamic_collection_iterate(self):
+        A, B = self.classes("A", "B")
+
+        s = Session(testing.db)
+
+        a1 = s.query(A).filter_by(id=1).one()
+
+        a1bs = a1.b_dyn  # noqa
+
+        del a1
+
+        gc_collect()
+
+        assert len(list(a1bs)) == 2
+
+    def test_associated_collection_iterate(self):
+        A, B = self.classes("A", "B")
+
+        s = Session(testing.db)
+
+        a1 = s.query(A).filter_by(id=1).one()
+
+        a1bs = a1.b_data
+
+        del a1
+
+        gc_collect()
+
+        assert len(a1bs) == 2
+
+    def test_associated_dynamic_iterate(self):
+        A, B = self.classes("A", "B")
+
+        s = Session(testing.db)
+
+        a1 = s.query(A).filter_by(id=1).one()
+
+        a1bs = a1.b_dynamic_data
+
+        del a1
+
+        gc_collect()
+
+        assert len(a1bs) == 2
+
+

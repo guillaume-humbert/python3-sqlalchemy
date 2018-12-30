@@ -1056,6 +1056,12 @@ class SQLCompiler(Compiled):
                 self._emit_empty_in_warning()
             return self.process(binary.left == binary.left)
 
+    def visit_empty_set_expr(self, element_types):
+        raise NotImplementedError(
+            "Dialect '%s' does not support empty set expression." %
+            self.dialect.name
+        )
+
     def visit_binary(self, binary, override_operator=None,
                      eager_grouping=False, **kw):
 
@@ -1076,6 +1082,9 @@ class SQLCompiler(Compiled):
                 raise exc.UnsupportedCompilationError(self, operator_)
             else:
                 return self._generate_generic_binary(binary, opstring, **kw)
+
+    def visit_function_as_comparison_op_binary(self, element, operator, **kw):
+        return self.process(element.sql_function, **kw)
 
     def visit_mod_binary(self, binary, operator, **kw):
         if self.preparer._double_percents:
@@ -1226,10 +1235,17 @@ class SQLCompiler(Compiled):
                         literal_binds=False,
                         skip_bind_expression=False,
                         **kwargs):
-        if not skip_bind_expression and bindparam.type._has_bind_expression:
-            bind_expression = bindparam.type.bind_expression(bindparam)
-            return self.process(bind_expression,
-                                skip_bind_expression=True)
+
+        if not skip_bind_expression:
+            impl = bindparam.type.dialect_impl(self.dialect)
+            if impl._has_bind_expression:
+                bind_expression = impl.bind_expression(bindparam)
+                return self.process(
+                    bind_expression, skip_bind_expression=True,
+                    within_columns_clause=within_columns_clause,
+                    literal_binds=literal_binds,
+                    **kwargs
+                )
 
         if literal_binds or \
             (within_columns_clause and
@@ -1499,10 +1515,12 @@ class SQLCompiler(Compiled):
                              within_columns_clause=True):
         """produce labeled columns present in a select()."""
 
-        if column.type._has_column_expression and \
+        impl = column.type.dialect_impl(self.dialect)
+        if impl._has_column_expression and \
                 populate_result_map:
-            col_expr = column.type.column_expression(column)
-            add_to_result_map = lambda keyname, name, objects, type_: \
+            col_expr = impl.column_expression(column)
+
+            def add_to_result_map(keyname, name, objects, type_):
                 self._add_to_result_map(
                     keyname, name,
                     (column,) + objects, type_)
@@ -2389,6 +2407,9 @@ class StrSQLCompiler(SQLCompiler):
     def visit_json_path_getitem_op_binary(self, binary, operator, **kw):
         return self.visit_getitem_binary(binary, operator, **kw)
 
+    def visit_sequence(self, seq, **kw):
+        return "<next sequence value: %s>" % self.preparer.format_sequence(seq)
+
     def returning_clause(self, stmt, returning_cols):
         columns = [
             self._label_select_column(None, c, True, False, {})
@@ -2603,17 +2624,7 @@ class DDLCompiler(Compiled):
         else:
             schema_name = None
 
-        ident = index.name
-        if isinstance(ident, elements._truncated_label):
-            max_ = self.dialect.max_index_name_length or \
-                self.dialect.max_identifier_length
-            if len(ident) > max_:
-                ident = ident[0:max_ - 8] + \
-                    "_" + util.md5_hex(ident)[-4:]
-        else:
-            self.dialect.validate_identifier(ident)
-
-        index_name = self.preparer.quote(ident)
+        index_name = self.preparer.format_index(index)
 
         if schema_name:
             index_name = schema_name + "." + index_name
@@ -3144,11 +3155,31 @@ class IdentifierPreparer(object):
         if isinstance(constraint.name, elements._defer_name):
             name = naming._constraint_name_for_table(
                 constraint, constraint.table)
-            if name:
-                return self.quote(name)
-            elif isinstance(constraint.name, elements._defer_none_name):
-                return None
-        return self.quote(constraint.name)
+
+            if name is None:
+                if isinstance(constraint.name, elements._defer_none_name):
+                    return None
+                else:
+                    name = constraint.name
+        else:
+            name = constraint.name
+
+        if isinstance(name, elements._truncated_label):
+            if constraint.__visit_name__ == 'index':
+                max_ = self.dialect.max_index_name_length or \
+                    self.dialect.max_identifier_length
+            else:
+                max_ = self.dialect.max_identifier_length
+            if len(name) > max_:
+                name = name[0:max_ - 8] + \
+                    "_" + util.md5_hex(name)[-4:]
+        else:
+            self.dialect.validate_identifier(name)
+
+        return self.quote(name)
+
+    def format_index(self, index):
+        return self.format_constraint(index)
 
     def format_table(self, table, use_schema=True, name=None):
         """Prepare a quoted table and schema name."""

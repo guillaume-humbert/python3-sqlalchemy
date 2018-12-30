@@ -734,10 +734,15 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
             if parameter.expanding:
                 values = compiled_params.pop(name)
                 if not values:
-                    raise exc.InvalidRequestError(
-                        "'expanding' parameters can't be used with an "
-                        "empty list"
+                    to_update = []
+                    replacement_expressions[name] = (
+                        self.compiled.visit_empty_set_expr(
+                            parameter._expanding_in_types
+                            if parameter._expanding_in_types
+                            else [parameter.type]
+                        )
                     )
+
                 elif isinstance(values[0], (tuple, list)):
                     to_update = [
                         ("%s_%s_%s" % (name, i, j), value)
@@ -1133,6 +1138,7 @@ class DefaultExecutionContext(interfaces.ExecutionContext):
             dialect_impl = bindparam.type._unwrapped_dialect_impl(self.dialect)
             dialect_impl_cls = type(dialect_impl)
             dbtype = dialect_impl.get_dbapi_type(self.dialect.dbapi)
+
             if dbtype is not None and (
                 not exclude_types or dbtype not in exclude_types and
                 dialect_impl_cls not in exclude_types

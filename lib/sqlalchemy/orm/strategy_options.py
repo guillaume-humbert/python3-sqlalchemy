@@ -164,7 +164,6 @@ class Load(Generative, MapperOption):
             query._attributes.update(self.context)
 
     def _generate_path(self, path, attr, wildcard_key, raiseerr=True):
-        existing_of_type = self._of_type
         self._of_type = None
 
         if raiseerr and not path.has_entity:
@@ -189,20 +188,16 @@ class Load(Generative, MapperOption):
                 self.path = path
                 return path
 
-            if existing_of_type:
-                ent = inspect(existing_of_type)
-            else:
-                ent = path.entity
             try:
                 # use getattr on the class to work around
                 # synonyms, hybrids, etc.
-                attr = getattr(ent.class_, attr)
+                attr = getattr(path.entity.class_, attr)
             except AttributeError:
                 if raiseerr:
                     raise sa_exc.ArgumentError(
                         "Can't find property named '%s' on the "
                         "mapped entity %s in this Query. " % (
-                            attr, ent)
+                            attr, path.entity)
                     )
                 else:
                     return None

@@ -1282,8 +1282,14 @@ def _sort_states(states):
     pending = set(states)
     persistent = set(s for s in pending if s.key is not None)
     pending.difference_update(persistent)
+    try:
+        persistent_sorted = sorted(persistent, key=lambda q: q.key[1])
+    except TypeError as err:
+        raise sa_exc.InvalidRequestError(
+            "Could not sort objects by primary key; primary key "
+            "values must be sortable in Python (was: %s)" % err)
     return sorted(pending, key=operator.attrgetter("insert_order")) + \
-        sorted(persistent, key=lambda q: q.key[1])
+        persistent_sorted
 
 
 class BulkUD(object):
@@ -1337,9 +1343,7 @@ class BulkUD(object):
         self._do_post()
 
     def _execute_stmt(self, stmt):
-        self.result = self.query.session.execute(
-            stmt, params=self.query._params,
-            mapper=self.mapper)
+        self.result = self.query._execute_crud(stmt, self.mapper)
         self.rowcount = self.result.rowcount
 
     @util.dependencies("sqlalchemy.orm.query")

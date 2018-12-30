@@ -87,6 +87,19 @@ class MySQLDialect_mysqldb(MySQLDialect):
     def __init__(self, server_side_cursors=False, **kwargs):
         super(MySQLDialect_mysqldb, self).__init__(**kwargs)
         self.server_side_cursors = server_side_cursors
+        self._mysql_dbapi_version = self._parse_dbapi_version(
+            self.dbapi.__version__) if self.dbapi is not None \
+            and hasattr(self.dbapi, '__version__') else (0, 0, 0)
+
+    def _parse_dbapi_version(self, version):
+        m = re.match(r'(\d+)\.(\d+)(?:\.(\d+))?', version)
+        if m:
+            return tuple(
+                int(x)
+                for x in m.group(1, 2, 3)
+                if x is not None)
+        else:
+            return (0, 0, 0)
 
     @util.langhelpers.memoized_property
     def supports_server_side_cursors(self):
@@ -100,6 +113,17 @@ class MySQLDialect_mysqldb(MySQLDialect):
     @classmethod
     def dbapi(cls):
         return __import__('MySQLdb')
+
+    def do_ping(self, dbapi_connection):
+        try:
+            dbapi_connection.ping(False)
+        except self.dbapi.Error as err:
+            if self.is_disconnect(err, dbapi_connection, None):
+                return False
+            else:
+                raise
+        else:
+            return True
 
     def do_executemany(self, cursor, statement, parameters, context=None):
         rowcount = cursor.executemany(statement, parameters)
@@ -138,7 +162,6 @@ class MySQLDialect_mysqldb(MySQLDialect):
         util.coerce_kw_type(opts, 'compress', bool)
         util.coerce_kw_type(opts, 'connect_timeout', int)
         util.coerce_kw_type(opts, 'read_timeout', int)
-        util.coerce_kw_type(opts, 'write_timeout', int)
         util.coerce_kw_type(opts, 'client_flag', int)
         util.coerce_kw_type(opts, 'local_infile', int)
         # Note: using either of the below will cause all strings to be

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: SQLAlchemy
-Version: 1.2.15
+Version: 1.3.0b1
 Summary: Database Abstraction Library
 Home-page: http://www.sqlalchemy.org
 Author: Mike Bayer
@@ -155,17 +155,25 @@ Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Topic :: Database :: Front-Ends
 Classifier: Operating System :: OS Independent
-Provides-Extra: postgresql_psycopg2cffi
-Provides-Extra: postgresql_psycopg2binary
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*
 Provides-Extra: postgresql
-Provides-Extra: pymysql
 Provides-Extra: postgresql_pg8000
-Provides-Extra: mssql_pyodbc
+Provides-Extra: postgresql_psycopg2cffi
 Provides-Extra: oracle
-Provides-Extra: mysql
 Provides-Extra: mssql_pymssql
+Provides-Extra: postgresql_psycopg2binary
+Provides-Extra: mssql
+Provides-Extra: pymysql
+Provides-Extra: mssql_pyodbc
+Provides-Extra: mysql

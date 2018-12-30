@@ -396,6 +396,41 @@ a DBAPI connection might be invalidated include:
 All invalidations which occur will invoke the :meth:`.PoolEvents.invalidate`
 event.
 
+.. _pool_use_lifo:
+
+Using FIFO vs. LIFO
+-------------------
+
+The :class:`.QueuePool` class features a flag called
+:paramref:`.QueuePool.use_lifo`, which can also be accessed from
+:func:`.create_engine` via the flag :paramref:`.create_engine.pool_use_lifo`.
+Setting this flag to ``True`` causes the pool's "queue" behavior to instead be
+that of a "stack", e.g. the last connection to be returned to the pool is the
+first one to be used on the next request. In contrast to the pool's long-
+standing behavior of first-in-first-out, which produces a round-robin effect of
+using each connection in the pool in series, lifo mode allows excess
+connections to remain idle in the pool, allowing server-side timeout schemes to
+close these connections out.   The difference between FIFO and LIFO is
+basically whether or not its desirable for the pool to keep a full set of
+connections ready to go even during idle periods::
+
+    engine = create_engine(
+        "postgreql://", pool_use_lifo=True, pool_pre_ping=True)
+
+Above, we also make use of the :paramref:`.create_engine.pool_pre_ping` flag
+so that connections which are closed from the server side are gracefully
+handled by the connection pool and replaced with a new connection.
+
+Note that the flag only applies to :class:`.QueuePool` use.
+
+.. versionadded:: 1.3
+
+.. seealso::
+
+    :ref:`pool_disconnects`
+
+
+
 Using Connection Pools with Multiprocessing
 -------------------------------------------
 
@@ -493,53 +528,4 @@ API Documentation - Available Pool Implementations
 
 .. autoclass:: _ConnectionRecord
     :members:
-
-
-Pooling Plain DB-API Connections
---------------------------------
-
-Any :pep:`249` DB-API module can be "proxied" through the connection
-pool transparently.  Usage of the DB-API is exactly as before, except
-the ``connect()`` method will consult the pool.  Below we illustrate
-this with ``psycopg2``::
-
-    import sqlalchemy.pool as pool
-    import psycopg2 as psycopg
-
-    psycopg = pool.manage(psycopg)
-
-    # then connect normally
-    connection = psycopg.connect(database='test', username='scott',
-                                 password='tiger')
-
-This produces a :class:`_DBProxy` object which supports the same
-``connect()`` function as the original DB-API module.  Upon
-connection, a connection proxy object is returned, which delegates its
-calls to a real DB-API connection object.  This connection object is
-stored persistently within a connection pool (an instance of
-:class:`.Pool`) that corresponds to the exact connection arguments sent
-to the ``connect()`` function.
-
-The connection proxy supports all of the methods on the original
-connection object, most of which are proxied via ``__getattr__()``.
-The ``close()`` method will return the connection to the pool, and the
-``cursor()`` method will return a proxied cursor object.  Both the
-connection proxy and the cursor proxy will also return the underlying
-connection to the pool after they have both been garbage collected,
-which is detected via weakref callbacks  (``__del__`` is not used).
-
-Additionally, when connections are returned to the pool, a
-``rollback()`` is issued on the connection unconditionally.  This is
-to release any locks still held by the connection that may have
-resulted from normal activity.
-
-By default, the ``connect()`` method will return the same connection
-that is already checked out in the current thread.  This allows a
-particular connection to be used in a given thread without needing to
-pass it around between functions.  To disable this behavior, specify
-``use_threadlocal=False`` to the ``manage()`` function.
-
-.. autofunction:: sqlalchemy.pool.manage
-
-.. autofunction:: sqlalchemy.pool.clear_managers
 

@@ -43,10 +43,10 @@ case.
 To force the usage of RETURNING by default off, specify the flag
 ``implicit_returning=False`` to :func:`.create_engine`.
 
-Postgresql 10 IDENTITY columns
+PostgreSQL 10 IDENTITY columns
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Postgresql 10 has a new IDENTITY feature that supersedes the use of SERIAL.
+PostgreSQL 10 has a new IDENTITY feature that supersedes the use of SERIAL.
 Built-in support for rendering of IDENTITY is not available yet, however the
 following compilation hook may be used to replace occurrences of SERIAL with
 IDENTITY::
@@ -126,7 +126,7 @@ Remote-Schema Table Introspection and PostgreSQL search_path
 ------------------------------------------------------------
 
 **TL;DR;**: keep the ``search_path`` variable set to its default of ``public``,
-name schemas **other** than ``public`` explicitly within ``Table`` defintitions.
+name schemas **other** than ``public`` explicitly within ``Table`` definitions.
 
 The PostgreSQL dialect can reflect tables from any schema.  The
 :paramref:`.Table.schema` argument, or alternatively the
@@ -515,13 +515,13 @@ produces a statement equivalent to::
     SELECT CAST('some text' AS TSVECTOR) AS anon_1
 
 Full Text Searches in PostgreSQL are influenced by a combination of: the
-PostgresSQL setting of ``default_text_search_config``, the ``regconfig`` used
+PostgreSQL setting of ``default_text_search_config``, the ``regconfig`` used
 to build the GIN/GiST indexes, and the ``regconfig`` optionally passed in
 during a query.
 
 When performing a Full Text Search against a column that has a GIN or
 GiST index that is already pre-computed (which is common on full text
-searches) one may need to explicitly pass in a particular PostgresSQL
+searches) one may need to explicitly pass in a particular PostgreSQL
 ``regconfig`` value to ensure the query-planner utilizes the index and does
 not re-compute the column on demand.
 
@@ -553,7 +553,7 @@ produces a statement equivalent to::
         to_tsquery('english', 'somestring')
 
 It is recommended that you use the ``EXPLAIN ANALYZE...`` tool from
-PostgresSQL to ensure that you are generating queries with SQLAlchemy that
+PostgreSQL to ensure that you are generating queries with SQLAlchemy that
 take full advantage of any indexes you may have created for full text search.
 
 FROM ONLY ...
@@ -694,7 +694,7 @@ a connection-less dialect, it will emit::
    of PostgreSQL is detected on the connection (or for a connection-less
    dialect).
 
-When using CONCURRENTLY, the Postgresql database requires that the statement
+When using CONCURRENTLY, the PostgreSQL database requires that the statement
 be invoked outside of a transaction block.   The Python DBAPI enforces that
 even for a single statement, a transaction is present, so to use this
 construct, the DBAPI's "autocommit" mode must be used::
@@ -1268,7 +1268,7 @@ class ENUM(sqltypes.NativeForEmulated, sqltypes.Enum):
 
     @classmethod
     def adapt_emulated_to_native(cls, impl, **kw):
-        """Produce a Postgresql native :class:`.postgresql.ENUM` from plain
+        """Produce a PostgreSQL native :class:`.postgresql.ENUM` from plain
         :class:`.Enum`.
 
         """
@@ -1486,6 +1486,18 @@ class PGCompiler(compiler.SQLCompiler):
                 if escape else ''
             )
 
+    def visit_empty_set_expr(self, element_types):
+        # cast the empty set to the type we are comparing against.  if
+        # we are comparing against the null type, pick an arbitrary
+        # datatype for the empty set
+        return 'SELECT %s WHERE 1!=1' % (
+            ", ".join(
+                "CAST(NULL AS %s)" % self.dialect.type_compiler.process(
+                    INTEGER() if type_._isnull else type_,
+                ) for type_ in element_types or [INTEGER()]
+            ),
+        )
+
     def render_literal_value(self, value, type_):
         value = super(PGCompiler, self).render_literal_value(value, type_)
 
@@ -1681,7 +1693,7 @@ class PGCompiler(compiler.SQLCompiler):
 
     def delete_extra_from_clause(self, delete_stmt, from_table,
                            extra_froms, from_hints, **kw):
-        """Render the DELETE .. USING clause specific to PostgresSQL."""
+        """Render the DELETE .. USING clause specific to PostgreSQL."""
         return "USING " + ', '.join(
             t._compiler_dispatch(self, asfrom=True,
                                  fromhints=from_hints, **kw)
@@ -2452,7 +2464,8 @@ class PGDialect(default.DefaultDialect):
             FROM pg_catalog.pg_class c
             LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
             WHERE (%s)
-            AND c.relname = :table_name AND c.relkind in ('r', 'v', 'm', 'f')
+            AND c.relname = :table_name AND c.relkind in
+            ('r', 'v', 'm', 'f', 'p')
         """ % schema_where_clause
         # Since we're binding to unicode, table_name and schema_name must be
         # unicode.
@@ -2483,7 +2496,7 @@ class PGDialect(default.DefaultDialect):
         result = connection.execute(
             sql.text("SELECT c.relname FROM pg_class c "
                      "JOIN pg_namespace n ON n.oid = c.relnamespace "
-                     "WHERE n.nspname = :schema AND c.relkind = 'r'"
+                     "WHERE n.nspname = :schema AND c.relkind in ('r', 'p')"
                      ).columns(relname=sqltypes.Unicode),
             schema=schema if schema is not None else self.default_schema_name)
         return [name for name, in result]
@@ -2587,12 +2600,6 @@ class PGDialect(default.DefaultDialect):
 
     def _get_column_info(self, name, format_type, default,
                          notnull, domains, enums, schema, comment):
-        def _handle_array_type(attype):
-            return (
-                attype.replace('[]', ''), # strip '[]' from integer[], etc.
-                attype.endswith('[]'),
-            )
-
         # strip (*) from character varying(5), timestamp(5)
         # with time zone, geometry(POLYGON), etc.
         attype = re.sub(r'\(.*\)', '', format_type)
@@ -2600,11 +2607,11 @@ class PGDialect(default.DefaultDialect):
         # strip quotes from case sensitive enum names
         attype = re.sub(r'^"|"$', '', attype)
 
-        # strip '[]' from integer[], etc. and check if an array
-        attype, is_array = _handle_array_type(attype)
+        # strip '[]' from integer[], etc.
+        attype = attype.replace('[]', '')
 
         nullable = not notnull
-
+        is_array = format_type.endswith('[]')
         charlen = re.search(r'\(([\d,]+)\)', format_type)
         if charlen:
             charlen = charlen.group(1)
@@ -2669,7 +2676,6 @@ class PGDialect(default.DefaultDialect):
             elif attype in domains:
                 domain = domains[attype]
                 attype = domain['attype']
-                attype, is_array = _handle_array_type(attype)
                 # A table can't override whether the domain is nullable.
                 nullable = domain['nullable']
                 if domain['default'] and not default:

@@ -282,6 +282,110 @@ new connections through the usage of events::
     :ref:`use_alter` - more information on SQLAlchemy's facilities for handling
      mutually-dependent foreign key constraints.
 
+.. _sqlite_on_conflict_ddl:
+
+ON CONFLICT support for constraints
+-----------------------------------
+
+SQLite supports a non-standard clause known as ON CONFLICT which can be applied
+to primary key, unique, check, and not null constraints.   In DDL, it is
+rendered either within the "CONSTRAINT" clause or within the column definition
+itself depending on the location of the target constraint.    To render this
+clause within DDL, the extension parameter ``sqlite_on_conflict`` can be
+specified with a string conflict resolution algorithm within the
+:class:`.PrimaryKeyConstraint`, :class:`.UniqueConstraint`,
+:class:`.CheckConstraint` objects.  Within the :class:`.Column` object, there
+are individual parameters ``sqlite_on_conflict_not_null``,
+``sqlite_on_conflict_primary_key``, ``sqlite_on_conflict_unique`` which each
+correspond to the three types of relevant constraint types that can be
+indicated from a :class:`.Column` object.
+
+.. seealso::
+
+    `ON CONFLICT <https://www.sqlite.org/lang_conflict.html>`_ - in the SQLite
+    documentation
+
+.. versionadded:: 1.3
+
+
+The ``sqlite_on_conflict`` parameters accept a  string argument which is just
+the resolution name to be chosen, which on SQLite can be one of ROLLBACK,
+ABORT, FAIL, IGNORE, and REPLACE.   For example, to add a UNIQUE constraint
+that specifies the IGNORE algorithm::
+
+    some_table = Table(
+        'some_table', metadata,
+        Column('id', Integer, primary_key=True),
+        Column('data', Integer),
+        UniqueConstraint('id', 'data', sqlite_on_conflict='IGNORE')
+    )
+
+The above renders CREATE TABLE DDL as::
+
+    CREATE TABLE some_table (
+        id INTEGER NOT NULL,
+        data INTEGER,
+        PRIMARY KEY (id),
+        UNIQUE (id, data) ON CONFLICT IGNORE
+    )
+
+
+When using the :paramref:`.Column.unique` flag to add a UNIQUE constraint
+to a single column, the ``sqlite_on_conflict_unique`` parameter can
+be added to the :class:`.Column` as well, which will be added to the
+UNIQUE constraint in the DDL::
+
+    some_table = Table(
+        'some_table', metadata,
+        Column('id', Integer, primary_key=True),
+        Column('data', Integer, unique=True,
+               sqlite_on_conflict_unique='IGNORE')
+    )
+
+rendering::
+
+    CREATE TABLE some_table (
+        id INTEGER NOT NULL,
+        data INTEGER,
+        PRIMARY KEY (id),
+        UNIQUE (data) ON CONFLICT IGNORE
+    )
+
+To apply the FAIL algorithm for a NOT NULL constraint,
+``sqlite_on_conflict_not_null`` is used::
+
+    some_table = Table(
+        'some_table', metadata,
+        Column('id', Integer, primary_key=True),
+        Column('data', Integer, nullable=False,
+               sqlite_on_conflict_not_null='FAIL')
+    )
+
+this renders the column inline ON CONFLICT phrase::
+
+    CREATE TABLE some_table (
+        id INTEGER NOT NULL,
+        data INTEGER NOT NULL ON CONFLICT FAIL,
+        PRIMARY KEY (id)
+    )
+
+
+Similarly, for an inline primary key, use ``sqlite_on_conflict_primary_key``::
+
+    some_table = Table(
+        'some_table', metadata,
+        Column('id', Integer, primary_key=True,
+               sqlite_on_conflict_primary_key='FAIL')
+    )
+
+SQLAlchemy renders the PRIMARY KEY constraint separately, so the conflict
+resolution algorithm is applied to the constraint itself::
+
+    CREATE TABLE some_table (
+        id INTEGER NOT NULL,
+        PRIMARY KEY (id) ON CONFLICT FAIL
+    )
+
 .. _sqlite_type_reflection:
 
 Type Reflection
@@ -478,6 +582,7 @@ from ...sql import compiler
 from ...types import (BLOB, BOOLEAN, CHAR, DECIMAL, FLOAT,
                       INTEGER, REAL, NUMERIC, SMALLINT, TEXT,
                       TIMESTAMP, VARCHAR)
+from .json import JSON, JSONIndexType, JSONPathType
 
 
 class _DateTimeMixin(object):
@@ -753,6 +858,9 @@ class TIME(_DateTimeMixin, sqltypes.Time):
 colspecs = {
     sqltypes.Date: DATE,
     sqltypes.DateTime: DATETIME,
+    sqltypes.JSON: JSON,
+    sqltypes.JSON.JSONIndexType: JSONIndexType,
+    sqltypes.JSON.JSONPathType: JSONPathType,
     sqltypes.Time: TIME,
 }
 
@@ -771,6 +879,7 @@ ischema_names = {
     'FLOAT': sqltypes.FLOAT,
     'INT': sqltypes.INTEGER,
     'INTEGER': sqltypes.INTEGER,
+    'JSON': JSON,
     'NUMERIC': sqltypes.NUMERIC,
     'REAL': sqltypes.REAL,
     'SMALLINT': sqltypes.SMALLINT,
@@ -855,6 +964,19 @@ class SQLiteCompiler(compiler.SQLCompiler):
         return "%s IS %s" % (self.process(binary.left),
                              self.process(binary.right))
 
+    def visit_json_getitem_op_binary(self, binary, operator, **kw):
+        return "JSON_QUOTE(JSON_EXTRACT(%s, %s))" % (
+            self.process(binary.left, **kw),
+            self.process(binary.right, **kw))
+
+    def visit_json_path_getitem_op_binary(self, binary, operator, **kw):
+        return "JSON_QUOTE(JSON_EXTRACT(%s, %s))" % (
+            self.process(binary.left, **kw),
+            self.process(binary.right, **kw))
+
+    def visit_empty_set_expr(self, type_):
+        return 'SELECT 1 FROM (SELECT 1) WHERE 1!=1'
+
 
 class SQLiteDDLCompiler(compiler.DDLCompiler):
 
@@ -869,6 +991,11 @@ class SQLiteDDLCompiler(compiler.DDLCompiler):
         if not column.nullable:
             colspec += " NOT NULL"
 
+            on_conflict_clause = column.dialect_options['sqlite'][
+                'on_conflict_not_null']
+            if on_conflict_clause is not None:
+                colspec += " ON CONFLICT " + on_conflict_clause
+
         if column.primary_key:
             if (
                 column.autoincrement is True and
@@ -880,9 +1007,17 @@ class SQLiteDDLCompiler(compiler.DDLCompiler):
 
             if (column.table.dialect_options['sqlite']['autoincrement'] and
                     len(column.table.primary_key.columns) == 1 and
-                    issubclass(column.type._type_affinity, sqltypes.Integer) and
+                    issubclass(
+                        column.type._type_affinity, sqltypes.Integer) and
                     not column.foreign_keys):
-                colspec += " PRIMARY KEY AUTOINCREMENT"
+                colspec += " PRIMARY KEY"
+
+                on_conflict_clause = column.dialect_options['sqlite'][
+                    'on_conflict_primary_key']
+                if on_conflict_clause is not None:
+                    colspec += " ON CONFLICT " + on_conflict_clause
+
+                colspec += " AUTOINCREMENT"
 
         return colspec
 
@@ -898,8 +1033,61 @@ class SQLiteDDLCompiler(compiler.DDLCompiler):
                     not c.foreign_keys):
                 return None
 
-        return super(SQLiteDDLCompiler, self).visit_primary_key_constraint(
-            constraint)
+        text = super(
+            SQLiteDDLCompiler,
+            self).visit_primary_key_constraint(constraint)
+
+        on_conflict_clause = constraint.dialect_options['sqlite'][
+            'on_conflict']
+        if on_conflict_clause is None and len(constraint.columns) == 1:
+            on_conflict_clause = list(constraint)[0].\
+                dialect_options['sqlite']['on_conflict_primary_key']
+
+        if on_conflict_clause is not None:
+            text += " ON CONFLICT " + on_conflict_clause
+
+        return text
+
+    def visit_unique_constraint(self, constraint):
+        text = super(
+            SQLiteDDLCompiler,
+            self).visit_unique_constraint(constraint)
+
+        on_conflict_clause = constraint.dialect_options['sqlite'][
+            'on_conflict']
+        if on_conflict_clause is None and len(constraint.columns) == 1:
+            on_conflict_clause = list(constraint)[0].\
+                dialect_options['sqlite']['on_conflict_unique']
+
+        if on_conflict_clause is not None:
+            text += " ON CONFLICT " + on_conflict_clause
+
+        return text
+
+    def visit_check_constraint(self, constraint):
+        text = super(
+            SQLiteDDLCompiler,
+            self).visit_check_constraint(constraint)
+
+        on_conflict_clause = constraint.dialect_options['sqlite'][
+            'on_conflict']
+
+        if on_conflict_clause is not None:
+            text += " ON CONFLICT " + on_conflict_clause
+
+        return text
+
+    def visit_column_check_constraint(self, constraint):
+        text = super(
+            SQLiteDDLCompiler,
+            self).visit_column_check_constraint(constraint)
+
+        if constraint.dialect_options['sqlite']['on_conflict'] is not None:
+            raise exc.CompileError(
+                "SQLite does not support on conflict clause for "
+                "column check constraint")
+
+        return text
 
     def visit_foreign_key_constraint(self, constraint):
 
@@ -973,6 +1161,12 @@ class SQLiteTypeCompiler(compiler.GenericTypeCompiler):
         else:
             return "TIME_CHAR"
 
+    def visit_JSON(self, type_, **kw):
+        # note this name provides NUMERIC affinity, not TEXT.
+        # should not be an issue unless the JSON value consists of a single
+        # numeric value.   JSONTEXT can be used if this case is required.
+        return "JSON"
+
 
 class SQLiteIdentifierPreparer(compiler.IdentifierPreparer):
     reserved_words = set([
@@ -995,19 +1189,6 @@ class SQLiteIdentifierPreparer(compiler.IdentifierPreparer):
         'unique', 'update', 'using', 'vacuum', 'values', 'view', 'virtual',
         'when', 'where',
     ])
-
-    def format_index(self, index, use_schema=True, name=None):
-        """Prepare a quoted index and schema name."""
-
-        if name is None:
-            name = index.name
-        result = self.quote(name, index.quote)
-        if (not self.omit_schema and
-                use_schema and
-                getattr(index.table, "schema", None)):
-            result = self.quote_schema(
-                index.table.schema, index.table.quote_schema) + "." + result
-        return result
 
 
 class SQLiteExecutionContext(default.DefaultExecutionContext):
@@ -1060,14 +1241,25 @@ class SQLiteDialect(default.DefaultDialect):
         (sa_schema.Index, {
             "where": None,
         }),
+        (sa_schema.Column, {
+            "on_conflict_primary_key": None,
+            "on_conflict_not_null": None,
+            "on_conflict_unique": None,
+        }),
+        (sa_schema.Constraint, {
+            "on_conflict": None,
+        }),
     ]
 
     _broken_fk_pragma_quotes = False
     _broken_dotted_colnames = False
 
-    def __init__(self, isolation_level=None, native_datetime=False, **kwargs):
+    def __init__(self, isolation_level=None, native_datetime=False,
+                 _json_serializer=None, _json_deserializer=None, **kwargs):
         default.DefaultDialect.__init__(self, **kwargs)
         self.isolation_level = isolation_level
+        self._json_serializer = _json_serializer
+        self._json_deserializer = _json_deserializer
 
         # this flag used by pysqlite dialect, and perhaps others in the
         # future, to indicate the driver is handling date/timestamp
