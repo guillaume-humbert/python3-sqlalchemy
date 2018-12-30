@@ -1,5 +1,4 @@
-From 0d9b0778a478f20c24eec29d06bc73ce10777118 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Piotr=20O=C5=BCarowski?= <piotr@debian.org>
+From: =?utf-8?q?Piotr_O=C5=BCarowski?= <piotr@debian.org>
 Date: Thu, 15 Mar 2018 15:41:58 +0100
 Subject: drop_notfound_page_from_docs
 
@@ -9,10 +8,10 @@ this makes this package FTBFS with Sphinx 1.6
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/doc/build/conf.py b/doc/build/conf.py
-index 353f8c4e..a55fd2fc 100644
+index 1b362e0..48eb1ab 100644
 --- a/doc/build/conf.py
 +++ b/doc/build/conf.py
-@@ -209,9 +209,9 @@ html_last_updated_fmt = '%m/%d/%Y %H:%M:%S'
+@@ -208,9 +208,9 @@ html_last_updated_fmt = '%m/%d/%Y %H:%M:%S'
  
  # Additional templates that should be rendered to pages, maps page names to
  # template names.

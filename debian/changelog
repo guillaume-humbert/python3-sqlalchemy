@@ -1,8 +1,12 @@
-sqlalchemy (1.2.8+ds1-2) UNRELEASED; urgency=medium
+sqlalchemy (1.2.15+ds1-1) unstable; urgency=medium
 
+  [ Ondřej Nový ]
   * Convert git repository from git-dpm to gbp layout
 
- -- Ondřej Nový <onovy@debian.org>  Wed, 08 Aug 2018 09:09:20 +0200
+  [ Piotr Ożarowski ]
+  * New upstream release
+
+ -- Piotr Ożarowski <piotr@debian.org>  Sun, 30 Dec 2018 12:30:36 +0100
 
 sqlalchemy (1.2.8+ds1-1) unstable; urgency=medium
 
