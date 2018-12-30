@@ -4,11 +4,12 @@
 from sqlalchemy.testing import eq_, assert_raises, assert_raises_message
 import datetime
 from sqlalchemy.orm import mapper as orm_mapper
+from sqlalchemy.util import OrderedDict
 
 import sqlalchemy as sa
-from sqlalchemy.util import u, ue, b
+from sqlalchemy.util import u, ue
 from sqlalchemy import Integer, String, ForeignKey, \
-    literal_column, event, Boolean, select, func
+    Enum, literal_column, event, Boolean, select, func
 from sqlalchemy import testing
 from sqlalchemy.testing.schema import Table
 from sqlalchemy.testing.schema import Column
@@ -746,8 +747,7 @@ class ExtraPassiveDeletesTest(fixtures.MappedTest):
         mc.children[0].data = 'some new data'
         assert_raises(sa.exc.DBAPIError, session.flush)
 
-    def test_extra_passive_obj_removed_o2m_still_nulls_out(self):
-        # see #3844, which we decided was not a bug
+    def test_extra_passive_obj_removed_o2m(self):
         myothertable, MyClass, MyOtherClass, mytable = (
             self.tables.myothertable,
             self.classes.MyClass,
@@ -757,19 +757,24 @@ class ExtraPassiveDeletesTest(fixtures.MappedTest):
         mapper(MyOtherClass, myothertable)
         mapper(MyClass, mytable, properties={
             'children': relationship(MyOtherClass,
-                                  passive_deletes='all')})
+                                     passive_deletes='all')})
 
         session = create_session()
         mc = MyClass()
-        moc = MyOtherClass()
-        mc.children.append(moc)
-        session.add_all([mc, moc])
+        moc1 = MyOtherClass()
+        moc2 = MyOtherClass()
+        mc.children.append(moc1)
+        mc.children.append(moc2)
+        session.add_all([mc, moc1, moc2])
         session.flush()
 
-        mc.children.remove(moc)
+        mc.children.remove(moc1)
+        mc.children.remove(moc2)
+        moc1.data = 'foo'
         session.flush()
 
-        eq_(moc.parent_id, None)
+        eq_(moc1.parent_id, mc.id)
+        eq_(moc2.parent_id, mc.id)
 
     def test_dont_emit(self):
         myothertable, MyClass, MyOtherClass, mytable = (
@@ -2745,4 +2750,88 @@ class PartialNullPKTest(fixtures.MappedTest):
         s.commit()
 
         t.col1 = "1"
+        s.commit()
+
+
+class EnsurePKSortableTest(fixtures.MappedTest):
+    class SomeEnum(object):
+        # Implements PEP 435 in the minimal fashion needed by SQLAlchemy
+        __members__ = OrderedDict()
+
+        def __init__(self, name, value, alias=None):
+            self.name = name
+            self.value = value
+            self.__members__[name] = self
+            setattr(self.__class__, name, self)
+            if alias:
+                self.__members__[alias] = self
+                setattr(self.__class__, alias, self)
+
+    class MySortableEnum(SomeEnum):
+        __members__ = OrderedDict()
+
+        def __lt__(self, other):
+            return self.value < other.value
+
+    class MyNotSortableEnum(SomeEnum):
+        __members__ = OrderedDict()
+
+    one = MySortableEnum('one', 1)
+    two = MySortableEnum('two', 2)
+    three = MyNotSortableEnum('three', 3)
+    four = MyNotSortableEnum('four', 4)
+
+    @classmethod
+    def define_tables(cls, metadata):
+        Table('t1', metadata,
+              Column('id', Enum(cls.MySortableEnum), primary_key=True),
+              Column('data', String(10)))
+
+        Table('t2', metadata,
+              Column('id', Enum(cls.MyNotSortableEnum), primary_key=True),
+              Column('data', String(10)))
+
+    @classmethod
+    def setup_classes(cls):
+        class T1(cls.Basic):
+            pass
+
+        class T2(cls.Basic):
+            pass
+
+    @classmethod
+    def setup_mappers(cls):
+        orm_mapper(cls.classes.T1, cls.tables.t1)
+        orm_mapper(cls.classes.T2, cls.tables.t2)
+
+    def test_exception_persistent_flush_py3k(self):
+        s = Session()
+
+        a, b = self.classes.T2(id=self.three), self.classes.T2(id=self.four)
+        s.add_all([a, b])
+        s.commit()
+
+        a.data = 'bar'
+        b.data = 'foo'
+        if sa.util.py3k:
+            assert_raises_message(
+                sa.exc.InvalidRequestError,
+                r"Could not sort objects by primary key; primary key values "
+                r"must be sortable in Python \(was: '<' not supported between "
+                r"instances of 'MyNotSortableEnum' and 'MyNotSortableEnum'\)",
+                s.flush
+            )
+        else:
+            s.flush()
+        s.close()
+
+    def test_persistent_flush_sortable(self):
+        s = Session()
+
+        a, b = self.classes.T1(id=self.one), self.classes.T1(id=self.two)
+        s.add_all([a, b])
+        s.commit()
+
+        a.data = 'bar'
+        b.data = 'foo'
         s.commit()

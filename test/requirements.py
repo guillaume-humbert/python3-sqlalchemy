@@ -740,7 +740,8 @@ class DefaultRequirements(SuiteRequirements):
                         (10, 2, 7)
                     )
                 ),
-            "postgresql >= 9.3"
+            "postgresql >= 9.3",
+            "sqlite >= 3.9"
         ])
 
     @property
@@ -748,7 +749,8 @@ class DefaultRequirements(SuiteRequirements):
         return only_on([
             lambda config: against(config, "mysql >= 5.7") and
             not config.db.dialect._is_mariadb,
-            "postgresql >= 9.3"
+            "postgresql >= 9.3",
+            "sqlite >= 3.9"
         ])
 
     @property
@@ -925,6 +927,41 @@ class DefaultRequirements(SuiteRequirements):
              'only four decimal places ')])
 
     @property
+    def implicit_decimal_binds(self):
+        """target backend will return a selected Decimal as a Decimal, not
+        a string.
+
+        e.g.::
+
+            expr = decimal.Decimal("15.7563")
+
+            value = e.scalar(
+                select([literal(expr)])
+            )
+
+            assert value == expr
+
+        See :ticket:`4036`
+
+        """
+
+        # fixed for mysqlclient in
+        # https://github.com/PyMySQL/mysqlclient-python/commit/68b9662918577fc05be9610ef4824a00f2b051b0
+        def check(config):
+            if against(config, "mysql+mysqldb"):
+                # can remove once post 1.3.13 is released
+                try:
+                    from MySQLdb import converters
+                    from decimal import Decimal
+                    return Decimal not in converters.conversions
+                except:
+                    return True
+
+            return against(config, "mysql+mysqldb") and \
+                config.db.dialect._mysql_dbapi_version <= (1, 3, 13)
+        return exclusions.fails_on(check, "fixed for mysqlclient post 1.3.13")
+
+    @property
     def fetch_null_from_numeric(self):
         return skip_if(
                     ("mssql+pyodbc", None, None, "crashes due to bug #351"),
@@ -1075,11 +1112,26 @@ class DefaultRequirements(SuiteRequirements):
             "works, but Oracle just gets tired with "
             "this much connection activity")
 
-
-
     @property
     def no_mssql_freetds(self):
         return self.mssql_freetds.not_()
+
+    @property
+    def pyodbc_fast_executemany(self):
+        def has_fastexecutemany(config):
+            if not against(config, "mssql+pyodbc"):
+                return False
+            if config.db.dialect._dbapi_version() < (4, 0, 19):
+                return False
+            with config.db.connect() as conn:
+                drivername = conn.connection.connection.getinfo(
+                    config.db.dialect.dbapi.SQL_DRIVER_NAME)
+                # on linux this is 'libmsodbcsql-13.1.so.9.2'.
+                # don't know what it is on windows
+                return "msodbc" in drivername
+        return only_if(
+            has_fastexecutemany,
+            "only on pyodbc > 4.0.19 w/ msodbc driver")
 
     @property
     def python_fixed_issue_8743(self):
@@ -1131,6 +1183,14 @@ class DefaultRequirements(SuiteRequirements):
 
         return only_if(check)
 
+    @property
+    def mysql_ngram_fulltext(self):
+        def check(config):
+            return against(config, "mysql") and \
+                not config.db.dialect._is_mariadb and \
+                config.db.dialect.server_version_info >= (5, 7)
+        return only_if(check)
+
     def _mariadb_102(self, config):
         return against(config, "mysql") and \
                 config.db.dialect._is_mariadb and \
@@ -1161,6 +1221,13 @@ class DefaultRequirements(SuiteRequirements):
         return only_if(
             lambda config: against(config, 'postgresql') and
             config.db.scalar("show server_encoding").lower() == "utf8"
+        )
+
+    @property
+    def cxoracle6_or_greater(self):
+        return only_if(
+            lambda config: against(config, "oracle+cx_oracle") and
+            config.db.dialect.cx_oracle_ver >= (6, )
         )
 
     @property

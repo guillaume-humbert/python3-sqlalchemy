@@ -865,6 +865,7 @@ class BindParameter(ColumnElement):
     __visit_name__ = 'bindparam'
 
     _is_crud = False
+    _expanding_in_types = ()
 
     def __init__(self, key, value=NO_ARG, type_=None,
                  unique=False, required=NO_ARG,
@@ -1071,11 +1072,13 @@ class BindParameter(ColumnElement):
             :ref:`baked_in` - with baked queries
 
           .. note:: The "expanding" feature does not support "executemany"-
-             style parameter sets.  In the 1.2 series it does not support
-             empty IN expressions, however it does support these in
-             version 1.3.
+             style parameter sets.
 
           .. versionadded:: 1.2
+
+          .. versionchanged:: 1.3 the "expanding" bound parameter feature now
+             supports empty lists.
+
 
         .. seealso::
 
@@ -1131,6 +1134,15 @@ class BindParameter(ColumnElement):
             self.type = type_()
         else:
             self.type = type_
+
+    def _with_expanding_in_types(self, types):
+        """Return a copy of this :class:`.BindParameter` in
+        the context of an expanding IN against a tuple.
+
+        """
+        cloned = self._clone()
+        cloned._expanding_in_types = types
+        return cloned
 
     def _with_value(self, value):
         """Return a copy of this :class:`.BindParameter` with the given value

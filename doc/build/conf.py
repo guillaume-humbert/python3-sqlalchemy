@@ -63,8 +63,9 @@ changelog_inner_tag_sort = ["feature", "changed", "removed", "bug", "moved"]
 changelog_render_ticket = "http://www.sqlalchemy.org/trac/ticket/%s"
 
 changelog_render_pullreq = {
-    "default": "https://github.com/sqlalchemy/sqlalchemy/pull/%s",
-    "github": "https://github.com/sqlalchemy/sqlalchemy/pull/%s",
+    "bitbucket": "https://bitbucket.org/zzzeek/sqlalchemy/pull-request/%s",
+    "default": "https://bitbucket.org/zzzeek/sqlalchemy/pull-request/%s",
+    "github": "https://github.com/zzzeek/sqlalchemy/pull/%s",
 }
 
 changelog_render_changeset = "http://www.sqlalchemy.org/trac/changeset/%s"
@@ -107,11 +108,11 @@ copyright = u'2007-2018, the SQLAlchemy authors and contributors'
 # built documents.
 #
 # The short X.Y version.
-version = "1.2"
+version = "1.3"
 # The full version, including alpha/beta/rc tags.
-release = "1.2.15"
+release = "1.3.0b1"
 
-release_date = "December 11, 2018"
+release_date = "November 16, 2018"
 
 site_base = os.environ.get("RTD_SITE_BASE", "http://www.sqlalchemy.org")
 site_adapter_template = "docs_adapter.mako"

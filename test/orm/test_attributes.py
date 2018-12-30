@@ -4,7 +4,7 @@ from sqlalchemy.orm.collections import collection
 from sqlalchemy.orm.interfaces import AttributeExtension
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.testing import eq_, ne_, assert_raises, \
-    assert_raises_message, is_true, is_false
+    assert_raises_message, is_true, is_false, is_
 from sqlalchemy.testing import fixtures
 from sqlalchemy.testing.util import gc_collect, all_partial_orderings
 from sqlalchemy.util import jython
@@ -302,6 +302,85 @@ class AttributesTest(fixtures.ORMTest):
             "has been garbage collected.",
             lambda: Foo().bars.append(Bar())
         )
+
+    def test_del_scalar_nonobject(self):
+        class Foo(object):
+            pass
+
+        instrumentation.register_class(Foo)
+        attributes.register_attribute(Foo, 'b', uselist=False, useobject=False)
+
+        f1 = Foo()
+
+        is_(f1.b, None)
+
+        f1.b = 5
+
+        del f1.b
+        is_(f1.b, None)
+
+        f1 = Foo()
+
+        def go():
+            del f1.b
+
+        assert_raises_message(
+            AttributeError,
+            "Foo.b object does not have a value",
+            go
+        )
+
+    def test_del_scalar_object(self):
+        class Foo(object):
+            pass
+
+        class Bar(object):
+            pass
+
+        instrumentation.register_class(Foo)
+        instrumentation.register_class(Bar)
+        attributes.register_attribute(Foo, 'b', uselist=False, useobject=True)
+
+        f1 = Foo()
+
+        is_(f1.b, None)
+
+        f1.b = Bar()
+
+        del f1.b
+        is_(f1.b, None)
+
+        def go():
+            del f1.b
+
+        assert_raises_message(
+            AttributeError,
+            "Foo.b object does not have a value",
+            go
+        )
+
+    def test_del_collection_object(self):
+        class Foo(object):
+            pass
+
+        class Bar(object):
+            pass
+
+        instrumentation.register_class(Foo)
+        instrumentation.register_class(Bar)
+        attributes.register_attribute(Foo, 'b', uselist=True, useobject=True)
+
+        f1 = Foo()
+
+        eq_(f1.b, [])
+
+        f1.b = [Bar()]
+
+        del f1.b
+        eq_(f1.b, [])
+
+        del f1.b
+        eq_(f1.b, [])
 
     def test_deferred(self):
         class Foo(object):
@@ -914,6 +993,58 @@ class AttributesTest(fixtures.ORMTest):
             assert True
         except sa_exc.ArgumentError as e:
             assert False
+
+    def test_last_known_tracking(self):
+        class Foo(object):
+            pass
+
+        instrumentation.register_class(Foo)
+        attributes.register_attribute(Foo, 'a', useobject=False)
+        attributes.register_attribute(Foo, 'b', useobject=False)
+        attributes.register_attribute(Foo, 'c', useobject=False)
+
+        f1 = Foo()
+        state = attributes.instance_state(f1)
+
+        f1.a = 'a1'
+        f1.b = 'b1'
+        f1.c = 'c1'
+
+        assert not state._last_known_values
+
+        state._track_last_known_value('b')
+        state._track_last_known_value('c')
+
+        eq_(
+            state._last_known_values,
+            {'b': attributes.NO_VALUE, 'c': attributes.NO_VALUE})
+
+        state._expire_attributes(state.dict, ['b'])
+        eq_(
+            state._last_known_values,
+            {'b': 'b1', 'c': attributes.NO_VALUE})
+
+        state._expire(state.dict, set())
+        eq_(
+            state._last_known_values,
+            {'b': 'b1', 'c': 'c1'})
+
+        f1.b = 'b2'
+
+        eq_(
+            state._last_known_values,
+            {'b': attributes.NO_VALUE, 'c': 'c1'})
+
+        f1.c = 'c2'
+
+        eq_(
+            state._last_known_values,
+            {'b': attributes.NO_VALUE, 'c': attributes.NO_VALUE})
+
+        state._expire(state.dict, set())
+        eq_(
+            state._last_known_values,
+            {'b': 'b2', 'c': 'c2'})
 
 
 class GetNoValueTest(fixtures.ORMTest):
@@ -1574,7 +1705,7 @@ class HistoryTest(fixtures.TestBase):
             **kw)
         return Foo
 
-    def _two_obj_fixture(self, uselist):
+    def _two_obj_fixture(self, uselist, active_history=False):
         class Foo(fixtures.BasicEntity):
             pass
 
@@ -1585,7 +1716,8 @@ class HistoryTest(fixtures.TestBase):
         instrumentation.register_class(Foo)
         instrumentation.register_class(Bar)
         attributes.register_attribute(Foo, 'someattr', uselist=uselist,
-                                      useobject=True)
+                                      useobject=True,
+                                      active_history=active_history)
         return Foo, Bar
 
     def _someattr_history(self, f, **kw):
@@ -1655,6 +1787,69 @@ class HistoryTest(fixtures.TestBase):
         f = Foo()
         eq_(self._someattr_history(f), ((), (), ()))
 
+    def test_object_replace(self):
+        Foo, Bar = self._two_obj_fixture(uselist=False)
+        f = Foo()
+        b1, b2 = Bar(), Bar()
+        f.someattr = b1
+        self._commit_someattr(f)
+
+        f.someattr = b2
+        eq_(self._someattr_history(f), ([b2], (), [b1]))
+
+    def test_object_set_none(self):
+        Foo, Bar = self._two_obj_fixture(uselist=False)
+        f = Foo()
+        b1 = Bar()
+        f.someattr = b1
+        self._commit_someattr(f)
+
+        f.someattr = None
+        eq_(self._someattr_history(f), ([None], (), [b1]))
+
+    def test_object_set_none_expired(self):
+        Foo, Bar = self._two_obj_fixture(uselist=False)
+        f = Foo()
+        b1 = Bar()
+        f.someattr = b1
+        self._commit_someattr(f)
+
+        attributes.instance_state(f).dict.pop('someattr', None)
+        attributes.instance_state(f).expired_attributes.add('someattr')
+
+        f.someattr = None
+        eq_(self._someattr_history(f), ([None], (), ()))
+
+    def test_object_del(self):
+        Foo, Bar = self._two_obj_fixture(uselist=False)
+        f = Foo()
+        b1 = Bar()
+        f.someattr = b1
+
+        self._commit_someattr(f)
+
+        del f.someattr
+        eq_(self._someattr_history(f), ((), (), [b1]))
+
+    def test_object_del_expired(self):
+        Foo, Bar = self._two_obj_fixture(uselist=False)
+        f = Foo()
+        b1 = Bar()
+        f.someattr = b1
+        self._commit_someattr(f)
+
+        # the "delete" handler checks if the object
+        # is db-loaded when testing if an empty "del" is valid,
+        # because there's nothing else to look at for a related
+        # object, there's no "expired" status
+        attributes.instance_state(f).key = ('foo', )
+        attributes.instance_state(f)._expire_attributes(
+            attributes.instance_dict(f),
+            ['someattr'])
+
+        del f.someattr
+        eq_(self._someattr_history(f), ([None], (), ()))
+
     def test_scalar_no_init_side_effect(self):
         Foo = self._fixture(uselist=False, useobject=False,
                             active_history=False)
@@ -1681,6 +1876,40 @@ class HistoryTest(fixtures.TestBase):
                             active_history=False)
         f = Foo()
         f.someattr = None
+        eq_(self._someattr_history(f), ([None], (), ()))
+
+    def test_scalar_del(self):
+        # note - compare:
+        # test_scalar_set_None,
+        # test_scalar_get_first_set_None,
+        # test_use_object_set_None,
+        # test_use_object_get_first_set_None
+        Foo = self._fixture(uselist=False, useobject=False,
+                            active_history=False)
+        f = Foo()
+        f.someattr = 5
+        attributes.instance_state(f).key = ('foo', )
+        self._commit_someattr(f)
+
+        del f.someattr
+        eq_(self._someattr_history(f), ((), (), [5]))
+
+    def test_scalar_del_expired(self):
+        # note - compare:
+        # test_scalar_set_None,
+        # test_scalar_get_first_set_None,
+        # test_use_object_set_None,
+        # test_use_object_get_first_set_None
+        Foo = self._fixture(uselist=False, useobject=False,
+                            active_history=False)
+        f = Foo()
+        f.someattr = 5
+        self._commit_someattr(f)
+
+        attributes.instance_state(f)._expire_attributes(
+            attributes.instance_dict(f),
+            ['someattr'])
+        del f.someattr
         eq_(self._someattr_history(f), ([None], (), ()))
 
     def test_scalar_get_first_set_None(self):

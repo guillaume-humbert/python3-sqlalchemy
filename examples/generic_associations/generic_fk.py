@@ -1,4 +1,6 @@
-"""Illustrates a so-called "generic foreign key", in a similar fashion
+"""generic_fk.py
+
+Illustrates a so-called "generic foreign key", in a similar fashion
 to that of popular frameworks such as Django, ROR, etc.  This
 approach bypasses standard referential integrity
 practices, in that the "foreign key" column is not actually

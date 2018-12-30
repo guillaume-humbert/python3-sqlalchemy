@@ -8,7 +8,8 @@ from sqlalchemy.testing import eq_, assert_raises, \
     assert_raises_message, is_, expect_warnings
 from sqlalchemy import Table, select, bindparam, Column,\
     MetaData, func, extract, ForeignKey, text, DefaultClause, and_, \
-    create_engine, UniqueConstraint, Index, PrimaryKeyConstraint
+    create_engine, \
+    UniqueConstraint, Index, PrimaryKeyConstraint, CheckConstraint
 from sqlalchemy.types import Integer, String, Boolean, DateTime, Date, Time
 from sqlalchemy import types as sqltypes
 from sqlalchemy import event, inspect
@@ -217,6 +218,68 @@ class TestTypes(fixtures.TestBase, AssertsExecutionResults):
             bindproc = t.dialect_impl(dialect).bind_processor(dialect)
             assert not bindproc or \
                 isinstance(bindproc(util.u('some string')), util.text_type)
+
+
+class JSONTest(fixtures.TestBase):
+
+    __requires__ = ('json_type', )
+    __only_on__ = 'sqlite'
+
+    @testing.provide_metadata
+    @testing.requires.reflects_json_type
+    def test_reflection(self):
+        Table(
+            'json_test', self.metadata,
+            Column('foo', sqlite.JSON)
+        )
+        self.metadata.create_all()
+
+        reflected = Table('json_test', MetaData(), autoload_with=testing.db)
+        is_(reflected.c.foo.type._type_affinity, sqltypes.JSON)
+        assert isinstance(reflected.c.foo.type, sqlite.JSON)
+
+    @testing.provide_metadata
+    def test_rudimentary_roundtrip(self):
+        sqlite_json = Table(
+            'json_test', self.metadata,
+            Column('foo', sqlite.JSON)
+        )
+
+        self.metadata.create_all()
+
+        value = {
+            'json': {'foo': 'bar'},
+            'recs': ['one', 'two']
+        }
+
+        with testing.db.connect() as conn:
+            conn.execute(sqlite_json.insert(), foo=value)
+
+            eq_(
+                conn.scalar(select([sqlite_json.c.foo])),
+                value
+            )
+
+    @testing.provide_metadata
+    def test_extract_subobject(self):
+        sqlite_json = Table(
+            'json_test', self.metadata,
+            Column('foo', sqlite.JSON)
+        )
+
+        self.metadata.create_all()
+
+        value = {
+            'json': {'foo': 'bar'},
+        }
+
+        with testing.db.connect() as conn:
+            conn.execute(sqlite_json.insert(), foo=value)
+
+            eq_(
+                conn.scalar(select([sqlite_json.c.foo['json']])),
+                value['json']
+            )
 
 
 class DateTimeTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -772,6 +835,139 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
             "SQLite does not support autoincrement for composite",
             CreateTable(t).compile, dialect=sqlite.dialect()
         )
+
+class OnConflictDDLTest(fixtures.TestBase, AssertsCompiledSQL):
+
+    __dialect__ = sqlite.dialect()
+
+    def test_on_conflict_clause_column_not_null(self):
+        c = Column('test', Integer, nullable=False,
+                   sqlite_on_conflict_not_null='FAIL')
+
+        self.assert_compile(schema.CreateColumn(c),
+                            'test INTEGER NOT NULL '
+                            'ON CONFLICT FAIL', dialect=sqlite.dialect())
+
+    def test_on_conflict_clause_column_many_clause(self):
+        meta = MetaData()
+        t = Table(
+            'n', meta,
+            Column('test', Integer, nullable=False, primary_key=True,
+                   sqlite_on_conflict_not_null='FAIL',
+                   sqlite_on_conflict_primary_key='IGNORE')
+        )
+
+        self.assert_compile(CreateTable(t),
+                            "CREATE TABLE n ("
+                            "test INTEGER NOT NULL ON CONFLICT FAIL, "
+                            "PRIMARY KEY (test) ON CONFLICT IGNORE)",
+                            dialect=sqlite.dialect())
+
+    def test_on_conflict_clause_unique_constraint_from_column(self):
+        meta = MetaData()
+        t = Table(
+            'n', meta,
+            Column('x', String(30), unique=True,
+                   sqlite_on_conflict_unique='FAIL'),
+        )
+
+        self.assert_compile(CreateTable(t),
+                            "CREATE TABLE n (x VARCHAR(30), "
+                            "UNIQUE (x) ON CONFLICT FAIL)",
+                            dialect=sqlite.dialect())
+
+    def test_on_conflict_clause_unique_constraint(self):
+
+        meta = MetaData()
+        t = Table(
+            'n', meta,
+            Column('id', Integer),
+            Column('x', String(30)),
+            UniqueConstraint('id', 'x', sqlite_on_conflict='FAIL'),
+        )
+
+        self.assert_compile(CreateTable(t),
+                            "CREATE TABLE n (id INTEGER, x VARCHAR(30), "
+                            "UNIQUE (id, x) ON CONFLICT FAIL)",
+                            dialect=sqlite.dialect())
+
+    def test_on_conflict_clause_primary_key(self):
+
+        meta = MetaData()
+        t = Table(
+            'n', meta,
+            Column('id', Integer, primary_key=True,
+                   sqlite_on_conflict_primary_key='FAIL'),
+            sqlite_autoincrement=True
+        )
+
+        self.assert_compile(CreateTable(t),
+                            "CREATE TABLE n (id INTEGER NOT NULL "
+                            "PRIMARY KEY ON CONFLICT FAIL AUTOINCREMENT)",
+                            dialect=sqlite.dialect())
+
+    def test_on_conflict_clause_primary_key_constraint_from_column(self):
+
+        meta = MetaData()
+        t = Table(
+            'n', meta,
+            Column('x', String(30), sqlite_on_conflict_primary_key='FAIL',
+                   primary_key=True),
+        )
+
+        self.assert_compile(CreateTable(t),
+                            "CREATE TABLE n (x VARCHAR(30) NOT NULL, "
+                            "PRIMARY KEY (x) ON CONFLICT FAIL)",
+                            dialect=sqlite.dialect())
+
+    def test_on_conflict_clause_check_constraint(self):
+
+        meta = MetaData()
+        t = Table(
+            'n', meta,
+            Column('id', Integer),
+            Column('x', Integer),
+            CheckConstraint('id > x', sqlite_on_conflict='FAIL'),
+        )
+
+        self.assert_compile(CreateTable(t),
+                            "CREATE TABLE n (id INTEGER, x INTEGER, "
+                            "CHECK (id > x) ON CONFLICT FAIL)",
+                            dialect=sqlite.dialect())
+
+    def test_on_conflict_clause_check_constraint_from_column(self):
+
+        meta = MetaData()
+        t = Table(
+            'n', meta,
+            Column('x', Integer,
+                   CheckConstraint('x > 1',
+                                   sqlite_on_conflict='FAIL')),
+        )
+
+        assert_raises_message(
+            exc.CompileError,
+            "SQLite does not support on conflict "
+            "clause for column check constraint",
+            CreateTable(t).compile, dialect=sqlite.dialect()
+        )
+
+    def test_on_conflict_clause_primary_key_constraint(self):
+
+        meta = MetaData()
+        t = Table(
+            'n', meta,
+            Column('id', Integer),
+            Column('x', String(30)),
+            PrimaryKeyConstraint('id', 'x', sqlite_on_conflict='FAIL'),
+        )
+
+        self.assert_compile(CreateTable(t),
+                            "CREATE TABLE n ("
+                            "id INTEGER NOT NULL, "
+                            "x VARCHAR(30) NOT NULL, "
+                            "PRIMARY KEY (id, x) ON CONFLICT FAIL)",
+                            dialect=sqlite.dialect())
 
 
 class InsertTest(fixtures.TestBase, AssertsExecutionResults):

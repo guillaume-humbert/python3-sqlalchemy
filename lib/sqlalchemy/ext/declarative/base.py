@@ -303,11 +303,6 @@ class _MapperConfig(object):
                         if isinstance(ret, (Column, MapperProperty)) and \
                                 ret.doc is None:
                             ret.doc = obj.__doc__
-                    # here, the attribute is some other kind of property that
-                    # we assume is not part of the declarative mapping.
-                    # however, check for some more common mistakes
-                    else:
-                        self._warn_for_decl_attributes(base, name, obj)
 
         if inherited_table_args and not tablename:
             table_args = None
@@ -315,14 +310,6 @@ class _MapperConfig(object):
         self.table_args = table_args
         self.tablename = tablename
         self.mapper_args_fn = mapper_args_fn
-
-    def _warn_for_decl_attributes(self, cls, key, c):
-        if isinstance(c, expression.ColumnClause):
-            util.warn(
-                "Attribute '%s' on class %s appears to be a non-schema "
-                "'sqlalchemy.sql.column()' "
-                "object; this won't be part of the declarative mapping" %
-                (key, cls))
 
     def _produce_column_copies(self, base):
         cls = self.cls
@@ -386,8 +373,8 @@ class _MapperConfig(object):
             if (isinstance(value, tuple) and len(value) == 1 and
                     isinstance(value[0], (Column, MapperProperty))):
                 util.warn("Ignoring declarative-like tuple value of attribute "
-                          "'%s': possibly a copy-and-paste error with a comma "
-                          "accidentally placed at the end of the line?" % k)
+                          "%s: possibly a copy-and-paste error with a comma "
+                          "left at the end of the line?" % k)
                 continue
             elif not isinstance(value, (Column, MapperProperty)):
                 # using @declared_attr for some object that
@@ -395,7 +382,6 @@ class _MapperConfig(object):
                 # and place the evaluated value onto the class.
                 if not k.startswith('__'):
                     dict_.pop(k)
-                    self._warn_for_decl_attributes(cls, k, value)
                     if not late_mapped:
                         setattr(cls, k, value)
                 continue
@@ -739,8 +725,27 @@ def _add_attribute(cls, key, value):
             )
         else:
             type.__setattr__(cls, key, value)
+            cls.__mapper__._expire_memoizations()
     else:
         type.__setattr__(cls, key, value)
+
+
+def _del_attribute(cls, key):
+
+    if '__mapper__' in cls.__dict__ and \
+            key in cls.__dict__ and not cls.__mapper__._dispose_called:
+        value = cls.__dict__[key]
+        if isinstance(
+                value,
+                (Column, ColumnProperty, MapperProperty, QueryableAttribute)
+        ):
+            raise NotImplementedError(
+                "Can't un-map individual mapped attributes on a mapped class.")
+        else:
+            type.__delattr__(cls, key)
+            cls.__mapper__._expire_memoizations()
+    else:
+        type.__delattr__(cls, key)
 
 
 def _declarative_constructor(self, **kwargs):

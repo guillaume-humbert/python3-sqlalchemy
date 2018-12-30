@@ -50,13 +50,13 @@ Version Check
 =============
 
 
-A quick check to verify that we are on at least **version 1.2** of SQLAlchemy:
+A quick check to verify that we are on at least **version 1.3** of SQLAlchemy:
 
 .. sourcecode:: pycon+sql
 
     >>> import sqlalchemy
     >>> sqlalchemy.__version__  # doctest: +SKIP
-    1.2.0
+    1.3.0
 
 Connecting
 ==========
@@ -2108,6 +2108,11 @@ except it is ordered.  Using the above form, we are assured that the
 .. versionadded:: 1.0.10 Added support for explicit ordering of UPDATE
    parameters using the :paramref:`~sqlalchemy.sql.expression.update.preserve_parameter_order` flag.
 
+
+.. seealso::
+
+    :ref:`mysql_insert_on_duplicate_key_update` - background on the MySQL
+    ``ON DUPLICATE KEY UPDATE`` clause and how to support parameter ordering.
 
 .. _deletes:
 

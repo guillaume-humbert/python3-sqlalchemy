@@ -25,6 +25,8 @@ from ..sql.util import (
     join_condition, _shallow_annotate, visit_binary_product,
     _deep_deannotate, selectables_overlap, adapt_criterion_to_null
 )
+from .base import state_str
+
 from ..sql import operators, expression, visitors
 from .interfaces import (MANYTOMANY, MANYTOONE, ONETOMANY,
                          StrategizedProperty, PropComparator)
@@ -116,7 +118,8 @@ class RelationshipProperty(StrategizedProperty):
                  bake_queries=True,
                  _local_remote_pairs=None,
                  query_class=None,
-                 info=None):
+                 info=None,
+                 omit_join=None):
         """Provide a relationship between two mapped classes.
 
         This corresponds to a parent-child or associative table relationship.
@@ -816,6 +819,13 @@ class RelationshipProperty(StrategizedProperty):
           the full set of related objects, to prevent modifications of the
           collection from resulting in persistence operations.
 
+        :param omit_join:
+          Allows manual control over the "selectin" automatic join
+          optimization.  Set to ``False`` to disable the "omit join" feature
+          added in SQLAlchemy 1.3.
+
+          .. versionadded:: 1.3
+
 
         """
         super(RelationshipProperty, self).__init__()
@@ -843,6 +853,7 @@ class RelationshipProperty(StrategizedProperty):
         self.doc = doc
         self.active_history = active_history
         self.join_depth = join_depth
+        self.omit_join = omit_join
         self.local_remote_pairs = _local_remote_pairs
         self.extension = extension
         self.bake_queries = bake_queries
@@ -1268,9 +1279,7 @@ class RelationshipProperty(StrategizedProperty):
                     return sql.bindparam(
                         x, unique=True,
                         callable_=self.property._get_attr_w_warn_on_none(
-                            col,
-                            self.property.mapper._get_state_attr_by_column,
-                            state, dict_, col, passive=attributes.PASSIVE_OFF
+                            self.property.mapper, state, dict_, col
                         )
                     )
 
@@ -1400,11 +1409,8 @@ class RelationshipProperty(StrategizedProperty):
         def visit_bindparam(bindparam):
             if bindparam._identifying_key in bind_to_col:
                 bindparam.callable = self._get_attr_w_warn_on_none(
-                    bind_to_col[bindparam._identifying_key],
-                    mapper._get_state_attr_by_column,
-                    state, dict_,
-                    bind_to_col[bindparam._identifying_key],
-                    passive=attributes.PASSIVE_OFF)
+                    mapper, state, dict_,
+                    bind_to_col[bindparam._identifying_key])
 
         if self.secondary is not None and alias_secondary:
             criterion = ClauseAdapter(
@@ -1418,16 +1424,94 @@ class RelationshipProperty(StrategizedProperty):
             criterion = adapt_source(criterion)
         return criterion
 
-    def _get_attr_w_warn_on_none(self, column, fn, *arg, **kw):
+    def _get_attr_w_warn_on_none(self, mapper, state, dict_, column):
+        """Create the callable that is used in a many-to-one expression.
+
+        E.g.::
+
+            u1 = s.query(User).get(5)
+
+            expr = Address.user == u1
+
+        Above, the SQL should be "address.user_id = 5". The callable
+        returned by this method produces the value "5" based on the identity
+        of ``u1`.
+
+        """
+
+        # in this callable, we're trying to thread the needle through
+        # a wide variety of scenarios, including:
+        #
+        # * the object hasn't been flushed yet and there's no value for
+        #   the attribute as of yet
+        #
+        # * the object hasn't been flushed yet but it has a user-defined
+        #   value
+        #
+        # * the object has a value but it's expired and not locally present
+        #
+        # * the object has a value but it's expired and not locally present,
+        #   and the object is also detached
+        #
+        # * The object hadn't been flushed yet, there was no value, but
+        #   later, the object has been expired and detached, and *now*
+        #   they're trying to evaluate it
+        #
+        # * the object had a value, but it was changed to a new value, and
+        #   then expired
+        #
+        # * the object had a value, but it was changed to a new value, and
+        #   then expired, then the object was detached
+        #
+        # * the object has a user-set value, but it's None and we don't do
+        #   the comparison correctly for that so warn
+        #
+
+        prop = mapper.get_property_by_column(column)
+
+        # by invoking this method, InstanceState will track the last known
+        # value for this key each time the attribute is to be expired.
+        # this feature was added explicitly for use in this method.
+        state._track_last_known_value(prop.key)
+
         def _go():
-            value = fn(*arg, **kw)
-            if value is None:
+            last_known = to_return = state._last_known_values[prop.key]
+            existing_is_available = last_known is not attributes.NO_VALUE
+
+            # we support that the value may have changed.  so here we
+            # try to get the most recent value including re-fetching.
+            # only if we can't get a value now due to detachment do we return
+            # the last known value
+            current_value = mapper._get_state_attr_by_column(
+                state, dict_, column,
+                passive=attributes.PASSIVE_RETURN_NEVER_SET
+                if state.persistent
+                else attributes.PASSIVE_NO_FETCH ^ attributes.INIT_OK)
+
+            if current_value is attributes.NEVER_SET:
+                if not existing_is_available:
+                    raise sa_exc.InvalidRequestError(
+                        "Can't resolve value for column %s on object "
+                        "%s; no value has been set for this column" % (
+                            column, state_str(state))
+                    )
+            elif current_value is attributes.PASSIVE_NO_RESULT:
+                if not existing_is_available:
+                    raise sa_exc.InvalidRequestError(
+                        "Can't resolve value for column %s on object "
+                        "%s; the object is detached and the value was "
+                        "expired" % (
+                            column, state_str(state))
+                    )
+            else:
+                to_return = current_value
+            if to_return is None:
                 util.warn(
                     "Got None for value of column %s; this is unsupported "
                     "for a relationship comparison and will not "
                     "currently produce an IS comparison "
                     "(but may in a future release)" % column)
-            return value
+            return to_return
         return _go
 
     def _lazy_none_clause(self, reverse_direction=False, adapt_source=None):

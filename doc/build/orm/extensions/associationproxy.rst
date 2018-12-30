@@ -511,4 +511,17 @@ API Documentation
    :undoc-members:
    :inherited-members:
 
+.. autoclass:: AssociationProxyInstance
+   :members:
+   :undoc-members:
+   :inherited-members:
+
+.. autoclass:: ObjectAssociationProxyInstance
+   :members:
+   :inherited-members:
+
+.. autoclass:: ColumnAssociationProxyInstance
+   :members:
+   :inherited-members:
+
 .. autodata:: ASSOCIATION_PROXY

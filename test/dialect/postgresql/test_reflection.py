@@ -13,7 +13,7 @@ from sqlalchemy import Table, Column, MetaData, Integer, String, \
 from sqlalchemy import exc
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import base as postgresql
-from sqlalchemy.dialects.postgresql import ARRAY, INTERVAL, INTEGER, TSRANGE
+from sqlalchemy.dialects.postgresql import ARRAY, INTERVAL, TSRANGE
 from sqlalchemy.dialects.postgresql import ExcludeConstraint
 import re
 
@@ -72,6 +72,51 @@ class ForeignTableReflectionTest(fixtures.TablesTest, AssertsExecutionResults):
         with testing.db.connect() as conn:
             names = inspector.get_table_names()
             eq_(names, ['testtable'])
+
+
+class PartitionedReflectionTest(
+        fixtures.TablesTest, AssertsExecutionResults):
+    # partitioned table reflection, issue #4237
+
+    __only_on__ = 'postgresql >= 10'
+    __backend__ = True
+
+    @classmethod
+    def define_tables(cls, metadata):
+        # the actual function isn't reflected yet
+        dv = Table(
+            'data_values', metadata,
+            Column('modulus', Integer, nullable=False),
+            Column('data', String(30)),
+            postgresql_partition_by='range(modulus)')
+
+        # looks like this is reflected prior to #4237
+        sa.event.listen(
+            dv,
+            "after_create",
+            sa.DDL(
+                "CREATE TABLE data_values_4_10 PARTITION OF data_values "
+                "FOR VALUES FROM (4) TO (10)")
+        )
+
+    def test_get_tablenames(self):
+        assert {'data_values', 'data_values_4_10'}.issubset(
+            inspect(testing.db).get_table_names()
+        )
+
+    def test_reflect_cols(self):
+        cols = inspect(testing.db).get_columns('data_values')
+        eq_(
+            [c['name'] for c in cols],
+            ['modulus', 'data']
+        )
+
+    def test_reflect_cols_from_partition(self):
+        cols = inspect(testing.db).get_columns('data_values_4_10')
+        eq_(
+            [c['name'] for c in cols],
+            ['modulus', 'data']
+        )
 
 
 class MaterializedViewReflectionTest(
@@ -176,8 +221,7 @@ class DomainReflectionTest(fixtures.TestBase, AssertsExecutionResults):
                 'CREATE DOMAIN testdomain INTEGER NOT NULL DEFAULT 42', \
                 'CREATE DOMAIN test_schema.testdomain INTEGER DEFAULT 0', \
                 "CREATE TYPE testtype AS ENUM ('test')", \
-                'CREATE DOMAIN enumdomain AS testtype', \
-                'CREATE DOMAIN arraydomain AS INTEGER[]':
+                'CREATE DOMAIN enumdomain AS testtype':
             try:
                 con.execute(ddl)
             except exc.DBAPIError as e:
@@ -193,8 +237,6 @@ class DomainReflectionTest(fixtures.TestBase, AssertsExecutionResults):
 
         con.execute('CREATE TABLE enum_test (id integer, data enumdomain)')
 
-        con.execute('CREATE TABLE array_test (id integer, data arraydomain)')
-
     @classmethod
     def teardown_class(cls):
         con = testing.db.connect()
@@ -206,8 +248,6 @@ class DomainReflectionTest(fixtures.TestBase, AssertsExecutionResults):
         con.execute("DROP TABLE enum_test")
         con.execute("DROP DOMAIN enumdomain")
         con.execute("DROP TYPE testtype")
-        con.execute('DROP TABLE array_test')
-        con.execute('DROP DOMAIN arraydomain')
 
     def test_table_is_reflected(self):
         metadata = MetaData(testing.db)
@@ -230,18 +270,6 @@ class DomainReflectionTest(fixtures.TestBase, AssertsExecutionResults):
         eq_(
             table.c.data.type.enums,
             ['test']
-        )
-
-    def test_array_domain_is_reflected(self):
-        metadata = MetaData(testing.db)
-        table = Table('array_test', metadata, autoload=True)
-        eq_(
-            table.c.data.type.__class__,
-            ARRAY
-        )
-        eq_(
-            table.c.data.type.item_type.__class__,
-            INTEGER
         )
 
     def test_table_is_reflected_test_schema(self):
