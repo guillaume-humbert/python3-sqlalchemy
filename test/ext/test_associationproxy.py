@@ -2,10 +2,12 @@ from sqlalchemy.testing import eq_, assert_raises, is_
 import copy
 import pickle
 
-from sqlalchemy import *
-from sqlalchemy.orm import *
+from sqlalchemy import Integer, ForeignKey, String, or_, MetaData
+from sqlalchemy.orm import relationship, configure_mappers, mapper, Session,\
+    collections, sessionmaker, aliased, clear_mappers, create_session
+from sqlalchemy import exc
 from sqlalchemy.orm.collections import collection, attribute_mapped_collection
-from sqlalchemy.ext.associationproxy import *
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.associationproxy import _AssociationList
 from sqlalchemy.testing import assert_raises_message
 from sqlalchemy.testing.util import gc_collect
@@ -209,6 +211,19 @@ class _CollectionOperations(fixtures.TestBase):
 
         p1 = Parent('P1')
 
+        def assert_index(expected, value, *args):
+            """Assert index of child value is equal to expected.
+
+            If expected is None, assert that index raises ValueError.
+            """
+            try:
+                index = p1.children.index(value, *args)
+            except ValueError:
+                self.assert_(expected is None)
+            else:
+                self.assert_(expected is not None)
+                self.assert_(index == expected)
+
         self.assert_(not p1._children)
         self.assert_(not p1.children)
 
@@ -223,6 +238,9 @@ class _CollectionOperations(fixtures.TestBase):
         self.assert_(ch not in p1.children)
         self.assert_('regular' in p1.children)
 
+        assert_index(0, 'regular')
+        assert_index(None, 'regular', 1)
+
         p1.children.append('proxied')
 
         self.assert_('proxied' in p1.children)
@@ -233,20 +251,33 @@ class _CollectionOperations(fixtures.TestBase):
         self.assert_(p1._children[0].name == 'regular')
         self.assert_(p1._children[1].name == 'proxied')
 
+        assert_index(0, 'regular')
+        assert_index(1, 'proxied')
+        assert_index(1, 'proxied', 1)
+        assert_index(None, 'proxied', 0, 1)
+
         del p1._children[1]
 
         self.assert_(len(p1._children) == 1)
         self.assert_(len(p1.children) == 1)
         self.assert_(p1._children[0] == ch)
 
+        assert_index(None, 'proxied')
+
         del p1.children[0]
 
         self.assert_(len(p1._children) == 0)
         self.assert_(len(p1.children) == 0)
 
+        assert_index(None, 'regular')
+
         p1.children = ['a', 'b', 'c']
         self.assert_(len(p1._children) == 3)
         self.assert_(len(p1.children) == 3)
+
+        assert_index(0, 'a')
+        assert_index(1, 'b')
+        assert_index(2, 'c')
 
         del ch
         p1 = self.roundtrip(p1)
@@ -254,15 +285,25 @@ class _CollectionOperations(fixtures.TestBase):
         self.assert_(len(p1._children) == 3)
         self.assert_(len(p1.children) == 3)
 
+        assert_index(0, 'a')
+        assert_index(1, 'b')
+        assert_index(2, 'c')
+
         popped = p1.children.pop()
         self.assert_(len(p1.children) == 2)
         self.assert_(popped not in p1.children)
+        assert_index(None, popped)
+
         p1 = self.roundtrip(p1)
         self.assert_(len(p1.children) == 2)
         self.assert_(popped not in p1.children)
+        assert_index(None, popped)
 
         p1.children[1] = 'changed-in-place'
         self.assert_(p1.children[1] == 'changed-in-place')
+        assert_index(1, 'changed-in-place')
+        assert_index(None, 'b')
+
         inplace_id = p1._children[1].id
         p1 = self.roundtrip(p1)
         self.assert_(p1.children[1] == 'changed-in-place')
@@ -270,30 +311,41 @@ class _CollectionOperations(fixtures.TestBase):
 
         p1.children.append('changed-in-place')
         self.assert_(p1.children.count('changed-in-place') == 2)
+        assert_index(1, 'changed-in-place')
 
         p1.children.remove('changed-in-place')
         self.assert_(p1.children.count('changed-in-place') == 1)
+        assert_index(1, 'changed-in-place')
 
         p1 = self.roundtrip(p1)
         self.assert_(p1.children.count('changed-in-place') == 1)
+        assert_index(1, 'changed-in-place')
 
         p1._children = []
         self.assert_(len(p1.children) == 0)
+        assert_index(None, 'changed-in-place')
 
         after = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
         p1.children = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
         self.assert_(len(p1.children) == 10)
         self.assert_([c.name for c in p1._children] == after)
+        for i, val in enumerate(after):
+            assert_index(i, val)
 
         p1.children[2:6] = ['x'] * 4
         after = ['a', 'b', 'x', 'x', 'x', 'x', 'g', 'h', 'i', 'j']
         self.assert_(p1.children == after)
         self.assert_([c.name for c in p1._children] == after)
+        assert_index(2, 'x')
+        assert_index(3, 'x', 3)
+        assert_index(None, 'x', 6)
 
         p1.children[2:6] = ['y']
         after = ['a', 'b', 'y', 'g', 'h', 'i', 'j']
         self.assert_(p1.children == after)
         self.assert_([c.name for c in p1._children] == after)
+        assert_index(2, 'y')
+        assert_index(None, 'y', 3)
 
         p1.children[2:3] = ['z'] * 4
         after = ['a', 'b', 'z', 'z', 'z', 'z', 'g', 'h', 'i', 'j']
@@ -357,7 +409,6 @@ class _CollectionOperations(fixtures.TestBase):
             assert False
         except TypeError:
             assert True
-
 
 
 class DefaultTest(_CollectionOperations):
@@ -569,7 +620,7 @@ class SetTest(_CollectionOperations):
         assert_raises(TypeError, set, [p1.children])
 
     def test_set_comparisons(self):
-        Parent, Child = self.Parent, self.Child
+        Parent = self.Parent
 
         p1 = Parent('P1')
         p1.children = ['a', 'b', 'c']
@@ -628,7 +679,7 @@ class SetTest(_CollectionOperations):
         is_(set_0 != set_a, False)
 
     def test_set_mutation(self):
-        Parent, Child = self.Parent, self.Child
+        Parent = self.Parent
 
         # mutations
         for op in ('update', 'intersection_update',
@@ -704,7 +755,7 @@ class CustomObjectTest(_CollectionOperations):
     collection_class = ObjectCollection
 
     def test_basic(self):
-        Parent, Child = self.Parent, self.Child
+        Parent = self.Parent
 
         p = Parent('p1')
         self.assert_(len(list(p.children)) == 0)
@@ -753,7 +804,7 @@ class ProxyFactoryTest(ListTest):
                     getter,
                     setter,
                     parent,
-                    )
+                )
 
         class Parent(object):
             children = association_proxy('_children', 'name',
@@ -1153,7 +1204,7 @@ class ReconstitutionTest(fixtures.TestBase):
         p_copy = copy.copy(p)
         del p
         gc_collect()
-        assert set(p_copy.kids) == set(['c1', 'c2']), p.kids
+        assert set(p_copy.kids) == set(['c1', 'c2']), p_copy.kids
 
     def test_pickle_list(self):
         mapper(Parent, self.parents,
@@ -1273,7 +1324,8 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
             singular_keyword = association_proxy("singular", "keyword")
 
             # uselist assoc_proxy -> assoc_proxy -> scalar
-            common_keyword_name = association_proxy("user_keywords", "keyword_name")
+            common_keyword_name = association_proxy(
+                "user_keywords", "keyword_name")
 
         class Keyword(cls.Comparable):
             def __init__(self, keyword):
@@ -1284,7 +1336,8 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
             user = association_proxy('user_keyword', 'user')
 
             # uselist assoc_proxy -> collection -> assoc_proxy -> scalar object
-            # (o2m relationship, associationproxy(m2o relationship, m2o relationship))
+            # (o2m relationship,
+            #  associationproxy(m2o relationship, m2o relationship))
             singulars = association_proxy("user_keywords", "singular")
 
         class UserKeyword(cls.Comparable):
@@ -1343,7 +1396,7 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
             'quick', 'brown',
             'fox', 'jumped', 'over',
             'the', 'lazy',
-            )
+        )
         for ii in range(16):
             user = User('user%d' % ii)
 
@@ -1472,30 +1525,31 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
                 "Got None for value of column keywords.singular_id;"):
             self._equivalent(
                 self.session.query(User).filter(
-                                User.singular_keywords.contains(self.kw)
+                    User.singular_keywords.contains(self.kw)
                 ),
                 self.session.query(User).filter(
-                                User.singular.has(
-                                    Singular.keywords.contains(self.kw)
-                                )
+                    User.singular.has(
+                        Singular.keywords.contains(self.kw)
+                    )
                 ),
             )
 
     def test_filter_eq_nul_nul(self):
         Keyword = self.classes.Keyword
 
-        self._equivalent(self.session.query(Keyword).filter(Keyword.user
-                         == self.u),
-                         self.session.query(Keyword).
-                         filter(Keyword.user_keyword.has(user=self.u)))
+        self._equivalent(
+            self.session.query(Keyword).filter(Keyword.user == self.u),
+            self.session.query(Keyword).
+            filter(Keyword.user_keyword.has(user=self.u))
+        )
 
     def test_filter_ne_nul_nul(self):
         Keyword = self.classes.Keyword
 
-        self._equivalent(self.session.query(Keyword).filter(
-                            Keyword.user != self.u),
-                         self.session.query(Keyword).filter(
-                             Keyword.user_keyword.has(Keyword.user != self.u)))
+        self._equivalent(
+            self.session.query(Keyword).filter(Keyword.user != self.u),
+            self.session.query(Keyword).filter(
+                Keyword.user_keyword.has(Keyword.user != self.u)))
 
     def test_filter_eq_null_nul_nul(self):
         UserKeyword, Keyword = self.classes.UserKeyword, self.classes.Keyword
@@ -1544,7 +1598,7 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
             self.session.query(User).filter(
                 User.singular_value == "singular4"),
             self.session.query(User).filter(
-                        User.singular.has(Singular.value == "singular4")))
+                User.singular.has(Singular.value == "singular4")))
 
     def test_filter_ne_None_nul(self):
         User = self.classes.User
@@ -1565,8 +1619,8 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
         self._equivalent(
             self.session.query(User).filter(User.singular_value.has()),
             self.session.query(User).filter(
-                        User.singular.has(),
-                )
+                User.singular.has(),
+            )
         )
 
     def test_nothas_nul(self):
@@ -1578,8 +1632,8 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
         self._equivalent(
             self.session.query(User).filter(~User.singular_value.has()),
             self.session.query(User).filter(
-                        ~User.singular.has(),
-                )
+                ~User.singular.has(),
+            )
         )
 
     def test_filter_any_chained(self):
@@ -1601,11 +1655,14 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
             "FROM userkeywords "
             "WHERE users.id = userkeywords.user_id AND (EXISTS (SELECT 1 "
             "FROM keywords "
-            "WHERE keywords.id = userkeywords.keyword_id AND (EXISTS (SELECT 1 "
+            "WHERE keywords.id = userkeywords.keyword_id AND "
+            "(EXISTS (SELECT 1 "
             "FROM userkeywords "
-            "WHERE keywords.id = userkeywords.keyword_id AND (EXISTS (SELECT 1 "
+            "WHERE keywords.id = userkeywords.keyword_id AND "
+            "(EXISTS (SELECT 1 "
             "FROM users "
-            "WHERE users.id = userkeywords.user_id AND users.name = :name_1)))))))",
+            "WHERE users.id = userkeywords.user_id AND users.name = :name_1)"
+            "))))))",
             checkparams={'name_1': 'user7'}
         )
 
@@ -1807,8 +1864,8 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
         User = self.classes.User
         self.assert_compile(
             self.session.query(User).join(
-                        User.keywords.local_attr,
-                        User.keywords.remote_attr),
+                User.keywords.local_attr,
+                User.keywords.remote_attr),
             "SELECT users.id AS users_id, users.name AS users_name, "
             "users.singular_id AS users_singular_id "
             "FROM users JOIN userkeywords ON users.id = "
@@ -1820,7 +1877,7 @@ class ComparatorTest(fixtures.MappedTest, AssertsCompiledSQL):
         User = self.classes.User
         self.assert_compile(
             self.session.query(User).join(
-                        *User.keywords.attr),
+                *User.keywords.attr),
             "SELECT users.id AS users_id, users.name AS users_name, "
             "users.singular_id AS users_singular_id "
             "FROM users JOIN userkeywords ON users.id = "

@@ -10,8 +10,10 @@ as declarative will determine this from the class itself.   The various
 
 .. seealso::
 
-    :ref:`inheritance_toplevel` - general introduction to inheritance
-    mapping with Declarative.
+    This section describes some specific details on how the Declarative system
+    interacts with SQLAlchemy ORM inheritance configuration.  See
+    :ref:`inheritance_toplevel` for a general introduction to inheritance
+    mapping.
 
 Joined Table Inheritance
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -85,6 +87,8 @@ The attribute exclusion logic is provided by the
 ``exclude_properties`` mapper argument, and declarative's default
 behavior can be disabled by passing an explicit ``exclude_properties``
 collection (empty or otherwise) to the ``__mapper_args__``.
+
+.. _declarative_column_conflicts:
 
 Resolving Column Conflicts
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

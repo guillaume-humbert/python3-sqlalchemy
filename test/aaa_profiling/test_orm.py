@@ -1,10 +1,12 @@
 from sqlalchemy import Integer, String, ForeignKey
 from sqlalchemy.orm import mapper, relationship, \
-    sessionmaker, Session, defer, joinedload, defaultload, selectinload
+    sessionmaker, Session, defer, joinedload, defaultload, selectinload, \
+    Load, configure_mappers, Bundle
 from sqlalchemy import testing
 from sqlalchemy.testing import profiling
 from sqlalchemy.testing import fixtures
 from sqlalchemy.testing.schema import Table, Column
+from sqlalchemy import inspect
 
 
 class MergeTest(fixtures.MappedTest):
@@ -606,6 +608,7 @@ class SelectInEagerLoadTest(fixtures.MappedTest):
                 sess.close()
         go()
 
+
 class JoinedEagerLoadTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
@@ -764,4 +767,337 @@ class JoinedEagerLoadTest(fixtures.MappedTest):
                 obj = q._execute_and_instances(context)
                 list(obj)
                 sess.close()
+        go()
+
+
+class BranchedOptionTest(fixtures.MappedTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        def make_some_columns():
+            return [
+                Column('c%d' % i, Integer)
+                for i in range(2)
+            ]
+
+        Table(
+            'a',
+            metadata,
+            Column('id', Integer,
+                   primary_key=True, test_needs_autoincrement=True),
+            *make_some_columns()
+        )
+        Table(
+            'b',
+            metadata,
+            Column('id', Integer,
+                   primary_key=True, test_needs_autoincrement=True),
+            Column('a_id', ForeignKey('a.id')),
+            *make_some_columns()
+        )
+        Table(
+            'c',
+            metadata,
+            Column('id', Integer,
+                   primary_key=True, test_needs_autoincrement=True),
+            Column('b_id', ForeignKey('b.id')),
+            *make_some_columns()
+        )
+        Table(
+            'd',
+            metadata,
+            Column('id', Integer,
+                   primary_key=True, test_needs_autoincrement=True),
+            Column('b_id', ForeignKey('b.id')),
+            *make_some_columns()
+        )
+        Table(
+            'e',
+            metadata,
+            Column('id', Integer,
+                   primary_key=True, test_needs_autoincrement=True),
+            Column('b_id', ForeignKey('b.id')),
+            *make_some_columns()
+        )
+        Table(
+            'f',
+            metadata,
+            Column('id', Integer,
+                   primary_key=True, test_needs_autoincrement=True),
+            Column('b_id', ForeignKey('b.id')),
+            *make_some_columns()
+        )
+        Table(
+            'g',
+            metadata,
+            Column('id', Integer,
+                   primary_key=True, test_needs_autoincrement=True),
+            Column('a_id', ForeignKey('a.id')),
+            *make_some_columns()
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class A(cls.Basic):
+            pass
+
+        class B(cls.Basic):
+            pass
+
+        class C(cls.Basic):
+            pass
+
+        class D(cls.Basic):
+            pass
+
+        class E(cls.Basic):
+            pass
+
+        class F(cls.Basic):
+            pass
+
+        class G(cls.Basic):
+            pass
+
+    @classmethod
+    def setup_mappers(cls):
+        A, B, C, D, E, F, G = cls.classes('A', 'B', 'C', 'D', 'E', 'F', 'G')
+        a, b, c, d, e, f, g = cls.tables('a', 'b', 'c', 'd', 'e', 'f', 'g')
+
+        mapper(A, a, properties={
+            'bs': relationship(B),
+            'gs': relationship(G)
+        })
+        mapper(B, b, properties={
+            'cs': relationship(C),
+            'ds': relationship(D),
+            'es': relationship(E),
+            'fs': relationship(F)
+        })
+        mapper(C, c)
+        mapper(D, d)
+        mapper(E, e)
+        mapper(F, f)
+        mapper(G, g)
+
+        configure_mappers()
+
+    def test_generate_cache_key_unbound_branching(self):
+        A, B, C, D, E, F, G = self.classes('A', 'B', 'C', 'D', 'E', 'F', 'G')
+
+        base = joinedload(A.bs)
+        opts = [
+            base.joinedload(B.cs),
+            base.joinedload(B.ds),
+            base.joinedload(B.es),
+            base.joinedload(B.fs)
+        ]
+
+        cache_path = inspect(A)._path_registry
+
+        @profiling.function_call_count()
+        def go():
+            for opt in opts:
+                opt._generate_cache_key(cache_path)
+        go()
+
+    def test_generate_cache_key_bound_branching(self):
+        A, B, C, D, E, F, G = self.classes('A', 'B', 'C', 'D', 'E', 'F', 'G')
+
+        base = Load(A).joinedload(A.bs)
+        opts = [
+            base.joinedload(B.cs),
+            base.joinedload(B.ds),
+            base.joinedload(B.es),
+            base.joinedload(B.fs)
+        ]
+
+        cache_path = inspect(A)._path_registry
+
+        @profiling.function_call_count()
+        def go():
+            for opt in opts:
+                opt._generate_cache_key(cache_path)
+        go()
+
+    def test_query_opts_unbound_branching(self):
+        A, B, C, D, E, F, G = self.classes('A', 'B', 'C', 'D', 'E', 'F', 'G')
+
+        base = joinedload(A.bs)
+        opts = [
+            base.joinedload(B.cs),
+            base.joinedload(B.ds),
+            base.joinedload(B.es),
+            base.joinedload(B.fs)
+        ]
+
+        q = Session().query(A)
+
+        @profiling.function_call_count()
+        def go():
+            q.options(*opts)
+        go()
+
+    def test_query_opts_key_bound_branching(self):
+        A, B, C, D, E, F, G = self.classes('A', 'B', 'C', 'D', 'E', 'F', 'G')
+
+        base = Load(A).joinedload(A.bs)
+        opts = [
+            base.joinedload(B.cs),
+            base.joinedload(B.ds),
+            base.joinedload(B.es),
+            base.joinedload(B.fs)
+        ]
+
+        q = Session().query(A)
+
+        @profiling.function_call_count()
+        def go():
+            q.options(*opts)
+        go()
+
+
+class AnnotatedOverheadTest(fixtures.MappedTest):
+    @classmethod
+    def define_tables(cls, metadata):
+        Table(
+            'a',
+            metadata,
+            Column('id', Integer, primary_key=True),
+            Column('data', String(50))
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class A(cls.Basic):
+            pass
+
+    @classmethod
+    def setup_mappers(cls):
+        A = cls.classes.A
+        a = cls.tables.a
+
+        mapper(A, a)
+
+    @classmethod
+    def insert_data(cls):
+        A = cls.classes.A
+        s = Session()
+        s.add_all([A(data='asdf') for i in range(5)])
+        s.commit()
+
+    def test_no_bundle(self):
+        A = self.classes.A
+        s = Session()
+
+        q = s.query(A).select_from(A)
+
+        @profiling.function_call_count()
+        def go():
+            for i in range(100):
+                q.all()
+        go()
+
+    def test_no_entity_wo_annotations(self):
+        A = self.classes.A
+        a = self.tables.a
+        s = Session()
+
+        q = s.query(a.c.data).select_from(A)
+
+        @profiling.function_call_count()
+        def go():
+            for i in range(100):
+                q.all()
+        go()
+
+    def test_no_entity_w_annotations(self):
+        A = self.classes.A
+        s = Session()
+        q = s.query(A.data).select_from(A)
+
+        @profiling.function_call_count()
+        def go():
+            for i in range(100):
+                q.all()
+        go()
+
+    def test_entity_w_annotations(self):
+        A = self.classes.A
+        s = Session()
+        q = s.query(
+                    A, A.data
+                ).select_from(A)
+
+        @profiling.function_call_count()
+        def go():
+            for i in range(100):
+                q.all()
+        go()
+
+    def test_entity_wo_annotations(self):
+        A = self.classes.A
+        a = self.tables.a
+        s = Session()
+        q = s.query(
+                    A, a.c.data
+                ).select_from(A)
+
+        @profiling.function_call_count()
+        def go():
+            for i in range(100):
+                q.all()
+        go()
+
+    def test_no_bundle_wo_annotations(self):
+        A = self.classes.A
+        a = self.tables.a
+        s = Session()
+        q = s.query(
+                a.c.data, A
+            ).select_from(A)
+
+        @profiling.function_call_count()
+        def go():
+            for i in range(100):
+                q.all()
+        go()
+
+    def test_no_bundle_w_annotations(self):
+        A = self.classes.A
+        s = Session()
+        q = s.query(
+                A.data, A
+            ).select_from(A)
+
+        @profiling.function_call_count()
+        def go():
+            for i in range(100):
+                q.all()
+        go()
+
+    def test_bundle_wo_annotation(self):
+        A = self.classes.A
+        a = self.tables.a
+        s = Session()
+        q = s.query(
+                Bundle("ASdf", a.c.data), A
+            ).select_from(A)
+
+        @profiling.function_call_count()
+        def go():
+            for i in range(100):
+                q.all()
+        go()
+
+    def test_bundle_w_annotation(self):
+        A = self.classes.A
+        s = Session()
+        q = s.query(
+                Bundle("ASdf", A.data), A
+            ).select_from(A)
+
+        @profiling.function_call_count()
+        def go():
+            for i in range(100):
+                q.all()
         go()

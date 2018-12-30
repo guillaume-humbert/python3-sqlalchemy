@@ -7,6 +7,7 @@ from sqlalchemy import testing
 from sqlalchemy import Sequence, Table, Column, Integer, update, String,\
     func, MetaData, Enum, Index, and_, delete, select, cast, text, \
     Text, null
+from sqlalchemy import types as sqltypes
 from sqlalchemy.dialects.postgresql import ExcludeConstraint, array
 from sqlalchemy import exc, schema
 from sqlalchemy.dialects import postgresql
@@ -16,6 +17,8 @@ from sqlalchemy.sql import table, column, operators, literal_column
 from sqlalchemy.sql import util as sql_util
 from sqlalchemy.util import u, OrderedDict
 from sqlalchemy.dialects.postgresql import aggregate_order_by, insert
+from sqlalchemy.dialects.postgresql import array_agg as pg_array_agg
+from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY
 
 
 class SequenceTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -1097,6 +1100,65 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             "AS string_agg_1 FROM table1"
         )
 
+    def test_aggregate_order_by_multi_col(self):
+        m = MetaData()
+        table = Table('table1', m, Column('a', Integer), Column('b', Integer))
+        expr = func.string_agg(
+            table.c.a,
+            aggregate_order_by(
+                literal_column("','"),
+                table.c.a, table.c.b.desc())
+        )
+        stmt = select([expr])
+
+        self.assert_compile(
+            stmt,
+            "SELECT string_agg(table1.a, "
+            "',' ORDER BY table1.a, table1.b DESC) "
+            "AS string_agg_1 FROM table1"
+        )
+
+    def test_aggregate_orcer_by_no_arg(self):
+        assert_raises_message(
+            TypeError,
+            "at least one ORDER BY element is required",
+            aggregate_order_by, literal_column("','")
+        )
+
+    def test_pg_array_agg_implicit_pg_array(self):
+
+        expr = pg_array_agg(column('data', Integer))
+        assert isinstance(expr.type, PG_ARRAY)
+        is_(expr.type.item_type._type_affinity, Integer)
+
+    def test_pg_array_agg_uses_base_array(self):
+
+        expr = pg_array_agg(column('data', sqltypes.ARRAY(Integer)))
+        assert isinstance(expr.type, sqltypes.ARRAY)
+        assert not isinstance(expr.type, PG_ARRAY)
+        is_(expr.type.item_type._type_affinity, Integer)
+
+    def test_pg_array_agg_uses_pg_array(self):
+
+        expr = pg_array_agg(column('data', PG_ARRAY(Integer)))
+        assert isinstance(expr.type, PG_ARRAY)
+        is_(expr.type.item_type._type_affinity, Integer)
+
+    def test_pg_array_agg_explicit_base_array(self):
+
+        expr = pg_array_agg(column(
+            'data', sqltypes.ARRAY(Integer)), type_=sqltypes.ARRAY(Integer))
+        assert isinstance(expr.type, sqltypes.ARRAY)
+        assert not isinstance(expr.type, PG_ARRAY)
+        is_(expr.type.item_type._type_affinity, Integer)
+
+    def test_pg_array_agg_explicit_pg_array(self):
+
+        expr = pg_array_agg(column(
+            'data', sqltypes.ARRAY(Integer)), type_=PG_ARRAY(Integer))
+        assert isinstance(expr.type, PG_ARRAY)
+        is_(expr.type.item_type._type_affinity, Integer)
+
     def test_aggregate_order_by_adapt(self):
         m = MetaData()
         table = Table('table1', m, Column('a', Integer), Column('b', Integer))
@@ -1532,6 +1594,13 @@ class DistinctOnTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(
             select([self.table], distinct=self.table.c.a),
             "SELECT DISTINCT ON (t.a) t.id, t.a, t.b FROM t"
+        )
+
+    def test_literal_binds(self):
+        self.assert_compile(
+            select([self.table]).distinct(self.table.c.a == 10),
+            "SELECT DISTINCT ON (t.a = 10) t.id, t.a, t.b FROM t",
+            literal_binds=True
         )
 
     def test_query_plain(self):

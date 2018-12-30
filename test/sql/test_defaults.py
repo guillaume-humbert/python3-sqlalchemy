@@ -17,6 +17,7 @@ from sqlalchemy.util import u, b
 from sqlalchemy import util
 from sqlalchemy.testing import mock
 import itertools
+from sqlalchemy.testing.assertsql import CompiledSQL, AllOf, EachOf
 
 t = f = f2 = ts = currenttime = metadata = default_generator = None
 
@@ -169,7 +170,8 @@ class DefaultTest(fixtures.TestBase):
                 sa.select(
                     [
                         func.trunc(
-                            func.sysdate(), sa.literal_column("'DAY'"),
+                            func.current_timestamp(),
+                            sa.literal_column("'DAY'"),
                             type_=sa.Date)]))
             assert isinstance(ts, datetime.date) and not isinstance(
                 ts, datetime.datetime)
@@ -181,7 +183,8 @@ class DefaultTest(fixtures.TestBase):
                 type_=sa.Date)
             def1 = currenttime
             def2 = func.trunc(
-                sa.text("sysdate"), sa.literal_column("'DAY'"), type_=sa.Date)
+                sa.text("current_timestamp"),
+                sa.literal_column("'DAY'"), type_=sa.Date)
 
             deftype = sa.Date
         elif use_function_defaults:
@@ -447,7 +450,7 @@ class DefaultTest(fixtures.TestBase):
         t.insert().execute({}, {}, {})
 
         ctexec = currenttime.scalar()
-        result = t.select().execute()
+        result = t.select().order_by(t.c.col1).execute()
         today = datetime.date.today()
         eq_(result.fetchall(),
             [(51, 'imthedefault', f, ts, ts, ctexec, True, False,
@@ -463,7 +466,7 @@ class DefaultTest(fixtures.TestBase):
         t.insert().values([{}, {}, {}]).execute()
 
         ctexec = currenttime.scalar()
-        result = t.select().execute()
+        result = t.select().order_by(t.c.col1).execute()
         today = datetime.date.today()
         eq_(result.fetchall(),
             [(51, 'imthedefault', f, ts, ts, ctexec, True, False,
@@ -568,7 +571,7 @@ class DefaultTest(fixtures.TestBase):
 
 
 class CTEDefaultTest(fixtures.TablesTest):
-    __requires__ = ('ctes',)
+    __requires__ = ('ctes', 'returning', 'ctes_on_dml')
     __backend__ = True
 
     @classmethod
@@ -1310,6 +1313,85 @@ class TableBoundSequenceTest(fixtures.TestBase):
              (2, "someother", 2),
              (3, "name3", 3),
              (4, "name4", 4)])
+
+
+class SequenceAsServerDefaultTest(
+        testing.AssertsExecutionResults, fixtures.TablesTest):
+    __requires__ = ('sequences_as_server_defaults',)
+    __backend__ = True
+
+    run_create_tables = 'each'
+
+    @classmethod
+    def define_tables(cls, metadata):
+        m = metadata
+
+        s = Sequence("t_seq", metadata=m)
+        Table(
+            "t_seq_test", m,
+            Column("id", Integer, s, server_default=s.next_value()),
+            Column("data", String(50))
+        )
+
+        s2 = Sequence("t_seq_2", metadata=m)
+        Table(
+            "t_seq_test_2", m,
+            Column("id", Integer, server_default=s2.next_value()),
+            Column("data", String(50))
+        )
+
+    def test_default_textual_w_default(self):
+        with testing.db.connect() as conn:
+            conn.execute("insert into t_seq_test (data) values ('some data')")
+
+            eq_(conn.scalar("select id from t_seq_test"), 1)
+
+    def test_default_core_w_default(self):
+        t_seq_test = self.tables.t_seq_test
+        with testing.db.connect() as conn:
+            conn.execute(t_seq_test.insert().values(data="some data"))
+
+            eq_(conn.scalar(select([t_seq_test.c.id])), 1)
+
+    def test_default_textual_server_only(self):
+        with testing.db.connect() as conn:
+            conn.execute(
+                "insert into t_seq_test_2 (data) values ('some data')")
+
+            eq_(conn.scalar("select id from t_seq_test_2"), 1)
+
+    def test_default_core_server_only(self):
+        t_seq_test = self.tables.t_seq_test_2
+        with testing.db.connect() as conn:
+            conn.execute(t_seq_test.insert().values(data="some data"))
+
+            eq_(conn.scalar(select([t_seq_test.c.id])), 1)
+
+    def test_drop_ordering(self):
+        self.assert_sql_execution(
+            testing.db,
+            lambda: self.metadata.drop_all(checkfirst=False),
+            AllOf(
+                CompiledSQL(
+                    "DROP TABLE t_seq_test_2",
+                    {}
+                ),
+                EachOf(
+                    CompiledSQL(
+                        "DROP TABLE t_seq_test",
+                        {}
+                    ),
+                    CompiledSQL(
+                        "DROP SEQUENCE t_seq",   # dropped as part of t_seq_test
+                        {}
+                    ),
+                ),
+            ),
+            CompiledSQL(
+                "DROP SEQUENCE t_seq_2",  # dropped as part of metadata level
+                {}
+            ),
+        )
 
 
 class SpecialTypePKTest(fixtures.TestBase):

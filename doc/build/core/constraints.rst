@@ -300,9 +300,8 @@ arguments. The value is any string which will be output after the appropriate
         )
     )
 
-Note that these clauses are not supported on SQLite, and require ``InnoDB``
-tables when used with MySQL. They may also not be supported on other
-databases.
+Note that these clauses require ``InnoDB`` tables when used with MySQL.
+They may also not be supported on other databases.
 
 
 UNIQUE Constraint
@@ -426,7 +425,7 @@ parameters which create :class:`.UniqueConstraint` and :class:`.Index` objects
 without an explicit name being specified.
 
 The use case of alteration of existing tables and constraints can be handled
-by schema migration tools such as `Alembic <http://alembic.zzzcomputing.com/>`_.
+by schema migration tools such as `Alembic <https://alembic.sqlalchemy.org/>`_.
 However, neither Alembic nor SQLAlchemy currently create names for constraint
 objects where the name is otherwise unspecified, leading to the case where
 being able to alter existing constraints means that one must reverse-engineer
@@ -561,7 +560,7 @@ name as follows::
     :paramref:`.MetaData.naming_convention` - for additional usage details
     as well as a listing of all available naming components.
 
-    `The Importance of Naming Constraints <http://alembic.zzzcomputing.com/en/latest/naming.html>`_ - in the Alembic documentation.
+    `The Importance of Naming Constraints <https://alembic.sqlalchemy.org/en/latest/naming.html>`_ - in the Alembic documentation.
 
 .. versionadded:: 0.9.2 Added the :paramref:`.MetaData.naming_convention` argument.
 

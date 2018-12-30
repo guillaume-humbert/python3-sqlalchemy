@@ -1,6 +1,7 @@
 
 from sqlalchemy.testing import eq_, assert_raises, \
     assert_raises_message, expect_warnings, is_
+from sqlalchemy.testing import assertions
 from sqlalchemy.ext import declarative as decl
 from sqlalchemy import exc
 import sqlalchemy as sa
@@ -173,6 +174,62 @@ class DeclarativeTest(DeclarativeTestBase):
 
         assert class_mapper(Bar).get_property('some_data').columns[0] \
             is t.c.data
+
+    def test_lower_case_c_column_warning(self):
+        with assertions.expect_warnings(
+            r"Attribute 'x' on class <class .*Foo.* appears to be a "
+            r"non-schema 'sqlalchemy.sql.column\(\)' object; ",
+        ):
+            class Foo(Base):
+                __tablename__ = 'foo'
+
+                id = Column(Integer, primary_key=True)
+                x = sa.sql.expression.column(Integer)
+                y = Column(Integer)
+
+        class MyMixin(object):
+            x = sa.sql.expression.column(Integer)
+            y = Column(Integer)
+
+        with assertions.expect_warnings(
+            r"Attribute 'x' on class <class .*MyMixin.* appears to be a "
+            r"non-schema 'sqlalchemy.sql.column\(\)' object; ",
+        ):
+            class Foo2(MyMixin, Base):
+                __tablename__ = 'foo2'
+
+                id = Column(Integer, primary_key=True)
+
+        with assertions.expect_warnings(
+            r"Attribute 'x' on class <class .*Foo3.* appears to be a "
+            r"non-schema 'sqlalchemy.sql.column\(\)' object; ",
+        ):
+            class Foo3(Base):
+                __tablename__ = 'foo3'
+
+                id = Column(Integer, primary_key=True)
+
+                @declared_attr
+                def x(cls):
+                    return sa.sql.expression.column(Integer)
+
+                y = Column(Integer)
+
+        with assertions.expect_warnings(
+            r"Attribute 'x' on class <class .*Foo4.* appears to be a "
+            r"non-schema 'sqlalchemy.sql.column\(\)' object; ",
+        ):
+            class MyMixin2(object):
+                @declared_attr
+                def x(cls):
+                    return sa.sql.expression.column(Integer)
+
+                y = Column(Integer)
+
+            class Foo4(MyMixin2, Base):
+                __tablename__ = 'foo4'
+
+                id = Column(Integer, primary_key=True)
 
     def test_column_named_twice(self):
         def go():
@@ -1065,23 +1122,17 @@ class DeclarativeTest(DeclarativeTestBase):
 
         eq_(Foo.__mapper__.CHECK, True)
 
-    @testing.emits_warning('Ignoring declarative-like tuple value of '
-                           'attribute id')
     def test_oops(self):
 
-        def define():
+        with testing.expect_warnings(
+            "Ignoring declarative-like tuple value of "
+                "attribute 'name'"):
 
             class User(Base, fixtures.ComparableEntity):
 
                 __tablename__ = 'users'
-                id = Column('id', Integer, primary_key=True),
-                name = Column('name', String(50))
-
-            assert False
-
-        assert_raises_message(sa.exc.ArgumentError,
-                              'Mapper Mapper|User|users could not '
-                              'assemble any primary key', define)
+                id = Column('id', Integer, primary_key=True)
+                name = Column('name', String(50)),
 
     def test_table_args_no_dict(self):
 

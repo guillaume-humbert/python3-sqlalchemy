@@ -54,7 +54,7 @@ The primary forms of relationship loading are:
   so that all members of related collections / scalar references are loaded at once
   by primary key.  Select IN loading is detailed at :ref:`selectin_eager_loading`.
 
-* **raise loading** - available via ``lazy='raise'``, ``lazy='raise_sql'``,
+* **raise loading** - available via ``lazy='raise'``, ``lazy='raise_on_sql'``,
   or the :func:`.raiseload` option, this form of loading is triggered at the
   same time a lazy load would normally occur, except it raises an ORM exception
   in order to guard against the application making unwanted lazy loads.
@@ -147,6 +147,40 @@ of a particular attribute, the :func:`.defaultload` method/function may be used:
     session.query(A).options(
         defaultload("atob").
         joinedload("btoc")).all()
+
+.. note::  The loader options applied to an object's lazy-loaded collections
+   are **"sticky"** to specific object instances, meaning they will persist
+   upon collections loaded by that specific object for as long as it exists in
+   memory.  For example, given the previous example::
+
+      session.query(Parent).options(
+          lazyload(Parent.children).
+          subqueryload(Child.subelements)).all()
+
+   if the ``children`` collection on a particular ``Parent`` object loaded by
+   the above query is expired (such as when a :class:`.Session` object's
+   transaction is committed or rolled back, or :meth:`.Session.expire_all` is
+   used), when the ``Parent.children`` collection is next accessed in order to
+   re-load it, the ``Child.subelements`` collection will again be loaded using
+   subquery eager loading.This stays the case even if the above ``Parent``
+   object is accessed from a subsequent query that specifies a different set of
+   options.To change the options on an existing object without expunging it and
+   re-loading, they must be set explicitly in conjunction with the
+   :meth:`.Query.populate_existing` method::
+
+      # change the options on Parent objects that were already loaded
+      session.query(Parent).populate_existing().options(
+          lazyload(Parent.children).
+          lazyload(Child.subelements)).all()
+
+   If the objects loaded above are fully cleared from the :class:`.Session`,
+   such as due to garbage collection or that :meth:`.Session.expunge_all`
+   were used, the "sticky" options will also be gone and the newly created
+   objects will make use of new options if loaded again.
+
+   A future SQLAlchemy release may add more alternatives to manipulating
+   the loader options on already-loaded objects.
+
 
 .. _lazy_loading:
 

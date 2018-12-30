@@ -63,9 +63,8 @@ changelog_inner_tag_sort = ["feature", "changed", "removed", "bug", "moved"]
 changelog_render_ticket = "http://www.sqlalchemy.org/trac/ticket/%s"
 
 changelog_render_pullreq = {
-    "bitbucket": "https://bitbucket.org/zzzeek/sqlalchemy/pull-request/%s",
-    "default": "https://bitbucket.org/zzzeek/sqlalchemy/pull-request/%s",
-    "github": "https://github.com/zzzeek/sqlalchemy/pull/%s",
+    "default": "https://github.com/sqlalchemy/sqlalchemy/pull/%s",
+    "github": "https://github.com/sqlalchemy/sqlalchemy/pull/%s",
 }
 
 changelog_render_changeset = "http://www.sqlalchemy.org/trac/changeset/%s"
@@ -110,9 +109,9 @@ copyright = u'2007-2018, the SQLAlchemy authors and contributors'
 # The short X.Y version.
 version = "1.2"
 # The full version, including alpha/beta/rc tags.
-release = "1.2.8"
+release = "1.2.15"
 
-release_date = "May 28, 2018"
+release_date = "December 11, 2018"
 
 site_base = os.environ.get("RTD_SITE_BASE", "http://www.sqlalchemy.org")
 site_adapter_template = "docs_adapter.mako"
@@ -260,8 +259,8 @@ htmlhelp_basename = 'SQLAlchemydoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('contents', 'sqlalchemy_%s.tex' % release.replace('.', '_'), ur'SQLAlchemy Documentation',
-   ur'Mike Bayer', 'manual'),
+  ('contents', 'sqlalchemy_%s.tex' % release.replace('.', '_'), 'SQLAlchemy Documentation',
+   'Mike Bayer', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
