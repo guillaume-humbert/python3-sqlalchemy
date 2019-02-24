@@ -93,7 +93,7 @@
         :tickets: 3044
 
         Fixed bug in INSERT..FROM SELECT construct where selecting from a
-        UNION would wrap the union in an anonymous (e.g. unlabled) subquery.
+        UNION would wrap the union in an anonymous (e.g. unlabeled) subquery.
 
     .. change::
         :tags: bug, postgresql
@@ -127,7 +127,6 @@
     .. change::
         :tags: bug, ext
         :versions: 0.9.5, 1.0.0b1
-        :pullreq: bitbucket:24
         :tickets: 3093, 3051
 
         Fixed bug where :meth:`.MutableDict.setdefault` didn't return the
@@ -137,7 +136,6 @@
     .. change::
         :tags: bug, mysql
         :versions: 0.9.5, 1.0.0b1
-        :pullreq: bitbucket:15
 
         Added support for reflecting tables where an index includes
         KEY_BLOCK_SIZE using an equal sign.  Pull request courtesy
@@ -165,7 +163,6 @@
 
     .. change::
         :tags: bug, postgresql
-        :pullreq: bitbucket:13
         :versions: 0.9.5, 1.0.0b1
 
         Added a new "disconnect" message "connection has been closed unexpectedly".
@@ -252,7 +249,7 @@
         Fixed bug in :func:`.tuple_` construct where the "type" of essentially
         the first SQL expression would be applied as the "comparison type"
         to a compared tuple value; this has the effect in some cases of an
-        inappropriate "type coersion" occurring, such as when a tuple that
+        inappropriate "type coercion" occurring, such as when a tuple that
         has a mix of String and Binary values improperly coerces target
         values to Binary even though that's not what they are on the left
         side.  :func:`.tuple_` now expects heterogeneous types within its
@@ -311,7 +308,6 @@
         :tags: bug, mysql
         :versions: 0.9.3
         :tickets: 2966
-        :pullreq: bitbucket:12
 
         Added support for the ``PARTITION BY`` and ``PARTITIONS``
         MySQL table keywords, specified as ``mysql_partition_by='value'`` and
@@ -339,7 +335,6 @@
 
     .. change::
         :tags: bug, sqlite
-        :pullreq: github:72
 
         Restored a change that was missed in the backport of unique
         constraint reflection to 0.8, where :class:`.UniqueConstraint`
@@ -392,7 +387,6 @@
 
     .. change::
         :tags: bug, mysql
-        :pullreq: github:61
         :versions: 0.9.2
 
         Some missing methods added to the cymysql dialect, including
@@ -401,7 +395,6 @@
 
     .. change::
         :tags: bug, py3k
-        :pullreq: github:63
 
         Fixed Py3K bug where a missing import would cause "literal binary"
         mode to fail to import "util.binary_type" when rendering a bound
@@ -411,7 +404,6 @@
     .. change::
         :tags: bug, orm
         :versions: 0.9.2
-        :pullreq: github:58
 
         Fixed error message when an iterator object is passed to
         :func:`.class_mapper` or similar, where the error would fail to
@@ -444,7 +436,6 @@
     .. change::
         :tags: bug, mssql, pymssql
         :versions: 0.9.0
-        :pullreq: github:51
 
         Added "Net-Lib error during Connection reset by peer" message
         to the list of messages checked for "disconnect" within the
@@ -571,7 +562,6 @@
      .. change::
         :tags: bug, mssql
         :versions: 0.9.0
-        :pullreq: bitbucket:7
 
         Fixed bug introduced in 0.8.0 where the ``DROP INDEX``
         statement for an index in MSSQL would render incorrectly if the
@@ -837,7 +827,7 @@
         by the database (such as PostgreSQL ``oid`` or ``xmin``).  The
         column will be omitted from the ``CREATE TABLE`` statement but will
         otherwise be available for querying.   In addition, the
-        :class:`.CreateColumn` construct can be appled to a custom
+        :class:`.CreateColumn` construct can be applied to a custom
         compilation rule which allows skipping of columns, by producing
         a rule that returns ``None``.
 
@@ -858,7 +848,7 @@
 
         Fixed a potential issue in an ordered sequence implementation used
         by the ORM to iterate mapper hierarchies; under the Jython interpreter
-        this implementation wasn't ordered, even though cPython and Pypy
+        this implementation wasn't ordered, even though cPython and PyPy
         maintained ordering.
 
     .. change::
@@ -1202,7 +1192,6 @@
 
     .. change::
         :tags: bug, engine
-        :pullreq: github:6
         :versions: 0.9.0b1
 
         Fixed bug where the ``reset_on_return`` argument to various :class:`.Pool`
@@ -1334,7 +1323,6 @@
 
     .. change::
       :tags: bug, postgresql
-      :pullreq: github:2
       :tickets: 2735
 
       Fixed the HSTORE type to correctly encode/decode for unicode.
@@ -1945,7 +1933,7 @@
       custom collections using an ``__instrumentation__`` datastructure
       associated with the collection has been removed, as this was a complex
       and untested feature which was also essentially redundant versus the
-      decorator approach.   Other internal simplifcations to the
+      decorator approach.   Other internal simplifications to the
       orm.collections module have been made as well.
 
     .. change::
@@ -2677,7 +2665,7 @@
       UPDATE..FROM syntax as allowed by the dialect
       to satisfy the WHERE clause.  MySQL's multi-table
       update feature is also supported if columns
-      are specified by object in the "values" dicitionary.
+      are specified by object in the "values" dictionary.
       PG's DELETE..USING is also not available
       in Core yet.
 
@@ -3195,7 +3183,7 @@
         :tags: feature, sql
         :tickets:
 
-      The Core oeprator system now includes
+      The Core operator system now includes
       the `getitem` operator, i.e. the bracket
       operator in Python.  This is used at first
       to provide index and slice behavior to the

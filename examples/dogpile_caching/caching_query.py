@@ -1,6 +1,4 @@
-"""caching_query.py
-
-Represent functions and classes
+"""Represent functions and classes
 which allow the usage of Dogpile caching with SQLAlchemy.
 Introduces a query option called FromCache.
 
@@ -19,23 +17,24 @@ The rest of what's here are standard SQLAlchemy and
 dogpile.cache constructs.
 
 """
+from dogpile.cache.api import NO_VALUE
+
 from sqlalchemy.orm.interfaces import MapperOption
 from sqlalchemy.orm.query import Query
-from sqlalchemy.sql import visitors
-from dogpile.cache.api import NO_VALUE
+
 
 class CachingQuery(Query):
     """A Query subclass which optionally loads full results from a dogpile
     cache region.
 
-    The CachingQuery optionally stores additional state that allows it to consult
-    a dogpile.cache cache before accessing the database, in the form
-    of a FromCache or RelationshipCache object.   Each of these objects
-    refer to the name of a :class:`dogpile.cache.Region` that's been configured
-    and stored in a lookup dictionary.  When such an object has associated
-    itself with the CachingQuery, the corresponding :class:`dogpile.cache.Region`
-    is used to locate a cached result.  If none is present, then the
-    Query is invoked normally, the results being cached.
+    The CachingQuery optionally stores additional state that allows it to
+    consult a dogpile.cache cache before accessing the database, in the form of
+    a FromCache or RelationshipCache object.   Each of these objects refer to
+    the name of a :class:`dogpile.cache.Region` that's been configured and
+    stored in a lookup dictionary.  When such an object has associated itself
+    with the CachingQuery, the corresponding :class:`dogpile.cache.Region` is
+    used to locate a cached result.  If none is present, then the Query is
+    invoked normally, the results being cached.
 
     The FromCache and RelationshipCache mapper options below represent
     the "public" method of configuring this state upon the CachingQuery.
@@ -61,7 +60,7 @@ class CachingQuery(Query):
         """
         super_ = super(CachingQuery, self)
 
-        if hasattr(self, '_cache_region'):
+        if hasattr(self, "_cache_region"):
             return self.get_value(createfunc=lambda: list(super_.__iter__()))
         else:
             return super_.__iter__()
@@ -80,13 +79,11 @@ class CachingQuery(Query):
         """
         super_ = super(CachingQuery, self)
 
-        if context.query is not self and hasattr(self, '_cache_region'):
+        if context.query is not self and hasattr(self, "_cache_region"):
             # special logic called when the Query._execute_and_instances()
             # method is called directly from the baked query
             return self.get_value(
-                createfunc=lambda: list(
-                    super_._execute_and_instances(context)
-                )
+                createfunc=lambda: list(super_._execute_and_instances(context))
             )
         else:
             return super_._execute_and_instances(context)
@@ -107,8 +104,13 @@ class CachingQuery(Query):
         dogpile_region, cache_key = self._get_cache_plus_key()
         dogpile_region.delete(cache_key)
 
-    def get_value(self, merge=True, createfunc=None,
-                    expiration_time=None, ignore_expiration=False):
+    def get_value(
+        self,
+        merge=True,
+        createfunc=None,
+        expiration_time=None,
+        ignore_expiration=False,
+    ):
         """Return the value from the cache for this query.
 
         Raise KeyError if no value present and no
@@ -121,19 +123,20 @@ class CachingQuery(Query):
         # but is expired, return it anyway.   This doesn't make sense
         # with createfunc, which says, if the value is expired, generate
         # a new value.
-        assert not ignore_expiration or not createfunc, \
-                "Can't ignore expiration and also provide createfunc"
+        assert (
+            not ignore_expiration or not createfunc
+        ), "Can't ignore expiration and also provide createfunc"
 
         if ignore_expiration or not createfunc:
-            cached_value = dogpile_region.get(cache_key,
-                                expiration_time=expiration_time,
-                                ignore_expiration=ignore_expiration)
+            cached_value = dogpile_region.get(
+                cache_key,
+                expiration_time=expiration_time,
+                ignore_expiration=ignore_expiration,
+            )
         else:
             cached_value = dogpile_region.get_or_create(
-                                    cache_key,
-                                    createfunc,
-                                    expiration_time=expiration_time
-                                )
+                cache_key, createfunc, expiration_time=expiration_time
+            )
         if cached_value is NO_VALUE:
             raise KeyError(cache_key)
         if merge:
@@ -146,10 +149,13 @@ class CachingQuery(Query):
         dogpile_region, cache_key = self._get_cache_plus_key()
         dogpile_region.set(cache_key, value)
 
+
 def query_callable(regions, query_cls=CachingQuery):
     def query(*arg, **kw):
         return query_cls(regions, *arg, **kw)
+
     return query
+
 
 def _key_from_query(query, qualifier=None):
     """Given a Query, create a cache key.
@@ -170,9 +176,8 @@ def _key_from_query(query, qualifier=None):
 
     # here we return the key as a long string.  our "key mangler"
     # set up with the region will boil it down to an md5.
-    return " ".join(
-                    [str(compiled)] +
-                    [str(params[k]) for k in sorted(params)])
+    return " ".join([str(compiled)] + [str(params[k]) for k in sorted(params)])
+
 
 class FromCache(MapperOption):
     """Specifies that a Query should load results from a cache."""
@@ -183,14 +188,14 @@ class FromCache(MapperOption):
         """Construct a new FromCache.
 
         :param region: the cache region.  Should be a
-        region configured in the dictionary of dogpile
-        regions.
+         region configured in the dictionary of dogpile
+         regions.
 
         :param cache_key: optional.  A string cache key
-        that will serve as the key to the query.   Use this
-        if your query has a huge amount of parameters (such
-        as when using in_()) which correspond more simply to
-        some other identifier.
+         that will serve as the key to the query.   Use this
+         if your query has a huge amount of parameters (such
+         as when using in_()) which correspond more simply to
+         some other identifier.
 
         """
         self.region = region
@@ -199,6 +204,7 @@ class FromCache(MapperOption):
     def process_query(self, query):
         """Process a Query during normal loading operation."""
         query._cache_region = self
+
 
 class RelationshipCache(MapperOption):
     """Specifies that a Query as called within a "lazy load"
@@ -210,14 +216,14 @@ class RelationshipCache(MapperOption):
         """Construct a new RelationshipCache.
 
         :param attribute: A Class.attribute which
-        indicates a particular class relationship() whose
-        lazy loader should be pulled from the cache.
+         indicates a particular class relationship() whose
+         lazy loader should be pulled from the cache.
 
         :param region: name of the cache region.
 
         :param cache_key: optional.  A string cache key
-        that will serve as the key to the query, bypassing
-        the usual means of forming a key from the Query itself.
+         that will serve as the key to the query, bypassing
+         the usual means of forming a key from the Query itself.
 
         """
         self.region = region
@@ -239,7 +245,9 @@ class RelationshipCache(MapperOption):
 
             for cls in mapper.class_.__mro__:
                 if (cls, key) in self._relationship_options:
-                    relationship_option = self._relationship_options[(cls, key)]
+                    relationship_option = self._relationship_options[
+                        (cls, key)
+                    ]
                     query._cache_region = relationship_option
                     break
 
@@ -266,4 +274,3 @@ class RelationshipCache(MapperOption):
 
         """
         return None
-

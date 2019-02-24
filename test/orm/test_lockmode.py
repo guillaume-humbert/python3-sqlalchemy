@@ -1,61 +1,14 @@
-from sqlalchemy.engine import default
-from sqlalchemy.databases import *
-from sqlalchemy.orm import mapper
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import joinedload
-from sqlalchemy.orm import relationship
-from sqlalchemy.testing import AssertsCompiledSQL, eq_
-from sqlalchemy.testing import assert_raises_message
 from sqlalchemy import exc
-from test.orm import _fixtures
 from sqlalchemy import testing
-
-
-class LegacyLockModeTest(_fixtures.FixtureTest):
-    run_inserts = None
-
-    @classmethod
-    def setup_mappers(cls):
-        User, users = cls.classes.User, cls.tables.users
-        mapper(User, users)
-
-    def _assert_legacy(self, arg, read=False, nowait=False):
-        User = self.classes.User
-        s = Session()
-        q = s.query(User).with_lockmode(arg)
-        sel = q._compile_context().statement
-
-        if arg is None:
-            assert q._for_update_arg is None
-            assert sel._for_update_arg is None
-            return
-
-        assert q._for_update_arg.read is read
-        assert q._for_update_arg.nowait is nowait
-
-        assert sel._for_update_arg.read is read
-        assert sel._for_update_arg.nowait is nowait
-
-    def test_false_legacy(self):
-        self._assert_legacy(None)
-
-    def test_plain_legacy(self):
-        self._assert_legacy("update")
-
-    def test_nowait_legacy(self):
-        self._assert_legacy("update_nowait", nowait=True)
-
-    def test_read_legacy(self):
-        self._assert_legacy("read", read=True)
-
-    def test_unknown_legacy_lock_mode(self):
-        User = self.classes.User
-        sess = Session()
-        assert_raises_message(
-            exc.ArgumentError,
-            "Unknown with_lockmode argument: 'unknown_mode'",
-            sess.query(User.id).with_lockmode, 'unknown_mode'
-        )
+from sqlalchemy.engine import default
+from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import mapper
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Session
+from sqlalchemy.testing import assert_raises_message
+from sqlalchemy.testing import AssertsCompiledSQL
+from sqlalchemy.testing import eq_
+from test.orm import _fixtures
 
 
 class ForUpdateTest(_fixtures.FixtureTest):
@@ -64,12 +17,20 @@ class ForUpdateTest(_fixtures.FixtureTest):
         User, users = cls.classes.User, cls.tables.users
         mapper(User, users)
 
-    def _assert(self, read=False, nowait=False, of=None, key_share=None,
-                assert_q_of=None, assert_sel_of=None):
+    def _assert(
+        self,
+        read=False,
+        nowait=False,
+        of=None,
+        key_share=None,
+        assert_q_of=None,
+        assert_sel_of=None,
+    ):
         User = self.classes.User
         s = Session()
         q = s.query(User).with_for_update(
-            read=read, nowait=nowait, of=of, key_share=key_share)
+            read=read, nowait=nowait, of=of, key_share=key_share
+        )
         sel = q._compile_context().statement
 
         assert q._for_update_arg.read is read
@@ -99,9 +60,7 @@ class ForUpdateTest(_fixtures.FixtureTest):
     def test_of_single_col(self):
         User, users = self.classes.User, self.tables.users
         self._assert(
-            of=User.id,
-            assert_q_of=[users.c.id],
-            assert_sel_of=[users.c.id]
+            of=User.id, assert_q_of=[users.c.id], assert_sel_of=[users.c.id]
         )
 
 
@@ -117,24 +76,21 @@ class BackendTest(_fixtures.FixtureTest):
     def setup_mappers(cls):
         User, users = cls.classes.User, cls.tables.users
         Address, addresses = cls.classes.Address, cls.tables.addresses
-        mapper(User, users, properties={
-            "addresses": relationship(Address)
-        })
+        mapper(User, users, properties={"addresses": relationship(Address)})
         mapper(Address, addresses)
 
     def test_inner_joinedload_w_limit(self):
         User = self.classes.User
         sess = Session()
-        q = sess.query(User).options(
-            joinedload(User.addresses, innerjoin=True)
-        ).with_for_update().limit(1)
+        q = (
+            sess.query(User)
+            .options(joinedload(User.addresses, innerjoin=True))
+            .with_for_update()
+            .limit(1)
+        )
 
         if testing.against("oracle"):
-            assert_raises_message(
-                exc.DatabaseError,
-                "ORA-02014",
-                q.all
-            )
+            assert_raises_message(exc.DatabaseError, "ORA-02014", q.all)
         else:
             q.all()
         sess.close()
@@ -162,11 +118,7 @@ class BackendTest(_fixtures.FixtureTest):
         q = q.limit(1)
 
         if testing.against("oracle"):
-            assert_raises_message(
-                exc.DatabaseError,
-                "ORA-02014",
-                q.all
-            )
+            assert_raises_message(exc.DatabaseError, "ORA-02014", q.all)
         else:
             q.all()
         sess.close()
@@ -203,15 +155,14 @@ class BackendTest(_fixtures.FixtureTest):
 
 class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
     """run some compile tests, even though these are redundant."""
+
     run_inserts = None
 
     @classmethod
     def setup_mappers(cls):
         User, users = cls.classes.User, cls.tables.users
         Address, addresses = cls.classes.Address, cls.tables.addresses
-        mapper(User, users, properties={
-            "addresses": relationship(Address)
-        })
+        mapper(User, users, properties={"addresses": relationship(Address)})
         mapper(Address, addresses)
 
     def test_default_update(self):
@@ -220,7 +171,7 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(User.id).with_for_update(),
             "SELECT users.id AS users_id FROM users FOR UPDATE",
-            dialect=default.DefaultDialect()
+            dialect=default.DefaultDialect(),
         )
 
     def test_not_supported_by_dialect_should_just_use_update(self):
@@ -229,24 +180,25 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(User.id).with_for_update(read=True),
             "SELECT users.id AS users_id FROM users FOR UPDATE",
-            dialect=default.DefaultDialect()
+            dialect=default.DefaultDialect(),
         )
 
     def test_postgres_read(self):
         User = self.classes.User
         sess = Session()
-        self.assert_compile(sess.query(User.id).with_for_update(read=True),
-                            "SELECT users.id AS users_id FROM users FOR SHARE",
-                            dialect="postgresql")
+        self.assert_compile(
+            sess.query(User.id).with_for_update(read=True),
+            "SELECT users.id AS users_id FROM users FOR SHARE",
+            dialect="postgresql",
+        )
 
     def test_postgres_read_nowait(self):
         User = self.classes.User
         sess = Session()
         self.assert_compile(
-            sess.query(User.id).
-            with_for_update(read=True, nowait=True),
+            sess.query(User.id).with_for_update(read=True, nowait=True),
             "SELECT users.id AS users_id FROM users FOR SHARE NOWAIT",
-            dialect="postgresql"
+            dialect="postgresql",
         )
 
     def test_postgres_update(self):
@@ -255,7 +207,7 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(User.id).with_for_update(),
             "SELECT users.id AS users_id FROM users FOR UPDATE",
-            dialect="postgresql"
+            dialect="postgresql",
         )
 
     def test_postgres_update_of(self):
@@ -264,7 +216,7 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(User.id).with_for_update(of=User.id),
             "SELECT users.id AS users_id FROM users FOR UPDATE OF users",
-            dialect="postgresql"
+            dialect="postgresql",
         )
 
     def test_postgres_update_of_entity(self):
@@ -273,7 +225,7 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(User.id).with_for_update(of=User),
             "SELECT users.id AS users_id FROM users FOR UPDATE OF users",
-            dialect="postgresql"
+            dialect="postgresql",
         )
 
     def test_postgres_update_of_entity_list(self):
@@ -282,11 +234,12 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
 
         sess = Session()
         self.assert_compile(
-            sess.query(User.id, Address.id).
-            with_for_update(of=[User, Address]),
+            sess.query(User.id, Address.id).with_for_update(
+                of=[User, Address]
+            ),
             "SELECT users.id AS users_id, addresses.id AS addresses_id "
             "FROM users, addresses FOR UPDATE OF users, addresses",
-            dialect="postgresql"
+            dialect="postgresql",
         )
 
     def test_postgres_for_no_key_update(self):
@@ -295,7 +248,7 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(User.id).with_for_update(key_share=True),
             "SELECT users.id AS users_id FROM users FOR NO KEY UPDATE",
-            dialect="postgresql"
+            dialect="postgresql",
         )
 
     def test_postgres_for_no_key_nowait_update(self):
@@ -304,17 +257,18 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(User.id).with_for_update(key_share=True, nowait=True),
             "SELECT users.id AS users_id FROM users FOR NO KEY UPDATE NOWAIT",
-            dialect="postgresql"
+            dialect="postgresql",
         )
 
     def test_postgres_update_of_list(self):
         User = self.classes.User
         sess = Session()
         self.assert_compile(
-            sess.query(User.id)
-            .with_for_update(of=[User.id, User.id, User.id]),
+            sess.query(User.id).with_for_update(
+                of=[User.id, User.id, User.id]
+            ),
             "SELECT users.id AS users_id FROM users FOR UPDATE OF users",
-            dialect="postgresql"
+            dialect="postgresql",
         )
 
     def test_postgres_update_skip_locked(self):
@@ -323,7 +277,7 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(User.id).with_for_update(skip_locked=True),
             "SELECT users.id AS users_id FROM users FOR UPDATE SKIP LOCKED",
-            dialect="postgresql"
+            dialect="postgresql",
         )
 
     def test_oracle_update(self):
@@ -332,7 +286,7 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(User.id).with_for_update(),
             "SELECT users.id AS users_id FROM users FOR UPDATE",
-            dialect="oracle"
+            dialect="oracle",
         )
 
     def test_oracle_update_skip_locked(self):
@@ -341,7 +295,7 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(User.id).with_for_update(skip_locked=True),
             "SELECT users.id AS users_id FROM users FOR UPDATE SKIP LOCKED",
-            dialect="oracle"
+            dialect="oracle",
         )
 
     def test_mysql_read(self):
@@ -350,15 +304,17 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         self.assert_compile(
             sess.query(User.id).with_for_update(read=True),
             "SELECT users.id AS users_id FROM users LOCK IN SHARE MODE",
-            dialect="mysql"
+            dialect="mysql",
         )
 
     def test_for_update_on_inner_w_joinedload(self):
         User = self.classes.User
         sess = Session()
         self.assert_compile(
-            sess.query(User).options(
-                joinedload(User.addresses)).with_for_update().limit(1),
+            sess.query(User)
+            .options(joinedload(User.addresses))
+            .with_for_update()
+            .limit(1),
             "SELECT anon_1.users_id AS anon_1_users_id, anon_1.users_name "
             "AS anon_1_users_name, addresses_1.id AS addresses_1_id, "
             "addresses_1.user_id AS addresses_1_user_id, "
@@ -367,15 +323,17 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
             "FROM users  LIMIT %s FOR UPDATE) AS anon_1 "
             "LEFT OUTER JOIN addresses AS addresses_1 "
             "ON anon_1.users_id = addresses_1.user_id FOR UPDATE",
-            dialect="mysql"
+            dialect="mysql",
         )
 
     def test_for_update_on_inner_w_joinedload_no_render_oracle(self):
         User = self.classes.User
         sess = Session()
         self.assert_compile(
-            sess.query(User).options(
-                joinedload(User.addresses)).with_for_update().limit(1),
+            sess.query(User)
+            .options(joinedload(User.addresses))
+            .with_for_update()
+            .limit(1),
             "SELECT anon_1.users_id AS anon_1_users_id, "
             "anon_1.users_name AS anon_1_users_name, "
             "addresses_1.id AS addresses_1_id, "
@@ -386,5 +344,5 @@ class CompileTest(_fixtures.FixtureTest, AssertsCompiledSQL):
             "FROM users) WHERE ROWNUM <= :param_1) anon_1 "
             "LEFT OUTER JOIN addresses addresses_1 "
             "ON anon_1.users_id = addresses_1.user_id FOR UPDATE",
-            dialect="oracle"
+            dialect="oracle",
         )

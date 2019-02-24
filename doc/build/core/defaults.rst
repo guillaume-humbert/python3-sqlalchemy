@@ -421,14 +421,14 @@ allows for the following behaviors:
   :class:`.MetaData`.
 
 Since the vast majority of cases that deal with :class:`.Sequence` expect
-that :class:`.Sequence` to be fully "owned" by the assocated :class:`.Table`
+that :class:`.Sequence` to be fully "owned" by the associated :class:`.Table`
 and that options like default schema are propagated, setting the
 :paramref:`.Sequence.metadata` parameter should be considered a best practice.
 
 Associating a Sequence as the Server Side Default
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note:: The following technique is known to work only with the Postgresql
+.. note:: The following technique is known to work only with the PostgreSQL
    database.  It does not work with Oracle.
 
 The preceding sections illustrate how to associate a :class:`.Sequence` with a

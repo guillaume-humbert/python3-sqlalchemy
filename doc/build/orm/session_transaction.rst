@@ -150,7 +150,7 @@ methods are called.
 
 The :class:`.Session` also features an older legacy mode of use called
 **autocommit mode**, where a transaction is not started implicitly, and unless
-the the :meth:`.Session.begin` method is invoked, the :class:`.Session` will
+the :meth:`.Session.begin` method is invoked, the :class:`.Session` will
 perform each database operation on a new connection checked out from the
 connection pool, which is then released back to the pool immediately
 after the operation completes.  This refers to
@@ -163,7 +163,7 @@ complete.
 
     "autocommit" mode is a **legacy mode of use** and should not be
     considered for new projects.   If autocommit mode is used, it is strongly
-    advised that the application at least ensure that tranasction scope
+    advised that the application at least ensure that transaction scope
     is made present via the :meth:`.Session.begin` method, rather than
     using the session in pure autocommit mode.
 
@@ -262,7 +262,7 @@ where the end user still maintains the "scope" of the transaction overall.
 Enabling Two-Phase Commit
 -------------------------
 
-For backends which support two-phase operaration (currently MySQL and
+For backends which support two-phase operation (currently MySQL and
 PostgreSQL), the session can be instructed to use two-phase commit semantics.
 This will coordinate the committing of transactions across databases so that
 the transaction is either committed or rolled back in all databases. You can

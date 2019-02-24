@@ -31,9 +31,9 @@ and simple to use extension points.
 
 E.g.::
 
-    print session.query(Road).filter(Road.road_geom.intersects(r1.road_geom)).all()
+    print session.query(Road).filter(
+        Road.road_geom.intersects(r1.road_geom)).all()
 
 .. autosource::
 
 """
-

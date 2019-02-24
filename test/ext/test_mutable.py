@@ -1,17 +1,30 @@
-from sqlalchemy import Integer, ForeignKey, String, func
-from sqlalchemy.types import PickleType, TypeDecorator, VARCHAR
-from sqlalchemy.orm import mapper, Session, composite, column_property
-from sqlalchemy.orm.mapper import Mapper
-from sqlalchemy.orm import attributes
-from sqlalchemy.orm.instrumentation import ClassManager
-from sqlalchemy.testing.schema import Table, Column
-from sqlalchemy.testing import eq_, assert_raises_message, assert_raises
-from sqlalchemy.testing.util import picklers
-from sqlalchemy.testing import fixtures
-from sqlalchemy.ext.mutable import MutableComposite
-from sqlalchemy.ext.mutable import MutableDict, MutableList, MutableSet
-from sqlalchemy.testing import mock
 from sqlalchemy import event
+from sqlalchemy import ForeignKey
+from sqlalchemy import func
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy.ext.mutable import MutableComposite
+from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.ext.mutable import MutableList
+from sqlalchemy.ext.mutable import MutableSet
+from sqlalchemy.orm import attributes
+from sqlalchemy.orm import column_property
+from sqlalchemy.orm import composite
+from sqlalchemy.orm import mapper
+from sqlalchemy.orm import Session
+from sqlalchemy.orm.instrumentation import ClassManager
+from sqlalchemy.orm.mapper import Mapper
+from sqlalchemy.testing import assert_raises
+from sqlalchemy.testing import assert_raises_message
+from sqlalchemy.testing import eq_
+from sqlalchemy.testing import fixtures
+from sqlalchemy.testing import mock
+from sqlalchemy.testing.schema import Column
+from sqlalchemy.testing.schema import Table
+from sqlalchemy.testing.util import picklers
+from sqlalchemy.types import PickleType
+from sqlalchemy.types import TypeDecorator
+from sqlalchemy.types import VARCHAR
 
 
 class Foo(fixtures.BasicEntity):
@@ -23,7 +36,6 @@ class SubFoo(Foo):
 
 
 class FooWithEq(object):
-
     def __init__(self, **kw):
         for k in kw:
             setattr(self, k, kw[k])
@@ -36,7 +48,6 @@ class FooWithEq(object):
 
 
 class Point(MutableComposite):
-
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -55,13 +66,14 @@ class Point(MutableComposite):
         self.x, self.y = state
 
     def __eq__(self, other):
-        return isinstance(other, Point) and \
-            other.x == self.x and \
-            other.y == self.y
+        return (
+            isinstance(other, Point)
+            and other.x == self.x
+            and other.y == self.y
+        )
 
 
 class MyPoint(Point):
-
     @classmethod
     def coerce(cls, key, value):
         if isinstance(value, tuple):
@@ -82,7 +94,7 @@ class _MutableDictTestFixture(object):
 
 
 class _MutableDictTestBase(_MutableDictTestFixture):
-    run_define_tables = 'each'
+    run_define_tables = "each"
 
     def setup_mappers(cls):
         foo = cls.tables.foo
@@ -100,20 +112,21 @@ class _MutableDictTestBase(_MutableDictTestFixture):
         assert_raises_message(
             ValueError,
             "Attribute 'data' does not accept objects of type",
-            Foo, data=set([1, 2, 3])
+            Foo,
+            data=set([1, 2, 3]),
         )
 
     def test_in_place_mutation(self):
         sess = Session()
 
-        f1 = Foo(data={'a': 'b'})
+        f1 = Foo(data={"a": "b"})
         sess.add(f1)
         sess.commit()
 
-        f1.data['a'] = 'c'
+        f1.data["a"] = "c"
         sess.commit()
 
-        eq_(f1.data, {'a': 'c'})
+        eq_(f1.data, {"a": "c"})
 
     def test_modified_event(self):
         canary = mock.Mock()
@@ -124,14 +137,17 @@ class _MutableDictTestBase(_MutableDictTestFixture):
 
         eq_(
             canary.mock_calls,
-            [mock.call(
-                f1, attributes.Event(Foo.data.impl, attributes.OP_MODIFIED))]
+            [
+                mock.call(
+                    f1, attributes.Event(Foo.data.impl, attributes.OP_MODIFIED)
+                )
+            ],
         )
 
     def test_clear(self):
         sess = Session()
 
-        f1 = Foo(data={'a': 'b'})
+        f1 = Foo(data={"a": "b"})
         sess.add(f1)
         sess.commit()
 
@@ -143,46 +159,46 @@ class _MutableDictTestBase(_MutableDictTestFixture):
     def test_update(self):
         sess = Session()
 
-        f1 = Foo(data={'a': 'b'})
+        f1 = Foo(data={"a": "b"})
         sess.add(f1)
         sess.commit()
 
-        f1.data.update({'a': 'z'})
+        f1.data.update({"a": "z"})
         sess.commit()
 
-        eq_(f1.data, {'a': 'z'})
+        eq_(f1.data, {"a": "z"})
 
     def test_pop(self):
         sess = Session()
 
-        f1 = Foo(data={'a': 'b', 'c': 'd'})
+        f1 = Foo(data={"a": "b", "c": "d"})
         sess.add(f1)
         sess.commit()
 
-        eq_(f1.data.pop('a'), 'b')
+        eq_(f1.data.pop("a"), "b")
         sess.commit()
 
-        assert_raises(KeyError, f1.data.pop, 'g')
+        assert_raises(KeyError, f1.data.pop, "g")
 
-        eq_(f1.data, {'c': 'd'})
+        eq_(f1.data, {"c": "d"})
 
     def test_pop_default(self):
         sess = Session()
 
-        f1 = Foo(data={'a': 'b', 'c': 'd'})
+        f1 = Foo(data={"a": "b", "c": "d"})
         sess.add(f1)
         sess.commit()
 
-        eq_(f1.data.pop('a', 'q'), 'b')
-        eq_(f1.data.pop('a', 'q'), 'q')
+        eq_(f1.data.pop("a", "q"), "b")
+        eq_(f1.data.pop("a", "q"), "q")
         sess.commit()
 
-        eq_(f1.data, {'c': 'd'})
+        eq_(f1.data, {"c": "d"})
 
     def test_popitem(self):
         sess = Session()
 
-        orig = {'a': 'b', 'c': 'd'}
+        orig = {"a": "b", "c": "d"}
 
         # the orig dict remains unchanged when we assign,
         # but just making this future-proof
@@ -192,7 +208,7 @@ class _MutableDictTestBase(_MutableDictTestFixture):
         sess.commit()
 
         k, v = f1.data.popitem()
-        assert k in ('a', 'c')
+        assert k in ("a", "c")
         orig.pop(k)
 
         sess.commit()
@@ -202,45 +218,45 @@ class _MutableDictTestBase(_MutableDictTestFixture):
     def test_setdefault(self):
         sess = Session()
 
-        f1 = Foo(data={'a': 'b'})
+        f1 = Foo(data={"a": "b"})
         sess.add(f1)
         sess.commit()
 
-        eq_(f1.data.setdefault('c', 'd'), 'd')
+        eq_(f1.data.setdefault("c", "d"), "d")
         sess.commit()
 
-        eq_(f1.data, {'a': 'b', 'c': 'd'})
+        eq_(f1.data, {"a": "b", "c": "d"})
 
-        eq_(f1.data.setdefault('c', 'q'), 'd')
+        eq_(f1.data.setdefault("c", "q"), "d")
         sess.commit()
 
-        eq_(f1.data, {'a': 'b', 'c': 'd'})
+        eq_(f1.data, {"a": "b", "c": "d"})
 
     def test_replace(self):
         sess = Session()
-        f1 = Foo(data={'a': 'b'})
+        f1 = Foo(data={"a": "b"})
         sess.add(f1)
         sess.flush()
 
-        f1.data = {'b': 'c'}
+        f1.data = {"b": "c"}
         sess.commit()
-        eq_(f1.data, {'b': 'c'})
+        eq_(f1.data, {"b": "c"})
 
     def test_replace_itself_still_ok(self):
         sess = Session()
-        f1 = Foo(data={'a': 'b'})
+        f1 = Foo(data={"a": "b"})
         sess.add(f1)
         sess.flush()
 
         f1.data = f1.data
-        f1.data['b'] = 'c'
+        f1.data["b"] = "c"
         sess.commit()
-        eq_(f1.data, {'a': 'b', 'b': 'c'})
+        eq_(f1.data, {"a": "b", "b": "c"})
 
     def test_pickle_parent(self):
         sess = Session()
 
-        f1 = Foo(data={'a': 'b'})
+        f1 = Foo(data={"a": "b"})
         sess.add(f1)
         sess.commit()
         f1.data
@@ -250,7 +266,7 @@ class _MutableDictTestBase(_MutableDictTestFixture):
             sess = Session()
             f2 = loads(dumps(f1))
             sess.add(f2)
-            f2.data['a'] = 'c'
+            f2.data["a"] = "c"
             assert f2 in sess.dirty
 
     def test_unrelated_flush(self):
@@ -267,14 +283,14 @@ class _MutableDictTestBase(_MutableDictTestFixture):
     def _test_non_mutable(self):
         sess = Session()
 
-        f1 = Foo(non_mutable_data={'a': 'b'})
+        f1 = Foo(non_mutable_data={"a": "b"})
         sess.add(f1)
         sess.commit()
 
-        f1.non_mutable_data['a'] = 'c'
+        f1.non_mutable_data["a"] = "c"
         sess.commit()
 
-        eq_(f1.non_mutable_data, {'a': 'b'})
+        eq_(f1.non_mutable_data, {"a": "b"})
 
 
 class _MutableListTestFixture(object):
@@ -290,7 +306,7 @@ class _MutableListTestFixture(object):
 
 
 class _MutableListTestBase(_MutableListTestFixture):
-    run_define_tables = 'each'
+    run_define_tables = "each"
 
     def setup_mappers(cls):
         foo = cls.tables.foo
@@ -308,7 +324,8 @@ class _MutableListTestBase(_MutableListTestFixture):
         assert_raises_message(
             ValueError,
             "Attribute 'data' does not accept objects of type",
-            Foo, data=set([1, 2, 3])
+            Foo,
+            data=set([1, 2, 3]),
         )
 
     def test_in_place_mutation(self):
@@ -348,7 +365,7 @@ class _MutableListTestBase(_MutableListTestFixture):
         eq_(f1.data, [1, 4])
 
     def test_clear(self):
-        if not hasattr(list, 'clear'):
+        if not hasattr(list, "clear"):
             # py2 list doesn't have 'clear'
             return
         sess = Session()
@@ -502,7 +519,7 @@ class _MutableSetTestFixture(object):
 
 
 class _MutableSetTestBase(_MutableSetTestFixture):
-    run_define_tables = 'each'
+    run_define_tables = "each"
 
     def setup_mappers(cls):
         foo = cls.tables.foo
@@ -520,7 +537,8 @@ class _MutableSetTestBase(_MutableSetTestFixture):
         assert_raises_message(
             ValueError,
             "Attribute 'data' does not accept objects of type",
-            Foo, data=[1, 2, 3]
+            Foo,
+            data=[1, 2, 3],
         )
 
     def test_clear(self):
@@ -721,11 +739,12 @@ class MutableColumnDefaultTest(_MutableDictTestFixture, fixtures.MappedTest):
 
         mutable_pickle = MutableDict.as_mutable(PickleType)
         Table(
-            'foo', metadata,
+            "foo",
+            metadata,
             Column(
-                'id', Integer, primary_key=True,
-                test_needs_autoincrement=True),
-            Column('data', mutable_pickle, default={}),
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("data", mutable_pickle, default={}),
         )
 
     def setup_mappers(cls):
@@ -743,32 +762,33 @@ class MutableColumnDefaultTest(_MutableDictTestFixture, fixtures.MappedTest):
         sess.flush()
         assert isinstance(f1.data, self._type_fixture())
         assert f1 not in sess.dirty
-        f1.data['foo'] = 'bar'
+        f1.data["foo"] = "bar"
         assert f1 in sess.dirty
 
 
 class MutableWithScalarPickleTest(_MutableDictTestBase, fixtures.MappedTest):
-
     @classmethod
     def define_tables(cls, metadata):
         MutableDict = cls._type_fixture()
 
         mutable_pickle = MutableDict.as_mutable(PickleType)
-        Table('foo', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('skip', mutable_pickle),
-              Column('data', mutable_pickle),
-              Column('non_mutable_data', PickleType),
-              Column('unrelated_data', String(50))
-              )
+        Table(
+            "foo",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("skip", mutable_pickle),
+            Column("data", mutable_pickle),
+            Column("non_mutable_data", PickleType),
+            Column("unrelated_data", String(50)),
+        )
 
     def test_non_mutable(self):
         self._test_non_mutable()
 
 
 class MutableWithScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest):
-
     @classmethod
     def define_tables(cls, metadata):
         import json
@@ -789,31 +809,22 @@ class MutableWithScalarJSONTest(_MutableDictTestBase, fixtures.MappedTest):
 
         MutableDict = cls._type_fixture()
 
-        Table('foo', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('data', MutableDict.as_mutable(JSONEncodedDict)),
-              Column('non_mutable_data', JSONEncodedDict),
-              Column('unrelated_data', String(50))
-              )
+        Table(
+            "foo",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("data", MutableDict.as_mutable(JSONEncodedDict)),
+            Column("non_mutable_data", JSONEncodedDict),
+            Column("unrelated_data", String(50)),
+        )
 
     def test_non_mutable(self):
         self._test_non_mutable()
 
 
-class MutableIncludeNonPrimaryTest(MutableWithScalarJSONTest):
-    @classmethod
-    def setup_mappers(cls):
-        foo = cls.tables.foo
-
-        mapper(Foo, foo)
-        mapper(Foo, foo, non_primary=True, properties={
-            "foo_bar": foo.c.data
-        })
-
-
 class MutableColumnCopyJSONTest(_MutableDictTestBase, fixtures.MappedTest):
-
     @classmethod
     def define_tables(cls, metadata):
         import json
@@ -840,8 +851,9 @@ class MutableColumnCopyJSONTest(_MutableDictTestBase, fixtures.MappedTest):
         class AbstractFoo(Base):
             __abstract__ = True
 
-            id = Column(Integer, primary_key=True,
-                        test_needs_autoincrement=True)
+            id = Column(
+                Integer, primary_key=True, test_needs_autoincrement=True
+            )
             data = Column(MutableDict.as_mutable(JSONEncodedDict))
             non_mutable_data = Column(JSONEncodedDict)
             unrelated_data = Column(String(50))
@@ -849,7 +861,8 @@ class MutableColumnCopyJSONTest(_MutableDictTestBase, fixtures.MappedTest):
         class Foo(AbstractFoo):
             __tablename__ = "foo"
             column_prop = column_property(
-                func.lower(AbstractFoo.unrelated_data))
+                func.lower(AbstractFoo.unrelated_data)
+            )
 
         assert Foo.data.property.columns[0].type is not AbstractFoo.data.type
 
@@ -858,7 +871,7 @@ class MutableColumnCopyJSONTest(_MutableDictTestBase, fixtures.MappedTest):
 
 
 class MutableColumnCopyArrayTest(_MutableListTestBase, fixtures.MappedTest):
-    __requires__ = 'array_type',
+    __requires__ = ("array_type",)
 
     @classmethod
     def define_tables(cls, metadata):
@@ -873,62 +886,72 @@ class MutableColumnCopyArrayTest(_MutableListTestBase, fixtures.MappedTest):
             data = Column(MutableList.as_mutable(ARRAY(Integer)))
 
         class Foo(Mixin, Base):
-            __tablename__ = 'foo'
+            __tablename__ = "foo"
             id = Column(Integer, primary_key=True)
 
 
-class MutableListWithScalarPickleTest(_MutableListTestBase,
-                                      fixtures.MappedTest):
-
+class MutableListWithScalarPickleTest(
+    _MutableListTestBase, fixtures.MappedTest
+):
     @classmethod
     def define_tables(cls, metadata):
         MutableList = cls._type_fixture()
 
         mutable_pickle = MutableList.as_mutable(PickleType)
-        Table('foo', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('skip', mutable_pickle),
-              Column('data', mutable_pickle),
-              Column('non_mutable_data', PickleType),
-              Column('unrelated_data', String(50))
-              )
+        Table(
+            "foo",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("skip", mutable_pickle),
+            Column("data", mutable_pickle),
+            Column("non_mutable_data", PickleType),
+            Column("unrelated_data", String(50)),
+        )
 
 
 class MutableSetWithScalarPickleTest(_MutableSetTestBase, fixtures.MappedTest):
-
     @classmethod
     def define_tables(cls, metadata):
         MutableSet = cls._type_fixture()
 
         mutable_pickle = MutableSet.as_mutable(PickleType)
-        Table('foo', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('skip', mutable_pickle),
-              Column('data', mutable_pickle),
-              Column('non_mutable_data', PickleType),
-              Column('unrelated_data', String(50))
-              )
+        Table(
+            "foo",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("skip", mutable_pickle),
+            Column("data", mutable_pickle),
+            Column("non_mutable_data", PickleType),
+            Column("unrelated_data", String(50)),
+        )
 
 
-class MutableAssocWithAttrInheritTest(_MutableDictTestBase,
-                                      fixtures.MappedTest):
-
+class MutableAssocWithAttrInheritTest(
+    _MutableDictTestBase, fixtures.MappedTest
+):
     @classmethod
     def define_tables(cls, metadata):
 
-        Table('foo', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('data', PickleType),
-              Column('non_mutable_data', PickleType),
-              Column('unrelated_data', String(50))
-              )
+        Table(
+            "foo",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("data", PickleType),
+            Column("non_mutable_data", PickleType),
+            Column("unrelated_data", String(50)),
+        )
 
-        Table('subfoo', metadata,
-              Column('id', Integer, ForeignKey('foo.id'), primary_key=True),
-              )
+        Table(
+            "subfoo",
+            metadata,
+            Column("id", Integer, ForeignKey("foo.id"), primary_key=True),
+        )
 
     def setup_mappers(cls):
         foo = cls.tables.foo
@@ -941,57 +964,49 @@ class MutableAssocWithAttrInheritTest(_MutableDictTestBase,
     def test_in_place_mutation(self):
         sess = Session()
 
-        f1 = SubFoo(data={'a': 'b'})
+        f1 = SubFoo(data={"a": "b"})
         sess.add(f1)
         sess.commit()
 
-        f1.data['a'] = 'c'
+        f1.data["a"] = "c"
         sess.commit()
 
-        eq_(f1.data, {'a': 'c'})
+        eq_(f1.data, {"a": "c"})
 
     def test_replace(self):
         sess = Session()
-        f1 = SubFoo(data={'a': 'b'})
+        f1 = SubFoo(data={"a": "b"})
         sess.add(f1)
         sess.flush()
 
-        f1.data = {'b': 'c'}
+        f1.data = {"b": "c"}
         sess.commit()
-        eq_(f1.data, {'b': 'c'})
+        eq_(f1.data, {"b": "c"})
 
 
-class MutableAssociationScalarPickleTest(_MutableDictTestBase,
-                                         fixtures.MappedTest):
-
+class MutableAssociationScalarPickleTest(
+    _MutableDictTestBase, fixtures.MappedTest
+):
     @classmethod
     def define_tables(cls, metadata):
         MutableDict = cls._type_fixture()
         MutableDict.associate_with(PickleType)
 
-        Table('foo', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('skip', PickleType),
-              Column('data', PickleType),
-              Column('unrelated_data', String(50))
-              )
+        Table(
+            "foo",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("skip", PickleType),
+            Column("data", PickleType),
+            Column("unrelated_data", String(50)),
+        )
 
 
-class MutableAssocIncludeNonPrimaryTest(MutableAssociationScalarPickleTest):
-    @classmethod
-    def setup_mappers(cls):
-        foo = cls.tables.foo
-
-        mapper(Foo, foo)
-        mapper(Foo, foo, non_primary=True, properties={
-            "foo_bar": foo.c.data
-        })
-
-
-class MutableAssociationScalarJSONTest(_MutableDictTestBase,
-                                       fixtures.MappedTest):
-
+class MutableAssociationScalarJSONTest(
+    _MutableDictTestBase, fixtures.MappedTest
+):
     @classmethod
     def define_tables(cls, metadata):
         import json
@@ -1013,27 +1028,33 @@ class MutableAssociationScalarJSONTest(_MutableDictTestBase,
         MutableDict = cls._type_fixture()
         MutableDict.associate_with(JSONEncodedDict)
 
-        Table('foo', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('data', JSONEncodedDict),
-              Column('unrelated_data', String(50))
-              )
+        Table(
+            "foo",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("data", JSONEncodedDict),
+            Column("unrelated_data", String(50)),
+        )
 
 
-class CustomMutableAssociationScalarJSONTest(_MutableDictTestBase,
-                                             fixtures.MappedTest):
+class CustomMutableAssociationScalarJSONTest(
+    _MutableDictTestBase, fixtures.MappedTest
+):
 
     CustomMutableDict = None
 
     @classmethod
     def _type_fixture(cls):
-        if not(getattr(cls, 'CustomMutableDict')):
+        if not (getattr(cls, "CustomMutableDict")):
             MutableDict = super(
-                CustomMutableAssociationScalarJSONTest, cls)._type_fixture()
+                CustomMutableAssociationScalarJSONTest, cls
+            )._type_fixture()
 
             class CustomMutableDict(MutableDict):
                 pass
+
             cls.CustomMutableDict = CustomMutableDict
         return cls.CustomMutableDict
 
@@ -1058,12 +1079,15 @@ class CustomMutableAssociationScalarJSONTest(_MutableDictTestBase,
         CustomMutableDict = cls._type_fixture()
         CustomMutableDict.associate_with(JSONEncodedDict)
 
-        Table('foo', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('data', JSONEncodedDict),
-              Column('unrelated_data', String(50))
-              )
+        Table(
+            "foo",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("data", JSONEncodedDict),
+            Column("unrelated_data", String(50)),
+        )
 
     def test_pickle_parent(self):
         # Picklers don't know how to pickle CustomMutableDict,
@@ -1072,26 +1096,29 @@ class CustomMutableAssociationScalarJSONTest(_MutableDictTestBase,
 
     def test_coerce(self):
         sess = Session()
-        f1 = Foo(data={'a': 'b'})
+        f1 = Foo(data={"a": "b"})
         sess.add(f1)
         sess.flush()
         eq_(type(f1.data), self._type_fixture())
 
 
 class _CompositeTestBase(object):
-
     @classmethod
     def define_tables(cls, metadata):
-        Table('foo', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('x', Integer),
-              Column('y', Integer),
-              Column('unrelated_data', String(50))
-              )
+        Table(
+            "foo",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("x", Integer),
+            Column("y", Integer),
+            Column("unrelated_data", String(50)),
+        )
 
     def setup(self):
         from sqlalchemy.ext import mutable
+
         mutable._setup_composite_listener()
         super(_CompositeTestBase, self).setup()
 
@@ -1107,17 +1134,20 @@ class _CompositeTestBase(object):
         return Point
 
 
-class MutableCompositeColumnDefaultTest(_CompositeTestBase,
-                                        fixtures.MappedTest):
+class MutableCompositeColumnDefaultTest(
+    _CompositeTestBase, fixtures.MappedTest
+):
     @classmethod
     def define_tables(cls, metadata):
         Table(
-            'foo', metadata,
-            Column('id', Integer, primary_key=True,
-                   test_needs_autoincrement=True),
-            Column('x', Integer, default=5),
-            Column('y', Integer, default=9),
-            Column('unrelated_data', String(50))
+            "foo",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("x", Integer, default=5),
+            Column("y", Integer, default=9),
+            Column("unrelated_data", String(50)),
         )
 
     @classmethod
@@ -1126,9 +1156,11 @@ class MutableCompositeColumnDefaultTest(_CompositeTestBase,
 
         cls.Point = cls._type_fixture()
 
-        mapper(Foo, foo, properties={
-            'data': composite(cls.Point, foo.c.x, foo.c.y)
-        })
+        mapper(
+            Foo,
+            foo,
+            properties={"data": composite(cls.Point, foo.c.x, foo.c.y)},
+        )
 
     def test_evt_on_flush_refresh(self):
         # this still worked prior to #3427 being fixed in any case
@@ -1145,16 +1177,17 @@ class MutableCompositeColumnDefaultTest(_CompositeTestBase,
 
 
 class MutableCompositesUnpickleTest(_CompositeTestBase, fixtures.MappedTest):
-
     @classmethod
     def setup_mappers(cls):
         foo = cls.tables.foo
 
         cls.Point = cls._type_fixture()
 
-        mapper(FooWithEq, foo, properties={
-            'data': composite(cls.Point, foo.c.x, foo.c.y)
-        })
+        mapper(
+            FooWithEq,
+            foo,
+            properties={"data": composite(cls.Point, foo.c.x, foo.c.y)},
+        )
 
     def test_unpickle_modified_eq(self):
         u1 = FooWithEq(data=self.Point(3, 5))
@@ -1163,16 +1196,15 @@ class MutableCompositesUnpickleTest(_CompositeTestBase, fixtures.MappedTest):
 
 
 class MutableCompositesTest(_CompositeTestBase, fixtures.MappedTest):
-
     @classmethod
     def setup_mappers(cls):
         foo = cls.tables.foo
 
         Point = cls._type_fixture()
 
-        mapper(Foo, foo, properties={
-            'data': composite(Point, foo.c.x, foo.c.y)
-        })
+        mapper(
+            Foo, foo, properties={"data": composite(Point, foo.c.x, foo.c.y)}
+        )
 
     def test_in_place_mutation(self):
         sess = Session()
@@ -1194,7 +1226,7 @@ class MutableCompositesTest(_CompositeTestBase, fixtures.MappedTest):
         sess.commit()
 
         f1.data
-        assert 'data' in f1.__dict__
+        assert "data" in f1.__dict__
         sess.close()
 
         for loads, dumps in picklers():
@@ -1220,7 +1252,10 @@ class MutableCompositesTest(_CompositeTestBase, fixtures.MappedTest):
         assert_raises_message(
             ValueError,
             "Attribute 'data' does not accept objects",
-            setattr, f1, 'data', 'foo'
+            setattr,
+            f1,
+            "data",
+            "foo",
         )
 
     def test_unrelated_flush(self):
@@ -1237,7 +1272,6 @@ class MutableCompositesTest(_CompositeTestBase, fixtures.MappedTest):
 
 
 class MutableCompositeCallableTest(_CompositeTestBase, fixtures.MappedTest):
-
     @classmethod
     def setup_mappers(cls):
         foo = cls.tables.foo
@@ -1246,9 +1280,13 @@ class MutableCompositeCallableTest(_CompositeTestBase, fixtures.MappedTest):
 
         # in this case, this is not actually a MutableComposite.
         # so we don't expect it to track changes
-        mapper(Foo, foo, properties={
-            'data': composite(lambda x, y: Point(x, y), foo.c.x, foo.c.y)
-        })
+        mapper(
+            Foo,
+            foo,
+            properties={
+                "data": composite(lambda x, y: Point(x, y), foo.c.x, foo.c.y)
+            },
+        )
 
     def test_basic(self):
         sess = Session()
@@ -1262,9 +1300,9 @@ class MutableCompositeCallableTest(_CompositeTestBase, fixtures.MappedTest):
         eq_(f1.data.x, 3)
 
 
-class MutableCompositeCustomCoerceTest(_CompositeTestBase,
-                                       fixtures.MappedTest):
-
+class MutableCompositeCustomCoerceTest(
+    _CompositeTestBase, fixtures.MappedTest
+):
     @classmethod
     def _type_fixture(cls):
 
@@ -1276,9 +1314,9 @@ class MutableCompositeCustomCoerceTest(_CompositeTestBase,
 
         Point = cls._type_fixture()
 
-        mapper(Foo, foo, properties={
-            'data': composite(Point, foo.c.x, foo.c.y)
-        })
+        mapper(
+            Foo, foo, properties={"data": composite(Point, foo.c.x, foo.c.y)}
+        )
 
     def test_custom_coerce(self):
         f = Foo()
@@ -1297,18 +1335,22 @@ class MutableCompositeCustomCoerceTest(_CompositeTestBase,
 
 
 class MutableInheritedCompositesTest(_CompositeTestBase, fixtures.MappedTest):
-
     @classmethod
     def define_tables(cls, metadata):
-        Table('foo', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('x', Integer),
-              Column('y', Integer)
-              )
-        Table('subfoo', metadata,
-              Column('id', Integer, ForeignKey('foo.id'), primary_key=True),
-              )
+        Table(
+            "foo",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("x", Integer),
+            Column("y", Integer),
+        )
+        Table(
+            "subfoo",
+            metadata,
+            Column("id", Integer, ForeignKey("foo.id"), primary_key=True),
+        )
 
     @classmethod
     def setup_mappers(cls):
@@ -1317,9 +1359,9 @@ class MutableInheritedCompositesTest(_CompositeTestBase, fixtures.MappedTest):
 
         Point = cls._type_fixture()
 
-        mapper(Foo, foo, properties={
-            'data': composite(Point, foo.c.x, foo.c.y)
-        })
+        mapper(
+            Foo, foo, properties={"data": composite(Point, foo.c.x, foo.c.y)}
+        )
         mapper(SubFoo, subfoo, inherits=Foo)
 
     def test_in_place_mutation_subclass(self):
@@ -1342,7 +1384,7 @@ class MutableInheritedCompositesTest(_CompositeTestBase, fixtures.MappedTest):
         sess.commit()
 
         f1.data
-        assert 'data' in f1.__dict__
+        assert "data" in f1.__dict__
         sess.close()
 
         for loads, dumps in picklers():

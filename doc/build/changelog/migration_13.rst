@@ -17,8 +17,152 @@ their applications from the 1.2 series of SQLAlchemy to 1.3.
 Please carefully review the sections on behavioral changes for
 potentially backwards-incompatible changes in behavior.
 
+General
+=======
+
+.. _change_4393_general:
+
+Deprecation warnings are emitted for all deprecated elements; new deprecations added
+------------------------------------------------------------------------------------
+
+Release 1.3 ensures that all behaviors and APIs that are deprecated, including
+all those that have been long listed as "legacy" for years, are emitting
+``DeprecationWarning`` warnings. This includes when making use of parameters
+such as :paramref:`.Session.weak_identity_map` and classes such as
+:class:`.MapperExtension`.     While all deprecations have been noted in the
+documentation, often they did not use a proper restructured text directive, or
+include in what version they were deprecated.  Whether or not a particular API
+feature actually emitted a deprecation warning was not consistent.  The general
+attitude was that most or all of these deprecated features were treated as
+long-term legacy features with no plans to remove them.
+
+The change includes that all documented deprecations now use a proper
+restructured text directive in the documentation with a version number, the
+verbiage that the feature or use case will be removed in a future release is
+made explicit (e.g., no more legacy forever use cases), and that use of any
+such feature or use case will definitely emit a ``DeprecationWarning``, which
+in Python 3 as well as when using modern testing tools like Pytest are now made
+more explicit in the standard error stream.  The goal is that these long
+deprecated features, going back as far as version 0.7 or 0.6, should start
+being removed entirely, rather than keeping them around as "legacy" features.
+Additionally, some major new deprecations are being added as of version 1.3.
+As SQLAlchemy has 14 years of real world use by thousands of developers, it's
+possible to point to a single stream of use cases that blend together well, and
+to trim away features and patterns that work against this single way of
+working.
+
+The larger context is that SQLAlchemy seeks to adjust to the coming Python
+3-only world, as well as a type-annotated world, and towards this goal there
+are **tentative** plans for a major rework of  SQLAlchemy which would hopefully
+greatly reduce the cognitive load of the API as well as perform a major pass
+over the great many differences in implementation and use between Core and ORM.
+As these two systems evolved dramatically after SQLAlchemy's first release, in
+particular the ORM still retains lots of "bolted on" behaviors that keep the
+wall of separation between Core and  ORM too high.  By focusing the API
+ahead of time on a single pattern for each supported use case, the eventual
+job of migrating to a significantly altered API becomes simpler.
+
+For the most major deprecations being added in 1.3, see the linked sections
+below.
+
+
+.. seealso::
+
+    :ref:`change_4393_threadlocal`
+
+    :ref:`change_4393_convertunicode`
+
+    :ref:`change_4423`
+
+:ticket:`4393`
+
 New Features and Improvements - ORM
 ===================================
+
+.. _change_4423:
+
+Relationship to AliasedClass replaces the need for non primary mappers
+-----------------------------------------------------------------------
+
+The "non primary mapper" is a :func:`.mapper` created in the
+:ref:`classical_mapping` style, which acts as an additional mapper against an
+already mapped class against a different kind of selectable.  The non primary
+mapper has its roots in the 0.1, 0.2 series of SQLAlchemy where it was
+anticipated that the :func:`.mapper` object was to be the primary query
+construction interface, before the :class:`.Query` object existed.
+
+With the advent of :class:`.Query` and later the :class:`.AliasedClass`
+construct, most use cases for the non primary mapper went away.  This was a
+good thing since SQLAlchemy also moved away from "classical" mappings altogether
+around the 0.5 series in favor of the declarative system.
+
+One use case remained around for non primary mappers when it was realized that
+some very hard-to-define :func:`.relationship` configurations could be made
+possible when a non-primary mapper with an alternative selectable was made as
+the mapping target, rather than trying to construct a
+:paramref:`.relationship.primaryjoin` that encompassed all the complexity of a
+particular inter-object relationship.
+
+As this use case became more popular, its limitations became apparent,
+including that the non primary mapper is difficult to configure against a
+selectable that adds new columns, that the mapper does not inherit the
+relationships of the original mapping, that relationships which are configured
+explicitly on the non primary mapper do  not function well with loader options,
+and that the non primary mapper also doesn't provide a fully functional
+namespace of column-based attributes which can be used in queries (which again,
+in the old 0.1 - 0.4 days, one would use :class:`.Table` objects directly with
+the ORM).
+
+The missing piece was to allow the :func:`.relationship` to refer directly
+to the :class:`.AliasedClass`.  The :class:`.AliasedClass` already does
+everything we want the non primary mapper to do; it allows an existing mapped
+class to be loaded from an alternative selectable, it inherits all the
+attributes and relationships of the existing mapper, it works
+extremely well with loader options, and it provides a class-like
+object that can be mixed into queries just like the class itself.
+With this change, the recipes that
+were formerly for non primary mappers at :ref:`relationship_configure_joins`
+are changed to aliased class.
+
+At :ref:`relationship_aliased_class`, the original non primary mapper looked
+like::
+
+    j = join(B, D, D.b_id == B.id).join(C, C.id == D.c_id)
+
+    B_viacd = mapper(
+        B, j, non_primary=True, primary_key=[j.c.b_id],
+        properties={
+            "id": j.c.b_id,  # so that 'id' looks the same as before
+            "c_id": j.c.c_id,   # needed for disambiguation
+            "d_c_id": j.c.d_c_id,  # needed for disambiguation
+            "b_id": [j.c.b_id, j.c.d_b_id],
+            "d_id": j.c.d_id,
+        }
+    )
+
+    A.b = relationship(B_viacd, primaryjoin=A.b_id == B_viacd.c.b_id)
+
+The properties were necessary in order to re-map the additional columns
+so that they did not conflict with the existing columns mapped to ``B``, as
+well as it was necessary to define a new primary key.
+
+With the new approach, all of this verbosity goes away, and the additional
+columns are referred towards directly when making the relationship::
+
+    j = join(B, D, D.b_id == B.id).join(C, C.id == D.c_id)
+
+    B_viacd = aliased(B, j, flat=True)
+
+    A.b = relationship(B_viacd, primaryjoin=A.b_id == j.c.b_id)
+
+The non primary mapper is now deprecated with the eventual goal to be that
+classical mappings as a feature go away entirely.  The Declarative API would
+become the single means of mapping which hopefully will allow internal
+improvements and simplifications, as well as a clearer documentation story.
+
+
+:ticket:`4423`
+
 
 .. _change_4340:
 
@@ -77,8 +221,8 @@ lazy loading uses in order to determine if related entities can be fetched
 directly from the identity map.   However, as with most querying features,
 the feature's implementation became more complex as a result of advanced
 scenarios regarding polymorphic loading.   If problems are encountered,
-users should report a bug, however the change also incldues a flag
-:paramref:`.relationship.omit_join` which can be set to False on the
+users should report a bug, however the change also includes a flag
+:paramref:`.relationship.omit_join` which can be set to ``False`` on the
 :func:`.relationship` to disable the optimization.
 
 
@@ -539,6 +683,128 @@ Note that this change may be revised if it leads to problems.
 
 :ticket:`4268`
 
+.. _change_2642:
+
+Implemented bulk replace for sets, dicts with AssociationProxy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Assignment of a set or dictionary to an association proxy collection should
+now work correctly, whereas before it would re-create association
+proxy members for existing keys, leading to the issue of potential flush
+failures due to the delete+insert of the same object it now should only create
+new association objects where appropriate::
+
+    class A(Base):
+        __tablename__ = "test_a"
+
+        id = Column(Integer, primary_key=True)
+        b_rel = relationship(
+            "B", collection_class=set, cascade="all, delete-orphan",
+        )
+        b = association_proxy("b_rel", "value", creator=lambda x: B(value=x))
+
+
+    class B(Base):
+        __tablename__ = "test_b"
+        __table_args__ = (UniqueConstraint("a_id", "value"),)
+
+        id = Column(Integer, primary_key=True)
+        a_id = Column(Integer, ForeignKey("test_a.id"), nullable=False)
+        value = Column(String)
+
+    # ...
+
+    s = Session(e)
+    a = A(b={"x", "y", "z"})
+    s.add(a)
+    s.commit()
+
+    # re-assign where one B should be deleted, one B added, two
+    # B's maintained
+    a.b = {"x", "z", "q"}
+
+    # only 'q' was added, so only one new B object.  previously
+    # all three would have been re-created leading to flush conflicts
+    # against the deleted ones.
+    assert len(s.new) == 1
+
+
+:ticket:`2642`
+
+.. _change_1103:
+
+Many-to-one backref checks for collection duplicates during remove operation
+----------------------------------------------------------------------------
+
+When an ORM-mapped collection that existed as a Python sequence, typically a
+Python ``list`` as is the default for :func:`.relationship`, contained
+duplicates, and the object were removed from one of its positions but not the
+other(s),  a many-to-one backref would set its attribute to ``None`` even
+though the one-to-many side still represented the object as present.  Even
+though one-to-many collections cannot have duplicates in the relational model,
+an ORM-mapped :func:`.relationship` that uses a sequence collection can have
+duplicates inside of it in memory, with the restriction that this duplicate
+state can neither be persisted nor retrieved from the database.   In particular,
+having a duplicate temporarily present in the list is intrinsic to a Python
+"swap" operation.  Given a standard one-to-many/many-to-one setup::
+
+    class A(Base):
+        __tablename__ = 'a'
+
+        id = Column(Integer, primary_key=True)
+        bs = relationship("B", backref="a")
+
+
+    class B(Base):
+        __tablename__ = 'b'
+        id = Column(Integer, primary_key=True)
+        a_id = Column(ForeignKey("a.id"))
+
+If we have an ``A`` object with two ``B`` members, and perform a swap::
+
+    a1 = A(bs=[B(), B()])
+
+    a1.bs[0], a1.bs[1] = a1.bs[1], a1.bs[0]
+
+During the above operation, interception of the standard Python ``__setitem__``
+``__delitem__`` methods delivers an interim state where the second ``B()``
+object is present twice in the collection.  When the ``B()`` object is removed
+from one of the positions, the ``B.a`` backref would set the reference to
+``None``, causing the link between the ``A`` and ``B`` object to be removed
+during the flush.   The same issue can be demonstrated using plain duplicates::
+
+    >>> a1 = A()
+    >>> b1 = B()
+    >>> a1.bs.append(b1)
+    >>> a1.bs.append(b1)  # append the same b1 object twice
+    >>> del a1.bs[1]
+    >>> a1.bs  # collection is unaffected so far...
+    [<__main__.B object at 0x7f047af5fb70>]
+    >>> b1.a   # however b1.a is None
+    >>>
+    >>> session.add(a1)
+    >>> session.commit()  # so upon flush + expire....
+    >>> a1.bs  # the value is gone
+    []
+
+The fix ensures that when the backref fires off, which is before the collection
+is mutated, the collection is checked for exactly one or zero instances of
+the target item before unsetting the many-to-one side, using a linear search
+which at the moment makes use of ``list.search`` and ``list.__contains__``.
+
+Originally it was thought that an event-based reference counting scheme would
+need to be used within the collection internals so that all duplicate instances
+could be tracked throughout the lifecycle of the collection, which would have
+added a performance/memory/complexity impact to all collection operations,
+including the very frequent operations of loading and appending.  The approach
+that is taken instead limits the  additional expense  to the less common
+operations of collection removal and bulk replacement, and the observed
+overhead of the linear scan is negligible; linear scans of relationship-bound
+collections are already used within the unit of work as well as when a
+collection is bulk replaced.
+
+
+:ticket:`1103`
 
 Key Behavioral Changes - ORM
 =============================
@@ -561,7 +827,7 @@ as:
     SELECT ...
     FROM users AS users_1, users JOIN addresses ON users.id = addresses.user_id
 
-That is, the JOIN would implcitly be against the first entity that matches.
+That is, the JOIN would implicitly be against the first entity that matches.
 The new behavior is that an exception requests that this ambiguity be
 resolved::
 
@@ -642,7 +908,7 @@ combined with "SELECT..FOR UPDATE", the behavior has been this::
     ) AS subq LEFT OUTER JOIN b ON subq.a_id=b.a_id FOR UPDATE
 
 However, MySQL due to https://bugs.mysql.com/bug.php?id=90693 does not lock
-the rows inside the subquery, unlike that of Postgresql and other databases.
+the rows inside the subquery, unlike that of PostgreSQL and other databases.
 So the above query now renders as::
 
     SELECT subq.a_id, subq.a_data, b_alias.id, b_alias.data FROM (
@@ -651,11 +917,11 @@ So the above query now renders as::
 
 On the Oracle dialect, the inner "FOR UPDATE" is not rendered as Oracle does
 not support this syntax and the dialect skips any "FOR UPDATE" that is against
-a subquery; it isn't necessary in any case since Oracle, like Postgresql,
+a subquery; it isn't necessary in any case since Oracle, like PostgreSQL,
 correctly locks all elements of the returned row.
 
 When using the :paramref:`.Query.with_for_update.of` modifier, typically on
-Postgresql, the outer "FOR UPDATE" is omitted, and the OF is now rendered
+PostgreSQL, the outer "FOR UPDATE" is omitted, and the OF is now rendered
 on the inside; previously, the OF target would not be converted to accommodate
 for the subquery correctly.  So
 given::
@@ -668,7 +934,7 @@ The query would now render as::
         SELECT a.id AS a_id, a.data AS a_data FROM a LIMIT 5 FOR UPDATE OF a
     ) AS subq LEFT OUTER JOIN b ON subq.a_id=b.a_id
 
-The above form should be helpful on Postgresql additionally since Postgresql
+The above form should be helpful on PostgreSQL additionally since PostgreSQL
 will not allow the FOR UPDATE clause to be rendered after the LEFT OUTER JOIN
 target.
 
@@ -874,7 +1140,7 @@ Expanding IN feature now supports empty lists
 The "expanding IN" feature introduced in version 1.2 at :ref:`change_3953` now
 supports empty lists passed to the :meth:`.ColumnOperators.in_` operator.   The implementation
 for an empty list will produce an "empty set" expression that is specific to a target
-backend, such as "SELECT CAST(NULL AS INTEGER) WHERE 1!=1" for Postgresql,
+backend, such as "SELECT CAST(NULL AS INTEGER) WHERE 1!=1" for PostgreSQL,
 "SELECT 1 FROM (SELECT 1) as _empty_set WHERE 1!=1" for MySQL::
 
     >>> from sqlalchemy import create_engine
@@ -891,7 +1157,7 @@ backend, such as "SELECT CAST(NULL AS INTEGER) WHERE 1!=1" for Postgresql,
 
 The feature also works for tuple-oriented IN statements, where the "empty IN"
 expression will be expanded to support the elements given inside the tuple,
-such as on Postgresql::
+such as on PostgreSQL::
 
     >>> from sqlalchemy import create_engine
     >>> from sqlalchemy import select, literal_column, tuple_, bindparam
@@ -936,7 +1202,7 @@ variant expression in order to locate these methods::
 
     MyLargeBinary = LargeBinary().with_variant(CompressedLargeBinary(), "sqlite")
 
-The above expression will render a function within SQL when used on SQlite only::
+The above expression will render a function within SQL when used on SQLite only::
 
     from sqlalchemy import select, column
     from sqlalchemy.dialects import sqlite
@@ -981,6 +1247,143 @@ considered, however this was too much verbosity).
 
 
 
+Key Changes - Core
+==================
+
+.. _change_4481:
+
+Coercion of string SQL fragments to text() fully removed
+---------------------------------------------------------
+
+The warnings that were first added in version 1.0, described at
+:ref:`migration_2992`, have now been converted into exceptions.    Continued
+concerns have been raised regarding the automatic coercion of string fragments
+passed to methods like :meth:`.Query.filter` and :meth:`.Select.order_by` being
+converted to :func:`.text` constructs, even though this has emitted a warning.
+In the case of :meth:`.Select.order_by`, :meth:`.Query.order_by`,
+:meth:`.Select.group_by`, and :meth:`.Query.group_by`, a string label or column
+name is still resolved into the corresponding expression construct, however if
+the resolution fails, a :class:`.CompileError` is raised, thus preventing raw
+SQL text from being rendered directly.
+
+:ticket:`4481`
+
+.. _change_4393_threadlocal:
+
+"threadlocal" engine strategy deprecated
+-----------------------------------------
+
+The :ref:`"threadlocal" engine strategy <threadlocal_strategy>` was added
+around SQLAlchemy 0.2, as a solution to the problem that the standard way of
+operating in SQLAlchemy 0.1, which can be summed up as "threadlocal
+everything",  was found to be lacking. In retrospect, it seems fairly absurd
+that by SQLAlchemy's first releases which were in every regard "alpha", that
+there was concern that too many users had already settled on the existing API
+to simply change it.
+
+The original usage model for SQLAlchemy looked like this::
+
+    engine.begin()
+
+    table.insert().execute(<params>)
+    result = table.select().execute()
+
+    table.update().execute(<params>)
+
+    engine.commit()
+
+After a few months of real world use, it was clear that trying to pretend a
+"connection" or a "transaction" was a hidden implementation detail was a bad
+idea, particularly the moment someone needed to deal with more than one
+database connection at a time.   So the usage paradigm we see today was
+introduced, minus the context managers since they didn't yet exist in Python::
+
+    conn = engine.connect()
+    try:
+        trans = conn.begin()
+
+        conn.execute(table.insert(), <params>)
+        result = conn.execute(table.select())
+
+        conn.execute(table.update(), <params>)
+
+        trans.commit()
+    except:
+        trans.rollback()
+        raise
+    finally:
+        conn.close()
+
+The above paradigm was what people needed, but since it was still kind of
+verbose (because no context managers), the old way of working was kept around
+as well and it became the threadlocal engine strategy.
+
+Today, working with Core is much more succinct, and even more succinct than
+the original pattern, thanks to context managers::
+
+    with engine.begin() as conn:
+        conn.execute(table.insert(), <params>)
+        result = conn.execute(table.select())
+
+        conn.execute(table.update(), <params>)
+
+At this point, any remaining code that is still relying upon the "threadlocal"
+style will be encouraged via this deprecation to modernize - the feature should
+be removed totally by the next major series of SQLAlchemy, e.g. 1.4.  The
+connection pool parameter :paramref:`.Pool.use_threadlocal` is also deprecated
+as it does not actually have any effect in most cases, as is the
+:meth:`.Engine.contextual_connect` method, which is normally synonymous with
+the :meth:`.Engine.connect` method except in the case where the threadlocal
+engine is in use.
+
+.. seealso::
+
+    :ref:`threadlocal_strategy`
+
+
+:ticket:`4393`
+
+
+.. _change_4393_convertunicode:
+
+convert_unicode parameters deprecated
+--------------------------------------
+
+The parameters :paramref:`.String.convert_unicode` and
+:paramref:`.create_engine.convert_unicode` are deprecated.    The purpose of
+these parameters was to instruct SQLAlchemy to ensure that incoming Python
+Unicode objects under Python 2 were encoded to bytestrings before passing to
+the database, and to expect bytestrings from the database to be converted back
+to Python Unicode objects.   In the pre-Python 3 era, this was an enormous
+ordeal to get right, as virtually all Python DBAPIs had no Unicode support
+enabled by default, and most had major issues with the Unicode extensions that
+they did provide.    Eventually, SQLAlchemy added C extensions, one of the
+primary purposes of these extensions was to speed up the Unicode decode process
+within result sets.
+
+Once Python 3 was introduced, DBAPIs began to start supporting Unicode more
+fully, and more importantly, by default.  However, the conditions under which a
+particular DBAPI would or would not return Unicode data from a result, as well
+as accept Python Unicode values as parameters, remained extremely complicated.
+This was the beginning of the obsolesence of the "convert_unicode" flags,
+because they were no longer sufficient as a means of ensuring that
+encode/decode was occurring only where needed and not where it wasn't needed.
+Instead, "convert_unicode" started to be automatically detected by dialects.
+Part of this can be seen in the "SELECT 'test plain returns'" and "SELECT
+'test_unicode_returns'" SQL emitted by an engine the first time it connects;
+the dialect is testing that the current DBAPI with its current settings and
+backend database connection is returning Unicode by default or not.
+
+The end result is that end-user use of the "convert_unicode" flags should no
+longer be needed in any circumstances, and if they are, the SQLAlchemy project
+needs to know what those cases are and why.   Currently, hundreds of Unicode
+round trip tests pass across all major databases without the use of this flag
+so there is a fairly high level of confidence that they are no longer needed
+except in arguable non use cases such as accessing mis-encoded data from a
+legacy database, which would be better suited using custom types.
+
+
+:ticket:`4393`
 
 
 Dialect Improvements and Changes - PostgreSQL
@@ -988,10 +1391,10 @@ Dialect Improvements and Changes - PostgreSQL
 
 .. _change_4237:
 
-Added basic reflection support for Postgresql paritioned tables
----------------------------------------------------------------
+Added basic reflection support for PostgreSQL partitioned tables
+----------------------------------------------------------------
 
-SQLAlchemy can render the "PARTITION BY" sequnce within a Postgresql
+SQLAlchemy can render the "PARTITION BY" sequence within a PostgreSQL
 CREATE TABLE statement using the flag ``postgresql_partition_by``, added in
 version 1.2.6.    However, the ``'p'`` type was not part of the reflection
 queries used until now.
@@ -1042,7 +1445,7 @@ Control of parameter ordering within ON DUPLICATE KEY UPDATE
 ------------------------------------------------------------
 
 The order of UPDATE parameters in the ``ON DUPLICATE KEY UPDATE`` clause
-can now be explcitly ordered by passing a list of 2-tuples::
+can now be explicitly ordered by passing a list of 2-tuples::
 
     from sqlalchemy.dialects.mysql import insert
 
@@ -1167,7 +1570,7 @@ cx_Oracle connect arguments modernized, deprecated parameters removed
 A series of modernizations to the parameters accepted by the cx_oracle
 dialect as well as the URL string:
 
-* The deprecated paramters ``auto_setinputsizes``, ``allow_twophase``,
+* The deprecated parameters ``auto_setinputsizes``, ``allow_twophase``,
   ``exclude_setinputsizes`` are removed.
 
 * The value of the ``threaded`` parameter, which has always been defaulted

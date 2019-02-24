@@ -1,6 +1,4 @@
-"""dict_of_sets_with_default.py
-
-an advanced association proxy example which
+"""An advanced association proxy example which
 illustrates nesting of association proxies to produce multi-level Python
 collections, in this case a dictionary with string keys and sets of integers
 as values, which conceal the underlying mapped classes.
@@ -14,12 +12,18 @@ upon access of a non-existent key, in the same manner as Python's
 
 """
 
-from sqlalchemy import String, Integer, Column, create_engine, ForeignKey
-from sqlalchemy.orm import relationship, Session
-from sqlalchemy.orm.collections import MappedCollection
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.associationproxy import association_proxy
 import operator
+
+from sqlalchemy import Column
+from sqlalchemy import create_engine
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Session
+from sqlalchemy.orm.collections import MappedCollection
 
 
 class Base(object):
@@ -39,7 +43,9 @@ class A(Base):
     __tablename__ = "a"
     associations = relationship(
         "B",
-        collection_class=lambda: GenDefaultCollection(operator.attrgetter("key"))
+        collection_class=lambda: GenDefaultCollection(
+            operator.attrgetter("key")
+        ),
     )
 
     collections = association_proxy("associations", "values")
@@ -73,19 +79,15 @@ class C(Base):
         self.value = value
 
 
-if __name__ == '__main__':
-    engine = create_engine('sqlite://', echo=True)
+if __name__ == "__main__":
+    engine = create_engine("sqlite://", echo=True)
     Base.metadata.create_all(engine)
     session = Session(engine)
 
     # only "A" is referenced explicitly.  Using "collections",
     # we deal with a dict of key/sets of integers directly.
 
-    session.add_all([
-        A(collections={
-            "1": set([1, 2, 3]),
-        })
-    ])
+    session.add_all([A(collections={"1": set([1, 2, 3])})])
     session.commit()
 
     a1 = session.query(A).first()

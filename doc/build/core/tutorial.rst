@@ -197,7 +197,7 @@ each table first before creating, so it's safe to call multiple times:
            Column('id', Integer, Sequence('user_id_seq'), primary_key=True),
            Column('name', String(50)),
            Column('fullname', String(50)),
-           Column('password', String(12))
+           Column('nickname', String(50))
         )
 
     We include this more verbose :class:`~.schema.Table` construct separately
@@ -631,7 +631,7 @@ This function can also be used to make bitwise operators explicit. For example::
 is a bitwise AND of the value in ``somecolumn``.
 
 When using :meth:`.Operators.op`, the return type of the expression may be important,
-especialy when the operator is used in an expression that will be sent as a result
+especially when the operator is used in an expression that will be sent as a result
 column.   For this case, be sure to make the type explicit, if not what's
 normally expected, using :func:`.type_coerce`::
 
@@ -2017,8 +2017,6 @@ table, or the same table:
 Multiple Table Updates
 ----------------------
 
-.. versionadded:: 0.7.4
-
 The PostgreSQL, Microsoft SQL Server, and MySQL backends all support UPDATE statements
 that refer to multiple tables.   For PG and MSSQL, this is the "UPDATE FROM" syntax,
 which updates one table at a time, but can reference additional tables in an additional
@@ -2155,7 +2153,7 @@ implicitly, by specifying multiple tables in the WHERE clause::
             where(addresses.c.email_address.startswith('ed%'))
     conn.execute(stmt)
 
-On a Postgresql backend, the resulting SQL from the above statement would render as::
+On a PostgreSQL backend, the resulting SQL from the above statement would render as::
 
     DELETE FROM users USING addresses
     WHERE users.id = addresses.id
