@@ -1,5 +1,5 @@
 # sqlalchemy/pool/dbapi_proxy.py
-# Copyright (C) 2005-2018 the SQLAlchemy authors and contributors
+# Copyright (C) 2005-2019 the SQLAlchemy authors and contributors
 # <see AUTHORS file>
 #
 # This module is part of SQLAlchemy and is released under
@@ -16,11 +16,17 @@ today.
 """
 
 from .impl import QueuePool
+from .. import util
 from ..util import threading
 
 proxies = {}
 
 
+@util.deprecated(
+    "1.3",
+    "The :func:`.pool.manage` function is deprecated, and will be "
+    "removed in a future release.",
+)
 def manage(module, **params):
     r"""Return a proxy for a DB-API module that automatically
     pools connections.
@@ -101,9 +107,10 @@ class _DBProxy(object):
             self._create_pool_mutex.acquire()
             try:
                 if key not in self.pools:
-                    kw.pop('sa_pool_key', None)
+                    kw.pop("sa_pool_key", None)
                     pool = self.poolclass(
-                        lambda: self.module.connect(*args, **kw), **self.kw)
+                        lambda: self.module.connect(*args, **kw), **self.kw
+                    )
                     self.pools[key] = pool
                     return pool
                 else:
@@ -138,9 +145,6 @@ class _DBProxy(object):
 
     def _serialize(self, *args, **kw):
         if "sa_pool_key" in kw:
-            return kw['sa_pool_key']
+            return kw["sa_pool_key"]
 
-        return tuple(
-            list(args) +
-            [(k, kw[k]) for k in sorted(kw)]
-        )
+        return tuple(list(args) + [(k, kw[k]) for k in sorted(kw)])

@@ -1,8 +1,10 @@
 """test the inspection registry system."""
 
-from sqlalchemy.testing import eq_, assert_raises_message
-from sqlalchemy import exc, util
-from sqlalchemy import inspection, inspect
+from sqlalchemy import exc
+from sqlalchemy import inspect
+from sqlalchemy import inspection
+from sqlalchemy.testing import assert_raises_message
+from sqlalchemy.testing import eq_
 from sqlalchemy.testing import fixtures
 
 
@@ -11,7 +13,6 @@ class TestFixture(object):
 
 
 class TestInspection(fixtures.TestBase):
-
     def tearDown(self):
         for type_ in list(inspection._registrars):
             if issubclass(type_, TestFixture):
@@ -36,7 +37,8 @@ class TestInspection(fixtures.TestBase):
         assert_raises_message(
             exc.NoInspectionAvailable,
             "No inspection system is available for object of type ",
-            inspect, SomeFoo
+            inspect,
+            SomeFoo,
         )
 
     def test_class_insp(self):
@@ -46,6 +48,7 @@ class TestInspection(fixtures.TestBase):
         class SomeFooInspect(object):
             def __init__(self, target):
                 self.target = target
+
         SomeFooInspect = inspection._inspects(SomeFoo)(SomeFooInspect)
 
         somefoo = SomeFoo()

@@ -311,7 +311,7 @@ using the :func:`.joinedload` loader option:
         addresses_1.user_id AS addresses_1_user_id,
         users.id AS users_id, users.name AS users_name,
         users.fullname AS users_fullname,
-        users.password AS users_password
+        users.nickname AS users_nickname
     FROM users
     LEFT OUTER JOIN addresses AS addresses_1
         ON users.id = addresses_1.user_id
@@ -353,7 +353,7 @@ an OUTER JOIN:
         addresses_1.user_id AS addresses_1_user_id,
         users.id AS users_id, users.name AS users_name,
         users.fullname AS users_fullname,
-        users.password AS users_password
+        users.nickname AS users_nickname
     FROM users
     LEFT OUTER JOIN (
         addresses AS addresses_1 JOIN widgets AS widgets_1 ON
@@ -362,7 +362,7 @@ an OUTER JOIN:
 
 On older versions of SQLite, the above nested right JOIN may be re-rendered
 as a nested subquery.  Older versions of SQLAlchemy would convert right-nested
-joins into subuqeries in all cases.
+joins into subqueries in all cases.
 
 Joined eager loading and result set batching
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -391,7 +391,7 @@ SELECT statements, each referring to a subset of rows using the WHERE
 clause, e.g. windowing.   Alternatively, consider using "select IN" eager loading
 which is **potentially** compatible with :meth:`.Query.yield_per`, provided
 that the database driver in use supports multiple, simultaneous cursors
-(SQLite, Postgresql drivers, not MySQL drivers or SQL Server ODBC drivers).
+(SQLite, PostgreSQL drivers, not MySQL drivers or SQL Server ODBC drivers).
 
 
 .. _zen_of_eager_loading:
@@ -440,7 +440,7 @@ named in the query:
         users.id AS users_id,
         users.name AS users_name,
         users.fullname AS users_fullname,
-        users.password AS users_password
+        users.nickname AS users_nickname
     FROM users
     LEFT OUTER JOIN addresses AS addresses_1
         ON users.id = addresses_1.user_id
@@ -463,7 +463,7 @@ address is to use :meth:`.Query.join`:
         users.id AS users_id,
         users.name AS users_name,
         users.fullname AS users_fullname,
-        users.password AS users_password
+        users.nickname AS users_nickname
     FROM users
     JOIN addresses ON users.id = addresses.user_id
     WHERE users.name = ?
@@ -489,7 +489,7 @@ are ordering on, the other is used anonymously to load the contents of the
         addresses_1.user_id AS addresses_1_user_id,
         users.id AS users_id, users.name AS users_name,
         users.fullname AS users_fullname,
-        users.password AS users_password
+        users.nickname AS users_nickname
     FROM users JOIN addresses
         ON users.id = addresses.user_id
     LEFT OUTER JOIN addresses AS addresses_1
@@ -522,7 +522,7 @@ to see why :func:`joinedload` does what it does, consider if we were
         addresses_1.user_id AS addresses_1_user_id,
         users.id AS users_id, users.name AS users_name,
         users.fullname AS users_fullname,
-        users.password AS users_password
+        users.nickname AS users_nickname
     FROM users JOIN addresses
         ON users.id = addresses.user_id
     LEFT OUTER JOIN addresses AS addresses_1
@@ -554,7 +554,7 @@ into :func:`.subqueryload`:
         users.id AS users_id,
         users.name AS users_name,
         users.fullname AS users_fullname,
-        users.password AS users_password
+        users.nickname AS users_nickname
     FROM users
     JOIN addresses ON users.id = addresses.user_id
     WHERE
@@ -605,7 +605,7 @@ the collection members to load them at once:
         users.id AS users_id,
         users.name AS users_name,
         users.fullname AS users_fullname,
-        users.password AS users_password
+        users.nickname AS users_nickname
     FROM users
     WHERE users.name = ?
     ('jack',)
@@ -716,7 +716,7 @@ in order to load related associations:
         users.id AS users_id,
         users.name AS users_name,
         users.fullname AS users_fullname,
-        users.password AS users_password
+        users.nickname AS users_nickname
     FROM users
     WHERE users.name = ? OR users.name = ?
     ('jack', 'ed')
@@ -733,7 +733,7 @@ Above, the second SELECT refers to ``addresses.user_id IN (5, 7)``, where the
 "5" and "7" are the primary key values for the previous two ``User``
 objects loaded; after a batch of objects are completely loaded, their primary
 key values are injected into the ``IN`` clause for the second SELECT.
-Because the relatonship between ``User`` and ``Address`` provides that the
+Because the relationship between ``User`` and ``Address`` provides that the
 primary key values for ``User`` can be derived from ``Address.user_id``, the
 statement has no joins or subqueries at all.
 
@@ -758,7 +758,7 @@ the parent primary key values are present:
         users.id AS users_id,
         users.name AS users_name,
         users.fullname AS users_fullname,
-        users.password AS users_password
+        users.nickname AS users_nickname
     FROM addresses AS addresses_1
     JOIN users ON users.id = addresses_1.user_id
     WHERE addresses_1.id IN (?, ?)
@@ -811,7 +811,7 @@ as of the 1.2 series.   Things to know about this kind of loading include:
   with a top limit on memory use when used with :meth:`.Query.yield_per`.
 
   Current database drivers that support simultaneous cursors include
-  SQLite, Postgresql.   The MySQL drivers mysqlclient and pymysql currently
+  SQLite, PostgreSQL.   The MySQL drivers mysqlclient and pymysql currently
   **do not** support simultaneous cursors, nor do the ODBC drivers for
   SQL Server.
 
@@ -819,7 +819,7 @@ as of the 1.2 series.   Things to know about this kind of loading include:
   keys, it must use the "tuple" form of IN, which looks like
   ``WHERE (table.column_a, table.column_b) IN ((?, ?), (?, ?), (?, ?))``.
   This syntax is not supported on every database; currently it is known
-  to be only supported by modern Postgresql and MySQL versions.  Therefore
+  to be only supported by modern PostgreSQL and MySQL versions.  Therefore
   **selectin loading is not platform-agnostic for composite primary keys**.
   There is no special logic in SQLAlchemy to check ahead of time which platforms
   support this syntax or not; if run against a non-supporting platform (such
@@ -927,7 +927,7 @@ references a scalar many-to-one reference.
 Polymorphic Eager Loading
 -------------------------
 
-Specification of polymorpic options on a per-eager-load basis is supported.
+Specification of polymorphic options on a per-eager-load basis is supported.
 See the section :ref:`eagerloading_polymorphic_subtypes` for examples
 of the :meth:`.PropComparator.of_type` method in conjunction with the
 :func:`.orm.with_polymorphic` function.

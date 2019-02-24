@@ -11,8 +11,194 @@
         :start-line: 5
 
 .. changelog::
-    :version: 1.2.15
+    :version: 1.2.18
     :include_notes_from: unreleased_12
+
+.. changelog::
+    :version: 1.2.17
+    :released: January 25, 2019
+
+    .. change::
+       :tags: feature, orm
+       :tickets: 4461
+
+       Added new event hooks :meth:`.QueryEvents.before_compile_update` and
+       :meth:`.QueryEvents.before_compile_delete` which complement
+       :meth:`.QueryEvents.before_compile` in the case of the :meth:`.Query.update`
+       and :meth:`.Query.delete` methods.
+
+
+    .. change::
+       :tags: bug, postgresql
+       :tickets: 4463
+
+       Revised the query used when reflecting CHECK constraints to make use of the
+       ``pg_get_constraintdef`` function, as the ``consrc`` column is being
+       deprecated in PG 12.  Thanks to John A Stevenson for the tip.
+
+
+    .. change::
+       :tags: bug, orm
+       :tickets: 4454
+
+       Fixed issue where when using single-table inheritance in conjunction with a
+       joined inheritance hierarchy that uses "with polymorphic" loading, the
+       "single table criteria" for that single-table entity could get confused for
+       that of other entities from the same hierarchy used in the same query.The
+       adaption of the "single table criteria" is made more specific to the target
+       entity to avoid it accidentally getting adapted to other tables in the
+       query.
+
+
+    .. change::
+       :tags: bug, oracle
+       :tickets: 4457
+
+       Fixed regression in integer precision logic due to the refactor of the
+       cx_Oracle dialect in 1.2.  We now no longer apply the cx_Oracle.NATIVE_INT
+       type to result columns sending integer values (detected as positive
+       precision with scale ==0) which encounters integer overflow issues with
+       values that go beyond the 32 bit boundary.  Instead, the output variable
+       is left untyped so that cx_Oracle can choose the best option.
+
+.. changelog::
+    :version: 1.2.16
+    :released: January 11, 2019
+
+    .. change::
+       :tag: bug, sql
+       :tickets: 4394
+
+       Fixed issue in "expanding IN" feature where using the same bound parameter
+       name more than once in a query would lead to a KeyError within the process
+       of rewriting the parameters in the query.
+
+    .. change::
+       :tags: bug, postgresql
+       :tickets: 4416
+
+       Fixed issue where a :class:`.postgresql.ENUM` or a custom domain present
+       in a remote schema would not be recognized within column reflection if
+       the name of the enum/domain or the name of the schema required quoting.
+       A new parsing scheme now fully parses out quoted or non-quoted tokens
+       including support for SQL-escaped quotes.
+
+    .. change::
+       :tags: bug, postgresql
+
+       Fixed issue where multiple :class:`.postgresql.ENUM` objects referred to
+       by the same :class:`.MetaData` object would fail to be created if
+       multiple objects had the same name under different schema names.  The
+       internal memoization the PostgreSQL dialect uses to track if it has
+       created a particular :class:`.postgresql.ENUM` in the database during
+       a DDL creation sequence now takes schema name into account.
+
+    .. change::
+       :tags: bug, engine
+       :tickets: 4429
+
+       Fixed a regression introduced in version 1.2 where a refactor
+       of the :class:`.SQLAlchemyError` base exception class introduced an
+       inappropriate coercion of a plain string message into Unicode under
+       python 2k, which is not handled by the Python interpreter for characters
+       outside of the platform's encoding (typically ascii).  The
+       :class:`.SQLAlchemyError` class now passes a bytestring through under
+       Py2K for ``__str__()`` as is the behavior of exception objects in general
+       under Py2K, does a safe coercion to unicode utf-8 with
+       backslash fallback for ``__unicode__()``.  For Py3K the message is
+       typically unicode already, but if not is again safe-coerced with utf-8
+       with backslash fallback for the ``__str__()`` method.
+
+    .. change::
+       :tags: bug, sql, oracle, mysql
+       :tickets: 4436
+
+       Fixed issue where the DDL emitted for :class:`.DropTableComment`, which
+       will be used by an upcoming version of Alembic, was incorrect for the MySQL
+       and Oracle databases.
+
+    .. change::
+       :tags: bug, sqlite
+       :tickets: 4431
+
+       Reflection of an index based on SQL expressions are now skipped with a
+       warning, in the same way as that of the Postgresql dialect, where we currently
+       do not support reflecting indexes that have SQL expressions within them.
+       Previously, an index with columns of None were produced which would break
+       tools like Alembic.
+
+.. changelog::
+    :version: 1.2.15
+    :released: December 11, 2018
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4367
+
+        Fixed bug where the ORM annotations could be incorrect for the
+        primaryjoin/secondaryjoin a relationship if one used the pattern
+        ``ForeignKey(SomeClass.id)`` in the declarative mappings.   This pattern
+        would leak undesired annotations into the join conditions which can break
+        aliasing operations done within :class:`.Query` that are not supposed to
+        impact elements in that join condition.  These annotations are now removed
+        up front if present.
+
+    .. change::
+       :tags: bug, orm, declarative
+       :tickets: 4374
+
+       A warning is emitted in the case that a :func:`.column` object is applied to
+       a declarative class, as it seems likely this intended to be a
+       :class:`.Column` object.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4366
+
+        In continuing with a similar theme as that of very recent :ticket:`4349`,
+        repaired issue with :meth:`.RelationshipProperty.Comparator.any` and
+        :meth:`.RelationshipProperty.Comparator.has` where the "secondary"
+        selectable needs to be explicitly part of the FROM clause in the
+        EXISTS subquery to suit the case where this "secondary" is a :class:`.Join`
+        object.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4363
+
+        Fixed regression caused by :ticket:`4349` where adding the "secondary"
+        table to the FROM clause for a dynamic loader would affect the ability of
+        the :class:`.Query` to make a subsequent join to another entity.   The fix
+        adds the primary entity as the first element of the FROM list since
+        :meth:`.Query.join` wants to jump from that.   Version 1.3 will have
+        a more comprehensive solution to this problem as well (:ticket:`4365`).
+
+
+
+
+    .. change::
+       :tags: bug, orm
+       :tickests: 4400
+
+       Fixed bug where chaining of mapper options using
+       :meth:`.RelationshipProperty.of_type` in conjunction with a chained option
+       that refers to an attribute name by string only would fail to locate the
+       attribute.
+
+    .. change::
+        :tag: feature, mysql
+        :tickets: 4381
+
+        Added support for the ``write_timeout`` flag accepted by mysqlclient and
+        pymysql to  be passed in the URL string.
+
+    .. change::
+       :tag: bug, postgresql
+       :tickets: 4377, 4380
+
+       Fixed issue where reflection of a PostgreSQL domain that is expressed as an
+       array would fail to be recognized.  Pull request courtesy Jakub Synowiec.
+
 
 .. changelog::
     :version: 1.2.14
@@ -251,7 +437,7 @@
         would also occur for a row that is to be deleted following the update,
         meaning both that a column with a Python-side value generator would show
         the now-deleted value that was emitted for the UPDATE before the DELETE
-        (which was not the previous behavor), as well as that a SQL- emitted value
+        (which was not the previous behavior), as well as that a SQL- emitted value
         generator would have the attribute expired, meaning the previous value
         would be unreachable due to the row having been deleted and the object
         detached from the session.The "postfetch" logic that was added as part of
@@ -282,13 +468,13 @@
 
         Fixed issue that is closely related to :ticket:`3639` where an expression
         rendered in a boolean context on a non-native boolean backend would
-        be compared to 1/0 even though it is already an implcitly boolean
+        be compared to 1/0 even though it is already an implicitly boolean
         expression, when :meth:`.ColumnElement.self_group` were used.  While this
         does not affect the user-friendly backends (MySQL, SQLite) it was not
         handled by Oracle (and possibly SQL Server).   Whether or not the
         expression is implicitly boolean on any database is now determined
         up front as an additional check to not generate the integer comparison
-        within the compliation of the statement.
+        within the compilation of the statement.
 
     .. change::
         :tags: bug, oracle
@@ -416,7 +602,7 @@
         :tickets: 4293
 
         Fixed bug in index reflection where on MySQL 8.0 an index that includes
-        ASC or DESC in an indexed column specfication would not be correctly
+        ASC or DESC in an indexed column specification would not be correctly
         reflected, as MySQL 8.0 introduces support for returning this information
         in a table definition string.
 
@@ -691,7 +877,7 @@
         :class:`.MapperOption` will now cause lazy loaders related to
         the target object to use a non-baked query by default unless
         the :meth:`.MapperOption._generate_cache_key` method is implemented.
-        In particular, this repairs one regression which occured when
+        In particular, this repairs one regression which occurred when
         using the dogpile.cache "advanced" example, which was not
         returning cached results and instead emitting SQL due to an
         incompatibility with the baked query loader; with the change,
@@ -761,7 +947,7 @@
         :tags: bug, postgresql
         :tickets: 4229
 
-        Fixed bug where the special "not equals" operator for the Postgresql
+        Fixed bug where the special "not equals" operator for the PostgreSQL
         "range" datatypes such as DATERANGE would fail to render "IS NOT NULL" when
         compared to the Python ``None`` value.
 
@@ -798,7 +984,7 @@
 
         Fixed issue where the compilation of an INSERT statement with the
         "literal_binds" option that also uses an explicit sequence and "inline"
-        generation, as on Postgresql and Oracle, would fail to accommodate the
+        generation, as on PostgreSQL and Oracle, would fail to accommodate the
         extra keyword argument within the sequence processing routine.
 
     .. change::
@@ -828,7 +1014,7 @@
     .. change::
         :tags: feature, postgresql
 
-        Added support for "PARTITION BY" in Postgresql table definitions,
+        Added support for "PARTITION BY" in PostgreSQL table definitions,
         using "postgresql_partition_by".  Pull request courtesy
         Vsevolod Solovyov.
 
@@ -838,7 +1024,7 @@
 
         Fixed a regression that occurred from the previous fix to :ticket:`4204` in
         version 1.2.5, where a CTE that refers to itself after the
-        :meth:`.CTE.alias` method has been called would not refer to iself
+        :meth:`.CTE.alias` method has been called would not refer to itself
         correctly.
 
     .. change::
@@ -868,7 +1054,7 @@
         Removed a warning that would be emitted when calling upon
         ``__table_args__``, ``__mapper_args__`` as named with a ``@declared_attr``
         method, when called from a non-mapped declarative mixin.  Calling these
-        directly is documented as the approach to use when one is overidding one
+        directly is documented as the approach to use when one is overriding one
         of these methods on a mapped class.  The warning still emits for regular
         attribute names.
 
@@ -1002,7 +1188,7 @@
 
         Fixed bug where the :class:`.Bundle` object did not
         correctly report upon the primary :class:`.Mapper` object
-        represened by the bundle, if any.   An immediate
+        represented by the bundle, if any.   An immediate
         side effect of this issue was that the new selectinload
         loader strategy wouldn't work with the horizontal sharding
         extension.
@@ -1252,7 +1438,7 @@
         :tags: enhancement, sql
         :tickets: 959
 
-        Implemented "DELETE..FROM" syntax for Postgresql, MySQL, MS SQL Server
+        Implemented "DELETE..FROM" syntax for PostgreSQL, MySQL, MS SQL Server
         (as well as within the unsupported Sybase dialect) in a manner similar
         to how "UPDATE..FROM" works.  A DELETE statement that refers to more than
         one table will switch into "multi-table" mode and render the appropriate
@@ -1608,7 +1794,7 @@
         Fixed issue where the :func:`.make_transient_to_detached` function
         would expire all attributes on the target object, including "deferred"
         attributes, which has the effect of the attribute being undeferred
-        for the next refesh, causing an unexpected load of the attribute.
+        for the next refresh, causing an unexpected load of the attribute.
 
     .. change::
         :tags: bug, orm
@@ -1653,7 +1839,7 @@
     	by the mapper as well as loader strategies reach their threshold; the
     	purpose of this warning was at first a guard against excess cache keys
     	being generated but became basically a check on the "creating many
-    	engines" antipattern.   While this is still an antipattern, the presense
+    	engines" antipattern.   While this is still an antipattern, the presence
     	of test suites which both create an engine per test as well as raise
     	on all warnings will be an inconvenience; it should not be critical
     	that such test suites change their architecture just for this warning
@@ -1772,7 +1958,7 @@
         when "RETURNING", which on SQL Server looks like "OUTPUT inserted", is in
         use, as the PyODBC backend isn't able to give us rowcount on an UPDATE or
         DELETE statement when OUTPUT is in effect.  This primarily affects the ORM
-        when a flush is updating a row that contains server-calcluated values,
+        when a flush is updating a row that contains server-calculated values,
         raising an error if the backend does not return the expected row count.
         PyODBC now states that it supports rowcount except if OUTPUT.inserted is
         present, which is taken into account by the ORM during a flush as to
@@ -1786,7 +1972,7 @@
         :class:`.Boolean` types, which now extend a common mixin
         :class:`.Emulated` that indicates a type that provides Python-side
         emulation of a DB native type, switching out to the DB native type when a
-        supporting backend is in use.   The Postgresql :class:`.INTERVAL` type
+        supporting backend is in use.   The PostgreSQL :class:`.INTERVAL` type
         when used directly will now include the correct type coercion rules for
         SQL expressions that also take effect for :class:`.sqltypes.Interval`
         (such as adding a date to an interval yields a datetime).
@@ -1911,7 +2097,7 @@
         passed to SQL statements.  A "float" value will be associated with the
         :class:`.Float` datatype and not the Decimal-coercing :class:`.Numeric`
         datatype as was the case before, eliminating a confusing warning
-        emitted on SQLite as well as unecessary coercion to Decimal.
+        emitted on SQLite as well as unnecessary coercion to Decimal.
 
         .. seealso::
 
@@ -2077,7 +2263,7 @@
         each other will produce parentheses between them.   This suits the
         stated operator precedence of databases like Oracle, MySQL and others
         which place all of these operators as equal precedence, as well as
-        Postgresql as of 9.5 which has also flattened its operator precendence.
+        PostgreSQL as of 9.5 which has also flattened its operator precedence.
 
         .. seealso::
 
@@ -2257,7 +2443,7 @@
         signs mostly associated with the :obj:`.literal_column` construct
         as well as operators like :meth:`.ColumnOperators.contains` now
         occurs based on the stated paramstyle of the DBAPI in use; for
-        percent-sensitive paramstyles as are common with the Postgresql
+        percent-sensitive paramstyles as are common with the PostgreSQL
         and MySQL drivers the doubling will occur, for others like that
         of SQLite it will not.   This allows more database-agnostic use
         of the :obj:`.literal_column` construct to be possible.
@@ -2271,7 +2457,7 @@
         :tickets: 3959
 
         Added support for all possible "fields" identifiers when reflecting the
-        Postgresql ``INTERVAL`` datatype, e.g. "YEAR", "MONTH", "DAY TO
+        PostgreSQL ``INTERVAL`` datatype, e.g. "YEAR", "MONTH", "DAY TO
         MINUTE", etc..   In addition, the :class:`.postgresql.INTERVAL`
         datatype itself now includes a new parameter
         :paramref:`.postgresql.INTERVAL.fields` where these qualifiers can be
@@ -2409,7 +2595,7 @@
         as part of DDL on table creation, either inline or via an appropriate
         ALTER statement, and are also reflected back within table reflection,
         as well as via the :class:`.Inspector`.   Supported backends currently
-        include MySQL, Postgresql, and Oracle.  Many thanks to Frazer McLean
+        include MySQL, PostgreSQL, and Oracle.  Many thanks to Frazer McLean
         for a large amount of effort on this.
 
         .. seealso::
@@ -2445,7 +2631,7 @@
         into a parenthesized expression.   Using :class:`.Alias` in this way
         is not yet a fully supported API, however it applies to some end-user
         recipes and may have a more prominent role in support of some
-        future Postgresql features.
+        future PostgreSQL features.
 
     .. change:: 3366
         :tags: bug, orm

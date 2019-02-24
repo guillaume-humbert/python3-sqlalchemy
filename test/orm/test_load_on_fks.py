@@ -1,13 +1,16 @@
-from sqlalchemy import *
-from sqlalchemy.orm import *
-
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.testing import eq_, AssertsExecutionResults, assert_raises
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
 from sqlalchemy import testing
-from sqlalchemy.testing import fixtures
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import backref
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import instance_state
-from sqlalchemy.orm.exc import FlushError
-from sqlalchemy.testing.schema import Table, Column
+from sqlalchemy.testing import AssertsExecutionResults
+from sqlalchemy.testing import fixtures
+from sqlalchemy.testing.schema import Column
+
 
 engine = testing.db
 
@@ -18,18 +21,20 @@ class FlushOnPendingTest(AssertsExecutionResults, fixtures.TestBase):
         Base = declarative_base()
 
         class Parent(Base):
-            __tablename__ = 'parent'
+            __tablename__ = "parent"
 
-            id = Column(Integer, primary_key=True,
-                        test_needs_autoincrement=True)
+            id = Column(
+                Integer, primary_key=True, test_needs_autoincrement=True
+            )
             name = Column(String(50), nullable=False)
             children = relationship("Child", load_on_pending=True)
 
         class Child(Base):
-            __tablename__ = 'child'
-            id = Column(Integer, primary_key=True,
-                        test_needs_autoincrement=True)
-            parent_id = Column(Integer, ForeignKey('parent.id'))
+            __tablename__ = "child"
+            id = Column(
+                Integer, primary_key=True, test_needs_autoincrement=True
+            )
+            parent_id = Column(Integer, ForeignKey("parent.id"))
 
         Base.metadata.create_all(engine)
 
@@ -58,29 +63,31 @@ class FlushOnPendingTest(AssertsExecutionResults, fixtures.TestBase):
 
         def go():
             assert p1.children == []
+
         self.assert_sql_count(testing.db, go, 0)
 
 
 class LoadOnFKsTest(AssertsExecutionResults, fixtures.TestBase):
-
     def setUp(self):
         global Parent, Child, Base
         Base = declarative_base()
 
         class Parent(Base):
-            __tablename__ = 'parent'
-            __table_args__ = {'mysql_engine': 'InnoDB'}
+            __tablename__ = "parent"
+            __table_args__ = {"mysql_engine": "InnoDB"}
 
-            id = Column(Integer, primary_key=True,
-                        test_needs_autoincrement=True)
+            id = Column(
+                Integer, primary_key=True, test_needs_autoincrement=True
+            )
 
         class Child(Base):
-            __tablename__ = 'child'
-            __table_args__ = {'mysql_engine': 'InnoDB'}
+            __tablename__ = "child"
+            __table_args__ = {"mysql_engine": "InnoDB"}
 
-            id = Column(Integer, primary_key=True,
-                        test_needs_autoincrement=True)
-            parent_id = Column(Integer, ForeignKey('parent.id'))
+            id = Column(
+                Integer, primary_key=True, test_needs_autoincrement=True
+            )
+            parent_id = Column(Integer, ForeignKey("parent.id"))
 
             parent = relationship(Parent, backref=backref("children"))
 
@@ -176,7 +183,7 @@ class LoadOnFKsTest(AssertsExecutionResults, fixtures.TestBase):
         # pendings don't autoflush
         assert c3.parent is None
 
-    def test_autoflush_on_pending(self):
+    def test_autoflush_load_on_pending_on_pending(self):
         Child.parent.property.load_on_pending = True
         c3 = Child()
         sess.add(c3)
@@ -193,6 +200,7 @@ class LoadOnFKsTest(AssertsExecutionResults, fixtures.TestBase):
 
         def go():
             assert p2.children
+
         self.assert_sql_count(testing.db, go, 1)
 
     def test_collection_load_from_pending_no_sql(self):
@@ -204,6 +212,7 @@ class LoadOnFKsTest(AssertsExecutionResults, fixtures.TestBase):
 
         def go():
             assert not p2.children
+
         self.assert_sql_count(testing.db, go, 0)
 
     def test_load_on_pending_with_set(self):
@@ -218,6 +227,7 @@ class LoadOnFKsTest(AssertsExecutionResults, fixtures.TestBase):
 
         def go():
             c3.parent = p1
+
         self.assert_sql_count(testing.db, go, 0)
 
     def test_backref_doesnt_double(self):
@@ -260,7 +270,7 @@ class LoadOnFKsTest(AssertsExecutionResults, fixtures.TestBase):
                             # auto-expire of 'parent' when c1.parent_id
                             # is altered.
                             if fake_autoexpire:
-                                sess.expire(c1, ['parent'])
+                                sess.expire(c1, ["parent"])
 
                             # old 0.6 behavior
                             # if manualflush and (not loadrel or
@@ -315,8 +325,9 @@ class LoadOnFKsTest(AssertsExecutionResults, fixtures.TestBase):
                 for autoflush in (False, True):
                     for manualflush in (False, True):
                         for enable_relationship_rel in (False, True):
-                            Child.parent.property.load_on_pending = \
+                            Child.parent.property.load_on_pending = (
                                 loadonpending
+                            )
                             sess.autoflush = autoflush
                             c2 = Child()
 
@@ -332,8 +343,9 @@ class LoadOnFKsTest(AssertsExecutionResults, fixtures.TestBase):
                             if manualflush:
                                 sess.flush()
 
-                            if (loadonpending and attach) \
-                                    or enable_relationship_rel:
+                            if (
+                                loadonpending and attach
+                            ) or enable_relationship_rel:
                                 assert c2.parent is p2
                             else:
                                 assert c2.parent is None

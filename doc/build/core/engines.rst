@@ -71,9 +71,21 @@ the database using all lowercase letters. If not specified, a "default" DBAPI
 will be imported if available - this default is typically the most widely
 known driver available for that backend.
 
+As the URL is like any other URL, special characters such as those that
+may be used in the password need to be URL encoded.   Below is an example
+of a URL that includes the password ``"kx%jj5/g"``::
+
+  postgresql+pg8000://dbuser:kx%25jj5%2Fg@pghost10/appdb
+
+The encoding for the above password can be generated using ``urllib``::
+
+  >>> import urllib.parse
+  >>> urllib.parse.quote_plus("kx%jj5/g")
+  'kx%25jj5%2Fg'
+
 Examples for common connection styles follow below.  For a full index of
-detailed information on all included dialects as well as links to third-party dialects, see
-:ref:`dialect_toplevel`.
+detailed information on all included dialects as well as links to third-party
+dialects, see :ref:`dialect_toplevel`.
 
 PostgreSQL
 ----------
@@ -101,14 +113,11 @@ MySQL DBAPIs available, including MySQL-connector-python and OurSQL::
     # default
     engine = create_engine('mysql://scott:tiger@localhost/foo')
 
-    # mysql-python
+    # mysqlclient (a maintained fork of MySQL-Python)
     engine = create_engine('mysql+mysqldb://scott:tiger@localhost/foo')
 
-    # MySQL-connector-python
-    engine = create_engine('mysql+mysqlconnector://scott:tiger@localhost/foo')
-
-    # OurSQL
-    engine = create_engine('mysql+oursql://scott:tiger@localhost/foo')
+    # PyMySQL
+    engine = create_engine('mysql+pymysql://scott:tiger@localhost/foo')
 
 More notes on connecting to MySQL at :ref:`mysql_toplevel`.
 
@@ -153,11 +162,13 @@ For a relative file path, this requires three slashes::
 
 And for an absolute file path, the three slashes are followed by the absolute path::
 
-    #Unix/Mac - 4 initial slashes in total
+    # Unix/Mac - 4 initial slashes in total
     engine = create_engine('sqlite:////absolute/path/to/foo.db')
-    #Windows 
+
+    # Windows
     engine = create_engine('sqlite:///C:\\path\\to\\foo.db')
-    #Windows alternative using raw string
+
+    # Windows alternative using raw string
     engine = create_engine(r'sqlite:///C:\path\to\foo.db')
 
 To use a SQLite ``:memory:`` database, specify an empty URL::

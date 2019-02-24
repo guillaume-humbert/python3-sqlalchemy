@@ -1,19 +1,33 @@
 import datetime
-import sqlalchemy as sa
-from sqlalchemy.testing import engines, config
-from sqlalchemy import testing
-from sqlalchemy.testing.mock import patch
-from sqlalchemy import (
-    Integer, String, Date, ForeignKey, orm, exc, select, TypeDecorator)
-from sqlalchemy.testing.schema import Table, Column
-from sqlalchemy.orm import (
-    mapper, relationship, Session, create_session, sessionmaker,
-    exc as orm_exc)
-from sqlalchemy.testing import (
-    eq_, assert_raises, assert_raises_message, fixtures)
-from sqlalchemy.testing.assertsql import CompiledSQL
 import uuid
+
+import sqlalchemy as sa
+from sqlalchemy import Date
+from sqlalchemy import exc
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import orm
+from sqlalchemy import select
+from sqlalchemy import String
+from sqlalchemy import testing
+from sqlalchemy import TypeDecorator
 from sqlalchemy import util
+from sqlalchemy.orm import create_session
+from sqlalchemy.orm import exc as orm_exc
+from sqlalchemy.orm import mapper
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.testing import assert_raises
+from sqlalchemy.testing import assert_raises_message
+from sqlalchemy.testing import config
+from sqlalchemy.testing import engines
+from sqlalchemy.testing import eq_
+from sqlalchemy.testing import fixtures
+from sqlalchemy.testing.assertsql import CompiledSQL
+from sqlalchemy.testing.mock import patch
+from sqlalchemy.testing.schema import Column
+from sqlalchemy.testing.schema import Table
 
 
 def make_uuid():
@@ -25,11 +39,15 @@ class NullVersionIdTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
-        Table('version_table', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('version_id', Integer),
-              Column('value', String(40), nullable=False))
+        Table(
+            "version_table",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("version_id", Integer),
+            Column("value", String(40), nullable=False),
+        )
 
     @classmethod
     def setup_classes(cls):
@@ -40,7 +58,8 @@ class NullVersionIdTest(fixtures.MappedTest):
         Foo, version_table = self.classes.Foo, self.tables.version_table
 
         mapper(
-            Foo, version_table,
+            Foo,
+            version_table,
             version_id_col=version_table.c.version_id,
             version_id_generator=False,
         )
@@ -52,7 +71,7 @@ class NullVersionIdTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1 = Foo(value='f1')
+        f1 = Foo(value="f1")
         s1.add(f1)
 
         # Prior to the fix for #3673, you would have been allowed to insert
@@ -69,14 +88,15 @@ class NullVersionIdTest(fixtures.MappedTest):
         assert_raises_message(
             sa.orm.exc.FlushError,
             "Instance does not contain a non-NULL version value",
-            s1.commit)
+            s1.commit,
+        )
 
     @testing.emits_warning(r".*versioning cannot be verified")
     def test_null_version_id_update(self):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1 = Foo(value='f1', version_id=1)
+        f1 = Foo(value="f1", version_id=1)
         s1.add(f1)
         s1.commit()
 
@@ -85,13 +105,14 @@ class NullVersionIdTest(fixtures.MappedTest):
         # this, post commit: Foo(id=1, value='f1rev2', version_id=None). Now
         # you should get a FlushError on update.
 
-        f1.value = 'f1rev2'
+        f1.value = "f1rev2"
         f1.version_id = None
 
         assert_raises_message(
             sa.orm.exc.FlushError,
             "Instance does not contain a non-NULL version value",
-            s1.commit)
+            s1.commit,
+        )
 
 
 class VersioningTest(fixtures.MappedTest):
@@ -99,11 +120,15 @@ class VersioningTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
-        Table('version_table', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('version_id', Integer, nullable=False),
-              Column('value', String(40), nullable=False))
+        Table(
+            "version_table",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("version_id", Integer, nullable=False),
+            Column("value", String(40), nullable=False),
+        )
 
     @classmethod
     def setup_classes(cls):
@@ -125,12 +150,12 @@ class VersioningTest(fixtures.MappedTest):
         testing.db.dialect.supports_sane_rowcount = False
         try:
             s1 = self._fixture()
-            f1 = Foo(value='f1')
-            f2 = Foo(value='f2')
+            f1 = Foo(value="f1")
+            f2 = Foo(value="f2")
             s1.add_all((f1, f2))
             s1.commit()
 
-            f1.value = 'f1rev2'
+            f1.value = "f1rev2"
             assert_raises(sa.exc.SAWarning, s1.commit)
         finally:
             testing.db.dialect.supports_sane_rowcount = save
@@ -141,20 +166,20 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1 = Foo(value='f1')
-        f2 = Foo(value='f2')
+        f1 = Foo(value="f1")
+        f2 = Foo(value="f2")
         s1.add_all((f1, f2))
         s1.commit()
 
-        f1.value = 'f1rev2'
+        f1.value = "f1rev2"
         s1.commit()
 
         s2 = create_session(autocommit=False)
         f1_s = s2.query(Foo).get(f1.id)
-        f1_s.value = 'f1rev3'
+        f1_s.value = "f1rev3"
         s2.commit()
 
-        f1.value = 'f1rev3mine'
+        f1.value = "f1rev3mine"
 
         # Only dialects with a sane rowcount can detect the
         # StaleDataError
@@ -162,7 +187,9 @@ class VersioningTest(fixtures.MappedTest):
             assert_raises_message(
                 sa.orm.exc.StaleDataError,
                 r"UPDATE statement on table 'version_table' expected "
-                r"to update 1 row\(s\); 0 were matched.", s1.commit),
+                r"to update 1 row\(s\); 0 were matched.",
+                s1.commit,
+            ),
             s1.rollback()
         else:
             s1.commit()
@@ -171,7 +198,7 @@ class VersioningTest(fixtures.MappedTest):
         f1 = s1.query(Foo).get(f1.id)
         f2 = s1.query(Foo).get(f2.id)
 
-        f1_s.value = 'f1rev4'
+        f1_s.value = "f1rev4"
         s2.commit()
 
         s1.delete(f1)
@@ -182,7 +209,8 @@ class VersioningTest(fixtures.MappedTest):
                 sa.orm.exc.StaleDataError,
                 r"DELETE statement on table 'version_table' expected "
                 r"to delete 2 row\(s\); 1 were matched.",
-                s1.commit)
+                s1.commit,
+            )
         else:
             s1.commit()
 
@@ -191,18 +219,18 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1 = Foo(value='f1')
-        f2 = Foo(value='f2')
+        f1 = Foo(value="f1")
+        f2 = Foo(value="f2")
         s1.add_all((f1, f2))
         s1.commit()
 
-        f1.value = 'f1rev2'
-        f2.value = 'f2rev2'
+        f1.value = "f1rev2"
+        f2.value = "f2rev2"
         s1.commit()
 
         eq_(
             s1.query(Foo.id, Foo.value, Foo.version_id).order_by(Foo.id).all(),
-            [(f1.id, 'f1rev2', 2), (f2.id, 'f2rev2', 2)]
+            [(f1.id, "f1rev2", 2), (f2.id, "f2rev2", 2)],
         )
 
     @testing.emits_warning(r".*versioning cannot be verified")
@@ -211,12 +239,11 @@ class VersioningTest(fixtures.MappedTest):
 
         s1 = self._fixture()
         s1.bulk_insert_mappings(
-            Foo,
-            [{"id": 1, "value": "f1"}, {"id": 2, "value": "f2"}]
+            Foo, [{"id": 1, "value": "f1"}, {"id": 2, "value": "f2"}]
         )
         eq_(
             s1.query(Foo.id, Foo.value, Foo.version_id).order_by(Foo.id).all(),
-            [(1, 'f1', 1), (2, 'f2', 1)]
+            [(1, "f1", 1), (2, "f2", 1)],
         )
 
     @testing.emits_warning(r".*versioning cannot be verified")
@@ -224,8 +251,8 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1 = Foo(value='f1')
-        f2 = Foo(value='f2')
+        f1 = Foo(value="f1")
+        f2 = Foo(value="f2")
         s1.add_all((f1, f2))
         s1.commit()
 
@@ -234,14 +261,13 @@ class VersioningTest(fixtures.MappedTest):
             [
                 {"id": f1.id, "value": "f1rev2", "version_id": 1},
                 {"id": f2.id, "value": "f2rev2", "version_id": 1},
-
-            ]
+            ],
         )
         s1.commit()
 
         eq_(
             s1.query(Foo.id, Foo.value, Foo.version_id).order_by(Foo.id).all(),
-            [(f1.id, 'f1rev2', 2), (f2.id, 'f2rev2', 2)]
+            [(f1.id, "f1rev2", 2), (f2.id, "f2rev2", 2)],
         )
 
     @testing.emits_warning(r".*versioning cannot be verified")
@@ -257,7 +283,7 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1 = Foo(value='f1')
+        f1 = Foo(value="f1")
         s1.add(f1)
         s1.commit()
         eq_(f1.version_id, 1)
@@ -286,13 +312,13 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1s1 = Foo(value='f1 value')
+        f1s1 = Foo(value="f1 value")
         s1.add(f1s1)
         s1.commit()
 
         s2 = create_session(autocommit=False)
         f1s2 = s2.query(Foo).get(f1s1.id)
-        f1s2.value = 'f1 new value'
+        f1s2.value = "f1 new value"
         s2.commit()
 
         # load, version is wrong
@@ -300,7 +326,8 @@ class VersioningTest(fixtures.MappedTest):
             sa.orm.exc.StaleDataError,
             r"Instance .* has version id '\d+' which does not "
             r"match database-loaded version id '\d+'",
-            s1.query(Foo).with_for_update(read=True).get, f1s1.id
+            s1.query(Foo).with_for_update(read=True).get,
+            f1s1.id,
         )
 
         # reload it - this expires the old version first
@@ -322,13 +349,13 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1s1 = Foo(value='f1 value')
+        f1s1 = Foo(value="f1 value")
         s1.add(f1s1)
         s1.commit()
 
         s2 = create_session(autocommit=False)
         f1s2 = s2.query(Foo).get(f1s1.id)
-        f1s2.value = 'f1 new value'
+        f1s2.value = "f1 new value"
         s2.commit()
 
         # load, version is wrong
@@ -336,18 +363,19 @@ class VersioningTest(fixtures.MappedTest):
             sa.orm.exc.StaleDataError,
             r"Instance .* has version id '\d+' which does not "
             r"match database-loaded version id '\d+'",
-            s1.query(Foo).with_lockmode('read').get, f1s1.id
+            s1.query(Foo).with_for_update(read=True).get,
+            f1s1.id,
         )
 
         # reload it - this expires the old version first
-        s1.refresh(f1s1, lockmode='read')
+        s1.refresh(f1s1, with_for_update=dict(read=True))
 
         # now assert version OK
-        s1.query(Foo).with_lockmode('read').get(f1s1.id)
+        s1.query(Foo).with_for_update(read=True).get(f1s1.id)
 
         # assert brand new load is OK too
         s1.close()
-        s1.query(Foo).with_lockmode('read').get(f1s1.id)
+        s1.query(Foo).with_for_update(read=True).get(f1s1.id)
 
     def test_versioncheck_not_versioned(self):
         """ensure the versioncheck logic skips if there isn't a
@@ -358,10 +386,10 @@ class VersioningTest(fixtures.MappedTest):
 
         mapper(Foo, version_table)
         s1 = Session()
-        f1s1 = Foo(value='f1 value', version_id=1)
+        f1s1 = Foo(value="f1 value", version_id=1)
         s1.add(f1s1)
         s1.commit()
-        s1.query(Foo).with_lockmode('read').get(f1s1.id)
+        s1.query(Foo).with_for_update(read=True).get(f1s1.id)
 
     @testing.emits_warning(r".*versioning cannot be verified")
     @engines.close_open_connections
@@ -373,7 +401,7 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1s1 = Foo(value='f1 value')
+        f1s1 = Foo(value="f1 value")
         s1.add(f1s1)
         s1.commit()
 
@@ -381,11 +409,10 @@ class VersioningTest(fixtures.MappedTest):
         f1s2 = s2.query(Foo).get(f1s1.id)
         # not sure if I like this API
         s2.refresh(f1s2, with_for_update=True)
-        f1s2.value = 'f1 new value'
+        f1s2.value = "f1 new value"
 
         assert_raises(
-            exc.DBAPIError,
-            s1.refresh, f1s1, lockmode='update_nowait'
+            exc.DBAPIError, s1.refresh, f1s1, lockmode="update_nowait"
         )
         s1.rollback()
 
@@ -403,23 +430,22 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1s1 = Foo(value='f1 value')
+        f1s1 = Foo(value="f1 value")
         s1.add(f1s1)
         s1.commit()
 
         s2 = create_session(autocommit=False)
         f1s2 = s2.query(Foo).get(f1s1.id)
-        s2.refresh(f1s2, lockmode='update')
-        f1s2.value = 'f1 new value'
+        s2.refresh(f1s2, lockmode="update")
+        f1s2.value = "f1 new value"
 
         assert_raises(
-            exc.DBAPIError,
-            s1.refresh, f1s1, lockmode='update_nowait'
+            exc.DBAPIError, s1.refresh, f1s1, lockmode="update_nowait"
         )
         s1.rollback()
 
         s2.commit()
-        s1.refresh(f1s1, lockmode='update_nowait')
+        s1.refresh(f1s1, lockmode="update_nowait")
         assert f1s1.version_id == f1s2.version_id
 
     @testing.emits_warning(r".*versioning cannot be verified")
@@ -432,22 +458,23 @@ class VersioningTest(fixtures.MappedTest):
                 return self.context.rowcount
 
         with patch.object(
-                config.db.dialect, "supports_sane_multi_rowcount", False):
+            config.db.dialect, "supports_sane_multi_rowcount", False
+        ):
             with patch(
-                    "sqlalchemy.engine.result.ResultProxy.rowcount",
-                    rowcount):
+                "sqlalchemy.engine.result.ResultProxy.rowcount", rowcount
+            ):
 
                 Foo = self.classes.Foo
                 s1 = self._fixture()
-                f1s1 = Foo(value='f1 value')
+                f1s1 = Foo(value="f1 value")
                 s1.add(f1s1)
                 s1.commit()
 
-                f1s1.value = 'f2 value'
+                f1s1.value = "f2 value"
                 s1.flush()
                 eq_(f1s1.version_id, 2)
 
-    @testing.emits_warning(r'.*does not support updated rowcount')
+    @testing.emits_warning(r".*does not support updated rowcount")
     @engines.close_open_connections
     def test_noversioncheck(self):
         """test query.with_lockmode works when the mapper has no version id
@@ -462,7 +489,7 @@ class VersioningTest(fixtures.MappedTest):
         s1.commit()
 
         s2 = create_session(autocommit=False)
-        f1s2 = s2.query(Foo).with_lockmode('read').get(f1s1.id)
+        f1s2 = s2.query(Foo).with_for_update(read=True).get(f1s1.id)
         assert f1s2.id == f1s1.id
         assert f1s2.value == f1s1.value
 
@@ -471,14 +498,14 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1 = Foo(value='f1')
+        f1 = Foo(value="f1")
         s1.add(f1)
         s1.commit()
 
-        f1.value = 'f2'
+        f1.value = "f2"
         s1.commit()
 
-        f2 = Foo(id=f1.id, value='f3')
+        f2 = Foo(id=f1.id, value="f3")
         f3 = s1.merge(f2)
         assert f3 is f1
         s1.commit()
@@ -489,14 +516,14 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1 = Foo(value='f1')
+        f1 = Foo(value="f1")
         s1.add(f1)
         s1.commit()
 
-        f1.value = 'f2'
+        f1.value = "f2"
         s1.commit()
 
-        f2 = Foo(id=f1.id, value='f3', version_id=2)
+        f2 = Foo(id=f1.id, value="f3", version_id=2)
         f3 = s1.merge(f2)
         assert f3 is f1
         s1.commit()
@@ -507,21 +534,22 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1 = Foo(value='f1')
+        f1 = Foo(value="f1")
         s1.add(f1)
         s1.commit()
 
-        f1.value = 'f2'
+        f1.value = "f2"
         s1.commit()
 
-        f2 = Foo(id=f1.id, value='f3', version_id=1)
+        f2 = Foo(id=f1.id, value="f3", version_id=1)
         assert_raises_message(
             orm_exc.StaleDataError,
             "Version id '1' on merged state "
             "<Foo at .*?> does not match existing version '2'. "
             "Leave the version attribute unset when "
             "merging to update the most recent version.",
-            s1.merge, f2
+            s1.merge,
+            f2,
         )
 
     @testing.emits_warning(r".*versioning cannot be verified")
@@ -529,14 +557,14 @@ class VersioningTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1 = Foo(value='f1')
+        f1 = Foo(value="f1")
         s1.add(f1)
         s1.commit()
 
-        f1.value = 'f2'
+        f1.value = "f2"
         s1.commit()
 
-        f2 = Foo(id=f1.id, value='f3', version_id=1)
+        f2 = Foo(id=f1.id, value="f3", version_id=1)
         s1.close()
 
         assert_raises_message(
@@ -545,7 +573,8 @@ class VersioningTest(fixtures.MappedTest):
             "<Foo at .*?> does not match existing version '2'. "
             "Leave the version attribute unset when "
             "merging to update the most recent version.",
-            s1.merge, f2
+            s1.merge,
+            f2,
         )
 
 
@@ -555,10 +584,11 @@ class VersionOnPostUpdateTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table(
-            'node', metadata,
-            Column('id', Integer, primary_key=True),
-            Column('version_id', Integer),
-            Column('parent_id', ForeignKey('node.id'))
+            "node",
+            metadata,
+            Column("id", Integer, primary_key=True),
+            Column("version_id", Integer),
+            Column("parent_id", ForeignKey("node.id")),
         )
 
     @classmethod
@@ -570,13 +600,18 @@ class VersionOnPostUpdateTest(fixtures.MappedTest):
         Node = self.classes.Node
         node = self.tables.node
 
-        mapper(Node, node, properties={
-            'related': relationship(
-                Node,
-                remote_side=node.c.id if not o2m else node.c.parent_id,
-                post_update=post_update
-            )
-        }, version_id_col=node.c.version_id)
+        mapper(
+            Node,
+            node,
+            properties={
+                "related": relationship(
+                    Node,
+                    remote_side=node.c.id if not o2m else node.c.parent_id,
+                    post_update=post_update,
+                )
+            },
+            version_id_col=node.c.version_id,
+        )
 
         s = Session()
         n1 = Node(id=1)
@@ -667,7 +702,7 @@ class VersionOnPostUpdateTest(fixtures.MappedTest):
             orm_exc.StaleDataError,
             "UPDATE statement on table 'node' expected to "
             r"update 1 row\(s\); 0 were matched.",
-            s.flush
+            s.flush,
         )
 
     @testing.requires.sane_rowcount_w_returning
@@ -689,7 +724,7 @@ class VersionOnPostUpdateTest(fixtures.MappedTest):
             orm_exc.StaleDataError,
             "UPDATE statement on table 'node' expected to "
             r"update 1 row\(s\); 0 were matched.",
-            s.flush
+            s.flush,
         )
 
 
@@ -699,18 +734,20 @@ class NoBumpOnRelationshipTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table(
-            'a', metadata,
+            "a",
+            metadata,
             Column(
-                'id', Integer, primary_key=True,
-                test_needs_autoincrement=True),
-            Column('version_id', Integer)
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("version_id", Integer),
         )
         Table(
-            'b', metadata,
+            "b",
+            metadata,
             Column(
-                'id', Integer, primary_key=True,
-                test_needs_autoincrement=True),
-            Column('a_id', ForeignKey('a.id'))
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("a_id", ForeignKey("a.id")),
         )
 
     @classmethod
@@ -722,7 +759,7 @@ class NoBumpOnRelationshipTest(fixtures.MappedTest):
             pass
 
     def _run_test(self, auto_version_counter=True):
-        A, B = self.classes('A', 'B')
+        A, B = self.classes("A", "B")
         s = Session()
         if auto_version_counter:
             a1 = A()
@@ -740,13 +777,13 @@ class NoBumpOnRelationshipTest(fixtures.MappedTest):
         eq_(a1.version_id, 1)
 
     def test_plain_counter(self):
-        A, B = self.classes('A', 'B')
-        a, b = self.tables('a', 'b')
+        A, B = self.classes("A", "B")
+        a, b = self.tables("a", "b")
 
         mapper(
-            A, a, properties={
-                'bs': relationship(B, backref='a')
-            },
+            A,
+            a,
+            properties={"bs": relationship(B, backref="a")},
             version_id_col=a.c.version_id,
         )
         mapper(B, b)
@@ -754,30 +791,30 @@ class NoBumpOnRelationshipTest(fixtures.MappedTest):
         self._run_test()
 
     def test_functional_counter(self):
-        A, B = self.classes('A', 'B')
-        a, b = self.tables('a', 'b')
+        A, B = self.classes("A", "B")
+        a, b = self.tables("a", "b")
 
         mapper(
-            A, a, properties={
-                'bs': relationship(B, backref='a')
-            },
+            A,
+            a,
+            properties={"bs": relationship(B, backref="a")},
             version_id_col=a.c.version_id,
-            version_id_generator=lambda num: (num or 0) + 1
+            version_id_generator=lambda num: (num or 0) + 1,
         )
         mapper(B, b)
 
         self._run_test()
 
     def test_no_counter(self):
-        A, B = self.classes('A', 'B')
-        a, b = self.tables('a', 'b')
+        A, B = self.classes("A", "B")
+        a, b = self.tables("a", "b")
 
         mapper(
-            A, a, properties={
-                'bs': relationship(B, backref='a')
-            },
+            A,
+            a,
+            properties={"bs": relationship(B, backref="a")},
             version_id_col=a.c.version_id,
-            version_id_generator=False
+            version_id_generator=False,
         )
         mapper(B, b)
 
@@ -786,7 +823,7 @@ class NoBumpOnRelationshipTest(fixtures.MappedTest):
 
 class ColumnTypeTest(fixtures.MappedTest):
     __backend__ = True
-    __requires__ = 'sane_rowcount',
+    __requires__ = ("sane_rowcount",)
 
     @classmethod
     def define_tables(cls, metadata):
@@ -797,10 +834,13 @@ class ColumnTypeTest(fixtures.MappedTest):
                 assert isinstance(value, datetime.date)
                 return value
 
-        Table('version_table', metadata,
-              Column('id', SpecialType, primary_key=True),
-              Column('version_id', Integer, nullable=False),
-              Column('value', String(40), nullable=False))
+        Table(
+            "version_table",
+            metadata,
+            Column("id", SpecialType, primary_key=True),
+            Column("version_id", Integer, nullable=False),
+            Column("value", String(40), nullable=False),
+        )
 
     @classmethod
     def setup_classes(cls):
@@ -820,11 +860,11 @@ class ColumnTypeTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._fixture()
-        f1 = Foo(id=datetime.date.today(), value='f1')
+        f1 = Foo(id=datetime.date.today(), value="f1")
         s1.add(f1)
         s1.commit()
 
-        f1.value = 'f1rev2'
+        f1.value = "f1rev2"
         s1.commit()
 
 
@@ -834,21 +874,22 @@ class RowSwitchTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table(
-            'p', metadata,
-            Column('id', String(10), primary_key=True),
-            Column('version_id', Integer, default=1, nullable=False),
-            Column('data', String(50))
+            "p",
+            metadata,
+            Column("id", String(10), primary_key=True),
+            Column("version_id", Integer, default=1, nullable=False),
+            Column("data", String(50)),
         )
         Table(
-            'c', metadata,
-            Column('id', String(10), ForeignKey('p.id'), primary_key=True),
-            Column('version_id', Integer, default=1, nullable=False),
-            Column('data', String(50))
+            "c",
+            metadata,
+            Column("id", String(10), ForeignKey("p.id"), primary_key=True),
+            Column("version_id", Integer, default=1, nullable=False),
+            Column("data", String(50)),
         )
 
     @classmethod
     def setup_classes(cls):
-
         class P(cls.Basic):
             pass
 
@@ -860,9 +901,15 @@ class RowSwitchTest(fixtures.MappedTest):
         p, c, C, P = cls.tables.p, cls.tables.c, cls.classes.C, cls.classes.P
 
         mapper(
-            P, p, version_id_col=p.c.version_id, properties={
-                'c': relationship(
-                    C, uselist=False, cascade='all, delete-orphan')})
+            P,
+            p,
+            version_id_col=p.c.version_id,
+            properties={
+                "c": relationship(
+                    C, uselist=False, cascade="all, delete-orphan"
+                )
+            },
+        )
         mapper(C, c, version_id_col=c.c.version_id)
 
     @testing.emits_warning(r".*versioning cannot be verified")
@@ -870,13 +917,13 @@ class RowSwitchTest(fixtures.MappedTest):
         P = self.classes.P
 
         session = sessionmaker()()
-        session.add(P(id='P1', data='P version 1'))
+        session.add(P(id="P1", data="P version 1"))
         session.commit()
         session.close()
 
         p = session.query(P).first()
         session.delete(p)
-        session.add(P(id='P1', data="really a row-switch"))
+        session.add(P(id="P1", data="really a row-switch"))
         session.commit()
 
     @testing.emits_warning(r".*versioning cannot be verified")
@@ -886,41 +933,42 @@ class RowSwitchTest(fixtures.MappedTest):
         assert P.c.property.strategy.use_get
 
         session = sessionmaker()()
-        session.add(P(id='P1', data='P version 1'))
+        session.add(P(id="P1", data="P version 1"))
         session.commit()
         session.close()
 
         p = session.query(P).first()
-        p.c = C(data='child version 1')
+        p.c = C(data="child version 1")
         session.commit()
 
         p = session.query(P).first()
-        p.c = C(data='child row-switch')
+        p.c = C(data="child row-switch")
         session.commit()
 
 
 class AlternateGeneratorTest(fixtures.MappedTest):
     __backend__ = True
-    __requires__ = 'sane_rowcount',
+    __requires__ = ("sane_rowcount",)
 
     @classmethod
     def define_tables(cls, metadata):
         Table(
-            'p', metadata,
-            Column('id', String(10), primary_key=True),
-            Column('version_id', String(32), nullable=False),
-            Column('data', String(50))
+            "p",
+            metadata,
+            Column("id", String(10), primary_key=True),
+            Column("version_id", String(32), nullable=False),
+            Column("data", String(50)),
         )
         Table(
-            'c', metadata,
-            Column('id', String(10), ForeignKey('p.id'), primary_key=True),
-            Column('version_id', String(32), nullable=False),
-            Column('data', String(50))
+            "c",
+            metadata,
+            Column("id", String(10), ForeignKey("p.id"), primary_key=True),
+            Column("version_id", String(32), nullable=False),
+            Column("data", String(50)),
         )
 
     @classmethod
     def setup_classes(cls):
-
         class P(cls.Basic):
             pass
 
@@ -932,14 +980,20 @@ class AlternateGeneratorTest(fixtures.MappedTest):
         p, c, C, P = cls.tables.p, cls.tables.c, cls.classes.C, cls.classes.P
 
         mapper(
-            P, p, version_id_col=p.c.version_id,
+            P,
+            p,
+            version_id_col=p.c.version_id,
             version_id_generator=lambda x: make_uuid(),
             properties={
-                'c': relationship(
-                    C, uselist=False, cascade='all, delete-orphan')
-            })
+                "c": relationship(
+                    C, uselist=False, cascade="all, delete-orphan"
+                )
+            },
+        )
         mapper(
-            C, c, version_id_col=c.c.version_id,
+            C,
+            c,
+            version_id_col=c.c.version_id,
             version_id_generator=lambda x: make_uuid(),
         )
 
@@ -948,13 +1002,13 @@ class AlternateGeneratorTest(fixtures.MappedTest):
         P = self.classes.P
 
         session = sessionmaker()()
-        session.add(P(id='P1', data='P version 1'))
+        session.add(P(id="P1", data="P version 1"))
         session.commit()
         session.close()
 
         p = session.query(P).first()
         session.delete(p)
-        session.add(P(id='P1', data="really a row-switch"))
+        session.add(P(id="P1", data="really a row-switch"))
         session.commit()
 
     @testing.emits_warning(r".*versioning cannot be verified")
@@ -964,16 +1018,16 @@ class AlternateGeneratorTest(fixtures.MappedTest):
         assert P.c.property.strategy.use_get
 
         session = sessionmaker()()
-        session.add(P(id='P1', data='P version 1'))
+        session.add(P(id="P1", data="P version 1"))
         session.commit()
         session.close()
 
         p = session.query(P).first()
-        p.c = C(data='child version 1')
+        p.c = C(data="child version 1")
         session.commit()
 
         p = session.query(P).first()
-        p.c = C(data='child row-switch')
+        p.c = C(data="child row-switch")
         session.commit()
 
     @testing.emits_warning(r".*versioning cannot be verified")
@@ -987,7 +1041,7 @@ class AlternateGeneratorTest(fixtures.MappedTest):
         # testing exactly what its looking for
 
         sess1 = Session()
-        sess1.add(P(id='P1', data='P version 1'))
+        sess1.add(P(id="P1", data="P version 1"))
         sess1.commit()
         sess1.close()
 
@@ -1000,16 +1054,16 @@ class AlternateGeneratorTest(fixtures.MappedTest):
         sess1.commit()
 
         # this can be removed and it still passes
-        sess1.add(P(id='P1', data='P version 2'))
+        sess1.add(P(id="P1", data="P version 2"))
         sess1.commit()
 
-        p2.data = 'P overwritten by concurrent tx'
+        p2.data = "P overwritten by concurrent tx"
         if testing.db.dialect.supports_sane_rowcount:
             assert_raises_message(
                 orm.exc.StaleDataError,
                 r"UPDATE statement on table 'p' expected to update "
                 r"1 row\(s\); 0 were matched.",
-                sess2.commit
+                sess2.commit,
             )
         else:
             sess2.commit
@@ -1021,22 +1075,23 @@ class PlainInheritanceTest(fixtures.MappedTest):
     @classmethod
     def define_tables(cls, metadata):
         Table(
-            'base', metadata,
+            "base",
+            metadata,
             Column(
-                'id', Integer, primary_key=True,
-                test_needs_autoincrement=True),
-            Column('version_id', Integer, nullable=True),
-            Column('data', String(50))
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("version_id", Integer, nullable=True),
+            Column("data", String(50)),
         )
         Table(
-            'sub', metadata,
-            Column('id', Integer, ForeignKey('base.id'), primary_key=True),
-            Column('sub_data', String(50))
+            "sub",
+            metadata,
+            Column("id", Integer, ForeignKey("base.id"), primary_key=True),
+            Column("sub_data", String(50)),
         )
 
     @classmethod
     def setup_classes(cls):
-
         class Base(cls.Basic):
             pass
 
@@ -1046,18 +1101,21 @@ class PlainInheritanceTest(fixtures.MappedTest):
     @testing.emits_warning(r".*versioning cannot be verified")
     def test_update_child_table_only(self):
         Base, sub, base, Sub = (
-            self.classes.Base, self.tables.sub, self.tables.base,
-            self.classes.Sub)
+            self.classes.Base,
+            self.tables.sub,
+            self.tables.base,
+            self.classes.Sub,
+        )
 
         mapper(Base, base, version_id_col=base.c.version_id)
         mapper(Sub, sub, inherits=Base)
 
         s = Session()
-        s1 = Sub(data='b', sub_data='s')
+        s1 = Sub(data="b", sub_data="s")
         s.add(s1)
         s.commit()
 
-        s1.sub_data = 's2'
+        s1.sub_data = "s2"
         s.commit()
 
         eq_(s1.version_id, 2)
@@ -1068,28 +1126,30 @@ class InheritanceTwoVersionIdsTest(fixtures.MappedTest):
     versioning column.
 
     """
+
     __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
         Table(
-            'base', metadata,
+            "base",
+            metadata,
             Column(
-                'id', Integer, primary_key=True,
-                test_needs_autoincrement=True),
-            Column('version_id', Integer, nullable=True),
-            Column('data', String(50))
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("version_id", Integer, nullable=True),
+            Column("data", String(50)),
         )
         Table(
-            'sub', metadata,
-            Column('id', Integer, ForeignKey('base.id'), primary_key=True),
-            Column('version_id', Integer, nullable=False),
-            Column('sub_data', String(50))
+            "sub",
+            metadata,
+            Column("id", Integer, ForeignKey("base.id"), primary_key=True),
+            Column("version_id", Integer, nullable=False),
+            Column("sub_data", String(50)),
         )
 
     @classmethod
     def setup_classes(cls):
-
         class Base(cls.Basic):
             pass
 
@@ -1098,14 +1158,17 @@ class InheritanceTwoVersionIdsTest(fixtures.MappedTest):
 
     def test_base_both(self):
         Base, sub, base, Sub = (
-            self.classes.Base, self.tables.sub, self.tables.base,
-            self.classes.Sub)
+            self.classes.Base,
+            self.tables.sub,
+            self.tables.base,
+            self.classes.Sub,
+        )
 
         mapper(Base, base, version_id_col=base.c.version_id)
         mapper(Sub, sub, inherits=Base)
 
         session = Session()
-        b1 = Base(data='b1')
+        b1 = Base(data="b1")
         session.add(b1)
         session.commit()
         eq_(b1.version_id, 1)
@@ -1114,14 +1177,17 @@ class InheritanceTwoVersionIdsTest(fixtures.MappedTest):
 
     def test_sub_both(self):
         Base, sub, base, Sub = (
-            self.classes.Base, self.tables.sub, self.tables.base,
-            self.classes.Sub)
+            self.classes.Base,
+            self.tables.sub,
+            self.tables.base,
+            self.classes.Sub,
+        )
 
         mapper(Base, base, version_id_col=base.c.version_id)
         mapper(Sub, sub, inherits=Base)
 
         session = Session()
-        s1 = Sub(data='s1', sub_data='s1')
+        s1 = Sub(data="s1", sub_data="s1")
         session.add(s1)
         session.commit()
 
@@ -1133,14 +1199,17 @@ class InheritanceTwoVersionIdsTest(fixtures.MappedTest):
 
     def test_sub_only(self):
         Base, sub, base, Sub = (
-            self.classes.Base, self.tables.sub, self.tables.base,
-            self.classes.Sub)
+            self.classes.Base,
+            self.tables.sub,
+            self.tables.base,
+            self.classes.Sub,
+        )
 
         mapper(Base, base)
         mapper(Sub, sub, inherits=Base, version_id_col=sub.c.version_id)
 
         session = Session()
-        s1 = Sub(data='s1', sub_data='s1')
+        s1 = Sub(data="s1", sub_data="s1")
         session.add(s1)
         session.commit()
 
@@ -1152,8 +1221,11 @@ class InheritanceTwoVersionIdsTest(fixtures.MappedTest):
 
     def test_mismatch_version_col_warning(self):
         Base, sub, base, Sub = (
-            self.classes.Base, self.tables.sub, self.tables.base,
-            self.classes.Sub)
+            self.classes.Base,
+            self.tables.sub,
+            self.tables.base,
+            self.classes.Sub,
+        )
 
         mapper(Base, base, version_id_col=base.c.version_id)
 
@@ -1164,12 +1236,16 @@ class InheritanceTwoVersionIdsTest(fixtures.MappedTest):
             "automatically populate the inherited versioning column. "
             "version_id_col should only be specified on "
             "the base-most mapper that includes versioning.",
-            mapper, Sub, sub, inherits=Base,
-            version_id_col=sub.c.version_id)
+            mapper,
+            Sub,
+            sub,
+            inherits=Base,
+            version_id_col=sub.c.version_id,
+        )
 
 
 class ServerVersioningTest(fixtures.MappedTest):
-    run_define_tables = 'each'
+    run_define_tables = "each"
     __backend__ = True
 
     @classmethod
@@ -1184,7 +1260,7 @@ class ServerVersioningTest(fixtures.MappedTest):
             pass
 
         @compiles(IncDefault)
-        def compile(element, compiler, **kw):
+        def compile_(element, compiler, **kw):
             # cache the counter value on the statement
             # itself so the assertsql system gets the same
             # value when it compiles the statement a second time
@@ -1196,18 +1272,23 @@ class ServerVersioningTest(fixtures.MappedTest):
                 return stmt._counter
 
         Table(
-            'version_table', metadata,
+            "version_table",
+            metadata,
             Column(
-                'id', Integer, primary_key=True,
-                test_needs_autoincrement=True),
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
             Column(
-                'version_id', Integer, nullable=False,
-                default=IncDefault(), onupdate=IncDefault()),
-            Column('value', String(40), nullable=False))
+                "version_id",
+                Integer,
+                nullable=False,
+                default=IncDefault(),
+                onupdate=IncDefault(),
+            ),
+            Column("value", String(40), nullable=False),
+        )
 
     @classmethod
     def setup_classes(cls):
-
         class Foo(cls.Basic):
             pass
 
@@ -1218,9 +1299,11 @@ class ServerVersioningTest(fixtures.MappedTest):
         Foo, version_table = self.classes.Foo, self.tables.version_table
 
         mapper(
-            Foo, version_table, version_id_col=version_table.c.version_id,
+            Foo,
+            version_table,
+            version_id_col=version_table.c.version_id,
             version_id_generator=False,
-            eager_defaults=eager_defaults
+            eager_defaults=eager_defaults,
         )
 
         s1 = Session(expire_on_commit=expire_on_commit)
@@ -1235,7 +1318,7 @@ class ServerVersioningTest(fixtures.MappedTest):
     def _test_insert_col(self, **kw):
         sess = self._fixture(**kw)
 
-        f1 = self.classes.Foo(value='f1')
+        f1 = self.classes.Foo(value="f1")
         sess.add(f1)
 
         statements = [
@@ -1245,7 +1328,7 @@ class ServerVersioningTest(fixtures.MappedTest):
             CompiledSQL(
                 "INSERT INTO version_table (version_id, value) "
                 "VALUES (1, :value)",
-                lambda ctx: [{'value': 'f1'}]
+                lambda ctx: [{"value": "f1"}],
             )
         ]
         if not testing.db.dialect.implicit_returning:
@@ -1256,7 +1339,7 @@ class ServerVersioningTest(fixtures.MappedTest):
                     "SELECT version_table.version_id "
                     "AS version_table_version_id "
                     "FROM version_table WHERE version_table.id = :param_1",
-                    lambda ctx: [{"param_1": 1}]
+                    lambda ctx: [{"param_1": 1}],
                 )
             )
         self.assert_sql_execution(testing.db, sess.flush, *statements)
@@ -1271,11 +1354,11 @@ class ServerVersioningTest(fixtures.MappedTest):
     def _test_update_col(self, **kw):
         sess = self._fixture(**kw)
 
-        f1 = self.classes.Foo(value='f1')
+        f1 = self.classes.Foo(value="f1")
         sess.add(f1)
         sess.flush()
 
-        f1.value = 'f2'
+        f1.value = "f2"
 
         statements = [
             # note that the assertsql tests the rule against
@@ -1288,7 +1371,10 @@ class ServerVersioningTest(fixtures.MappedTest):
                 lambda ctx: [
                     {
                         "version_table_id": 1,
-                        "version_table_version_id": 1, "value": "f2"}]
+                        "version_table_version_id": 1,
+                        "value": "f2",
+                    }
+                ],
             )
         ]
         if not testing.db.dialect.implicit_returning:
@@ -1299,7 +1385,7 @@ class ServerVersioningTest(fixtures.MappedTest):
                     "SELECT version_table.version_id "
                     "AS version_table_version_id "
                     "FROM version_table WHERE version_table.id = :param_1",
-                    lambda ctx: [{"param_1": 1}]
+                    lambda ctx: [{"param_1": 1}],
                 )
             )
         self.assert_sql_execution(testing.db, sess.flush, *statements)
@@ -1309,7 +1395,7 @@ class ServerVersioningTest(fixtures.MappedTest):
     def test_sql_expr_bump(self):
         sess = self._fixture()
 
-        f1 = self.classes.Foo(value='f1')
+        f1 = self.classes.Foo(value="f1")
         sess.add(f1)
         sess.flush()
 
@@ -1327,7 +1413,7 @@ class ServerVersioningTest(fixtures.MappedTest):
     def test_sql_expr_w_mods_bump(self):
         sess = self._fixture()
 
-        f1 = self.classes.Foo(id=2, value='f1')
+        f1 = self.classes.Foo(id=2, value="f1")
         sess.add(f1)
         sess.flush()
 
@@ -1344,15 +1430,15 @@ class ServerVersioningTest(fixtures.MappedTest):
     def test_multi_update(self):
         sess = self._fixture()
 
-        f1 = self.classes.Foo(value='f1')
-        f2 = self.classes.Foo(value='f2')
-        f3 = self.classes.Foo(value='f3')
+        f1 = self.classes.Foo(value="f1")
+        f2 = self.classes.Foo(value="f2")
+        f3 = self.classes.Foo(value="f3")
         sess.add_all([f1, f2, f3])
         sess.flush()
 
-        f1.value = 'f1a'
-        f2.value = 'f2a'
-        f3.value = 'f3a'
+        f1.value = "f1a"
+        f2.value = "f2a"
+        f3.value = "f3a"
 
         statements = [
             # note that the assertsql tests the rule against
@@ -1365,7 +1451,10 @@ class ServerVersioningTest(fixtures.MappedTest):
                 lambda ctx: [
                     {
                         "version_table_id": 1,
-                        "version_table_version_id": 1, "value": "f1a"}]
+                        "version_table_version_id": 1,
+                        "value": "f1a",
+                    }
+                ],
             ),
             CompiledSQL(
                 "UPDATE version_table SET version_id=2, value=:value "
@@ -1374,7 +1463,10 @@ class ServerVersioningTest(fixtures.MappedTest):
                 lambda ctx: [
                     {
                         "version_table_id": 2,
-                        "version_table_version_id": 1, "value": "f2a"}]
+                        "version_table_version_id": 1,
+                        "value": "f2a",
+                    }
+                ],
             ),
             CompiledSQL(
                 "UPDATE version_table SET version_id=2, value=:value "
@@ -1383,38 +1475,43 @@ class ServerVersioningTest(fixtures.MappedTest):
                 lambda ctx: [
                     {
                         "version_table_id": 3,
-                        "version_table_version_id": 1, "value": "f3a"}]
-            )
+                        "version_table_version_id": 1,
+                        "value": "f3a",
+                    }
+                ],
+            ),
         ]
         if not testing.db.dialect.implicit_returning:
             # DBs without implicit returning, we must immediately
             # SELECT for the new version id
-            statements.extend([
-                CompiledSQL(
-                    "SELECT version_table.version_id "
-                    "AS version_table_version_id "
-                    "FROM version_table WHERE version_table.id = :param_1",
-                    lambda ctx: [{"param_1": 1}]
-                ),
-                CompiledSQL(
-                    "SELECT version_table.version_id "
-                    "AS version_table_version_id "
-                    "FROM version_table WHERE version_table.id = :param_1",
-                    lambda ctx: [{"param_1": 2}]
-                ),
-                CompiledSQL(
-                    "SELECT version_table.version_id "
-                    "AS version_table_version_id "
-                    "FROM version_table WHERE version_table.id = :param_1",
-                    lambda ctx: [{"param_1": 3}]
-                )
-            ])
+            statements.extend(
+                [
+                    CompiledSQL(
+                        "SELECT version_table.version_id "
+                        "AS version_table_version_id "
+                        "FROM version_table WHERE version_table.id = :param_1",
+                        lambda ctx: [{"param_1": 1}],
+                    ),
+                    CompiledSQL(
+                        "SELECT version_table.version_id "
+                        "AS version_table_version_id "
+                        "FROM version_table WHERE version_table.id = :param_1",
+                        lambda ctx: [{"param_1": 2}],
+                    ),
+                    CompiledSQL(
+                        "SELECT version_table.version_id "
+                        "AS version_table_version_id "
+                        "FROM version_table WHERE version_table.id = :param_1",
+                        lambda ctx: [{"param_1": 3}],
+                    ),
+                ]
+            )
         self.assert_sql_execution(testing.db, sess.flush, *statements)
 
     def test_delete_col(self):
         sess = self._fixture()
 
-        f1 = self.classes.Foo(value='f1')
+        f1 = self.classes.Foo(value="f1")
         sess.add(f1)
         sess.flush()
 
@@ -1428,7 +1525,7 @@ class ServerVersioningTest(fixtures.MappedTest):
                 "DELETE FROM version_table "
                 "WHERE version_table.id = :id AND "
                 "version_table.version_id = :version_id",
-                lambda ctx: [{"id": 1, "version_id": 1}]
+                lambda ctx: [{"id": 1, "version_id": 1}],
             )
         ]
         self.assert_sql_execution(testing.db, sess.flush, *statements)
@@ -1437,7 +1534,7 @@ class ServerVersioningTest(fixtures.MappedTest):
     def test_concurrent_mod_err_expire_on_commit(self):
         sess = self._fixture()
 
-        f1 = self.classes.Foo(value='f1')
+        f1 = self.classes.Foo(value="f1")
         sess.add(f1)
         sess.commit()
 
@@ -1445,23 +1542,23 @@ class ServerVersioningTest(fixtures.MappedTest):
 
         s2 = Session()
         f2 = s2.query(self.classes.Foo).first()
-        f2.value = 'f2'
+        f2.value = "f2"
         s2.commit()
 
-        f1.value = 'f3'
+        f1.value = "f3"
 
         assert_raises_message(
             orm.exc.StaleDataError,
             r"UPDATE statement on table 'version_table' expected to "
             r"update 1 row\(s\); 0 were matched.",
-            sess.commit
+            sess.commit,
         )
 
     @testing.requires.sane_rowcount_w_returning
     def test_concurrent_mod_err_noexpire_on_commit(self):
         sess = self._fixture(expire_on_commit=False)
 
-        f1 = self.classes.Foo(value='f1')
+        f1 = self.classes.Foo(value="f1")
         sess.add(f1)
         sess.commit()
 
@@ -1472,32 +1569,33 @@ class ServerVersioningTest(fixtures.MappedTest):
 
         s2 = Session(expire_on_commit=False)
         f2 = s2.query(self.classes.Foo).first()
-        f2.value = 'f2'
+        f2.value = "f2"
         s2.commit()
 
-        f1.value = 'f3'
+        f1.value = "f3"
 
         assert_raises_message(
             orm.exc.StaleDataError,
             r"UPDATE statement on table 'version_table' expected to "
             r"update 1 row\(s\); 0 were matched.",
-            sess.commit
+            sess.commit,
         )
 
 
 class ManualVersionTest(fixtures.MappedTest):
-    run_define_tables = 'each'
+    run_define_tables = "each"
     __backend__ = True
 
     @classmethod
     def define_tables(cls, metadata):
         Table(
-            "a", metadata,
+            "a",
+            metadata,
             Column(
-                'id', Integer, primary_key=True,
-                test_needs_autoincrement=True),
-            Column('data', String(30)),
-            Column('vid', Integer)
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("data", String(30)),
+            Column("vid", Integer),
         )
 
     @classmethod
@@ -1508,8 +1606,11 @@ class ManualVersionTest(fixtures.MappedTest):
     @classmethod
     def setup_mappers(cls):
         mapper(
-            cls.classes.A, cls.tables.a, version_id_col=cls.tables.a.c.vid,
-            version_id_generator=False)
+            cls.classes.A,
+            cls.tables.a,
+            version_id_col=cls.tables.a.c.vid,
+            version_id_generator=False,
+        )
 
     def test_insert(self):
         sess = Session()
@@ -1527,12 +1628,12 @@ class ManualVersionTest(fixtures.MappedTest):
         a1 = self.classes.A()
 
         a1.vid = 1
-        a1.data = 'd1'
+        a1.data = "d1"
         sess.add(a1)
         sess.commit()
 
         a1.vid = 2
-        a1.data = 'd2'
+        a1.data = "d2"
 
         sess.commit()
 
@@ -1544,17 +1645,14 @@ class ManualVersionTest(fixtures.MappedTest):
         a1 = self.classes.A()
 
         a1.vid = 1
-        a1.data = 'd1'
+        a1.data = "d1"
         sess.add(a1)
         sess.commit()
 
         a1.vid = 2
         sess.execute(self.tables.a.update().values(vid=3))
-        a1.data = 'd2'
-        assert_raises(
-            orm_exc.StaleDataError,
-            sess.commit
-        )
+        a1.data = "d2"
+        assert_raises(orm_exc.StaleDataError, sess.commit)
 
     @testing.emits_warning(r".*versioning cannot be verified")
     def test_update_version_conditional(self):
@@ -1562,18 +1660,18 @@ class ManualVersionTest(fixtures.MappedTest):
         a1 = self.classes.A()
 
         a1.vid = 1
-        a1.data = 'd1'
+        a1.data = "d1"
         sess.add(a1)
         sess.commit()
 
         # change the data and UPDATE without
         # incrementing version id
-        a1.data = 'd2'
+        a1.data = "d2"
         sess.commit()
 
         eq_(a1.vid, 1)
 
-        a1.data = 'd3'
+        a1.data = "d3"
         a1.vid = 2
         sess.commit()
 
@@ -1581,26 +1679,27 @@ class ManualVersionTest(fixtures.MappedTest):
 
 
 class ManualInheritanceVersionTest(fixtures.MappedTest):
-    run_define_tables = 'each'
+    run_define_tables = "each"
     __backend__ = True
-    __requires__ = 'sane_rowcount',
+    __requires__ = ("sane_rowcount",)
 
     @classmethod
     def define_tables(cls, metadata):
         Table(
-            "a", metadata,
+            "a",
+            metadata,
             Column(
-                'id', Integer, primary_key=True,
-                test_needs_autoincrement=True),
-            Column('data', String(30)),
-            Column('vid', Integer, nullable=False)
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("data", String(30)),
+            Column("vid", Integer, nullable=False),
         )
 
         Table(
-            "b", metadata,
-            Column(
-                'id', Integer, ForeignKey('a.id'), primary_key=True),
-            Column('b_data', String(30)),
+            "b",
+            metadata,
+            Column("id", Integer, ForeignKey("a.id"), primary_key=True),
+            Column("b_data", String(30)),
         )
 
     @classmethod
@@ -1614,11 +1713,13 @@ class ManualInheritanceVersionTest(fixtures.MappedTest):
     @classmethod
     def setup_mappers(cls):
         mapper(
-            cls.classes.A, cls.tables.a, version_id_col=cls.tables.a.c.vid,
-            version_id_generator=False)
+            cls.classes.A,
+            cls.tables.a,
+            version_id_col=cls.tables.a.c.vid,
+            version_id_generator=False,
+        )
 
-        mapper(
-            cls.classes.B, cls.tables.b, inherits=cls.classes.A)
+        mapper(cls.classes.B, cls.tables.b, inherits=cls.classes.A)
 
     @testing.emits_warning(r".*versioning cannot be verified")
     def test_no_increment(self):
@@ -1626,18 +1727,18 @@ class ManualInheritanceVersionTest(fixtures.MappedTest):
         b1 = self.classes.B()
 
         b1.vid = 1
-        b1.data = 'd1'
+        b1.data = "d1"
         sess.add(b1)
         sess.commit()
 
         # change col on subtable only without
         # incrementing version id
-        b1.b_data = 'bd2'
+        b1.b_data = "bd2"
         sess.commit()
 
         eq_(b1.vid, 1)
 
-        b1.b_data = 'd3'
+        b1.b_data = "d3"
         b1.vid = 2
         sess.commit()
 
@@ -1651,11 +1752,15 @@ class VersioningMappedSelectTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
-        Table('version_table', metadata,
-              Column('id', Integer, primary_key=True,
-                     test_needs_autoincrement=True),
-              Column('version_id', Integer, nullable=False),
-              Column('value', String(40), nullable=False))
+        Table(
+            "version_table",
+            metadata,
+            Column(
+                "id", Integer, primary_key=True, test_needs_autoincrement=True
+            ),
+            Column("version_id", Integer, nullable=False),
+            Column("value", String(40), nullable=False),
+        )
 
     @classmethod
     def setup_classes(cls):
@@ -1665,8 +1770,11 @@ class VersioningMappedSelectTest(fixtures.MappedTest):
     def _implicit_version_fixture(self):
         Foo, version_table = self.classes.Foo, self.tables.version_table
 
-        current = version_table.select().\
-            where(version_table.c.id > 0).alias('current_table')
+        current = (
+            version_table.select()
+            .where(version_table.c.id > 0)
+            .alias("current_table")
+        )
 
         mapper(Foo, current, version_id_col=version_table.c.version_id)
         s1 = Session()
@@ -1675,12 +1783,18 @@ class VersioningMappedSelectTest(fixtures.MappedTest):
     def _explicit_version_fixture(self):
         Foo, version_table = self.classes.Foo, self.tables.version_table
 
-        current = version_table.select().\
-            where(version_table.c.id > 0).alias('current_table')
+        current = (
+            version_table.select()
+            .where(version_table.c.id > 0)
+            .alias("current_table")
+        )
 
-        mapper(Foo, current,
-               version_id_col=version_table.c.version_id,
-               version_id_generator=False)
+        mapper(
+            Foo,
+            current,
+            version_id_col=version_table.c.version_id,
+            version_id_generator=False,
+        )
         s1 = Session()
         return s1
 
@@ -1689,18 +1803,18 @@ class VersioningMappedSelectTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._implicit_version_fixture()
-        f1 = Foo(value='f1')
-        f2 = Foo(value='f2')
+        f1 = Foo(value="f1")
+        f2 = Foo(value="f2")
         s1.add_all((f1, f2))
         s1.commit()
 
-        f1.value = 'f1rev2'
-        f2.value = 'f2rev2'
+        f1.value = "f1rev2"
+        f2.value = "f2rev2"
         s1.commit()
 
         eq_(
             s1.query(Foo.id, Foo.value, Foo.version_id).order_by(Foo.id).all(),
-            [(f1.id, 'f1rev2', 2), (f2.id, 'f2rev2', 2)]
+            [(f1.id, "f1rev2", 2), (f2.id, "f2rev2", 2)],
         )
 
     @testing.emits_warning(r".*versioning cannot be verified")
@@ -1708,20 +1822,20 @@ class VersioningMappedSelectTest(fixtures.MappedTest):
         Foo = self.classes.Foo
 
         s1 = self._explicit_version_fixture()
-        f1 = Foo(value='f1', version_id=1)
-        f2 = Foo(value='f2', version_id=1)
+        f1 = Foo(value="f1", version_id=1)
+        f2 = Foo(value="f2", version_id=1)
         s1.add_all((f1, f2))
         s1.flush()
 
         # note this requires that the Session was not expired until
         # we fix #4195
-        f1.value = 'f1rev2'
+        f1.value = "f1rev2"
         f1.version_id = 2
-        f2.value = 'f2rev2'
+        f2.value = "f2rev2"
         f2.version_id = 2
         s1.flush()
 
         eq_(
             s1.query(Foo.id, Foo.value, Foo.version_id).order_by(Foo.id).all(),
-            [(f1.id, 'f1rev2', 2), (f2.id, 'f2rev2', 2)]
+            [(f1.id, "f1rev2", 2), (f2.id, "f2rev2", 2)],
         )

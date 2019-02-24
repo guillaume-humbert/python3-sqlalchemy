@@ -41,7 +41,7 @@
         :tickets: 4208
         :versions: 1.2.5
 
-        Fixed bug in Postgresql COLLATE / ARRAY adjustment first introduced
+        Fixed bug in PostgreSQL COLLATE / ARRAY adjustment first introduced
         in :ticket:`4006` where new behaviors in Python 3.7 regular expressions
         caused the fix to fail.
 
@@ -130,7 +130,7 @@
         :versions: 1.2.3
 
         Added "TRUNCATE" to the list of keywords accepted by the
-        Postgresql dialect as an "autocommit"-triggering keyword.
+        PostgreSQL dialect as an "autocommit"-triggering keyword.
         Pull request courtesy Jacob Hayes.
 
     .. change::
@@ -251,7 +251,7 @@
         :versions: 1.2.0b3
 
         Fixed bug in :obj:`.array_agg` function where passing an argument
-        that is already of type :class:`.ARRAY`, such as a Postgresql
+        that is already of type :class:`.ARRAY`, such as a PostgreSQL
         :obj:`.postgresql.array` construct, would produce a ``ValueError``, due
         to the function attempting to nest the arrays.
 
@@ -270,7 +270,7 @@
         :tickets: 4074
         :versions: 1.2.0b3
 
-        Fixed bug in Postgresql :meth:`.postgresql.dml.Insert.on_conflict_do_update`
+        Fixed bug in PostgreSQL :meth:`.postgresql.dml.Insert.on_conflict_do_update`
         which would prevent the insert statement from being used as a CTE,
         e.g. via :meth:`.Insert.cte`, within another statement.
 
@@ -350,7 +350,7 @@
         duplicate object identities to occur, particularly under joined eager
         loading which involves deduplication of objects.  The issue is specific
         to garbage collection of weak references and is observed only under the
-        Pypy interpreter.
+        PyPy interpreter.
 
     .. change::
         :tags: bug, orm
@@ -392,7 +392,7 @@
     :released: July 24, 2017
 
     .. change:: cache_order_sequence
-        :tags: feature, oracle, posgresql
+        :tags: feature, oracle, postgresql
         :versions: 1.2.0b1
 
         Added new keywords :paramref:`.Sequence.cache` and
@@ -467,12 +467,12 @@
         :tickets: 4005
         :versions: 1.2.0b1
 
-        Continuing with the fix that correctly handles Postgresql
+        Continuing with the fix that correctly handles PostgreSQL
         version string "10devel" released in 1.1.8, an additional regexp
         bump to handle version strings of the form "10beta1".   While
-        Postgresql now offers better ways to get this information, we
+        PostgreSQL now offers better ways to get this information, we
         are sticking w/ the regexp at least through 1.1.x for the least
-        amount of risk to compatibility w/ older or alternate Postgresql
+        amount of risk to compatibility w/ older or alternate PostgreSQL
         databases.
 
     .. change:: 4006
@@ -635,7 +635,7 @@
 
         Changed the mechanics of :class:`.ResultProxy` to unconditionally
         delay the "autoclose" step until the :class:`.Connection` is done
-        with the object; in the case where Postgresql ON CONFLICT with
+        with the object; in the case where PostgreSQL ON CONFLICT with
         RETURNING returns no rows, autoclose was occurring in this previously
         non-existent use case, causing the usual autocommit behavior that
         occurs unconditionally upon INSERT/UPDATE/DELETE to fail.
@@ -671,7 +671,7 @@
         :tags: bug, postgresql
         :versions: 1.2.0b1
 
-        Added support for parsing the Postgresql version string for
+        Added support for parsing the PostgreSQL version string for
         a development version like "PostgreSQL 10devel".  Pull request
         courtesy Sean McCully.
 
@@ -784,7 +784,7 @@
         :tickets: 3804
 
         Added regular expressions for the "IMPORT FOREIGN SCHEMA",
-        "REFRESH MATERIALIZED VIEW" Postgresql statements so that they
+        "REFRESH MATERIALIZED VIEW" PostgreSQL statements so that they
         autocommit when invoked via a connection or engine without
         an explicit transaction.  Pull requests courtesy Frazer McLean
         and Paweł Stiasny.
@@ -838,7 +838,7 @@
         :tags: bug, postgresql
         :tickets: 3900
 
-        Fixed bug in Postgresql :class:`.ExcludeConstraint` where the
+        Fixed bug in PostgreSQL :class:`.ExcludeConstraint` where the
         "whereclause" and "using" parameters would not be copied during an
         operation like :meth:`.Table.tometadata`.
 
@@ -1129,7 +1129,7 @@
         pymysql dialects.   This feature is available via the
         :paramref:`.Connection.execution_options.stream_results` flag as well
         as the ``server_side_cursors=True`` dialect argument in the
-        same way that it has been for psycopg2 on Postgresql.  Pull request
+        same way that it has been for psycopg2 on PostgreSQL.  Pull request
         courtesy Roman Podoliaka.
 
     .. change::
@@ -1175,7 +1175,7 @@
         :tags: bug, postgresql
         :tickets: 3835
 
-        Postgresql table reflection will ensure that the
+        PostgreSQL table reflection will ensure that the
         :paramref:`.Column.autoincrement` flag is set to False when reflecting
         a primary key column that is not of an :class:`.Integer` datatype,
         even if the default is related to an integer-generating sequence.
@@ -1581,7 +1581,7 @@
         :tickets: 3744
 
         Fixed bug in new CTE feature for update/insert/delete whereby
-        an anoymous (e.g. no name passed) :class:`.CTE` construct around
+        an anonymous (e.g. no name passed) :class:`.CTE` construct around
         the statement would fail.
 
     .. change::
@@ -1702,7 +1702,6 @@
 
     .. change::
         :tags: feature, postgresql
-        :pullreq: bitbucket:84
 
         The DDL for DROP INDEX will emit "CONCURRENTLY" if the
         ``postgresql_concurrently`` flag is set upon the
@@ -1792,7 +1791,6 @@
 
     .. change::
         :tags: orm, feature
-        :pullreq: github:237
 
         Added :paramref:`.AutomapBase.prepare.schema` to the
         :meth:`.AutomapBase.prepare` method, to indicate which schema
@@ -1801,7 +1799,6 @@
 
     .. change::
         :tags: feature, sqlite
-        :pullreq: github:244
 
         The SQLite dialect now reflects ON UPDATE and ON DELETE phrases
         within foreign key constraints.  Pull request courtesy
@@ -1809,7 +1806,6 @@
 
     .. change::
         :tags: bug, mssql
-        :pullreq: bitbucket:58
 
         Adjustments to the mxODBC dialect to make use of the ``BinaryNull``
         symbol when appropriate in conjunction with the ``VARBINARY``
@@ -1817,7 +1813,6 @@
 
     .. change::
         :tags: feature, sql
-        :pullreq: bitbucket:80
 
         Implemented reflection of CHECK constraints for SQLite and PostgreSQL.
         This is available via the new inspector method
@@ -1828,7 +1823,6 @@
 
     .. change::
         :tags: feature, postgresql
-        :pullreq: github:297
 
         Added new parameter
         :paramref:`.GenerativeSelect.with_for_update.key_share`, which
@@ -1838,7 +1832,6 @@
 
     .. change::
         :tags: feature, postgresql, oracle
-        :pullreq: bitbucket:86
 
         Added new parameter
         :paramref:`.GenerativeSelect.with_for_update.skip_locked`, which
@@ -1902,7 +1895,6 @@
 
     .. change::
         :tags: feature, sql
-        :pullreq: github:275
 
         Added a hook in :meth:`.DDLCompiler.visit_create_table` called
         :meth:`.DDLCompiler.create_table_suffix`, allowing custom dialects
@@ -1911,7 +1903,6 @@
 
     .. change::
         :tags: feature, sql
-        :pullreq: github:231
 
         Negative integer indexes are now accommodated by rows
         returned from a :class:`.ResultProxy`.  Pull request courtesy
@@ -1947,7 +1938,6 @@
     .. change::
         :tags: feature, sql
         :tickets: 1957
-        :pullreq: github:209
 
         Added support for rendering "FULL OUTER JOIN" to both Core and ORM.
         Pull request courtesy Stefan Urbanek.
@@ -2347,7 +2337,6 @@
 
     .. change::
         :tags: enhancement, schema
-        :pullreq: github:204
 
         The default generation functions passed to :class:`.Column` objects
         are now run through "update_wrapper", or an equivalent function
@@ -2394,7 +2383,6 @@
 
     .. change::
         :tags: change, sqlite
-        :pullreq: github:198
 
         Added support to the SQLite dialect for the
         :meth:`.Inspector.get_schema_names` method to work with SQLite;
@@ -2723,7 +2711,6 @@
     .. change::
         :tags: feature, orm
         :tickets: 3512
-        :pullreq: github:193
 
         Added new relationship loading strategy :func:`.orm.raiseload` (also
         accessible via ``lazy='raise'``).  This strategy behaves almost like
