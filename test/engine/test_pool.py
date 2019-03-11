@@ -15,6 +15,7 @@ from sqlalchemy.testing import eq_
 from sqlalchemy.testing import fixtures
 from sqlalchemy.testing import is_
 from sqlalchemy.testing import is_not_
+from sqlalchemy.testing import is_true
 from sqlalchemy.testing.engines import testing_engine
 from sqlalchemy.testing.mock import ANY
 from sqlalchemy.testing.mock import call
@@ -776,8 +777,7 @@ class QueuePoolTest(PoolTestBase):
 
     def test_timeout_accessor(self):
         expected_timeout = 123
-        p = self._queuepool_fixture(
-            timeout=expected_timeout)
+        p = self._queuepool_fixture(timeout=expected_timeout)
         eq_(p.timeout(), expected_timeout)
 
     @testing.requires.timing_intensive
@@ -1810,7 +1810,9 @@ class SingletonThreadPoolTest(PoolTestBase):
             threads.append(th)
         for th in threads:
             th.join(join_timeout)
-        eq_(len(p._all_conns), 3)
+
+        lp = len(p._all_conns)
+        is_true(3 <= lp <= 4)
 
         if strong_refs:
             still_opened = len([c for c in sr if not c.close.call_count])
