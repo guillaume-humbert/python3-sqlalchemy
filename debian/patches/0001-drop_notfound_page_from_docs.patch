@@ -8,7 +8,7 @@ this makes this package FTBFS with Sphinx 1.6
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/doc/build/conf.py b/doc/build/conf.py
-index 38d2497..6384d1f 100644
+index 0b6e458..bbcb86b 100644
 --- a/doc/build/conf.py
 +++ b/doc/build/conf.py
 @@ -208,9 +208,9 @@ html_last_updated_fmt = '%m/%d/%Y %H:%M:%S'
