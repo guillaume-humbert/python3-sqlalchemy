@@ -907,6 +907,83 @@ class ReflectionTest(fixtures.TestBase):
             ],
         )
 
+    @testing.fails_if("postgresql < 8.3", "index ordering not supported")
+    @testing.provide_metadata
+    def test_index_reflection_with_sorting(self):
+        """reflect indexes with sorting options set"""
+
+        t1 = Table(
+            "party",
+            self.metadata,
+            Column("id", String(10), nullable=False),
+            Column("name", String(20)),
+            Column("aname", String(20)),
+        )
+
+        with testing.db.connect() as conn:
+
+            t1.create(conn)
+
+            # check ASC, DESC options alone
+            conn.execute(
+                """
+                create index idx1 on party
+                    (id, name ASC, aname DESC)
+            """
+            )
+
+            # check DESC w/ NULLS options
+            conn.execute(
+                """
+              create index idx2 on party
+                    (name DESC NULLS FIRST, aname DESC NULLS LAST)
+            """
+            )
+
+            # check ASC w/ NULLS options
+            conn.execute(
+                """
+              create index idx3 on party
+                    (name ASC NULLS FIRST, aname ASC NULLS LAST)
+            """
+            )
+
+        # reflect data
+        with testing.db.connect() as conn:
+            m2 = MetaData(conn)
+            t2 = Table("party", m2, autoload=True)
+
+        eq_(len(t2.indexes), 3)
+
+        # Make sure indexes are in the order we expect them in
+        r1, r2, r3 = sorted(t2.indexes, key=lambda idx: idx.name)
+
+        eq_(r1.name, "idx1")
+        eq_(r2.name, "idx2")
+        eq_(r3.name, "idx3")
+
+        # "ASC NULLS LAST" is implicit default for indexes,
+        # and "NULLS FIRST" is implicit default for "DESC".
+        # (https://www.postgresql.org/docs/11/indexes-ordering.html)
+
+        def compile_exprs(exprs):
+            return list(map(str, exprs))
+
+        eq_(
+            compile_exprs([t2.c.id, t2.c.name, t2.c.aname.desc()]),
+            compile_exprs(r1.expressions),
+        )
+
+        eq_(
+            compile_exprs([t2.c.name.desc(), t2.c.aname.desc().nullslast()]),
+            compile_exprs(r2.expressions),
+        )
+
+        eq_(
+            compile_exprs([t2.c.name.nullsfirst(), t2.c.aname]),
+            compile_exprs(r3.expressions),
+        )
+
     @testing.provide_metadata
     def test_index_reflection_modified(self):
         """reflect indexes when a column name has changed - PG 9
@@ -1289,6 +1366,33 @@ class ReflectionTest(fixtures.TestBase):
                 },
             ],
         )
+
+    @testing.provide_metadata
+    def test_inspect_enum_empty(self):
+        enum_type = postgresql.ENUM(name="empty", metadata=self.metadata)
+        enum_type.create(testing.db)
+        inspector = reflection.Inspector.from_engine(testing.db)
+
+        eq_(
+            inspector.get_enums(),
+            [
+                {
+                    "visible": True,
+                    "labels": [],
+                    "name": "empty",
+                    "schema": "public",
+                }
+            ],
+        )
+
+    @testing.provide_metadata
+    def test_inspect_enum_empty_from_table(self):
+        Table(
+            "t", self.metadata, Column("x", postgresql.ENUM(name="empty"))
+        ).create(testing.db)
+
+        t = Table("t", MetaData(testing.db), autoload_with=testing.db)
+        eq_(t.c.x.type.enums, [])
 
     @testing.provide_metadata
     @testing.only_on("postgresql >= 8.5")

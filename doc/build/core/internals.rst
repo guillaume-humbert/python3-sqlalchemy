@@ -29,6 +29,11 @@ Some key internal constructs are listed here.
     :members:
 
 
+.. autoclass:: sqlalchemy.sql.compiler.GenericTypeCompiler
+    :members:
+    :inherited-members:
+
+
 .. autoclass:: sqlalchemy.log.Identified
     :members:
 
@@ -38,6 +43,9 @@ Some key internal constructs are listed here.
 
 
 .. autoclass:: sqlalchemy.sql.compiler.SQLCompiler
+    :members:
+
+.. autoclass:: sqlalchemy.sql.compiler.StrSQLCompiler
     :members:
 
 

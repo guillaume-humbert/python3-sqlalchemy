@@ -99,10 +99,16 @@ class QueryableAttribute(
             for base in manager._bases:
                 if key in base:
                     self.dispatch._update(base[key].dispatch)
+                    if base[key].dispatch._active_history:
+                        self.dispatch._active_history = True
 
     @util.memoized_property
     def _supports_population(self):
         return self.impl.supports_population
+
+    @property
+    def _impl_uses_objects(self):
+        return self.impl.uses_objects
 
     def get_history(self, instance, passive=PASSIVE_OFF):
         return self.impl.get_history(
@@ -314,6 +320,13 @@ def create_proxied_attribute(descriptor):
         _is_internal_proxy = True
 
         @property
+        def _impl_uses_objects(self):
+            return (
+                self.original_property is not None
+                and getattr(self.class_, self.key).impl.uses_objects
+            )
+
+        @property
         def property(self):
             return self.comparator.property
 
@@ -337,10 +350,14 @@ def create_proxied_attribute(descriptor):
             )
 
         def __get__(self, instance, owner):
-            if instance is None:
+            retval = self.descriptor.__get__(instance, owner)
+            # detect if this is a plain Python @property, which just returns
+            # itself for class level access.  If so, then return us.
+            # Otherwise, return the object returned by the descriptor.
+            if retval is self.descriptor and instance is None:
                 return self
             else:
-                return self.descriptor.__get__(instance, owner)
+                return retval
 
         def __str__(self):
             return "%s.%s" % (self.class_.__name__, self.key)

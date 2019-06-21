@@ -93,7 +93,7 @@ ASSOCIATION_PROXY = util.symbol("ASSOCIATION_PROXY")
 class AssociationProxy(interfaces.InspectionAttrInfo):
     """A descriptor that presents a read/write view of an object attribute."""
 
-    is_attribute = False
+    is_attribute = True
     extension_type = ASSOCIATION_PROXY
 
     def __init__(
@@ -206,7 +206,7 @@ class AssociationProxy(interfaces.InspectionAttrInfo):
         return self._as_instance(class_, obj).delete(obj)
 
     def for_class(self, class_, obj=None):
-        """Return the internal state local to a specific mapped class.
+        r"""Return the internal state local to a specific mapped class.
 
         E.g., given a class ``User``::
 
@@ -225,7 +225,7 @@ class AssociationProxy(interfaces.InspectionAttrInfo):
         is specific to the ``User`` class.   The :class:`.AssociationProxy`
         object remains agnostic of its parent class.
 
-        :param class_: the class that we are returning state for.
+        :param class\_: the class that we are returning state for.
 
         :param obj: optional, an instance of the class that is required
          if the attribute refers to a polymorphic target, e.g. where we have
@@ -294,6 +294,12 @@ class AssociationProxy(interfaces.InspectionAttrInfo):
                 setattr(o, attr, v)
 
         return getter, setter
+
+    def __repr__(self):
+        return "AssociationProxy(%r, %r)" % (
+            self.target_collection,
+            self.value_attr,
+        )
 
 
 class AssociationProxyInstance(object):
@@ -385,11 +391,11 @@ class AssociationProxyInstance(object):
             )
 
         attr = getattr(target_class, value_attr)
-        if attr._is_internal_proxy and not hasattr(attr, "impl"):
+        if not hasattr(attr, "_is_internal_proxy"):
             return AmbiguousAssociationProxyInstance(
                 parent, owning_class, target_class, value_attr
             )
-        is_object = attr.impl.uses_objects
+        is_object = attr._impl_uses_objects
         if is_object:
             return ObjectAssociationProxyInstance(
                 parent, owning_class, target_class, value_attr
@@ -423,10 +429,10 @@ class AssociationProxyInstance(object):
 
     @property
     def remote_attr(self):
-        """The 'remote' :class:`.MapperProperty` referenced by this
+        """The 'remote' class attribute referenced by this
         :class:`.AssociationProxyInstance`.
 
-        ..seealso::
+        .. seealso::
 
             :attr:`.AssociationProxyInstance.attr`
 
@@ -437,7 +443,7 @@ class AssociationProxyInstance(object):
 
     @property
     def local_attr(self):
-        """The 'local' :class:`.MapperProperty` referenced by this
+        """The 'local' class attribute referenced by this
         :class:`.AssociationProxyInstance`.
 
         .. seealso::
@@ -724,6 +730,9 @@ class AssociationProxyInstance(object):
             criterion=criterion, is_has=True, **kwargs
         )
 
+    def __repr__(self):
+        return "%s(%r)" % (self.__class__.__name__, self.parent)
+
 
 class AmbiguousAssociationProxyInstance(AssociationProxyInstance):
     """an :class:`.AssociationProxyInstance` where we cannot determine
@@ -748,9 +757,15 @@ class AmbiguousAssociationProxyInstance(AssociationProxyInstance):
 
     def get(self, obj):
         if obj is None:
-            self._ambiguous()
+            return self
         else:
             return super(AmbiguousAssociationProxyInstance, self).get(obj)
+
+    def __eq__(self, obj):
+        self._ambiguous()
+
+    def __ne__(self, obj):
+        self._ambiguous()
 
     def any(self, criterion=None, **kwargs):
         self._ambiguous()

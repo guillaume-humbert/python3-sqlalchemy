@@ -540,6 +540,20 @@ names::
 
 would render the index as ``CREATE INDEX my_index ON table (x) INCLUDE (y)``
 
+.. _mssql_index_where:
+
+Filtered Indexes
+^^^^^^^^^^^^^^^^
+
+The ``mssql_where`` option renders WHERE(condition) for the given string
+names::
+
+    Index("my_index", table.c.x, mssql_where=table.c.x > 10)
+
+would render the index as ``CREATE INDEX my_index ON table (x) WHERE x > 10``.
+
+.. versionadded:: 1.3.4
+
 Index ordering
 ^^^^^^^^^^^^^^
 
@@ -1753,10 +1767,16 @@ class MSSQLCompiler(compiler.SQLCompiler):
         return ""
 
     def order_by_clause(self, select, **kw):
+        # MSSQL only allows ORDER BY in subqueries if there is a LIMIT
+        if self.is_subquery() and not select._limit:
+            # avoid processing the order by clause if we won't end up
+            # using it, because we don't want all the bind params tacked
+            # onto the positional list if that is what the dbapi requires
+            return ""
+
         order_by = self.process(select._order_by_clause, **kw)
 
-        # MSSQL only allows ORDER BY in subqueries if there is a LIMIT
-        if order_by and (not self.is_subquery() or select._limit):
+        if order_by:
             return " ORDER BY " + order_by
         else:
             return ""
@@ -1943,6 +1963,14 @@ class MSDDLCompiler(compiler.DDLCompiler):
                 for expr in index.expressions
             ),
         )
+
+        whereclause = index.dialect_options["mssql"]["where"]
+
+        if whereclause is not None:
+            where_compiled = self.sql_compiler.process(
+                whereclause, include_table=False, literal_binds=True
+            )
+            text += " WHERE " + where_compiled
 
         # handle other included columns
         if index.dialect_options["mssql"]["include"]:
@@ -2176,7 +2204,7 @@ class MSDialect(default.DefaultDialect):
     construct_arguments = [
         (sa_schema.PrimaryKeyConstraint, {"clustered": None}),
         (sa_schema.UniqueConstraint, {"clustered": None}),
-        (sa_schema.Index, {"clustered": None, "include": None}),
+        (sa_schema.Index, {"clustered": None, "include": None, "where": None}),
         (sa_schema.Column, {"identity_start": 1, "identity_increment": 1}),
     ]
 

@@ -11,6 +11,437 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.3.5
+    :released: June 17, 2019
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 4715
+
+        Fixed bug where MySQL ON DUPLICATE KEY UPDATE would not accommodate setting
+        a column to the value NULL.  Pull request courtesy Lukáš Banič.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4723
+
+        Fixed a series of related bugs regarding joined table inheritance more than
+        two levels deep, in conjunction with modification to primary key values,
+        where those primary key columns are also linked together in a foreign key
+        relationship as is typical for joined table inheritance.  The intermediary
+        table in a  three-level inheritance hierachy will now get its UPDATE if
+        only the primary key value has changed and passive_updates=False (e.g.
+        foreign key constraints not being enforced), whereas before it would be
+        skipped; similarly, with passive_updates=True (e.g. ON UPDATE  CASCADE in
+        effect), the third-level table will not receive an UPDATE statement as was
+        the case earlier which would fail since CASCADE already modified it.   In a
+        related issue, a relationship linked to a three-level inheritance hierarchy
+        on the primary key of an intermediary table of a joined-inheritance
+        hierarchy will also correctly have its foreign key column updated when the
+        parent object's primary key is modified, even if that parent object is a
+        subclass of the linked parent class, whereas before these classes would
+        not be counted.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4729
+
+        Fixed bug where the :attr:`.Mapper.all_orm_descriptors` accessor would
+        return an entry for the :class:`.Mapper` itself under the declarative
+        ``__mapper___`` key, when this is not a descriptor.  The ``.is_attribute``
+        flag that's present on all :class:`.InspectionAttr` objects is now
+        consulted, which has also been modified to be ``True`` for an association
+        proxy, as it was erroneously set to False for this object.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4704
+
+        Fixed regression in :meth:`.Query.join` where the ``aliased=True`` flag
+        would not properly apply clause adaptation to filter criteria, if a
+        previous join were made to the same entity.  This is because the adapters
+        were placed in the wrong order.   The order has been reversed so that the
+        adapter for the most recent ``aliased=True`` call takes precedence as was
+        the case in 1.2 and earlier.  This broke the "elementtree" examples among
+        other things.
+
+    .. change::
+        :tags: bug, orm, py3k
+        :tickets: 4674
+
+        Replaced the Python compatbility routines for ``getfullargspec()`` with a
+        fully vendored version from Python 3.3.  Originally, Python was emitting
+        deprecation warnings for this function in Python 3.8 alphas.  While this
+        change was reverted, it was observed that Python 3 implementations for
+        ``getfullargspec()`` are an order of magnitude slower as of the 3.4 series
+        where it was rewritten against ``Signature``.  While Python plans to
+        improve upon this situation, SQLAlchemy projects for now are using a simple
+        replacement to avoid any future issues.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4694
+
+        Reworked the attribute mechanics used by :class:`.AliasedClass` to no
+        longer rely upon calling ``__getattribute__`` on the MRO of the wrapped
+        class, and to instead resolve the attribute normally on the wrapped class
+        using getattr(), and then unwrap/adapt that.  This allows a greater range
+        of attribute styles on the mapped class including special ``__getattr__()``
+        schemes; but it also makes the code simpler and more resilient in general.
+
+    .. change::
+        :tags: usecase, postgresql
+        :tickets: 4717
+
+        Added support for column sorting flags when reflecting indexes for
+        PostgreSQL, including ASC, DESC, NULLSFIRST, NULLSLAST.  Also adds this
+        facility to the reflection system in general which can be applied to other
+        dialects in future releases.  Pull request courtesy Eli Collins.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 4701
+
+        Fixed bug where PostgreSQL dialect could not correctly reflect an ENUM
+        datatype that has no members, returning a list with ``None`` for the
+        ``get_enums()`` call and raising a TypeError when reflecting a column which
+        has such a datatype.   The inspection now returns an empty list.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4730
+
+        Fixed a series of quoting issues which all stemmed from the concept of the
+        :func:`.literal_column` construct, which when being "proxied" through a
+        subquery to be referred towards by a label that matches its text, the label
+        would not have quoting rules applied to it, even if the string in the
+        :class:`.Label` were set up as a :class:`.quoted_name` construct.  Not
+        applying quoting to the text of the :class:`.Label` is a bug because this
+        text is strictly a SQL identifier name and not a SQL expression, and the
+        string should not have quotes embedded into it already unlike the
+        :func:`.literal_column` which it may be applied towards.   The existing
+        behavior of a non-labeled :func:`.literal_column` being propagated as is on
+        the outside of a subquery is maintained in order to help with manual
+        quoting schemes, although it's not clear if valid SQL can be generated for
+        such a construct in any case.
+
+.. changelog::
+    :version: 1.3.4
+    :released: May 27, 2019
+
+    .. change::
+        :tags: feature, mssql
+        :tickets: 4657
+
+        Added support for SQL Server filtered indexes, via the ``mssql_where``
+        parameter which works similarly to that of the ``postgresql_where`` index
+        function in the PostgreSQL dialect.
+
+        .. seealso::
+
+            :ref:`mssql_index_where`
+
+    .. change::
+       :tags: bug, misc
+       :tickets: 4625
+
+       Removed errant "sqla_nose.py" symbol from MANIFEST.in which created an
+       undesirable warning message.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4653
+
+        Fixed that the :class:`.GenericFunction` class was inadvertently
+        registering itself as one of the named functions.  Pull request courtesy
+        Adrien Berchet.
+
+    .. change::
+       :tags: bug, engine, postgresql
+       :tickets: 4663
+
+       Moved the "rollback" which occurs during dialect initialization so that it
+       occurs after additional dialect-specific initialize steps, in particular
+       those of the psycopg2 dialect which would inadvertently leave transactional
+       state on the first new connection, which could interfere with some
+       psycopg2-specific APIs which require that no transaction is started.  Pull
+       request courtesy Matthew Wilkes.
+
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4695
+
+        Fixed issue where the :paramref:`.AttributeEvents.active_history` flag
+        would not be set for an event listener that propgated to a subclass via the
+        :paramref:`.AttributeEvents.propagate` flag.   This bug has been present
+        for the full span of the :class:`.AttributeEvents` system.
+
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4690
+
+        Fixed regression where new association proxy system was still not proxying
+        hybrid attributes when they made use of the ``@hybrid_property.expression``
+        decorator to return an alternate SQL expression, or when the hybrid
+        returned an arbitrary :class:`.PropComparator`, at the expression level.
+        This involved futher generalization of the heuristics used to detect the
+        type of object being proxied at the level of :class:`.QueryableAttribute`,
+        to better detect if the descriptor ultimately serves mapped classes or
+        column expressions.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4686
+
+        Applied the mapper "configure mutex" against the declarative class mapping
+        process, to guard against the race which can occur if mappers are used
+        while dynamic module import schemes are still in the process of configuring
+        mappers for related classes.  This does not guard against all possible race
+        conditions, such as if the concurrent import has not yet encountered the
+        dependent classes as of yet, however it guards against as much as possible
+        within the SQLAlchemy declarative process.
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 4680
+
+        Added error code 20047 to "is_disconnect" for pymssql.  Pull request
+        courtesy Jon Schuff.
+
+
+    .. change::
+       :tags: bug, postgresql, orm
+       :tickets: 4661
+
+       Fixed an issue where the "number of rows matched" warning would emit even if
+       the dialect reported "supports_sane_multi_rowcount=False", as is the case
+       for psycogp2 with ``use_batch_mode=True`` and others.
+
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4618
+
+        Fixed issue where double negation of a boolean column wouldn't reset
+        the "NOT" operator.
+
+    .. change::
+        :tags: mysql, bug
+        :tickets: 4650
+
+        Added support for DROP CHECK constraint which is required by MySQL 8.0.16
+        to drop a CHECK constraint; MariaDB supports plain DROP CONSTRAINT.  The
+        logic distinguishes between the two syntaxes by checking the server version
+        string for MariaDB presence.    Alembic migrations has already worked
+        around this issue by implementing its own DROP for MySQL / MariaDB CHECK
+        constraints, however this change implements it straight in Core so that its
+        available for general use.   Pull request courtesy Hannes Hansen.
+
+    .. change::
+       :tags: bug, orm
+       :tickets: 4647
+
+       A warning is now emitted for the case where a transient object is being
+       merged into the session with :meth:`.Session.merge` when that object is
+       already transient in the :class:`.Session`.   This warns for the case where
+       the object would normally be double-inserted.
+
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4676
+
+        Fixed regression in new relationship m2o comparison logic first introduced
+        at :ref:`change_4359` when comparing to an attribute that is persisted as
+        NULL and is in an un-fetched state in the mapped instance.  Since the
+        attribute has no explicit default, it needs to default to NULL when
+        accessed in a persistent setting.
+
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4569
+
+        The :class:`.GenericFunction` namespace is being migrated so that function
+        names are looked up in a case-insensitive manner, as SQL  functions do not
+        collide on case sensitive differences nor is this something which would
+        occur with user-defined functions or stored procedures.   Lookups for
+        functions declared with :class:`.GenericFunction` now use a case
+        insensitive scheme,  however a deprecation case is supported which allows
+        two or more :class:`.GenericFunction` objects with the same name of
+        different cases to exist, which will cause case sensitive lookups to occur
+        for that particular name, while emitting a warning at function registration
+        time.  Thanks to Adrien Berchet for a lot of work on this complicated
+        feature.
+
+
+.. changelog::
+    :version: 1.3.3
+    :released: April 15, 2019
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 4601
+
+        Fixed regression from release 1.3.2 caused by :ticket:`4562` where a URL
+        that contained only a query string and no hostname, such as for the
+        purposes of specifying a service file with connection information, would no
+        longer be propagated to psycopg2 properly.   The change in :ticket:`4562`
+        has been adjusted to further suit psycopg2's exact requirements, which is
+        that if there are any connection parameters whatsoever, the "dsn" parameter
+        is no longer required, so in this case the query string parameters are
+        passed alone.
+
+    .. change::
+       :tags: bug, pool
+       :tickets: 4585
+
+       Fixed behavioral regression as a result of deprecating the "use_threadlocal"
+       flag for :class:`.Pool`, where the :class:`.SingletonThreadPool` no longer
+       makes use of this option which causes the "rollback on return" logic to take
+       place when the same :class:`.Engine` is used multiple times in the context
+       of a transaction to connect or implicitly execute, thereby cancelling the
+       transaction.   While this is not the recommended way to work with engines
+       and connections, it is nonetheless a confusing behavioral change as when
+       using :class:`.SingletonThreadPool`, the transaction should stay open
+       regardless of what else is done with the same engine in the same thread.
+       The ``use_threadlocal`` flag remains deprecated however the
+       :class:`.SingletonThreadPool` now implements its own version of the same
+       logic.
+
+
+    .. change::
+       :tags: bug, orm
+       :tickets: 4584
+
+       Fixed 1.3 regression in new "ambiguous FROMs" query logic introduced in
+       :ref:`change_4365` where a :class:`.Query` that explicitly places an entity
+       in the FROM clause with :meth:`.Query.select_from` and also joins to it
+       using :meth:`.Query.join` would later cause an "ambiguous FROM" error if
+       that entity were used in additional joins, as the entity appears twice in
+       the "from" list of the :class:`.Query`.  The fix resolves this ambiguity by
+       folding the standalone entity into the join that it's already a part of in
+       the same way that ultimately happens when the SELECT statement is rendered.
+
+    .. change::
+        :tags: bug, ext
+        :tickets: 4603
+
+        Fixed bug where using ``copy.copy()`` or ``copy.deepcopy()`` on
+        :class:`.MutableList` would cause the items within the list to be
+        duplicated, due to an inconsistency in how Python pickle and copy both make
+        use of ``__getstate__()`` and ``__setstate__()`` regarding lists.  In order
+        to resolve, a ``__reduce_ex__`` method had to be added to
+        :class:`.MutableList`.  In order to maintain backwards compatibility with
+        existing pickles based on ``__getstate__()``, the ``__setstate__()`` method
+        remains as well; the test suite asserts that pickles made against the old
+        version of the class can still be deserialized by the pickle module.
+
+    .. change::
+       :tags: bug, orm
+       :tickets: 4606
+
+       Adjusted the :meth:`.Query.filter_by` method to not call :func:`.and()`
+       internally against multiple criteria, instead passing it off to
+       :meth:`.Query.filter` as a series of criteria, instead of a single criteria.
+       This allows :meth:`.Query.filter_by` to defer to :meth:`.Query.filter`'s
+       treatment of variable numbers of clauses, including the case where the list
+       is empty.  In this case, the :class:`.Query` object will not have a
+       ``.whereclause``, which allows subsequent "no whereclause" methods like
+       :meth:`.Query.select_from` to behave consistently.
+
+    .. change::
+       :tags: bug, mssql
+       :tickets: 4587
+
+       Fixed issue in SQL Server dialect where if a bound parameter were present in
+       an ORDER BY expression that would ultimately not be rendered in the SQL
+       Server version of the statement, the parameters would still be part of the
+       execution parameters, leading to DBAPI-level errors.  Pull request courtesy
+       Matt Lewellyn.
+
+.. changelog::
+    :version: 1.3.2
+    :released: April 2, 2019
+
+    .. change::
+       :tags: bug, documentation, sql
+       :tickets: 4580
+
+       Thanks to :ref:`change_3981`, we no longer need to rely on recipes that
+       subclass dialect-specific types directly, :class:`.TypeDecorator` can now
+       handle all cases.   Additionally, the above change made it slightly less
+       likely that a direct subclass of a base SQLAlchemy type would work as
+       expected, which could be misleading.  Documentation has been updated to use
+       :class:`.TypeDecorator` for these examples including the PostgreSQL
+       "ArrayOfEnum" example datatype and direct support for the "subclass a type
+       directly" has been removed.
+
+    .. change::
+       :tags: bug, postgresql
+       :tickets: 4550
+
+       Modified the :paramref:`.Select.with_for_update.of` parameter so that if a
+       join or other composed selectable is passed, the individual :class:`.Table`
+       objects will be filtered from it, allowing one to pass a join() object to
+       the parameter, as occurs normally when using joined table inheritance with
+       the ORM.  Pull request courtesy Raymond Lu.
+
+
+    .. change::
+        :tags: feature, postgresql
+        :tickets: 4562
+
+        Added support for parameter-less connection URLs for the psycopg2 dialect,
+        meaning, the URL can be passed to :func:`.create_engine` as
+        ``"postgresql+psycopg2://"`` with no additional arguments to indicate an
+        empty DSN passed to libpq, which indicates to connect to "localhost" with
+        no username, password, or database given. Pull request courtesy Julian
+        Mehnle.
+
+    .. change::
+       :tags: bug, orm, ext
+       :tickets: 4574, 4573
+
+       Restored instance-level support for plain Python descriptors, e.g.
+       ``@property`` objects, in conjunction with association proxies, in that if
+       the proxied object is not within ORM scope at all, it gets classified as
+       "ambiguous" but is proxed directly.  For class level access, a basic class
+       level``__get__()`` now returns the
+       :class:`.AmbiguousAssociationProxyInstance` directly, rather than raising
+       its exception, which is the closest approximation to the previous behavior
+       that returned the :class:`.AssociationProxy` itself that's possible.  Also
+       improved the stringification of these objects to be more descriptive of
+       current state.
+
+    .. change::
+       :tags: bug, orm
+       :tickets: 4537
+
+       Fixed bug where use of :func:`.with_polymorphic` or other aliased construct
+       would not properly adapt when the aliased target were used as the
+       :meth:`.Select.correlate_except` target of a subquery used inside of a
+       :func:`.column_property`. This required a fix to the clause adaption
+       mechanics to properly handle a selectable that shows up in the "correlate
+       except" list, in a similar manner as which occurs for selectables that show
+       up in the "correlate" list.  This is ultimately a fairly fundamental bug
+       that has lasted for a long time but it is hard to come across it.
+
+
+    .. change::
+       :tags: bug, orm
+       :tickets: 4566
+
+       Fixed regression where a new error message that was supposed to raise when
+       attempting to link a relationship option to an AliasedClass without using
+       :meth:`.PropComparator.of_type` would instead raise an ``AttributeError``.
+       Note that in 1.3, it is no longer valid to create an option path from a
+       plain mapper relationship to an :class:`.AliasedClass` without using
+       :meth:`.PropComparator.of_type`.
+
+.. changelog::
     :version: 1.3.1
     :released: March 9, 2019
 

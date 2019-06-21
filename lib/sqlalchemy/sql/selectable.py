@@ -165,6 +165,10 @@ class HasPrefixes(object):
 
             stmt = table.insert().prefix_with("LOW_PRIORITY", dialect="mysql")
 
+            # MySQL 5.7 optimizer hints
+            stmt = select([table]).prefix_with(
+                "/*+ BKA(t1) */", dialect="mysql")
+
         Multiple prefixes can be specified by multiple calls
         to :meth:`.prefix_with`.
 
@@ -3097,6 +3101,10 @@ class Select(HasPrefixes, HasSuffixes, GenerativeSelect):
 
             :meth:`.Select.with_hint`
 
+            :meth:.`.Select.prefix_with` - generic SELECT prefixing which also
+            can suit some database-specific HINT syntaxes such as MySQL
+            optimizer hints
+
         """
         return self.with_hint(None, text, dialect_name)
 
@@ -3227,6 +3235,14 @@ class Select(HasPrefixes, HasSuffixes, GenerativeSelect):
         self._correlate = set(clone(f) for f in self._correlate).union(
             self._correlate
         )
+
+        # do something similar for _correlate_except - this is a more
+        # unusual case but same idea applies
+        if self._correlate_except:
+            self._correlate_except = set(
+                clone(f) for f in self._correlate_except
+            ).union(self._correlate_except)
+
         # 4. clone other things.   The difficulty here is that Column
         # objects are not actually cloned, and refer to their original
         # .table, resulting in the wrong "from" parent after a clone
@@ -3676,7 +3692,6 @@ class Select(HasPrefixes, HasSuffixes, GenerativeSelect):
                     key = c.anon_label
             else:
                 key = None
-
             c._make_proxy(self, key=key, name=name, name_is_truncatable=True)
 
     def _refresh_for_new_column(self, column):
