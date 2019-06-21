@@ -291,7 +291,8 @@ class SessionTransaction(object):
                         " To begin a new transaction with this Session, "
                         "first issue Session.rollback()."
                         " Original exception was: %s"
-                        % self._rollback_exception
+                        % self._rollback_exception,
+                        code="7s2a",
                     )
                 elif not deactive_ok:
                     raise sa_exc.InvalidRequestError(
@@ -2110,6 +2111,13 @@ class Session(_SessionClassMethods):
         key = state.key
 
         if key is None:
+            if state in self._new:
+                util.warn(
+                    "Instance %s is already pending in this Session yet is "
+                    "being merged again; this is probably not what you want "
+                    "to do" % state_str(state)
+                )
+
             if not load:
                 raise sa_exc.InvalidRequestError(
                     "merge() with load=False option does not support "
@@ -3155,7 +3163,7 @@ class sessionmaker(_SessionClassMethods):
 
         :param bind: a :class:`.Engine` or other :class:`.Connectable` with
          which newly created :class:`.Session` objects will be associated.
-        :param class_: class to use in order to create new :class:`.Session`
+        :param class\_: class to use in order to create new :class:`.Session`
          objects.  Defaults to :class:`.Session`.
         :param autoflush: The autoflush setting to use with newly created
          :class:`.Session` objects.

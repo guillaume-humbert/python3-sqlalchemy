@@ -83,6 +83,33 @@ using ``host`` as an additional keyword argument::
     `PQconnectdbParams \
     <http://www.postgresql.org/docs/9.1/static/libpq-connect.html#LIBPQ-PQCONNECTDBPARAMS>`_
 
+Empty DSN Connections / Environment Variable Connections
+---------------------------------------------------------
+
+The psycopg2 DBAPI can connect to PostgreSQL by passing an empty DSN to the
+libpq client library, which by default indicates to connect to a localhost
+PostgreSQL database that is open for "trust" connections.  This behavior can be
+further tailored using a particular set of environment variables which are
+prefixed with ``PG_...``, which are  consumed by ``libpq`` to take the place of
+any or all elements of the connection string.
+
+For this form, the URL can be passed without any elements other than the
+initial scheme::
+
+    engine = create_engine('postgresql+psycopg2://')
+
+In the above form, a blank "dsn" string is passed to the ``psycopg2.connect()``
+function which in turn represents an empty DSN passed to libpq.
+
+.. versionadded:: 1.3.2 support for parameter-less connections with psycopg2.
+
+.. seealso::
+
+    `Environment Variables\
+    <https://www.postgresql.org/docs/current/libpq-envars.html>`_ -
+    PostgreSQL documentation on how to use ``PG_...``
+    environment variables for connections.
+
 .. _psycopg2_execution_options:
 
 Per-Statement/Connection Execution Options
@@ -295,10 +322,24 @@ NOTICE logging
 ---------------
 
 The psycopg2 dialect will log PostgreSQL NOTICE messages
-via the ``sqlalchemy.dialects.postgresql`` logger::
+via the ``sqlalchemy.dialects.postgresql`` logger.  When this logger
+is set to the ``logging.INFO`` level, notice messages will be logged::
 
     import logging
+
     logging.getLogger('sqlalchemy.dialects.postgresql').setLevel(logging.INFO)
+
+Above, it is assumed that logging is configured externally.  If this is not
+the case, configuration such as ``logging.basicConfig()`` must be utilized::
+
+    import logging
+
+    logging.basicConfig()   # log messages to stdout
+    logging.getLogger('sqlalchemy.dialects.postgresql').setLevel(logging.INFO)
+
+.. seealso::
+
+    `Logging HOWTO <https://docs.python.org/3/howto/logging.html>`_ - on the python.org website
 
 .. _psycopg2_hstore:
 
@@ -365,7 +406,7 @@ from ... import processors
 from ... import types as sqltypes
 from ... import util
 from ...engine import result as _result
-
+from ...util import collections_abc
 
 try:
     from uuid import UUID as _python_UUID  # noqa
@@ -484,9 +525,7 @@ class PGExecutionContext_psycopg2(PGExecutionContext):
         return self._dbapi_connection.cursor(ident)
 
     def get_result_proxy(self):
-        # TODO: ouch
-        if logger.isEnabledFor(logging.INFO):
-            self._log_notices(self.cursor)
+        self._log_notices(self.cursor)
 
         if self._is_server_side:
             return _result.BufferedRowResultProxy(self)
@@ -494,6 +533,15 @@ class PGExecutionContext_psycopg2(PGExecutionContext):
             return _result.ResultProxy(self)
 
     def _log_notices(self, cursor):
+        # check also that notices is an iterable, after it's already
+        # established that we will be iterating through it.  This is to get
+        # around test suites such as SQLAlchemy's using a Mock object for
+        # cursor
+        if not cursor.connection.notices or not isinstance(
+            cursor.connection.notices, collections_abc.Iterable
+        ):
+            return
+
         for notice in cursor.connection.notices:
             # NOTICE messages have a
             # newline character at the end
@@ -735,10 +783,21 @@ class PGDialect_psycopg2(PGDialect):
 
     def create_connect_args(self, url):
         opts = url.translate_connect_args(username="user")
-        if "port" in opts:
-            opts["port"] = int(opts["port"])
-        opts.update(url.query)
-        return ([], opts)
+        if opts:
+            if "port" in opts:
+                opts["port"] = int(opts["port"])
+            opts.update(url.query)
+            # send individual dbname, user, password, host, port
+            # parameters to psycopg2.connect()
+            return ([], opts)
+        elif url.query:
+            # any other connection arguments, pass directly
+            opts.update(url.query)
+            return ([], opts)
+        else:
+            # no connection arguments whatsoever; psycopg2.connect()
+            # requires that "dsn" be present as a blank string.
+            return ([""], opts)
 
     def is_disconnect(self, e, connection, cursor):
         if isinstance(e, self.dbapi.Error):

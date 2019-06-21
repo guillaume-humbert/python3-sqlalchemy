@@ -148,9 +148,13 @@ def run_setup(with_cext):
         author="Mike Bayer",
         author_email="mike_mp@zzzcomputing.com",
         url="http://www.sqlalchemy.org",
+        project_urls={
+            "Documentation": "https://docs.sqlalchemy.org",
+            "Issue Tracker": "https://github.com/sqlalchemy/sqlalchemy/",
+        },
         packages=find_packages("lib"),
         package_dir={"": "lib"},
-        license="MIT License",
+        license="MIT",
         cmdclass=cmdclass,
         tests_require=[
             "pytest>=2.5.2,!=3.9.1,!=3.9.2",

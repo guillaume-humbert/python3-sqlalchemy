@@ -182,7 +182,14 @@ class RelationshipProperty(StrategizedProperty):
         callables that evaluate the string as Python code, using the
         Declarative class-registry as a namespace.  This allows the lookup of
         related classes to be automatic via their string name, and removes the
-        need to import related classes at all into the local module space::
+        need for related classes to be imported into the local module space
+        before the dependent classes have been declared.  It is still required
+        that the modules in which these related classes appear are imported
+        anywhere in the application at some point before the related mappings
+        are actually used, else a lookup error will be raised when the
+        :func:`.relationship` attempts to resolve the string reference to the
+        related class.    An example of a string- resolved class is as
+        follows::
 
             from sqlalchemy.ext.declarative import declarative_base
 
@@ -704,8 +711,8 @@ class RelationshipProperty(StrategizedProperty):
 
         :param primaryjoin:
           a SQL expression that will be used as the primary
-          join of this child object against the parent object, or in a
-          many-to-many relationship the join of the primary object to the
+          join of the child object against the parent object, or in a
+          many-to-many relationship the join of the parent object to the
           association table. By default, this value is computed based on the
           foreign key relationships of the parent and child tables (or
           association table).
@@ -1567,7 +1574,7 @@ class RelationshipProperty(StrategizedProperty):
                 state,
                 dict_,
                 column,
-                passive=attributes.PASSIVE_RETURN_NEVER_SET
+                passive=attributes.PASSIVE_OFF
                 if state.persistent
                 else attributes.PASSIVE_NO_FETCH ^ attributes.INIT_OK,
             )

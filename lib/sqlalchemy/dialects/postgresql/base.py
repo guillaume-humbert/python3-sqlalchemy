@@ -857,9 +857,16 @@ Using ENUM with ARRAY
 
 The combination of ENUM and ARRAY is not directly supported by backend
 DBAPIs at this time.   In order to send and receive an ARRAY of ENUM,
-use the following workaround type::
+use the following workaround type, which decorates the
+:class:`.postgresql.ARRAY` datatype.
 
-    class ArrayOfEnum(ARRAY):
+.. sourcecode:: python
+
+    from sqlalchemy import TypeDecorator
+    from sqlalchemy.dialects.postgresql import ARRAY
+
+    class ArrayOfEnum(TypeDecorator):
+        impl = ARRAY
 
         def bind_expression(self, bindvalue):
             return sa.cast(bindvalue, self)
@@ -929,6 +936,7 @@ from ...sql import compiler
 from ...sql import elements
 from ...sql import expression
 from ...sql import sqltypes
+from ...sql import util as sql_util
 from ...types import BIGINT
 from ...types import BOOLEAN
 from ...types import CHAR
@@ -1681,10 +1689,11 @@ class PGCompiler(compiler.SQLCompiler):
             tmp = " FOR UPDATE"
 
         if select._for_update_arg.of:
-            tables = util.OrderedSet(
-                c.table if isinstance(c, expression.ColumnClause) else c
-                for c in select._for_update_arg.of
-            )
+
+            tables = util.OrderedSet()
+            for c in select._for_update_arg.of:
+                tables.update(sql_util.surface_selectables_only(c))
+
             tmp += " OF " + ", ".join(
                 self.process(table, ashint=True, use_schema=False, **kw)
                 for table in tables
@@ -3184,7 +3193,7 @@ class PGDialect(default.DefaultDialect):
                   i.relname as relname,
                   ix.indisunique, ix.indexprs, ix.indpred,
                   a.attname, a.attnum, NULL, ix.indkey%s,
-                  %s, am.amname
+                  %s, %s, am.amname
               FROM
                   pg_class t
                         join pg_index ix on t.oid = ix.indrelid
@@ -3207,6 +3216,9 @@ class PGDialect(default.DefaultDialect):
                 # cast does not work in PG 8.2.4, does work in 8.3.0.
                 # nothing in PG changelogs regarding this.
                 "::varchar" if self.server_version_info >= (8, 3) else "",
+                "ix.indoption::varchar"
+                if self.server_version_info >= (8, 3)
+                else "NULL",
                 "i.reloptions"
                 if self.server_version_info >= (8, 2)
                 else "NULL",
@@ -3218,7 +3230,7 @@ class PGDialect(default.DefaultDialect):
                   i.relname as relname,
                   ix.indisunique, ix.indexprs, ix.indpred,
                   a.attname, a.attnum, c.conrelid, ix.indkey::varchar,
-                  i.reloptions, am.amname
+                  ix.indoption::varchar, i.reloptions, am.amname
               FROM
                   pg_class t
                         join pg_index ix on t.oid = ix.indrelid
@@ -3261,6 +3273,7 @@ class PGDialect(default.DefaultDialect):
                 col_num,
                 conrelid,
                 idx_key,
+                idx_option,
                 options,
                 amname,
             ) = row
@@ -3287,6 +3300,29 @@ class PGDialect(default.DefaultDialect):
                 index["cols"][col_num] = col
             if not has_idx:
                 index["key"] = [int(k.strip()) for k in idx_key.split()]
+
+                # (new in pg 8.3)
+                # "pg_index.indoption" is list of ints, one per column/expr.
+                # int acts as bitmask: 0x01=DESC, 0x02=NULLSFIRST
+                sorting = {}
+                for col_idx, col_flags in enumerate(
+                    (idx_option or "").split()
+                ):
+                    col_flags = int(col_flags.strip())
+                    col_sorting = ()
+                    # try to set flags only if they differ from PG defaults...
+                    if col_flags & 0x01:
+                        col_sorting += ("desc",)
+                        if not (col_flags & 0x02):
+                            col_sorting += ("nullslast",)
+                    else:
+                        if col_flags & 0x02:
+                            col_sorting += ("nullsfirst",)
+                    if col_sorting:
+                        sorting[col_idx] = col_sorting
+                if sorting:
+                    index["sorting"] = sorting
+
                 index["unique"] = unique
                 if conrelid is not None:
                     index["duplicates_constraint"] = idx_name
@@ -3311,6 +3347,11 @@ class PGDialect(default.DefaultDialect):
             }
             if "duplicates_constraint" in idx:
                 entry["duplicates_constraint"] = idx["duplicates_constraint"]
+            if "sorting" in idx:
+                entry["column_sorting"] = dict(
+                    (idx["cols"][idx["key"][i]], value)
+                    for i, value in idx["sorting"].items()
+                )
             if "options" in idx:
                 entry.setdefault("dialect_options", {})[
                     "postgresql_with"
@@ -3458,8 +3499,10 @@ class PGDialect(default.DefaultDialect):
                     "name": enum["name"],
                     "schema": enum["schema"],
                     "visible": enum["visible"],
-                    "labels": [enum["label"]],
+                    "labels": [],
                 }
+                if enum["label"] is not None:
+                    enum_rec["labels"].append(enum["label"])
                 enums.append(enum_rec)
         return enums
 

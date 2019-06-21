@@ -1576,6 +1576,10 @@ class Query(object):
 
             :meth:`.Query.with_statement_hint`
 
+            :meth:.`.Query.prefix_with` - generic SELECT prefixing which also
+            can suit some database-specific HINT syntaxes such as MySQL
+            optimizer hints
+
         """
         if selectable is not None:
             selectable = inspect(selectable).selectable
@@ -1791,7 +1795,7 @@ class Query(object):
             _entity_descriptor(self._joinpoint_zero(), key) == value
             for key, value in kwargs.items()
         ]
-        return self.filter(sql.and_(*clauses))
+        return self.filter(*clauses)
 
     @_generative(_no_statement_condition, _no_limit_offset)
     def order_by(self, *criterion):
@@ -2785,7 +2789,8 @@ class Query(object):
             adapter = ORMAdapter(
                 right, equivalents=right_mapper._equivalent_columns
             )
-            self._filter_aliases += (adapter,)
+            # current adapter takes highest precedence
+            self._filter_aliases = (adapter,) + self._filter_aliases
 
             # if an alias() on the right side was generated,
             # which is intended to wrap a the right side in a subquery,
@@ -3107,18 +3112,20 @@ class Query(object):
         ``Query``.
 
         :param \*prefixes: optional prefixes, typically strings,
-         not using any commas.   In particular is useful for MySQL keywords.
+         not using any commas.   In particular is useful for MySQL keywords
+         and optimizer hints:
 
         e.g.::
 
             query = sess.query(User.name).\
                 prefix_with('HIGH_PRIORITY').\
-                prefix_with('SQL_SMALL_RESULT', 'ALL')
+                prefix_with('SQL_SMALL_RESULT', 'ALL').\
+                prefix_with('/*+ BKA(user) */')
 
         Would render::
 
-            SELECT HIGH_PRIORITY SQL_SMALL_RESULT ALL users.name AS users_name
-            FROM users
+            SELECT HIGH_PRIORITY SQL_SMALL_RESULT ALL /*+ BKA(user) */
+            users.name AS users_name FROM users
 
         .. seealso::
 

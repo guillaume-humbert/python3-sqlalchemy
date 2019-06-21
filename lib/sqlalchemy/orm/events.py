@@ -1592,11 +1592,18 @@ class SessionEvents(event.Events):
             * ``session`` - the :class:`.Session` involved
             * ``query`` -the :class:`.Query` object that this update operation
               was called upon.
+            * ``values`` The "values" dictionary that was passed to
+              :meth:`.Query.update`.
             * ``context`` The :class:`.QueryContext` object, corresponding
               to the invocation of an ORM query.
             * ``result`` the :class:`.ResultProxy` returned as a result of the
               bulk UPDATE operation.
 
+        .. seealso::
+
+            :meth:`.QueryEvents.before_compile_update`
+
+            :meth:`.SessionEvents.after_bulk_delete`
 
         """
 
@@ -1626,6 +1633,11 @@ class SessionEvents(event.Events):
             * ``result`` the :class:`.ResultProxy` returned as a result of the
               bulk DELETE operation.
 
+        .. seealso::
+
+            :meth:`.QueryEvents.before_compile_delete`
+
+            :meth:`.SessionEvents.after_bulk_update`
 
         """
 
@@ -1878,14 +1890,14 @@ class AttributeEvents(event.Events):
 
         from sqlalchemy import event
 
+        @event.listens_for(MyClass.collection, 'append', propagate=True)
         def my_append_listener(target, value, initiator):
-            print "received append event for target: %s" % target
+            print("received append event for target: %s" % target)
 
-        event.listen(MyClass.collection, 'append', my_append_listener)
 
-    Listeners have the option to return a possibly modified version
-    of the value, when the ``retval=True`` flag is passed
-    to :func:`~.event.listen`::
+    Listeners have the option to return a possibly modified version of the
+    value, when the :paramref:`.AttributeEvents.retval` flag is passed to
+    :func:`.event.listen` or :func:`.event.listens_for`::
 
         def validate_phone(target, value, oldvalue, initiator):
             "Strip non-numeric characters from a phone number"
@@ -1899,7 +1911,17 @@ class AttributeEvents(event.Events):
     A validation function like the above can also raise an exception
     such as :exc:`ValueError` to halt the operation.
 
-    Several modifiers are available to the :func:`~.event.listen` function.
+    The :paramref:`.AttributeEvents.propagate` flag is also important when
+    applying listeners to mapped classes that also have mapped subclasses,
+    as when using mapper inheritance patterns::
+
+
+        @event.listens_for(MySuperClass.attr, 'set', propagate=True)
+        def receive_set(target, value, initiator):
+            print("value set: %s" % target)
+
+    The full list of modifiers available to the :func:`.event.listen`
+    and :func:`.event.listens_for` functions are below.
 
     :param active_history=False: When True, indicates that the
       "set" event would like to receive the "old" value being
@@ -1987,6 +2009,8 @@ class AttributeEvents(event.Events):
                 event_key.with_dispatch_target(mgr[target.key]).base_listen(
                     propagate=True
                 )
+                if active_history:
+                    mgr[target.key].dispatch._active_history = True
 
     def append(self, target, value, initiator):
         """Receive a collection append event.
@@ -2011,6 +2035,9 @@ class AttributeEvents(event.Events):
          the given value, or a new effective value, should be returned.
 
         .. seealso::
+
+            :class:`.AttributeEvents` - background on listener options such
+            as propagation to subclasses.
 
             :meth:`.AttributeEvents.bulk_replace`
 
@@ -2060,6 +2087,12 @@ class AttributeEvents(event.Events):
         :param initiator: An instance of :class:`.attributes.Event`
           representing the initiation of the event.
 
+        .. seealso::
+
+            :class:`.AttributeEvents` - background on listener options such
+            as propagation to subclasses.
+
+
         """
 
     def remove(self, target, value, initiator):
@@ -2080,6 +2113,13 @@ class AttributeEvents(event.Events):
              events.
 
         :return: No return value is defined for this event.
+
+
+        .. seealso::
+
+            :class:`.AttributeEvents` - background on listener options such
+            as propagation to subclasses.
+
         """
 
     def set(self, target, value, oldvalue, initiator):
@@ -2111,10 +2151,15 @@ class AttributeEvents(event.Events):
         :return: if the event was registered with ``retval=True``,
          the given value, or a new effective value, should be returned.
 
+        .. seealso::
+
+            :class:`.AttributeEvents` - background on listener options such
+            as propagation to subclasses.
+
         """
 
     def init_scalar(self, target, value, dict_):
-        """Receive a scalar "init" event.
+        r"""Receive a scalar "init" event.
 
         This event is invoked when an uninitialized, unpersisted scalar
         attribute is accessed, e.g. read::
@@ -2212,7 +2257,7 @@ class AttributeEvents(event.Events):
          listener were invoked.  This value begins as the value ``None``,
          however will be the return value of the previous event handler
          function if multiple listeners are present.
-        :param dict_: the attribute dictionary of this mapped object.
+        :param dict\_: the attribute dictionary of this mapped object.
          This is normally the ``__dict__`` of the object, but in all cases
          represents the destination that the attribute system uses to get
          at the actual value of this attribute.  Placing the value in this
@@ -2221,6 +2266,9 @@ class AttributeEvents(event.Events):
 
 
         .. seealso::
+
+            :class:`.AttributeEvents` - background on listener options such
+            as propagation to subclasses.
 
             :ref:`examples_instrumentation` - see the
             ``active_column_defaults.py`` example.
@@ -2259,6 +2307,11 @@ class AttributeEvents(event.Events):
            and :meth:`.AttributeEvents.dispose_collection` events supersede
            the :class:`.orm.collection.linker` hook.
 
+        .. seealso::
+
+            :class:`.AttributeEvents` - background on listener options such
+            as propagation to subclasses.
+
         """
 
     def dispose_collection(self, target, collection, collection_adapter):
@@ -2282,6 +2335,11 @@ class AttributeEvents(event.Events):
            and :meth:`.AttributeEvents.dispose_collection` events supersede
            the :class:`.collection.linker` hook.
 
+        .. seealso::
+
+            :class:`.AttributeEvents` - background on listener options such
+            as propagation to subclasses.
+
         """
 
     def modified(self, target, initiator):
@@ -2299,6 +2357,11 @@ class AttributeEvents(event.Events):
 
         :param initiator: An instance of :class:`.attributes.Event`
           representing the initiation of the event.
+
+        .. seealso::
+
+            :class:`.AttributeEvents` - background on listener options such
+            as propagation to subclasses.
 
         """
 
@@ -2348,8 +2411,9 @@ class QueryEvents(event.Events):
         """Allow modifications to the :class:`.Query` object within
         :meth:`.Query.update`.
 
-        Like the :meth:`.QueryEvents.before_compile` event, this event
-        should be configured with ``retval=True``, and the modified
+        Like the :meth:`.QueryEvents.before_compile` event, if the event
+        is to be used to alter the :class:`.Query` object, it should
+        be configured with ``retval=True``, and the modified
         :class:`.Query` object returned, as in ::
 
             @event.listens_for(Query, "before_compile_update", retval=True)
@@ -2358,7 +2422,12 @@ class QueryEvents(event.Events):
                     if desc['type'] is User:
                         entity = desc['entity']
                         query = query.filter(entity.deleted == False)
+
+                        update_context.values['timestamp'] = datetime.utcnow()
                 return query
+
+        The ``.values`` dictionary of the "update context" object can also
+        be modified in place as illustrated above.
 
         :param query: a :class:`.Query` instance; this is also
          the ``.query`` attribute of the given "update context"
@@ -2367,6 +2436,10 @@ class QueryEvents(event.Events):
         :param update_context: an "update context" object which is
          the same kind of object as described in
          :paramref:`.QueryEvents.after_bulk_update.update_context`.
+         The object has a ``.values`` attribute in an UPDATE context which is
+         the dictionary of parameters passed to :meth:`.Query.update`.  This
+         dictionary can be modified to alter the VALUES clause of the
+         resulting UPDATE statement.
 
         .. versionadded:: 1.2.17
 

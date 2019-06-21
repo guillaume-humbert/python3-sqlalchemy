@@ -323,13 +323,21 @@ available.
 * INSERT..ON DUPLICATE KEY UPDATE:  See
   :ref:`mysql_insert_on_duplicate_key_update`
 
-* SELECT pragma::
+* SELECT pragma, use :meth:`.Select.prefix_with` and :meth:`.Query.prefix_with`::
 
-    select(..., prefixes=['HIGH_PRIORITY', 'SQL_SMALL_RESULT'])
+    select(...).prefix_with(['HIGH_PRIORITY', 'SQL_SMALL_RESULT'])
 
 * UPDATE with LIMIT::
 
     update(..., mysql_limit=10)
+
+* optimizer hints, use :meth:`.Select.prefix_with` and :meth:`.Query.prefix_with`::
+
+    select(...).prefix_with("/*+ NO_RANGE_OPTIMIZATION(t4 PRIMARY) */")
+
+* index hints, use :meth:`.Select.with_hint` and :meth:`.Query.with_hint`::
+
+    select(...).with_hint(some_table, "USE INDEX xyz")
 
 .. _mysql_insert_on_duplicate_key_update:
 
@@ -1222,15 +1230,15 @@ class MySQLCompiler(compiler.SQLCompiler):
                 c for c in self.statement.table.c if c.key not in ordered_keys
             ]
         else:
-            # traverse in table column order
             cols = self.statement.table.c
 
         clauses = []
-        for column in cols:
-            val = on_duplicate.update.get(column.key)
-            if val is None:
-                continue
-            elif elements._is_literal(val):
+        # traverses through all table columns to preserve table column order
+        for column in (col for col in cols if col.key in on_duplicate.update):
+
+            val = on_duplicate.update[column.key]
+
+            if elements._is_literal(val):
                 val = elements.BindParameter(None, val, type_=column.type)
                 value_text = self.process(val.self_group(), use_schema=False)
             elif isinstance(val, elements.BindParameter) and val.type._isnull:
@@ -1692,6 +1700,12 @@ class MySQLDDLCompiler(compiler.DDLCompiler):
             const = ""
         elif isinstance(constraint, sa_schema.UniqueConstraint):
             qual = "INDEX "
+            const = self.preparer.format_constraint(constraint)
+        elif isinstance(constraint, sa_schema.CheckConstraint):
+            if self.dialect._is_mariadb:
+                qual = "CONSTRAINT "
+            else:
+                qual = "CHECK "
             const = self.preparer.format_constraint(constraint)
         else:
             qual = ""
@@ -2380,11 +2394,13 @@ class MySQLDialect(default.DefaultDialect):
 
     @property
     def _is_mariadb(self):
-        return "MariaDB" in self.server_version_info
+        return (
+            self.server_version_info and "MariaDB" in self.server_version_info
+        )
 
     @property
     def _is_mysql(self):
-        return "MariaDB" not in self.server_version_info
+        return not self._is_mariadb
 
     @property
     def _is_mariadb_102(self):
@@ -2610,7 +2626,6 @@ class MySQLDialect(default.DefaultDialect):
 
     @reflection.cache
     def get_check_constraints(self, connection, table_name, schema=None, **kw):
-
         parsed_state = self._parsed_state_or_create(
             connection, table_name, schema, **kw
         )

@@ -27,6 +27,7 @@ from sqlalchemy import testing
 from sqlalchemy import text
 from sqlalchemy import TypeDecorator
 from sqlalchemy.dialects.postgresql import base as postgresql
+from sqlalchemy.dialects.postgresql import psycopg2 as psycopg2_dialect
 from sqlalchemy.engine import engine_from_config
 from sqlalchemy.engine import url
 from sqlalchemy.testing import engines
@@ -38,6 +39,8 @@ from sqlalchemy.testing.assertions import assert_raises_message
 from sqlalchemy.testing.assertions import AssertsCompiledSQL
 from sqlalchemy.testing.assertions import AssertsExecutionResults
 from sqlalchemy.testing.assertions import eq_
+from sqlalchemy.testing.assertions import eq_regex
+from sqlalchemy.testing.assertions import ne_
 from sqlalchemy.testing.mock import Mock
 from ...engine import test_execute
 
@@ -113,6 +116,41 @@ class DialectTest(fixtures.TestBase):
 
         e = engine_from_config(config, _initialize=False)
         eq_(e.dialect.use_native_unicode, True)
+
+    def test_psycopg2_empty_connection_string(self):
+        dialect = psycopg2_dialect.dialect()
+        u = url.make_url("postgresql://")
+        cargs, cparams = dialect.create_connect_args(u)
+        eq_(cargs, [""])
+        eq_(cparams, {})
+
+    def test_psycopg2_nonempty_connection_string(self):
+        dialect = psycopg2_dialect.dialect()
+        u = url.make_url("postgresql://host")
+        cargs, cparams = dialect.create_connect_args(u)
+        eq_(cargs, [])
+        eq_(cparams, {"host": "host"})
+
+    def test_psycopg2_empty_connection_string_w_query_one(self):
+        dialect = psycopg2_dialect.dialect()
+        u = url.make_url("postgresql:///?service=swh-log")
+        cargs, cparams = dialect.create_connect_args(u)
+        eq_(cargs, [])
+        eq_(cparams, {"service": "swh-log"})
+
+    def test_psycopg2_empty_connection_string_w_query_two(self):
+        dialect = psycopg2_dialect.dialect()
+        u = url.make_url("postgresql:///?any_random_thing=yes")
+        cargs, cparams = dialect.create_connect_args(u)
+        eq_(cargs, [])
+        eq_(cparams, {"any_random_thing": "yes"})
+
+    def test_psycopg2_nonempty_connection_string_w_query(self):
+        dialect = psycopg2_dialect.dialect()
+        u = url.make_url("postgresql://somehost/?any_random_thing=yes")
+        cargs, cparams = dialect.create_connect_args(u)
+        eq_(cargs, [])
+        eq_(cparams, {"host": "somehost", "any_random_thing": "yes"})
 
 
 class BatchInsertsTest(fixtures.TablesTest):
@@ -230,11 +268,9 @@ class MiscBackendTest(
         )
         assert isinstance(exception, exc.OperationalError)
 
-    # currently not passing with pg 9.3 that does not seem to generate
-    # any notices here, would rather find a way to mock this
     @testing.requires.no_coverage
     @testing.requires.psycopg2_compatibility
-    def _test_notice_logging(self):
+    def test_notice_logging(self):
         log = logging.getLogger("sqlalchemy.dialects.postgresql")
         buf = logging.handlers.BufferingHandler(100)
         lev = log.level
@@ -244,15 +280,29 @@ class MiscBackendTest(
             conn = testing.db.connect()
             trans = conn.begin()
             try:
-                conn.execute("create table foo (id serial primary key)")
+                conn.execute(
+                    """
+CREATE OR REPLACE FUNCTION note(message varchar) RETURNS integer AS $$
+BEGIN
+  RAISE NOTICE 'notice: %%', message;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+"""
+                )
+                conn.execute("SELECT note('hi there')")
+                conn.execute("SELECT note('another note')")
             finally:
                 trans.rollback()
         finally:
             log.removeHandler(buf)
             log.setLevel(lev)
         msgs = " ".join(b.msg for b in buf.buffer)
-        assert "will create implicit sequence" in msgs
-        assert "will create implicit index" in msgs
+        eq_regex(
+            msgs,
+            "NOTICE:  notice: hi there(\nCONTEXT: .*?)? "
+            "NOTICE:  notice: another note(\nCONTEXT: .*?)?",
+        )
 
     @testing.requires.psycopg2_or_pg8000_compatibility
     @engines.close_open_connections
@@ -463,6 +513,14 @@ class MiscBackendTest(
                 ddl_compiler.get_column_specification(t.c.c),
                 "c %s NOT NULL" % expected,
             )
+
+    @testing.requires.psycopg2_compatibility
+    def test_initial_transaction_state(self):
+        from psycopg2.extensions import STATUS_IN_TRANSACTION
+
+        engine = engines.testing_engine()
+        with engine.connect() as conn:
+            ne_(conn.connection.status, STATUS_IN_TRANSACTION)
 
 
 class AutocommitTextTest(test_execute.AutocommitTextTest):
