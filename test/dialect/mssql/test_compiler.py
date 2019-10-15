@@ -20,8 +20,8 @@ from sqlalchemy import union
 from sqlalchemy import UniqueConstraint
 from sqlalchemy import update
 from sqlalchemy.dialects import mssql
-from sqlalchemy.dialects.mssql import base
 from sqlalchemy.dialects.mssql import mxodbc
+from sqlalchemy.dialects.mssql.base import try_cast
 from sqlalchemy.sql import column
 from sqlalchemy.sql import quoted_name
 from sqlalchemy.sql import table
@@ -478,21 +478,6 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(
             select([tbl]), "SELECT [Foo].dbo.test.id FROM [Foo].dbo.test"
         )
-
-    def test_owner_database_pairs(self):
-        dialect = mssql.dialect()
-
-        for identifier, expected_schema, expected_owner in [
-            ("foo", None, "foo"),
-            ("foo.bar", "foo", "bar"),
-            ("Foo.Bar", "Foo", "Bar"),
-            ("[Foo.Bar]", None, "Foo.Bar"),
-            ("[Foo.Bar].[bat]", "Foo.Bar", "bat"),
-        ]:
-            schema, owner = base._owner_plus_db(dialect, identifier)
-
-            eq_(owner, expected_owner)
-            eq_(schema, expected_schema)
 
     def test_delete_schema(self):
         metadata = MetaData()
@@ -1194,6 +1179,15 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         idx = Index("foo", tbl.c.x, mssql_include=[tbl.c.y])
         self.assert_compile(
             schema.CreateIndex(idx), "CREATE INDEX foo ON test (x) INCLUDE (y)"
+        )
+
+    def test_try_cast(self):
+        metadata = MetaData()
+        t1 = Table("t1", metadata, Column("id", Integer, primary_key=True))
+
+        self.assert_compile(
+            select([try_cast(t1.c.id, Integer)]),
+            "SELECT TRY_CAST (t1.id AS INTEGER) AS anon_1 FROM t1",
         )
 
 

@@ -518,10 +518,14 @@ class ExecuteTest(fixtures.TestBase):
     def _test_stmt_exception_pickleable(self, orig):
         for sa_exc in (
             tsa.exc.StatementError(
-                "some error", "select * from table", {"foo": "bar"}, orig
+                "some error",
+                "select * from table",
+                {"foo": "bar"},
+                orig,
+                False,
             ),
             tsa.exc.InterfaceError(
-                "select * from table", {"foo": "bar"}, orig
+                "select * from table", {"foo": "bar"}, orig, True
             ),
             tsa.exc.NoReferencedTableError("message", "tname"),
             tsa.exc.NoReferencedColumnError("message", "tname", "cname"),
@@ -635,10 +639,14 @@ class ExecuteTest(fixtures.TestBase):
             options={"execution_options": {"base": "x1"}}
         )
 
+        is_(eng.engine, eng)
+
         eng1 = eng.execution_options(foo="b1")
+        is_(eng1.engine, eng1)
         eng2 = eng.execution_options(foo="b2")
         eng1a = eng1.execution_options(bar="a1")
         eng2a = eng2.execution_options(foo="b3", bar="a2")
+        is_(eng2a.engine, eng2a)
 
         eq_(eng._execution_options, {"base": "x1"})
         eq_(eng1._execution_options, {"base": "x1", "foo": "b1"})
@@ -1306,7 +1314,7 @@ class EngineEventsTest(fixtures.TestBase):
         Engine._has_events = False
 
     def _assert_stmts(self, expected, received):
-        orig = list(received)
+        list(received)
         for stmt, params, posn in expected:
             if not received:
                 assert False, "Nothing available for stmt: %s" % stmt
@@ -2162,7 +2170,7 @@ class HandleErrorTest(fixtures.TestBase):
             r"is.*(?:i_dont_exist|does not exist)",
             py2konly=True,
         ):
-            with patch.object(conn.dialect, "do_rollback", boom) as patched:
+            with patch.object(conn.dialect, "do_rollback", boom):
                 assert_raises_message(
                     tsa.exc.OperationalError,
                     "rollback failed",

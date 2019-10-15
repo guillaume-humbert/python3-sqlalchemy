@@ -72,7 +72,7 @@ Configuring Loader Strategies at Mapping Time
 
 The loader strategy for a particular relationship can be configured
 at mapping time to take place in all cases where an object of the mapped
-type is loaded, in the absense of any query-level options that modify it.
+type is loaded, in the absence of any query-level options that modify it.
 This is configured using the :paramref:`.relationship.lazy` parameter to
 :func:`.relationship`; common values for this parameter
 include ``select``, ``joined``, ``subquery`` and ``selectin``.
@@ -97,11 +97,12 @@ further background.
 
 .. _relationship_loader_options:
 
-Controlling Loading via Options
--------------------------------
+Relationship Loading with Loader Options
+----------------------------------------
 
 The other, and possibly more common way to configure loading strategies
-is to set them up on a per-query basis against specific attributes.  Very detailed
+is to set them up on a per-query basis against specific attributes using the
+:meth:`.Query.options` method.  Very detailed
 control over relationship loading is available using loader options;
 the most common are
 :func:`~sqlalchemy.orm.joinedload`,
@@ -145,8 +146,26 @@ stated.  To navigate along a path without changing the existing loader style
 of a particular attribute, the :func:`.defaultload` method/function may be used::
 
     session.query(A).options(
-        defaultload("atob").
-        joinedload("btoc")).all()
+        defaultload(A.atob).
+        joinedload(B.btoc)).all()
+
+A similar approach can be used to specify multiple sub-options at once, using
+the :meth:`.Load.options` method::
+
+    session.query(A).options(
+        defaultload(A.atob).options(
+          joinedload(B.btoc),
+          joinedload(B.btod)
+        )).all()
+
+.. versionadded:: 1.3.6 added :meth:`.Load.options`
+
+
+.. seealso::
+
+    :ref:`deferred_loading_w_multiple` - illustrates examples of combining
+    relationship and column-oriented loader options.
+
 
 .. note::  The loader options applied to an object's lazy-loaded collections
    are **"sticky"** to specific object instances, meaning they will persist
@@ -701,11 +720,12 @@ SQL Server.
 
 .. versionadded:: 1.2
 
-"Select IN" eager loading is provided using the ``"selectin"`` argument
-to :paramref:`.relationship.lazy` or by using the :func:`.selectinload` loader
-option.   This style of loading emits a SELECT that refers to
-the primary key values of the parent object inside of an IN clause,
-in order to load related associations:
+"Select IN" eager loading is provided using the ``"selectin"`` argument to
+:paramref:`.relationship.lazy` or by using the :func:`.selectinload` loader
+option.   This style of loading emits a SELECT that refers to the primary key
+values of the parent object, or in the case of a simple many-to-one
+relationship to the those of the child objects, inside of an IN clause, in
+order to load related associations:
 
 .. sourcecode:: python+sql
 
@@ -740,9 +760,14 @@ statement has no joins or subqueries at all.
 .. versionchanged:: 1.3 selectin loading can omit the JOIN for a simple
    one-to-many collection.
 
-In the case where the primary key of the parent object isn't present in
-the related row, "selectin" loading will also JOIN to the parent table so that
-the parent primary key values are present:
+.. versionchanged:: 1.3.6 selectin loading can also omit the JOIN for a simple
+   many-to-one relationship.
+
+For collections, in the case where the primary key of the parent object isn't
+present in the related row, "selectin" loading will also JOIN to the parent
+table so that the parent primary key values are present.  This also takes place
+for a non-collection, many-to-one load where the related column values are not
+loaded on the parent objects and would otherwise need to be loaded:
 
 .. sourcecode:: python+sql
 
@@ -780,12 +805,11 @@ as of the 1.2 series.   Things to know about this kind of loading include:
   return the wrong result.
 
 * "selectin" loading, unlike joined or subquery eager loading, always emits
-  its SELECT in terms of the immediate parent objects just loaded, and
-  not the original type of object at the top of the chain.  So if eager loading
-  many levels deep, "selectin" loading still uses no more than one JOIN,
-  and usually no JOINs, in the statement.   In comparison,
-  joined and subquery eager loading always refer to multiple JOINs up to
-  the original parent.
+  its SELECT in terms of the immediate parent objects just loaded, and not the
+  original type of object at the top of the chain.  So if eager loading many
+  levels deep, "selectin" loading still uses no more than one JOIN, and usually
+  no JOINs, in the statement.   In comparison, joined and subquery eager
+  loading always refer to multiple JOINs up to the original parent.
 
 * "selectin" loading produces a SELECT statement of a predictable structure,
   independent of that of the original query.  As such, taking advantage of
@@ -816,17 +840,17 @@ as of the 1.2 series.   Things to know about this kind of loading include:
   SQL Server.
 
 * As "selectin" loading relies upon IN, for a mapping with composite primary
-  keys, it must use the "tuple" form of IN, which looks like
-  ``WHERE (table.column_a, table.column_b) IN ((?, ?), (?, ?), (?, ?))``.
-  This syntax is not supported on every database; currently it is known
-  to be only supported by modern PostgreSQL and MySQL versions.  Therefore
-  **selectin loading is not platform-agnostic for composite primary keys**.
-  There is no special logic in SQLAlchemy to check ahead of time which platforms
-  support this syntax or not; if run against a non-supporting platform (such
-  as SQLite), the database will return an error immediately.   An advantage to SQLAlchemy
-  just running the SQL out for it to fail is that if a database like
-  SQLite does start supporting this syntax, it will work without any changes
-  to SQLAlchemy.
+  keys, it must use the "tuple" form of IN, which looks like ``WHERE
+  (table.column_a, table.column_b) IN ((?, ?), (?, ?), (?, ?))``. This syntax
+  is not supported on every database; within the dialects that are included
+  with SQLAlchemy, it is known to be supported by modern PostgreSQL, MySQL and
+  SQLite versions.  Therefore **selectin loading is not platform-agnostic for
+  composite primary keys**. There is no special logic in SQLAlchemy to check
+  ahead of time which platforms support this syntax or not; if run against a
+  non-supporting platform, the database will return an error immediately.   An
+  advantage to SQLAlchemy just running the SQL out for it to fail is that if a
+  particular database does start supporting this syntax, it will work without
+  any changes to SQLAlchemy.
 
 In general, "selectin" loading is probably superior to "subquery" eager loading
 in most ways, save for the syntax requirement with composite primary keys

@@ -662,7 +662,6 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_left_is_none_and_query_has_no_entities(self):
-        User = self.classes.User
         Address = self.classes.Address
 
         sess = create_session()
@@ -739,12 +738,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_1(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
-            self.classes.Order,
-            self.classes.User,
-            self.classes.Address,
-        )
+        User = self.classes.User
 
         sess = create_session()
         self.assert_compile(
@@ -754,12 +748,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_2(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
-            self.classes.Order,
-            self.classes.User,
-            self.classes.Address,
-        )
+        Order, User = (self.classes.Order, self.classes.User)
 
         sess = create_session()
         self.assert_compile(
@@ -769,12 +758,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_3(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
-            self.classes.Order,
-            self.classes.User,
-            self.classes.Address,
-        )
+        Order, User = (self.classes.Order, self.classes.User)
 
         sess = create_session()
         oalias1 = aliased(Order)
@@ -787,12 +771,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_4(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
-            self.classes.Order,
-            self.classes.User,
-            self.classes.Address,
-        )
+        Order, User, = (self.classes.Order, self.classes.User)
 
         sess = create_session()
         oalias1 = aliased(Order)
@@ -808,12 +787,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_5(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
-            self.classes.Order,
-            self.classes.User,
-            self.classes.Address,
-        )
+        Order, User, = (self.classes.Order, self.classes.User)
 
         sess = create_session()
         self.assert_compile(
@@ -826,12 +800,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_6(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
-            self.classes.Order,
-            self.classes.User,
-            self.classes.Address,
-        )
+        User = self.classes.User
 
         sess = create_session()
         ualias = aliased(User)
@@ -842,12 +811,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_7(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
-            self.classes.Order,
-            self.classes.User,
-            self.classes.Address,
-        )
+        Order, User = (self.classes.Order, self.classes.User)
 
         sess = create_session()
         # this query is somewhat nonsensical.  the old system didn't render a
@@ -865,12 +829,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_8(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
-            self.classes.Order,
-            self.classes.User,
-            self.classes.Address,
-        )
+        Order, User, = (self.classes.Order, self.classes.User)
 
         sess = create_session()
         # same as before using an aliased() for User as well
@@ -887,12 +846,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_9(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
-            self.classes.Order,
-            self.classes.User,
-            self.classes.Address,
-        )
+        User = self.classes.User
 
         sess = create_session()
         self.assert_compile(
@@ -909,12 +863,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_10(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
-            self.classes.Order,
-            self.classes.User,
-            self.classes.Address,
-        )
+        User, Address = (self.classes.User, self.classes.Address)
 
         sess = create_session()
         self.assert_compile(
@@ -928,11 +877,10 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_11(self):
-        Item, Order, User, Address = (
+        Item, Order, User, = (
             self.classes.Item,
             self.classes.Order,
             self.classes.User,
-            self.classes.Address,
         )
 
         sess = create_session()
@@ -950,8 +898,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_12(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
+        Order, User, Address = (
             self.classes.Order,
             self.classes.User,
             self.classes.Address,
@@ -972,8 +919,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         )
 
     def test_single_prop_13(self):
-        Item, Order, User, Address = (
-            self.classes.Item,
+        Order, User, Address = (
             self.classes.Order,
             self.classes.User,
             self.classes.Address,
@@ -1211,6 +1157,64 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
         self.assert_compile(
             join(User, oalias2, User.id == oalias2.user_id),
             "users JOIN orders AS orders_1 ON users.id = orders_1.user_id",
+            use_default_dialect=True,
+        )
+
+        self.assert_compile(
+            join(User, oalias2, User.id == oalias2.user_id, full=True),
+            "users FULL OUTER JOIN orders AS orders_1 "
+            "ON users.id = orders_1.user_id",
+            use_default_dialect=True,
+        )
+
+        self.assert_compile(
+            join(User, oalias2, User.id == oalias2.user_id, isouter=True),
+            "users LEFT OUTER JOIN orders AS orders_1 "
+            "ON users.id = orders_1.user_id",
+            use_default_dialect=True,
+        )
+
+        self.assert_compile(
+            join(
+                User,
+                oalias2,
+                User.id == oalias2.user_id,
+                isouter=True,
+                full=True,
+            ),
+            "users FULL OUTER JOIN orders AS orders_1 "
+            "ON users.id = orders_1.user_id",
+            use_default_dialect=True,
+        )
+
+        self.assert_compile(
+            join(User, oalias1).join(oalias2),
+            "users JOIN orders AS orders_1 ON users.id = orders_1.user_id "
+            "JOIN orders AS orders_2 ON users.id = orders_2.user_id",
+            use_default_dialect=True,
+        )
+
+        self.assert_compile(
+            join(User, oalias1).join(oalias2, isouter=True),
+            "users JOIN orders AS orders_1 ON users.id = orders_1.user_id "
+            "LEFT OUTER JOIN orders AS orders_2 "
+            "ON users.id = orders_2.user_id",
+            use_default_dialect=True,
+        )
+
+        self.assert_compile(
+            join(User, oalias1).join(oalias2, full=True),
+            "users JOIN orders AS orders_1 ON users.id = orders_1.user_id "
+            "FULL OUTER JOIN orders AS orders_2 "
+            "ON users.id = orders_2.user_id",
+            use_default_dialect=True,
+        )
+
+        self.assert_compile(
+            join(User, oalias1).join(oalias2, full=True, isouter=True),
+            "users JOIN orders AS orders_1 ON users.id = orders_1.user_id "
+            "FULL OUTER JOIN orders AS orders_2 "
+            "ON users.id = orders_2.user_id",
             use_default_dialect=True,
         )
 
@@ -1561,10 +1565,9 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
 
     def test_clause_present_in_froms_twice_w_onclause(self):
         # test [ticket:4584]
-        Order, Address, Dingaling, User = (
+        Order, Address, User = (
             self.classes.Order,
             self.classes.Address,
-            self.classes.Dingaling,
             self.classes.User,
         )
 
@@ -1605,8 +1608,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
 
     def test_clause_present_in_froms_twice_wo_onclause(self):
         # test [ticket:4584]
-        Order, Address, Dingaling, User = (
-            self.classes.Order,
+        Address, Dingaling, User = (
             self.classes.Address,
             self.classes.Dingaling,
             self.classes.User,
@@ -1737,7 +1739,7 @@ class JoinTest(QueryTest, AssertsCompiledSQL):
 
         sess = create_session()
         # no arg error
-        result = (
+        (
             sess.query(User)
             .join("orders", aliased=True)
             .order_by(Order.id)
@@ -2688,7 +2690,7 @@ class JoinFromSelectableTest(fixtures.MappedTest, AssertsCompiledSQL):
 class MultiplePathTest(fixtures.MappedTest, AssertsCompiledSQL):
     @classmethod
     def define_tables(cls, metadata):
-        t1 = Table(
+        Table(
             "t1",
             metadata,
             Column(
@@ -2696,7 +2698,7 @@ class MultiplePathTest(fixtures.MappedTest, AssertsCompiledSQL):
             ),
             Column("data", String(30)),
         )
-        t2 = Table(
+        Table(
             "t2",
             metadata,
             Column(
@@ -2705,14 +2707,14 @@ class MultiplePathTest(fixtures.MappedTest, AssertsCompiledSQL):
             Column("data", String(30)),
         )
 
-        t1t2_1 = Table(
+        Table(
             "t1t2_1",
             metadata,
             Column("t1id", Integer, ForeignKey("t1.id")),
             Column("t2id", Integer, ForeignKey("t2.id")),
         )
 
-        t1t2_2 = Table(
+        Table(
             "t1t2_2",
             metadata,
             Column("t1id", Integer, ForeignKey("t1.id")),
@@ -2769,7 +2771,7 @@ class SelfRefMixedTest(fixtures.MappedTest, AssertsCompiledSQL):
 
     @classmethod
     def define_tables(cls, metadata):
-        nodes = Table(
+        Table(
             "nodes",
             metadata,
             Column(
@@ -2778,7 +2780,7 @@ class SelfRefMixedTest(fixtures.MappedTest, AssertsCompiledSQL):
             Column("parent_id", Integer, ForeignKey("nodes.id")),
         )
 
-        sub_table = Table(
+        Table(
             "sub_table",
             metadata,
             Column(
@@ -2787,7 +2789,7 @@ class SelfRefMixedTest(fixtures.MappedTest, AssertsCompiledSQL):
             Column("node_id", Integer, ForeignKey("nodes.id")),
         )
 
-        assoc_table = Table(
+        Table(
             "assoc_table",
             metadata,
             Column("left_id", Integer, ForeignKey("nodes.id")),
@@ -2994,7 +2996,7 @@ class JoinToNonPolyAliasesTest(fixtures.MappedTest, AssertsCompiledSQL):
 
     def test_join_parent_child(self):
         Parent = self.classes.Parent
-        npc = self.npc
+
         sess = Session()
         self.assert_compile(
             sess.query(Parent)
@@ -3374,6 +3376,18 @@ class SelfReferentialTest(fixtures.MappedTest, AssertsCompiledSQL):
             use_default_dialect=True,
         )
 
+    def test_join_to_self_no_aliases_raises(self):
+        Node = self.classes.Node
+
+        s = Session()
+        assert_raises_message(
+            sa.exc.InvalidRequestError,
+            "Can't construct a join from mapped class Node->nodes to mapped "
+            "class Node->nodes, they are the same entity",
+            s.query(Node).join,
+            Node.children,
+        )
+
     def test_explicit_join_1(self):
         Node = self.classes.Node
         n1 = aliased(Node)
@@ -3749,7 +3763,7 @@ class SelfReferentialM2MTest(fixtures.MappedTest):
 
     @classmethod
     def define_tables(cls, metadata):
-        nodes = Table(
+        Table(
             "nodes",
             metadata,
             Column(
@@ -3758,7 +3772,7 @@ class SelfReferentialM2MTest(fixtures.MappedTest):
             Column("data", String(30)),
         )
 
-        node_to_nodes = Table(
+        Table(
             "node_to_nodes",
             metadata,
             Column(

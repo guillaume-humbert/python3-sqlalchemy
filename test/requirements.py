@@ -251,7 +251,12 @@ class DefaultRequirements(SuiteRequirements):
 
     @property
     def tuple_in(self):
-        return only_on(["mysql", "postgresql"])
+        def _sqlite_tuple_in(config):
+            return against(
+                config, "sqlite"
+            ) and config.db.dialect.dbapi.sqlite_version_info >= (3, 15, 0)
+
+        return only_on(["mysql", "postgresql", _sqlite_tuple_in])
 
     @property
     def independent_cursors(self):
@@ -599,6 +604,17 @@ class DefaultRequirements(SuiteRequirements):
         """Target database must support some method of adding OFFSET or
         equivalent to a result set."""
         return fails_if(["sybase"], "no support for OFFSET or equivalent")
+
+    @property
+    def sql_expression_limit_offset(self):
+        return (
+            fails_if(
+                ["mysql", "mssql"],
+                "Target backend can't accommodate full expressions in "
+                "OFFSET or LIMIT",
+            )
+            + self.offset
+        )
 
     @property
     def window_functions(self):
