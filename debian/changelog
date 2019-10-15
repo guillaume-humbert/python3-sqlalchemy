@@ -1,3 +1,10 @@
+sqlalchemy (1.3.10+ds1-1) bionic; urgency=medium
+
+  [ Guillaume J Humbert ]
+  * Packaging for Ubuntu:wq
+
+ -- Guillaume J Humbert <guillaume.j.humbert@pm.me>  Tue, 15 Oct 2019 10:35:05 +0800
+
 sqlalchemy (1.3.5+ds1-3) UNRELEASED; urgency=medium
 
   * Use debhelper-compat instead of debian/compat.
