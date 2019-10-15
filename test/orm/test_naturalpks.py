@@ -3,11 +3,15 @@ Primary key changing capabilities and passive/non-passive cascading updates.
 
 """
 
+import itertools
+
 import sqlalchemy as sa
+from sqlalchemy import bindparam
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import testing
+from sqlalchemy import TypeDecorator
 from sqlalchemy.orm import create_session
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import relationship
@@ -37,7 +41,7 @@ def _backend_specific_fk_args():
 class NaturalPKTest(fixtures.MappedTest):
     # MySQL 5.5 on Windows crashes (the entire server, not the client)
     # if you screw around with ON UPDATE CASCADE type of stuff.
-    __requires__ = "skip_mysql_on_windows", "on_update_or_deferrable_fks"
+    __requires__ = ("skip_mysql_on_windows",)
     __backend__ = True
 
     @classmethod
@@ -283,6 +287,13 @@ class NaturalPKTest(fixtures.MappedTest):
     def test_manytoone_nonpassive(self):
         self._test_manytoone(False)
 
+    @testing.requires.on_update_cascade
+    def test_manytoone_passive_uselist(self):
+        self._test_manytoone(True, True)
+
+    def test_manytoone_nonpassive_uselist(self):
+        self._test_manytoone(False, True)
+
     def test_manytoone_nonpassive_cold_mapping(self):
         """test that the mapper-level m2o dependency processor
         is set up even if the opposite side relationship
@@ -318,7 +329,7 @@ class NaturalPKTest(fixtures.MappedTest):
 
         self.assert_sql_count(testing.db, go, 2)
 
-    def _test_manytoone(self, passive_updates):
+    def _test_manytoone(self, passive_updates, uselist=False, dynamic=False):
         users, Address, addresses, User = (
             self.tables.users,
             self.classes.Address,
@@ -331,19 +342,27 @@ class NaturalPKTest(fixtures.MappedTest):
             Address,
             addresses,
             properties={
-                "user": relationship(User, passive_updates=passive_updates)
+                "user": relationship(
+                    User, uselist=uselist, passive_updates=passive_updates
+                )
             },
         )
 
         sess = create_session()
         a1 = Address(email="jack1")
         a2 = Address(email="jack2")
+        a3 = Address(email="fred")
 
         u1 = User(username="jack", fullname="jack")
-        a1.user = u1
-        a2.user = u1
+        if uselist:
+            a1.user = [u1]
+            a2.user = [u1]
+        else:
+            a1.user = u1
+            a2.user = u1
         sess.add(a1)
         sess.add(a2)
+        sess.add(a3)
         sess.flush()
 
         u1.username = "ed"
@@ -363,10 +382,24 @@ class NaturalPKTest(fixtures.MappedTest):
 
         assert a1.username == a2.username == "ed"
         sess.expunge_all()
-        eq_(
-            [Address(username="ed"), Address(username="ed")],
-            sess.query(Address).all(),
-        )
+        if uselist:
+            eq_(
+                [
+                    Address(email="fred", user=[]),
+                    Address(username="ed"),
+                    Address(username="ed"),
+                ],
+                sess.query(Address).order_by(Address.email).all(),
+            )
+        else:
+            eq_(
+                [
+                    Address(email="fred", user=None),
+                    Address(username="ed"),
+                    Address(username="ed"),
+                ],
+                sess.query(Address).order_by(Address.email).all(),
+            )
 
     @testing.requires.on_update_cascade
     def test_onetoone_passive(self):
@@ -779,6 +812,9 @@ class ReversePKsTest(fixtures.MappedTest):
 
         session.add(a_editable)
         session.commit()
+
+        # see also much more recent issue #4890 where we add a warning
+        # for almost this same case
 
         # do the switch in both directions -
         # one or the other should raise the error
@@ -1245,7 +1281,15 @@ class CascadeToFKPKTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
     def test_change_m2o_nonpassive(self):
         self._test_change_m2o(False)
 
-    def _test_change_m2o(self, passive_updates):
+    @testing.requires.on_update_cascade
+    def test_change_m2o_passive_uselist(self):
+        self._test_change_m2o(True, True)
+
+    @testing.requires.non_updating_cascade
+    def test_change_m2o_nonpassive_uselist(self):
+        self._test_change_m2o(False, True)
+
+    def _test_change_m2o(self, passive_updates, uselist=False):
         User, Address, users, addresses = (
             self.classes.User,
             self.classes.Address,
@@ -1258,13 +1302,18 @@ class CascadeToFKPKTest(fixtures.MappedTest, testing.AssertsCompiledSQL):
             Address,
             addresses,
             properties={
-                "user": relationship(User, passive_updates=passive_updates)
+                "user": relationship(
+                    User, uselist=uselist, passive_updates=passive_updates
+                )
             },
         )
 
         sess = create_session()
         u1 = User(username="jack")
-        a1 = Address(user=u1, email="foo@bar")
+        if uselist:
+            a1 = Address(user=[u1], email="foo@bar")
+        else:
+            a1 = Address(user=u1, email="foo@bar")
         sess.add_all([u1, a1])
         sess.flush()
 
@@ -1709,6 +1758,74 @@ class JoinedInheritanceTest(fixtures.MappedTest):
         eq_(
             sess.execute(self.tables.owner.select()).fetchall(),
             [("pointy haired", "dog")],
+        )
+
+
+class UnsortablePKTest(fixtures.MappedTest):
+    """Test integration with TypeEngine.sort_key_function"""
+
+    class HashableDict(dict):
+        def __hash__(self):
+            return hash((self["x"], self["y"]))
+
+    @classmethod
+    def define_tables(cls, metadata):
+        class MyUnsortable(TypeDecorator):
+            impl = String(10)
+
+            def process_bind_param(self, value, dialect):
+                return "%s,%s" % (value["x"], value["y"])
+
+            def process_result_value(self, value, dialect):
+                rec = value.split(",")
+                return cls.HashableDict({"x": rec[0], "y": rec[1]})
+
+            def sort_key_function(self, value):
+                return (value["x"], value["y"])
+
+        Table(
+            "data",
+            metadata,
+            Column("info", MyUnsortable(), primary_key=True),
+            Column("int_value", Integer),
+        )
+
+    @classmethod
+    def setup_classes(cls):
+        class Data(cls.Comparable):
+            pass
+
+    @classmethod
+    def setup_mappers(cls):
+        mapper(cls.classes.Data, cls.tables.data)
+
+    def test_updates_sorted(self):
+        Data = self.classes.Data
+        s = Session()
+
+        s.add_all(
+            [
+                Data(info=self.HashableDict(x="a", y="b")),
+                Data(info=self.HashableDict(x="a", y="a")),
+                Data(info=self.HashableDict(x="b", y="b")),
+                Data(info=self.HashableDict(x="b", y="a")),
+            ]
+        )
+        s.commit()
+
+        aa, ab, ba, bb = s.query(Data).order_by(Data.info).all()
+
+        counter = itertools.count()
+        ab.int_value = bindparam(key=None, callable_=lambda: next(counter))
+        ba.int_value = bindparam(key=None, callable_=lambda: next(counter))
+        bb.int_value = bindparam(key=None, callable_=lambda: next(counter))
+        aa.int_value = bindparam(key=None, callable_=lambda: next(counter))
+
+        s.commit()
+
+        eq_(
+            s.query(Data.int_value).order_by(Data.info).all(),
+            [(0,), (1,), (2,), (3,)],
         )
 
 

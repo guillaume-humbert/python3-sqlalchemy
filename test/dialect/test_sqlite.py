@@ -2,12 +2,14 @@
 
 """SQLite-specific tests."""
 import datetime
+import json
 import os
 
 from sqlalchemy import and_
 from sqlalchemy import bindparam
 from sqlalchemy import CheckConstraint
 from sqlalchemy import Column
+from sqlalchemy import column
 from sqlalchemy import create_engine
 from sqlalchemy import DefaultClause
 from sqlalchemy import event
@@ -26,6 +28,7 @@ from sqlalchemy import sql
 from sqlalchemy import Table
 from sqlalchemy import testing
 from sqlalchemy import text
+from sqlalchemy import tuple_
 from sqlalchemy import types as sqltypes
 from sqlalchemy import UniqueConstraint
 from sqlalchemy import util
@@ -315,6 +318,35 @@ class JSONTest(fixtures.TestBase):
             eq_(
                 conn.scalar(select([sqlite_json.c.foo["json"]])), value["json"]
             )
+
+    @testing.provide_metadata
+    def test_deprecated_serializer_args(self):
+        sqlite_json = Table(
+            "json_test", self.metadata, Column("foo", sqlite.JSON)
+        )
+        data_element = {"foo": "bar"}
+
+        js = mock.Mock(side_effect=json.dumps)
+        jd = mock.Mock(side_effect=json.loads)
+
+        with testing.expect_deprecated(
+            "The _json_deserializer argument to the SQLite "
+            "dialect has been renamed",
+            "The _json_serializer argument to the SQLite "
+            "dialect has been renamed",
+        ):
+            engine = engines.testing_engine(
+                options=dict(_json_serializer=js, _json_deserializer=jd)
+            )
+        self.metadata.create_all(engine)
+
+        engine.execute(sqlite_json.insert(), {"foo": data_element})
+
+        row = engine.execute(select([sqlite_json.c.foo])).first()
+
+        eq_(row, (data_element,))
+        eq_(js.mock_calls, [mock.call(data_element)])
+        eq_(jd.mock_calls, [mock.call(json.dumps(data_element))])
 
 
 class DateTimeTest(fixtures.TestBase, AssertsCompiledSQL):
@@ -668,13 +700,6 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
         assert u("méil") in result.keys()
         assert ue("\u6e2c\u8a66") in result.keys()
 
-    def test_file_path_is_absolute(self):
-        d = pysqlite_dialect.dialect()
-        eq_(
-            d.create_connect_args(make_url("sqlite:///foo.db")),
-            ([os.path.abspath("foo.db")], {}),
-        )
-
     def test_pool_class(self):
         e = create_engine("sqlite+pysqlite://")
         assert e.pool.__class__ is pool.SingletonThreadPool
@@ -685,6 +710,41 @@ class DialectTest(fixtures.TestBase, AssertsExecutionResults):
         e = create_engine("sqlite+pysqlite:///foo.db")
         assert e.pool.__class__ is pool.NullPool
 
+    def test_connect_args(self):
+        """test create_connect_args scenarios including support for uri=True"""
+
+        d = pysqlite_dialect.dialect()
+        for url, expected in [
+            (
+                "sqlite:///foo.db",  # file path is absolute
+                ([os.path.abspath("foo.db")], {}),
+            ),
+            ("sqlite:////abs/path/to/foo.db", (["/abs/path/to/foo.db"], {})),
+            ("sqlite://", ([":memory:"], {})),
+            (
+                "sqlite:///?check_same_thread=true",
+                ([":memory:"], {"check_same_thread": True}),
+            ),
+            (
+                "sqlite:///file:path/to/database?"
+                "check_same_thread=true&timeout=10&mode=ro&nolock=1&uri=true",
+                (
+                    ["file:path/to/database?mode=ro&nolock=1"],
+                    {"check_same_thread": True, "timeout": 10.0, "uri": True},
+                ),
+            ),
+            (
+                "sqlite:///file:path/to/database?" "mode=ro&uri=true",
+                (["file:path/to/database?mode=ro"], {"uri": True}),
+            ),
+            (
+                "sqlite:///file:path/to/database?uri=true",
+                (["file:path/to/database"], {"uri": True}),
+            ),
+        ]:
+            url = make_url(url)
+            eq_(d.create_connect_args(url), expected)
+
 
 class AttachedDBTest(fixtures.TestBase):
     __only_on__ = "sqlite"
@@ -692,11 +752,22 @@ class AttachedDBTest(fixtures.TestBase):
     def _fixture(self):
         meta = self.metadata
         self.conn = testing.db.connect()
+        Table("created", meta, Column("foo", Integer), Column("bar", String))
+        Table("local_only", meta, Column("q", Integer), Column("p", Integer))
+
         ct = Table(
             "created",
             meta,
             Column("id", Integer),
             Column("name", String),
+            schema="test_schema",
+        )
+
+        Table(
+            "another_created",
+            meta,
+            Column("bat", Integer),
+            Column("hoho", String),
             schema="test_schema",
         )
 
@@ -715,15 +786,59 @@ class AttachedDBTest(fixtures.TestBase):
         insp = inspect(self.conn)
         eq_(insp.get_table_names("test_schema"), [])
 
+    def test_column_names(self):
+        self._fixture()
+        insp = inspect(self.conn)
+        eq_(
+            [
+                d["name"]
+                for d in insp.get_columns("created", schema="test_schema")
+            ],
+            ["id", "name"],
+        )
+        eq_(
+            [d["name"] for d in insp.get_columns("created", schema=None)],
+            ["foo", "bar"],
+        )
+
+        eq_(
+            [
+                d["name"]
+                for d in insp.get_columns("nonexistent", schema="test_schema")
+            ],
+            [],
+        )
+        eq_(
+            [
+                d["name"]
+                for d in insp.get_columns("another_created", schema=None)
+            ],
+            [],
+        )
+        eq_(
+            [
+                d["name"]
+                for d in insp.get_columns("local_only", schema="test_schema")
+            ],
+            [],
+        )
+        eq_([d["name"] for d in insp.get_columns("local_only")], ["q", "p"])
+
     def test_table_names_present(self):
         self._fixture()
         insp = inspect(self.conn)
-        eq_(insp.get_table_names("test_schema"), ["created"])
+        eq_(
+            set(insp.get_table_names("test_schema")),
+            {"created", "another_created"},
+        )
 
     def test_table_names_system(self):
         self._fixture()
         insp = inspect(self.conn)
-        eq_(insp.get_table_names("test_schema"), ["created"])
+        eq_(
+            set(insp.get_table_names("test_schema")),
+            {"created", "another_created"},
+        )
 
     def test_schema_names(self):
         self._fixture()
@@ -960,6 +1075,12 @@ class SQLTest(fixtures.TestBase, AssertsCompiledSQL):
             "SQLite does not support autoincrement for composite",
             CreateTable(t).compile,
             dialect=sqlite.dialect(),
+        )
+
+    def test_in_tuple(self):
+        self.assert_compile(
+            tuple_(column("q"), column("p")).in_([(1, 2), (3, 4)]),
+            "(q, p) IN (VALUES (?, ?), (?, ?))",
         )
 
 
@@ -1677,10 +1798,45 @@ class ConstraintReflectionTest(fixtures.TestBase):
                 ")"
             )
 
+            conn.execute(
+                "CREATE TABLE implicit_referred (pk integer primary key)"
+            )
+            # single col foreign key with no referred column given,
+            # must assume primary key of referred table
+            conn.execute(
+                "CREATE TABLE implicit_referrer "
+                "(id integer REFERENCES implicit_referred)"
+            )
+
+            conn.execute(
+                "CREATE TABLE implicit_referred_comp "
+                "(pk1 integer, pk2 integer, primary key (pk1, pk2))"
+            )
+            # composite foreign key with no referred columns given,
+            # must assume primary key of referred table
+            conn.execute(
+                "CREATE TABLE implicit_referrer_comp "
+                "(id1 integer, id2 integer, foreign key(id1, id2) "
+                "REFERENCES implicit_referred_comp)"
+            )
+
+            # worst case - FK that refers to nonexistent table so we cant
+            # get pks.  requires FK pragma is turned off
+            conn.execute(
+                "CREATE TABLE implicit_referrer_comp_fake "
+                "(id1 integer, id2 integer, foreign key(id1, id2) "
+                "REFERENCES fake_table)"
+            )
+
     @classmethod
     def teardown_class(cls):
         with testing.db.begin() as conn:
             for name in [
+                "implicit_referrer_comp_fake",
+                "implicit_referrer",
+                "implicit_referred",
+                "implicit_referrer_comp",
+                "implicit_referred_comp",
                 "m",
                 "main.l",
                 "k",
@@ -1797,6 +1953,72 @@ class ConstraintReflectionTest(fixtures.TestBase):
                     "options": {},
                 },
             ],
+        )
+
+    def test_foreign_key_implicit_parent(self):
+        inspector = Inspector(testing.db)
+        fks = inspector.get_foreign_keys("implicit_referrer")
+        eq_(
+            fks,
+            [
+                {
+                    "name": None,
+                    "constrained_columns": ["id"],
+                    "referred_schema": None,
+                    "referred_table": "implicit_referred",
+                    "referred_columns": ["pk"],
+                    "options": {},
+                }
+            ],
+        )
+
+    def test_foreign_key_composite_implicit_parent(self):
+        inspector = Inspector(testing.db)
+        fks = inspector.get_foreign_keys("implicit_referrer_comp")
+        eq_(
+            fks,
+            [
+                {
+                    "name": None,
+                    "constrained_columns": ["id1", "id2"],
+                    "referred_schema": None,
+                    "referred_table": "implicit_referred_comp",
+                    "referred_columns": ["pk1", "pk2"],
+                    "options": {},
+                }
+            ],
+        )
+
+    def test_foreign_key_implicit_missing_parent(self):
+        # test when the FK refers to a non-existent table and column names
+        # aren't given.   only sqlite allows this case to exist
+        inspector = Inspector(testing.db)
+        fks = inspector.get_foreign_keys("implicit_referrer_comp_fake")
+        # the referred table doesn't exist but the operation does not fail
+        eq_(
+            fks,
+            [
+                {
+                    "name": None,
+                    "constrained_columns": ["id1", "id2"],
+                    "referred_schema": None,
+                    "referred_table": "fake_table",
+                    "referred_columns": [],
+                    "options": {},
+                }
+            ],
+        )
+
+    def test_foreign_key_implicit_missing_parent_reflection(self):
+        # full Table reflection fails however, which is not a new behavior
+        m = MetaData()
+        assert_raises_message(
+            exc.NoSuchTableError,
+            "fake_table",
+            Table,
+            "implicit_referrer_comp_fake",
+            m,
+            autoload_with=testing.db,
         )
 
     def test_unnamed_inline_foreign_key(self):

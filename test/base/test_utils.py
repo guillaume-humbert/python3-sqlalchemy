@@ -763,7 +763,7 @@ class LRUTest(fixtures.TestBase):
         for id_ in (25, 24, 23, 14, 12, 19, 18, 17, 16, 15):
             assert id_ in lru
 
-        i1 = lru[25]
+        lru[25]
         i2 = item(25)
         lru[25] = i2
         assert 25 in lru
@@ -1839,7 +1839,7 @@ class SymbolTest(fixtures.TestBase):
 
         # default
         s = util.pickle.dumps(sym1)
-        sym3 = util.pickle.loads(s)
+        util.pickle.loads(s)
 
         for protocol in 0, 1, 2:
             print(protocol)
@@ -1867,6 +1867,69 @@ class SymbolTest(fixtures.TestBase):
 
         assert not (sym1 | sym2) & (sym3 | sym4)
         assert (sym1 | sym2) & (sym2 | sym4)
+
+    def test_parser(self):
+        sym1 = util.symbol("sym1", canonical=1)
+        sym2 = util.symbol("sym2", canonical=2)
+        sym3 = util.symbol("sym3", canonical=4)
+        sym4 = util.symbol("sym4", canonical=8)
+
+        lookup_one = {sym1: [], sym2: [True], sym3: [False], sym4: [None]}
+        lookup_two = {sym1: [], sym2: [True], sym3: [False]}
+        lookup_three = {sym1: [], sym2: ["symbol2"], sym3: []}
+
+        is_(
+            util.symbol.parse_user_argument(
+                "sym2", lookup_one, "some_name", resolve_symbol_names=True
+            ),
+            sym2,
+        )
+
+        assert_raises_message(
+            exc.ArgumentError,
+            "Invalid value for 'some_name': 'sym2'",
+            util.symbol.parse_user_argument,
+            "sym2",
+            lookup_one,
+            "some_name",
+        )
+        is_(
+            util.symbol.parse_user_argument(
+                True, lookup_one, "some_name", resolve_symbol_names=False
+            ),
+            sym2,
+        )
+
+        is_(
+            util.symbol.parse_user_argument(sym2, lookup_one, "some_name"),
+            sym2,
+        )
+
+        is_(
+            util.symbol.parse_user_argument(None, lookup_one, "some_name"),
+            sym4,
+        )
+
+        is_(
+            util.symbol.parse_user_argument(None, lookup_two, "some_name"),
+            None,
+        )
+
+        is_(
+            util.symbol.parse_user_argument(
+                "symbol2", lookup_three, "some_name"
+            ),
+            sym2,
+        )
+
+        assert_raises_message(
+            exc.ArgumentError,
+            "Invalid value for 'some_name': 'foo'",
+            util.symbol.parse_user_argument,
+            "foo",
+            lookup_three,
+            "some_name",
+        )
 
 
 class _Py3KFixtures(object):

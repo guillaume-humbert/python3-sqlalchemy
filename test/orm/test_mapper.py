@@ -247,7 +247,7 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
 
         assert m.configured is False
         assert sa.orm.mapperlib.Mapper._new_mappers is True
-        u = User()
+        User()
         assert User.addresses
         assert sa.orm.mapperlib.Mapper._new_mappers is False
 
@@ -346,7 +346,7 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         states[4].insert_order = DontCompareMeToString(1)
         states[2].insert_order = DontCompareMeToString(3)
         eq_(
-            _sort_states(states),
+            _sort_states(m, states),
             [states[4], states[3], states[0], states[1], states[2]],
         )
 
@@ -533,7 +533,7 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         assert not m.configured
         configure_mappers()
 
-        m2 = mapper(
+        mapper(
             Address,
             addresses,
             properties={"user": relationship(User, backref="addresses")},
@@ -662,7 +662,7 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         m1 = mapper(User, users)
         User()
 
-        m2 = mapper(
+        mapper(
             Address,
             addresses,
             properties={"user": relationship(User, backref="addresses")},
@@ -731,7 +731,7 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
             inherits=User,
             properties={"address_id": addresses.c.id},
         )
-        m3 = mapper(Address, addresses, properties={"foo": relationship(m2)})
+        mapper(Address, addresses, properties={"foo": relationship(m2)})
         # add property using annotated User.name,
         # needs to be deannotated
         m.add_property("x", column_property(User.name + "name"))
@@ -858,7 +858,7 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         class MyUser(User):
             pass
 
-        m1 = mapper(
+        mapper(
             User,
             users,
             polymorphic_on=users.c.name,
@@ -1535,6 +1535,32 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
         eq_(attributes.instance_state(u1).attrs.x.history, ([5], (), ()))
         eq_(attributes.instance_state(u1).attrs.y.history, ([5], (), ()))
 
+    def test_synonym_nonexistent_attr(self):
+        # test [ticket:4767].
+        # synonym points to non-existent attrbute that hasn't been mapped yet.
+        users = self.tables.users
+
+        class User(object):
+            def _x(self):
+                return self.id
+
+            x = property(_x)
+
+        m = mapper(
+            User,
+            users,
+            properties={"x": synonym("some_attr", descriptor=User.x)},
+        )
+
+        # object gracefully handles this condition
+        assert not hasattr(User.x, "__name__")
+        assert not hasattr(User.x, "comparator")
+
+        m.add_property("some_attr", column_property(users.c.name))
+
+        assert not hasattr(User.x, "__name__")
+        assert hasattr(User.x, "comparator")
+
     def test_synonym_of_non_property_raises(self):
         from sqlalchemy.ext.associationproxy import association_proxy
 
@@ -1671,10 +1697,8 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
                 super(MyFakeProperty, self).post_instrument_class(mapper)
                 configure_mappers()
 
-        m1 = mapper(
-            User, users, properties={"name": MyFakeProperty(users.c.name)}
-        )
-        m2 = mapper(Address, addresses)
+        mapper(User, users, properties={"name": MyFakeProperty(users.c.name)})
+        mapper(Address, addresses)
         configure_mappers()
 
         sa.orm.clear_mappers()
@@ -1684,10 +1708,8 @@ class MapperTest(_fixtures.FixtureTest, AssertsCompiledSQL):
                 super(MyFakeProperty, self).post_instrument_class(mapper)
                 configure_mappers()
 
-        m1 = mapper(
-            User, users, properties={"name": MyFakeProperty(users.c.name)}
-        )
-        m2 = mapper(Address, addresses)
+        mapper(User, users, properties={"name": MyFakeProperty(users.c.name)})
+        mapper(Address, addresses)
         configure_mappers()
 
     def test_reconstructor(self):
@@ -3047,9 +3069,9 @@ class DeferredPopulationTest(fixtures.MappedTest):
         Thing, Human = self.classes.Thing, self.classes.Human
 
         session = create_session()
-        human = (
+        human = (  # noqa
             session.query(Human).options(sa.orm.joinedload("thing")).first()
-        )  # noqa
+        )
         session.expunge_all()
         thing = session.query(Thing).options(sa.orm.undefer("name")).first()
         self._test(thing)
@@ -3058,9 +3080,9 @@ class DeferredPopulationTest(fixtures.MappedTest):
         Thing, Human = self.classes.Thing, self.classes.Human
 
         session = create_session()
-        human = (
+        human = (  # noqa
             session.query(Human).options(sa.orm.joinedload("thing")).first()
-        )  # noqa
+        )
         thing = session.query(Thing).options(sa.orm.undefer("name")).first()
         self._test(thing)
 
@@ -3068,9 +3090,9 @@ class DeferredPopulationTest(fixtures.MappedTest):
         Thing, Human = self.classes.Thing, self.classes.Human
 
         session = create_session()
-        result = (
+        result = (  # noqa
             session.query(Human).add_entity(Thing).join("thing").first()
-        )  # noqa
+        )
         session.expunge_all()
         thing = session.query(Thing).options(sa.orm.undefer("name")).first()
         self._test(thing)
@@ -3079,9 +3101,9 @@ class DeferredPopulationTest(fixtures.MappedTest):
         Thing, Human = self.classes.Thing, self.classes.Human
 
         session = create_session()
-        result = (
+        result = (  # noqa
             session.query(Human).add_entity(Thing).join("thing").first()
-        )  # noqa
+        )
         thing = session.query(Thing).options(sa.orm.undefer("name")).first()
         self._test(thing)
 
@@ -3354,7 +3376,7 @@ class RaiseLoadTest(_fixtures.FixtureTest):
         )
         mapper(User, users)
         s = Session()
-        u1 = s.query(User).first()
+        u1 = s.query(User).first()  # noqa
         a1 = (
             s.query(Address)
             .filter_by(id=1)

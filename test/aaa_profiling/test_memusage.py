@@ -264,7 +264,7 @@ class MemUsageWBackendTest(EnsureZeroed):
 
     __tags__ = ("memory_intensive",)
     __requires__ = "cpython", "memory_process_intensive"
-    __backend__ = True
+    __sparse_backend__ = True
 
     # ensure a pure growing test trips the assertion
     @testing.fails_if(lambda: True)
@@ -745,7 +745,7 @@ class MemUsageWBackendTest(EnsureZeroed):
             Column("a_id", ForeignKey("a.id")),
         )
         m1 = mapper(A, a, properties={"bs": relationship(B)})
-        m2 = mapper(B, b)
+        mapper(B, b)
 
         @profile_memory()
         def go():
@@ -958,7 +958,7 @@ class MemUsageWBackendTest(EnsureZeroed):
 
         go()
 
-    # fails on newer versions of pysqlite due to unusual memory behvior
+    # fails on newer versions of pysqlite due to unusual memory behavior
     # in pysqlite itself. background at:
     # http://thread.gmane.org/gmane.comp.python.db.pysqlite.user/2290
 

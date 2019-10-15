@@ -3,6 +3,7 @@ from sqlalchemy import bindparam
 from sqlalchemy import ForeignKey
 from sqlalchemy import inspect
 from sqlalchemy import Integer
+from sqlalchemy import literal_column
 from sqlalchemy import select
 from sqlalchemy import String
 from sqlalchemy import testing
@@ -792,7 +793,7 @@ class EagerTest(_fixtures.FixtureTest, testing.AssertsCompiledSQL):
         sess = create_session()
 
         self.assert_compile(
-            sess.query(User, "1"),
+            sess.query(User, literal_column("1")),
             "SELECT users.id AS users_id, users.name AS users_name, "
             "1 FROM users",
         )
@@ -1505,7 +1506,7 @@ class OrderBySecondaryTest(fixtures.MappedTest):
 class BaseRelationFromJoinedSubclassTest(_Polymorphic):
     @classmethod
     def define_tables(cls, metadata):
-        people = Table(
+        Table(
             "people",
             metadata,
             Column(
@@ -1520,7 +1521,7 @@ class BaseRelationFromJoinedSubclassTest(_Polymorphic):
 
         # to test fully, PK of engineers table must be
         # named differently from that of people
-        engineers = Table(
+        Table(
             "engineers",
             metadata,
             Column(
@@ -1532,7 +1533,7 @@ class BaseRelationFromJoinedSubclassTest(_Polymorphic):
             Column("primary_language", String(50)),
         )
 
-        paperwork = Table(
+        Table(
             "paperwork",
             metadata,
             Column(
@@ -1545,7 +1546,7 @@ class BaseRelationFromJoinedSubclassTest(_Polymorphic):
             Column("person_id", Integer, ForeignKey("people.person_id")),
         )
 
-        pages = Table(
+        Table(
             "pages",
             metadata,
             Column(
@@ -2691,7 +2692,7 @@ class CyclicalInheritingEagerTestTwo(
         session.commit()
 
         close_all_sessions()
-        d = session.query(Director).options(subqueryload("*")).first()
+        d = session.query(Director).options(subqueryload("*")).first()  # noqa
         assert len(list(session)) == 3
 
 
@@ -2852,7 +2853,7 @@ class SubqueryloadDistinctTest(
                 ),
             )
 
-        movies = q.all()
+        movies = q.all()  # noqa
 
         # check number of persistent objects in session
         eq_(len(list(s)), 5)

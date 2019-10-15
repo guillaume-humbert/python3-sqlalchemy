@@ -1198,6 +1198,11 @@ class ReflectionTest(fixtures.TestBase, ComparesTables):
     def test_reflect_uses_bind_engine_reflect(self):
         self._test_reflect_uses_bind(lambda e: MetaData().reflect(e))
 
+    def test_reflect_uses_bind_option_engine_reflect(self):
+        self._test_reflect_uses_bind(
+            lambda e: MetaData().reflect(e.execution_options(foo="bar"))
+        )
+
     @testing.provide_metadata
     def test_reflect_all(self):
         existing = testing.db.table_names()
@@ -1922,9 +1927,9 @@ class SchemaTest(fixtures.TestBase):
     @testing.requires.implicit_default_schema
     @testing.provide_metadata
     def test_reflect_all_schemas_default_overlap(self):
-        t1 = Table("t", self.metadata, Column("id", Integer, primary_key=True))
+        Table("t", self.metadata, Column("id", Integer, primary_key=True))
 
-        t2 = Table(
+        Table(
             "t",
             self.metadata,
             Column("id1", sa.ForeignKey("t.id")),

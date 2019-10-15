@@ -96,6 +96,32 @@ class PickleTest(fixtures.MappedTest):
             test_needs_fk=True,
         )
 
+    def _option_test_fixture(self):
+        users, addresses, dingalings = (
+            self.tables.users,
+            self.tables.addresses,
+            self.tables.dingalings,
+        )
+
+        mapper(
+            User,
+            users,
+            properties={"addresses": relationship(Address, backref="user")},
+        )
+        mapper(
+            Address,
+            addresses,
+            properties={"dingaling": relationship(Dingaling)},
+        )
+        mapper(Dingaling, dingalings)
+        sess = create_session()
+        u1 = User(name="ed")
+        u1.addresses.append(Address(email_address="ed@bar.com"))
+        sess.add(u1)
+        sess.flush()
+        sess.expunge_all()
+        return sess, User, Address, Dingaling
+
     def test_transient(self):
         users, addresses = (self.tables.users, self.tables.addresses)
 
@@ -121,7 +147,7 @@ class PickleTest(fixtures.MappedTest):
     def test_no_mappers(self):
         users = self.tables.users
 
-        umapper = mapper(User, users)
+        mapper(User, users)
         u1 = User(name="ed")
         u1_pickled = pickle.dumps(u1, -1)
 
@@ -138,13 +164,13 @@ class PickleTest(fixtures.MappedTest):
     def test_no_instrumentation(self):
         users = self.tables.users
 
-        umapper = mapper(User, users)
+        mapper(User, users)
         u1 = User(name="ed")
         u1_pickled = pickle.dumps(u1, -1)
 
         clear_mappers()
 
-        umapper = mapper(User, users)
+        mapper(User, users)
 
         u1 = pickle.loads(u1_pickled)
         # this fails unless the InstanceState
@@ -418,43 +444,68 @@ class PickleTest(fixtures.MappedTest):
         eq_(sa.inspect(u2).info["some_key"], "value")
 
     @testing.requires.non_broken_pickle
-    def test_options_with_descriptors(self):
-        users, addresses, dingalings = (
-            self.tables.users,
-            self.tables.addresses,
-            self.tables.dingalings,
-        )
-
-        mapper(
-            User,
-            users,
-            properties={"addresses": relationship(Address, backref="user")},
-        )
-        mapper(
-            Address,
-            addresses,
-            properties={"dingaling": relationship(Dingaling)},
-        )
-        mapper(Dingaling, dingalings)
-        sess = create_session()
-        u1 = User(name="ed")
-        u1.addresses.append(Address(email_address="ed@bar.com"))
-        sess.add(u1)
-        sess.flush()
-        sess.expunge_all()
+    def test_unbound_options(self):
+        sess, User, Address, Dingaling = self._option_test_fixture()
 
         for opt in [
             sa.orm.joinedload(User.addresses),
             sa.orm.joinedload("addresses"),
             sa.orm.defer("name"),
             sa.orm.defer(User.name),
-            sa.orm.joinedload("addresses", Address.dingaling),
+            sa.orm.joinedload("addresses").joinedload(Address.dingaling),
         ]:
             opt2 = pickle.loads(pickle.dumps(opt))
             eq_(opt.path, opt2.path)
 
         u1 = sess.query(User).options(opt).first()
-        u2 = pickle.loads(pickle.dumps(u1))
+        pickle.loads(pickle.dumps(u1))
+
+    @testing.requires.non_broken_pickle
+    def test_bound_options(self):
+        sess, User, Address, Dingaling = self._option_test_fixture()
+
+        for opt in [
+            sa.orm.Load(User).joinedload(User.addresses),
+            sa.orm.Load(User).joinedload("addresses"),
+            sa.orm.Load(User).defer("name"),
+            sa.orm.Load(User).defer(User.name),
+            sa.orm.Load(User)
+            .joinedload("addresses")
+            .joinedload(Address.dingaling),
+            sa.orm.Load(User)
+            .joinedload("addresses", innerjoin=True)
+            .joinedload(Address.dingaling),
+        ]:
+            opt2 = pickle.loads(pickle.dumps(opt))
+            eq_(opt.path, opt2.path)
+            eq_(opt.context.keys(), opt2.context.keys())
+            eq_(opt.local_opts, opt2.local_opts)
+
+        u1 = sess.query(User).options(opt).first()
+        pickle.loads(pickle.dumps(u1))
+
+    @testing.requires.non_broken_pickle
+    def test_became_bound_options(self):
+        sess, User, Address, Dingaling = self._option_test_fixture()
+
+        for opt in [
+            sa.orm.joinedload(User.addresses),
+            sa.orm.joinedload("addresses"),
+            sa.orm.defer("name"),
+            sa.orm.defer(User.name),
+            sa.orm.joinedload("addresses").joinedload(Address.dingaling),
+        ]:
+            q = sess.query(User).options(opt)
+            opt = [
+                v for v in q._attributes.values() if isinstance(v, sa.orm.Load)
+            ][0]
+
+            opt2 = pickle.loads(pickle.dumps(opt))
+            eq_(opt.path, opt2.path)
+            eq_(opt.local_opts, opt2.local_opts)
+
+        u1 = sess.query(User).options(opt).first()
+        pickle.loads(pickle.dumps(u1))
 
     def test_collection_setstate(self):
         """test a particular cycle that requires CollectionAdapter
@@ -614,7 +665,7 @@ class OptionsTest(_Polymorphic):
             .first()
         )
 
-        e2 = pickle.loads(pickle.dumps(emp))
+        pickle.loads(pickle.dumps(emp))
 
 
 class PolymorphicDeferredTest(fixtures.MappedTest):
@@ -697,7 +748,6 @@ class TupleLabelTest(_fixtures.FixtureTest):
         )  # m2o
 
     def test_tuple_labeling(self):
-        users = self.tables.users
         sess = create_session()
 
         # test pickle + all the protocols !

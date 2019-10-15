@@ -2394,6 +2394,9 @@ class ComparatorTest(QueryTest):
 
 # more slice tests are available in test/orm/generative.py
 class SliceTest(QueryTest):
+    __dialect__ = "default"
+    __backend__ = True
+
     def test_first(self):
         User = self.classes.User
 
@@ -2496,6 +2499,93 @@ class SliceTest(QueryTest):
             ],
         )
 
+    @testing.requires.sql_expression_limit_offset
+    def test_first_against_expression_offset(self):
+        User = self.classes.User
+
+        sess = create_session()
+        q = (
+            sess.query(User)
+            .order_by(User.id)
+            .offset(literal_column("2") + literal_column("3"))
+        )
+
+        self.assert_sql(
+            testing.db,
+            q.first,
+            [
+                (
+                    "SELECT users.id AS users_id, users.name AS users_name "
+                    "FROM users ORDER BY users.id "
+                    "LIMIT :param_1 OFFSET 2 + 3",
+                    [{"param_1": 1}],
+                )
+            ],
+        )
+
+    @testing.requires.sql_expression_limit_offset
+    def test_full_slice_against_expression_offset(self):
+        User = self.classes.User
+
+        sess = create_session()
+        q = (
+            sess.query(User)
+            .order_by(User.id)
+            .offset(literal_column("2") + literal_column("3"))
+        )
+
+        self.assert_sql(
+            testing.db,
+            lambda: q[2:5],
+            [
+                (
+                    "SELECT users.id AS users_id, users.name AS users_name "
+                    "FROM users ORDER BY users.id "
+                    "LIMIT :param_1 OFFSET 2 + 3 + :param_2",
+                    [{"param_1": 3, "param_2": 2}],
+                )
+            ],
+        )
+
+    def test_full_slice_against_integer_offset(self):
+        User = self.classes.User
+
+        sess = create_session()
+        q = sess.query(User).order_by(User.id).offset(2)
+
+        self.assert_sql(
+            testing.db,
+            lambda: q[2:5],
+            [
+                (
+                    "SELECT users.id AS users_id, users.name AS users_name "
+                    "FROM users ORDER BY users.id "
+                    "LIMIT :param_1 OFFSET :param_2",
+                    [{"param_1": 3, "param_2": 4}],
+                )
+            ],
+        )
+
+    @testing.requires.sql_expression_limit_offset
+    def test_start_slice_against_expression_offset(self):
+        User = self.classes.User
+
+        sess = create_session()
+        q = sess.query(User).order_by(User.id).offset(literal_column("2"))
+
+        self.assert_sql(
+            testing.db,
+            lambda: q[2:],
+            [
+                (
+                    "SELECT users.id AS users_id, users.name AS users_name "
+                    "FROM users ORDER BY users.id "
+                    "LIMIT -1 OFFSET 2 + :2_1",
+                    [{"2_1": 2}],
+                )
+            ],
+        )
+
 
 class FilterTest(QueryTest, AssertsCompiledSQL):
     __dialect__ = "default"
@@ -2555,11 +2645,6 @@ class FilterTest(QueryTest, AssertsCompiledSQL):
     def test_select_with_bindparam_offset_limit_w_cast(self):
         User = self.classes.User
         sess = create_session()
-        q1 = (
-            sess.query(self.classes.User)
-            .order_by(self.classes.User.id)
-            .limit(bindparam("n"))
-        )
         eq_(
             list(
                 sess.query(User)
@@ -4075,12 +4160,14 @@ class TextTest(QueryTest, AssertsCompiledSQL):
         User = self.classes.User
 
         s = create_session()
+
+        # text() will work in 1.4
         assert_raises(
             sa_exc.InvalidRequestError, s.query, User.id, text("users.name")
         )
 
         eq_(
-            s.query(User.id, "name").order_by(User.id).all(),
+            s.query(User.id, literal_column("name")).order_by(User.id).all(),
             [(7, "jack"), (8, "ed"), (9, "fred"), (10, "chuck")],
         )
 
@@ -4274,7 +4361,6 @@ class TextTest(QueryTest, AssertsCompiledSQL):
 
         User = self.classes.User
         Address = self.classes.Address
-        Order = self.classes.Order
 
         sess = create_session()
 

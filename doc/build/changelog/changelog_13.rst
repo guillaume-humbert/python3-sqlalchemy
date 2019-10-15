@@ -11,6 +11,629 @@
         :start-line: 5
 
 .. changelog::
+    :version: 1.3.10
+    :released: October 9, 2019
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 4857
+
+        Fixed bug in SQL Server dialect with new "max_identifier_length" feature
+        where the mssql dialect already featured this flag, and the implementation
+        did not accommodate for the new initialization hook correctly.
+
+
+    .. change::
+        :tags: bug, oracle
+        :tickets: 4898, 4857
+
+        Fixed regression in Oracle dialect that was inadvertently using max
+        identifier length of 128 characters on Oracle server 12.2 and greater even
+        though the stated contract for the remainder of the 1.3 series is  that
+        this value stays at 30 until version SQLAlchemy 1.4.  Also repaired issues
+        with the retrieval of the "compatibility" version, and removed the warning
+        emitted when the "v$parameter" view was not accessible as this was  causing
+        user confusion.
+
+.. changelog::
+    :version: 1.3.9
+    :released: October 4, 2019
+
+    .. change::
+        :tags: usecase, engine
+        :tickets: 4857
+
+        Added new :func:`.create_engine` parameter
+        :paramref:`.create_engine.max_identifier_length`. This overrides the
+        dialect-coded "max identifier length" in order to accommodate for databases
+        that have recently changed this length and the SQLAlchemy dialect has
+        not yet been adjusted to detect for that version.  This parameter interacts
+        with the existing :paramref:`.create_engine.label_length` parameter in that
+        it establishes the maximum (and default) value for anonymously generated
+        labels.   Additionally, post-connection detection of max identifier lengths
+        has been added to the dialect system.  This feature is first being used
+        by the Oracle dialect.
+
+        .. seealso::
+
+            :ref:`oracle_max_identifier_lengths` - in the Oracle dialect documentation
+
+    .. change::
+        :tags: usecase, oracle
+        :tickets: 4857
+
+        The Oracle dialect now emits a warning if Oracle version 12.2 or greater is
+        used, and the :paramref:`.create_engine.max_identifier_length` parameter is
+        not set.   The version in this specific case defaults to that of the
+        "compatibility" version set in the Oracle server configuration, not the
+        actual server version.   In version 1.4, the default max_identifier_length
+        for 12.2 or greater will move to 128 characters.  In order to maintain
+        forwards compatibility, applications should set
+        :paramref:`.create_engine.max_identifier_length` to 30 in order to maintain
+        the same length behavior, or to 128 in order to test the upcoming behavior.
+        This length determines among other things how generated constraint names
+        are truncated for statements like ``CREATE CONSTRAINT`` and ``DROP
+        CONSTRAINT``, which means a the new length may produce a name-mismatch
+        against a name that was generated with the old length, impacting database
+        migrations.
+
+        .. seealso::
+
+            :ref:`oracle_max_identifier_lengths` - in the Oracle dialect documentation
+
+    .. change::
+        :tags: usecase, sqlite
+        :tickets: 4863
+
+        Added support for sqlite "URI" connections, which allow for sqlite-specific
+        flags to be passed in the query string such as "read only" for Python
+        sqlite3 drivers that support this.
+
+        .. seealso::
+
+            :ref:`pysqlite_uri_connections`
+
+    .. change::
+        :tags: bug, tests
+        :tickets: 4285
+
+        Fixed unit test regression released in 1.3.8 that would cause failure for
+        Oracle, SQL Server and other non-native ENUM platforms due to new
+        enumeration tests added as part of :ticket:`4285` enum sortability in the
+        unit of work; the enumerations created constraints that were duplicated on
+        name.
+
+    .. change::
+        :tags: bug, oracle
+        :tickets: 4886
+
+        Restored adding cx_Oracle.DATETIME to the setinputsizes() call when a
+        SQLAlchemy :class:`.Date`, :class:`.DateTime` or :class:`.Time` datatype is
+        used, as some complex queries require this to be present.  This was removed
+        in the 1.2 series for arbitrary reasons.
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 4883
+
+        Added identifier quoting to the schema name applied to the "use" statement
+        which is invoked when a SQL Server multipart schema name is used within  a
+        :class:`.Table` that is being reflected, as well as for :class:`.Inspector`
+        methods such as :meth:`.Inspector.get_table_names`; this accommodates for
+        special characters or spaces in the database name.  Additionally, the "use"
+        statement is not emitted if the current database matches the target owner
+        database name being passed.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4872
+
+        Fixed regression in selectinload loader strategy caused by :ticket:`4775`
+        (released in version 1.3.6) where a many-to-one attribute of None would no
+        longer be populated by the loader.  While this was usually not noticeable
+        due to the lazyloader populating None upon get, it would lead to a detached
+        instance error if the object were detached.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4873
+
+        Passing a plain string expression to :meth:`.Session.query` is deprecated,
+        as all string coercions were removed in :ticket:`4481` and this one should
+        have been included.   The :func:`.literal_column` function may be used to
+        produce a textual column expression.
+
+    .. change::
+        :tags: usecase, sql
+        :tickets: 4847
+
+        Added an explicit error message for the case when objects passed to
+        :class:`.Table` are not :class:`.SchemaItem` objects, rather than resolving
+        to an attribute error.
+
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4890
+
+        A warning is emitted for a condition in which the :class:`.Session` may
+        implicitly swap an object out of the identity map for another one with the
+        same primary key, detaching the old one, which can be an observed result of
+        load operations which occur within the :meth:`.SessionEvents.after_flush`
+        hook.  The warning is intended to notify the user that some special
+        condition has caused this to happen and that the previous object may not be
+        in the expected state.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4837
+
+        Characters that interfere with "pyformat" or "named" formats in bound
+        parameters, namely ``%, (, )`` and the space character, as well as a few
+        other typically undesirable characters, are stripped early for a
+        :func:`.bindparam` that is using an anonymized name, which is typically
+        generated automatically from a named column which itself includes these
+        characters in its name and does not use a ``.key``, so that they do not
+        interfere either with the SQLAlchemy compiler's use of string formatting or
+        with the driver-level parsing of the parameter, both of which could be
+        demonstrated before the fix.  The change only applies to anonymized
+        parameter names that are generated and consumed internally, not end-user
+        defined names, so the change should have no impact on any existing code.
+        Applies in particular to the psycopg2 driver which does not otherwise quote
+        special parameter names, but also strips leading underscores to suit Oracle
+        (but not yet leading numbers, as some anon parameters are currently
+        entirely numeric/underscore based); Oracle in any case continues to quote
+        parameter names that include special characters.
+
+.. changelog::
+    :version: 1.3.8
+    :released: August 27, 2019
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4823
+
+        Fixed bug where :class:`.Load` objects were not pickleable due to
+        mapper/relationship state in the internal context dictionary.  These
+        objects are now converted to picklable using similar techniques as that of
+        other elements within the loader option system that have long been
+        serializable.
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 4623
+
+        Revised the approach for the just added support for the psycopg2
+        "execute_values()" feature added in 1.3.7 for :ticket:`4623`.  The approach
+        relied upon a regular expression that would fail to match for a more
+        complex INSERT statement such as one which had subqueries involved.   The
+        new approach matches exactly the string that was rendered as the VALUES
+        clause.
+
+    .. change::
+        :tags: usecase, orm
+        :tickets: 4285
+
+        Added support for the use of an :class:`.Enum` datatype using Python
+        pep-435 enumeration objects as values for use as a primary key column
+        mapped by the ORM.  As these values are not inherently sortable, as
+        required by the ORM for primary keys, a new
+        :attr:`.TypeEngine.sort_key_function` attribute is added to the typing
+        system which allows any SQL type to  implement a sorting for Python objects
+        of its type which is consulted by the unit of work.   The :class:`.Enum`
+        type then defines this using the  database value of a given enumeration.
+        The sorting scheme can be  also be redefined by passing a callable to the
+        :paramref:`.Enum.sort_key_function` parameter.  Pull request courtesy
+        Nicolas Caniart.
+
+    .. change::
+        :tags: bug, engine
+        :tickets: 4807
+
+        Fixed an issue whereby if the dialect "initialize" process which occurs on
+        first connect would encounter an unexpected exception, the initialize
+        process would fail to complete and then no longer attempt on subsequent
+        connection attempts, leaving the dialect in an un-initialized, or partially
+        initialized state, within the scope of parameters that need to be
+        established based on inspection of a live connection.   The "invoke once"
+        logic in the event system has been reworked to accommodate for this
+        occurrence using new, private API features that establish an "exec once"
+        hook that will continue to allow the initializer to fire off on subsequent
+        connections, until it completes without raising an exception. This does not
+        impact the behavior of the existing ``once=True`` flag within the event
+        system.
+
+    .. change::
+        :tags: bug, sqlite, reflection
+        :tickets: 4810
+
+        Fixed bug where a FOREIGN KEY that was set up to refer to the parent table
+        by table name only without the column names would not correctly be
+        reflected as far as setting up the "referred columns", since SQLite's
+        PRAGMA does not report on these columns if they weren't given explicitly.
+        For some reason this was harcoded to assume the name of the local column,
+        which might work for some cases but is not correct. The new approach
+        reflects the primary key of the referred table and uses the constraint
+        columns list as the referred columns list, if the remote column(s) aren't
+        present in the reflected pragma directly.
+
+
+    .. change::
+        :tags: bug, postgresql
+        :tickets: 4822
+
+        Fixed bug where Postgresql operators such as
+        :meth:`.postgresql.ARRAY.Comparator.contains` and
+        :meth:`.postgresql.ARRAY.Comparator.contained_by` would fail to function
+        correctly for non-integer values when used against a
+        :class:`.postgresql.array` object, due to an erroneous assert statement.
+
+    .. change::
+        :tags: feature, engine
+        :tickets: 4815
+
+        Added new parameter :paramref:`.create_engine.hide_parameters` which when
+        set to True will cause SQL parameters to no longer be logged, nor rendered
+        in the string representation of a :class:`.StatementError` object.
+
+
+    .. change::
+        :tags: usecase, postgresql
+        :tickets: 4824
+
+        Added support for reflection of CHECK constraints that include the special
+        PostgreSQL qualifier "NOT VALID", which can be present for CHECK
+        constraints that were added to an exsiting table with the directive that
+        they not be applied to existing data in the table. The PostgreSQL
+        dictionary for CHECK constraints as returned by
+        :meth:`.Inspector.get_check_constraints` may include an additional entry
+        ``dialect_options`` which within will contain an entry ``"not_valid":
+        True`` if this symbol is detected.   Pull request courtesy Bill Finn.
+
+.. changelog::
+    :version: 1.3.7
+    :released: August 14, 2019
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4778
+
+        Fixed issue where :class:`.Index` object which contained a mixture of
+        functional expressions which were not resolvable to a particular column,
+        in combination with string-based column names, would fail to initialize
+        its internal state correctly leading to failures during DDL compilation.
+
+    .. change::
+        :tags: bug, sqlite
+        :tickets: 4798
+
+        The dialects that support json are supposed to take arguments
+        ``json_serializer`` and ``json_deserializer`` at the create_engine() level,
+        however the SQLite dialect calls them ``_json_serilizer`` and
+        ``_json_deserilalizer``.  The names have been corrected, the old names are
+        accepted with a change warning, and these parameters are now documented as
+        :paramref:`.create_engine.json_serializer` and
+        :paramref:`.create_engine.json_deserializer`.
+
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 4804
+
+        The MySQL dialects will emit "SET NAMES" at the start of a connection when
+        charset is given to the MySQL driver, to appease an apparent behavior
+        observed in MySQL 8.0 that raises a collation error when a UNION includes
+        string columns unioned against columns of the form CAST(NULL AS CHAR(..)),
+        which is what SQLAlchemy's polymorphic_union function does.   The issue
+        seems to have affected PyMySQL for at least a year, however has recently
+        appeared as of mysqlclient 1.4.4 based on changes in how this DBAPI creates
+        a connection.  As the presence of this directive impacts three separate
+        MySQL charset settings which each have intricate effects based on their
+        presense,  SQLAlchemy will now emit the directive on new connections to
+        ensure correct behavior.
+
+    .. change::
+        :tags: usecase, postgresql
+        :tickets: 4623
+
+        Added new dialect flag for the psycopg2 dialect, ``executemany_mode`` which
+        supersedes the previous experimental ``use_batch_mode`` flag.
+        ``executemany_mode`` supports both the "execute batch" and "execute values"
+        functions provided by psycopg2, the latter which is used for compiled
+        :func:`.insert` constructs.   Pull request courtesy Yuval Dinari.
+
+        .. seealso::
+
+            :ref:`psycopg2_executemany_mode`
+
+
+
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4787
+
+        Fixed bug where :meth:`.TypeEngine.column_expression` method would not be
+        applied to subsequent SELECT statements inside of a UNION or other
+        :class:`.CompoundSelect`, even though the SELECT statements are rendered at
+        the topmost level of the statement.   New logic now differentiates between
+        rendering the column expression, which is needed for all SELECTs in the
+        list, vs. gathering the returned data type for the result row, which is
+        needed only for the first SELECT.
+
+    .. change::
+        :tags: bug, sqlite
+        :tickets: 4793
+
+        Fixed bug where usage of "PRAGMA table_info" in SQLite dialect meant that
+        reflection features to detect for table existence, list of table columns,
+        and list of foreign keys, would default to any table in any attached
+        database, when no schema name was given and the table did not exist in the
+        base schema.  The fix explicitly runs PRAGMA for the 'main' schema and then
+        the 'temp' schema if the 'main' returned no rows, to maintain the behavior
+        of tables + temp tables in the "no schema" namespace, attached tables only
+        in the "schema" namespace.
+
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4780
+
+        Fixed issue where internal cloning of SELECT constructs could lead to a key
+        error if the copy of the SELECT changed its state such that its list of
+        columns changed.  This was observed to be occurring in some ORM scenarios
+        which may be unique to 1.3 and above, so is partially a regression fix.
+
+
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4777
+
+        Fixed regression caused by new selectinload for many-to-one logic where
+        a primaryjoin condition not based on real foreign keys would cause
+        KeyError if a related object did not exist for a given key value on the
+        parent object.
+
+    .. change::
+        :tags: usecase, mysql
+        :tickets: 4783
+
+        Added reserved words ARRAY and MEMBER to the MySQL reserved words list, as
+        MySQL 8.0 has now made these reserved.
+
+
+    .. change::
+        :tags: bug, events
+        :tickets: 4794
+
+        Fixed issue in event system where using the ``once=True`` flag with
+        dynamically generated listener functions would cause event registration of
+        future events to fail if those listener functions were garbage collected
+        after they were used, due to an assumption that a listened function is
+        strongly referenced.  The "once" wrapped is now modified to strongly
+        reference the inner function persistently, and documentation is updated
+        that using "once" does not imply automatic de-registration of listener
+        functions.
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 4751
+
+        Added another fix for an upstream MySQL 8 issue where a case sensitive
+        table name is reported incorrectly in foreign key constraint reflection,
+        this is an extension of the fix first added for :ticket:`4344` which
+        affects a case sensitive column name.  The new issue occurs through MySQL
+        8.0.17, so the general logic of the 88718 fix remains in place.
+
+        .. seealso::
+
+            https://bugs.mysql.com/bug.php?id=96365 - upstream bug
+
+
+    .. change::
+        :tags: usecase, mssql
+        :tickets: 4782
+
+        Added new :func:`.mssql.try_cast` construct for SQL Server which emits
+        "TRY_CAST" syntax.  Pull request courtesy Leonel Atencio.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4803
+
+        Fixed bug where using :meth:`.Query.first` or a slice expression in
+        conjunction with a query that has an expression based "offset" applied
+        would raise TypeError, due to an "or" conditional against "offset" that did
+        not expect it to be a SQL expression as opposed to an integer or None.
+
+
+.. changelog::
+    :version: 1.3.6
+    :released: July 21, 2019
+
+    .. change::
+        :tags: bug, engine
+        :tickets: 4754
+
+        Fixed bug where using reflection function such as :meth:`.MetaData.reflect`
+        with an :class:`.Engine` object that had execution options applied to it
+        would fail, as the resulting :class:`.OptionEngine` proxy object failed to
+        include a ``.engine`` attribute used within the reflection routines.
+
+    .. change::
+        :tags: bug, mysql
+        :tickets: 4743
+
+        Fixed bug where the special logic to render "NULL" for the
+        :class:`.TIMESTAMP` datatype when ``nullable=True`` would not work if the
+        column's datatype were a :class:`.TypeDecorator` or a :class:`.Variant`.
+        The logic now ensures that it unwraps down to the original
+        :class:`.TIMESTAMP` so that this special case NULL keyword is correctly
+        rendered when requested.
+
+    .. change::
+        :tags: performance, orm
+        :tickets: 4775
+
+        The optimization applied to selectin loading in :ticket:`4340` where a JOIN
+        is not needed to eagerly load related items is now applied to many-to-one
+        relationships as well, so that only the related table is queried for a
+        simple join condition.   In this case, the related items are queried
+        based on the value of a foreign key column on the parent; if these columns
+        are deferred or otherwise not loaded on any of the parent objects in
+        the collection, the loader falls back to the JOIN method.
+
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4773
+
+        Fixed regression caused by :ticket:`4365` where a join from an entity to
+        itself without using aliases no longer raises an informative error message,
+        instead failing on an assertion.  The informative error condition has been
+        restored.
+
+
+    .. change::
+        :tags: orm, feature
+        :tickets: 4736
+
+        Added new loader option method :meth:`.Load.options` which allows loader
+        options to be constructed hierarchically, so that many sub-options can be
+        applied to a particular path without needing to call :func:`.defaultload`
+        many times.  Thanks to Alessio Bogon for the idea.
+
+
+    .. change::
+        :tags: usecase, postgresql
+        :tickets: 4771
+
+        Added support for reflection of indexes on PostgreSQL partitioned tables,
+        which was added to PostgreSQL as of version 11.
+
+    .. change::
+       :tags: bug, mysql
+       :tickets: 4624
+
+       Enhanced MySQL/MariaDB version string parsing to accommodate for exotic
+       MariaDB version strings where the "MariaDB" word is embedded among other
+       alphanumeric characters such as "MariaDBV1".   This detection is critical in
+       order to correctly accommodate for API features that have split between MySQL
+       and MariaDB such as the "transaction_isolation" system variable.
+
+
+    .. change::
+        :tags: bug, mssql
+        :tickets: 4745
+
+        Ensured that the queries used to reflect indexes and view definitions will
+        explicitly CAST string parameters into NVARCHAR, as many SQL Server drivers
+        frequently treat string values, particularly those with non-ascii
+        characters or larger string values, as TEXT which often don't compare
+        correctly against VARCHAR characters in SQL Server's information schema
+        tables for some reason.    These CAST operations already take place for
+        reflection queries against SQL Server ``information_schema.`` tables but
+        were missing from three additional queries that are against ``sys.``
+        tables.
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4713
+
+        Fixed an issue where the :meth:`.orm._ORMJoin.join` method, which is a
+        not-internally-used ORM-level method that exposes what is normally an
+        internal process of :meth:`.Query.join`, did not propagate the ``full`` and
+        ``outerjoin`` keyword arguments correctly.  Pull request courtesy Denis
+        Kataev.
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4758
+
+        Adjusted the initialization for :class:`.Enum` to minimize how often it
+        invokes the ``.__members__`` attribute of a given PEP-435 enumeration
+        object, to suit the case where this attribute is expensive to invoke, as is
+        the case for some popular third party enumeration libraries.
+
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4772
+
+        Fixed bug where a many-to-one relationship that specified ``uselist=True``
+        would fail to update correctly during a primary key change where a related
+        column needs to change.
+
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4772
+
+        Fixed bug where the detection for many-to-one or one-to-one use with a
+        "dynamic" relationship, which is an invalid configuration, would fail to
+        raise if the relationship were configured with ``uselist=True``.  The
+        current fix is that it warns, instead of raises, as this would otherwise be
+        backwards incompatible, however in a future release it will be a raise.
+
+
+    .. change::
+        :tags: bug, orm
+        :tickets: 4767
+
+        Fixed bug where a synonym created against a mapped attribute that does not
+        exist yet, as is the case when it refers to backref before mappers are
+        configured, would raise recursion errors when trying to test for attributes
+        on it which ultimately don't exist (as occurs when the classes are run
+        through Sphinx autodoc), as the unconfigured state of the synonym would put
+        it into an attribute not found loop.
+
+
+    .. change::
+        :tags: usecase, postgresql
+        :tickets: 4756
+
+        Added support for multidimensional Postgresql array literals via nesting
+        the :class:`.postgresql.array` object within another one.  The
+        multidimensional array type is detected automatically.
+
+        .. seealso::
+
+            :class:`.postgresql.array`
+
+    .. change::
+        :tags: bug, sql, postgresql
+        :tickets: 4760
+
+        Fixed issue where the :class:`.array_agg` construct in combination with
+        :meth:`.FunctionElement.filter` would not produce the correct operator
+        precedence in combination with the array index operator.
+
+
+    .. change::
+        :tags: bug, sql
+        :tickets: 4747
+
+        Fixed an unlikely issue where the "corresponding column" routine for unions
+        and other :class:`.CompoundSelect` objects could return the wrong column in
+        some overlapping column situtations, thus potentially impacting some ORM
+        operations when set operations are in use, if the underlying
+        :func:`.select` constructs were used previously in other similar kinds of
+        routines, due to a cached value not being cleared.
+
+    .. change::
+        :tags: usecase, sqlite
+        :tickets: 4766
+
+        Added support for composite (tuple) IN operators with SQLite, by rendering
+        the VALUES keyword for this backend.  As other backends such as DB2 are
+        known to use the same syntax, the syntax is enabled in the base compiler
+        using a dialect-level flag ``tuple_in_values``.   The change also includes
+        support for "empty IN tuple" expressions for SQLite when using "in_()"
+        between a tuple value and an empty set.
+
+
+.. changelog::
     :version: 1.3.5
     :released: June 17, 2019
 
@@ -29,7 +652,7 @@
         two levels deep, in conjunction with modification to primary key values,
         where those primary key columns are also linked together in a foreign key
         relationship as is typical for joined table inheritance.  The intermediary
-        table in a  three-level inheritance hierachy will now get its UPDATE if
+        table in a  three-level inheritance hierarchy will now get its UPDATE if
         only the primary key value has changed and passive_updates=False (e.g.
         foreign key constraints not being enforced), whereas before it would be
         skipped; similarly, with passive_updates=True (e.g. ON UPDATE  CASCADE in
@@ -186,7 +809,7 @@
         hybrid attributes when they made use of the ``@hybrid_property.expression``
         decorator to return an alternate SQL expression, or when the hybrid
         returned an arbitrary :class:`.PropComparator`, at the expression level.
-        This involved futher generalization of the heuristics used to detect the
+        This involved further generalization of the heuristics used to detect the
         type of object being proxied at the level of :class:`.QueryableAttribute`,
         to better detect if the descriptor ultimately serves mapped classes or
         column expressions.
@@ -761,10 +1384,10 @@
        :tickets: 4446
 
        Fixed issue in association proxy due to :ticket:`3423` which caused the use
-       of custom :class:`.PropComparator` objects with hybrid attribites, such as
+       of custom :class:`.PropComparator` objects with hybrid attributes, such as
        the one demonstrated in  the ``dictlike-polymorphic`` example to not
        function within an association proxy.  The strictness that was added in
-       :ticket:`3423` has been relaxed, and additional logic to accomodate for
+       :ticket:`3423` has been relaxed, and additional logic to accommodate for
        an association proxy that links to a custom hybrid have been added.
 
     .. change::
@@ -866,7 +1489,7 @@
 
        Reworked :class:`.AssociationProxy` to store state that's specific to a
        parent class in a separate object, so that a single
-       :class:`.AssocationProxy` can serve for multiple parent classes, as is
+       :class:`.AssociationProxy` can serve for multiple parent classes, as is
        intrinsic to inheritance, without any ambiguity in the state returned by it.
        A new method :meth:`.AssociationProxy.for_class` is added to allow
        inspection of class-specific state.
@@ -1169,7 +1792,7 @@
         Fixed bug where declarative would not update the state of the
         :class:`.Mapper` as far as what attributes were present, when additional
         attributes were added or removed after the mapper attribute collections had
-        already been called and memoized.  Addtionally, a ``NotImplementedError``
+        already been called and memoized.  Additionally, a ``NotImplementedError``
         is now raised if a fully mapped attribute (e.g. column, relationship, etc.)
         is deleted from a class that is currently mapped, since the mapper will not
         function correctly if the attribute has been removed.

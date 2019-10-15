@@ -1083,9 +1083,10 @@ by a column name that appears more than once:
 
 
 
+.. _core_tutorial_aliases:
 
-Using Aliases
-=============
+Using Aliases and Subqueries
+============================
 
 The alias in SQL corresponds to a "renamed" version of a table or SELECT
 statement, which occurs anytime you say "SELECT .. FROM sometable AS
@@ -1096,10 +1097,11 @@ FROM clause multiple times. In the case of a SELECT statement, it provides a
 parent name for the columns represented by the statement, allowing them to be
 referenced relative to this name.
 
-In SQLAlchemy, any :class:`.Table`, :func:`.select` construct, or
-other selectable can be turned into an alias using the :meth:`.FromClause.alias`
-method, which produces a :class:`.Alias` construct.  As an example, suppose we know that our user ``jack`` has two
-particular email addresses. How can we locate jack based on the combination of those two
+In SQLAlchemy, any :class:`.Table`, :func:`.select` construct, or other
+selectable can be turned into an alias or named subquery using the
+:meth:`.FromClause.alias` method, which produces a :class:`.Alias` construct.
+As an example, suppose we know that our user ``jack`` has two particular email
+addresses. How can we locate jack based on the combination of those two
 addresses?   To accomplish this, we'd use a join to the ``addresses`` table,
 once for each address.   We create two :class:`.Alias` constructs against
 ``addresses``, and then use them both within a :func:`.select` construct:
@@ -1141,15 +1143,16 @@ to the :meth:`.FromClause.alias` method::
     >>> a1 = addresses.alias('a1')
 
 Aliases can of course be used for anything which you can SELECT from,
-including SELECT statements themselves. We can self-join the ``users`` table
+including SELECT statements themselves, by converting the SELECT statement
+into a named subquery.  The :meth:`.SelectBase.alias` method performs this
+role.   We can self-join the ``users`` table
 back to the :func:`.select` we've created by making an alias of the entire
-statement. The ``correlate(None)`` directive is to avoid SQLAlchemy's attempt
-to "correlate" the inner ``users`` table with the outer one:
+statement:
 
 .. sourcecode:: pycon+sql
 
-    >>> a1 = s.correlate(None).alias()
-    >>> s = select([users.c.name]).where(users.c.id == a1.c.id)
+    >>> addresses_subq = s.alias()
+    >>> s = select([users.c.name]).where(users.c.id == addresses_subq.c.id)
     {sql}>>> conn.execute(s).fetchall()
     SELECT users.name
     FROM users,
@@ -1325,6 +1328,8 @@ single named value is needed in the execute parameters:
 
     :func:`.bindparam`
 
+.. _coretutorial_functions:
+
 Functions
 ---------
 
@@ -1472,6 +1477,75 @@ indicate "UNBOUNDED".  See the examples at :func:`.over` for more detail.
     :func:`.over`
 
     :meth:`.FunctionElement.over`
+
+.. _coretutorial_casts:
+
+Data Casts and Type Coercion
+-----------------------------
+
+In SQL, we often need to indicate the datatype of an element explicitly, or
+we need to convert between one datatype and another within a SQL statement.
+The CAST SQL function performs this.  In SQLAlchemy, the :func:`.cast` function
+renders the SQL CAST keyword.  It accepts a column expression and a data type
+object as arguments:
+
+.. sourcecode:: pycon+sql
+
+    >>> from sqlalchemy import cast
+    >>> s = select([cast(users.c.id, String)])
+    >>> conn.execute(s).fetchall()
+    {opensql}SELECT CAST(users.id AS VARCHAR) AS anon_1
+    FROM users
+    ()
+    {stop}[('1',), ('2',)]
+
+The :func:`.cast` function is used not just when converting between datatypes,
+but also in cases where the database needs to
+know that some particular value should be considered to be of a particular
+datatype within an expression.
+
+The :func:`.cast` function also tells SQLAlchemy itself that an expression
+should be treated as a particular type as well.   The datatype of an expression
+directly impacts the behavior of Python operators upon that object, such as how
+the ``+`` operator may indicate integer addition or string concatenation, and
+it also impacts how a literal Python value is transformed or handled before
+being passed to the database as well as how result values of that expression
+should be transformed or handled.
+
+Sometimes there is the need to have SQLAlchemy know the datatype of an
+expression, for all the reasons mentioned above, but to not render the CAST
+expression itself on the SQL side, where it may interfere with a SQL operation
+that already works without it.  For this fairly common use case there is
+another function :func:`.type_coerce` which is closely related to
+:func:`.cast`, in that it sets up a Python expression as having a specific SQL
+database type, but does not render the ``CAST`` keyword or datatype on the
+database side.    :func:`.type_coerce` is particularly important when dealing
+with the :class:`.types.JSON` datatype, which typically has an intricate
+relationship with string-oriented datatypes on different platforms and
+may not even be an explicit datatype, such as on SQLite and MariaDB.
+Below, we use :func:`.type_coerce` to deliver a Python structure as a JSON
+string into one of MySQL's JSON functions:
+
+.. sourcecode:: pycon+sql
+
+    >>> import json
+    >>> from sqlalchemy import JSON
+    >>> from sqlalchemy import type_coerce
+    >>> from sqlalchemy.dialects import mysql
+    >>> s = select([
+    ... type_coerce(
+    ...        {'some_key': {'foo': 'bar'}}, JSON
+    ...    )['some_key']
+    ... ])
+    >>> print(s.compile(dialect=mysql.dialect()))
+    SELECT JSON_EXTRACT(%s, %s) AS anon_1
+
+Above, MySQL's ``JSON_EXTRACT`` SQL function was invoked
+because we used :func:`.type_coerce` to indicate that our Python dictionary
+should be treated as :class:`.types.JSON`.  The Python ``__getitem__``
+operator, ``['some_key']`` in this case, became available as a result and
+allowed a ``JSON_EXTRACT`` path expression (not shown, however in this
+case it would ultimately be ``'$."some_key"'``) to be rendered.
 
 Unions and Other Set Operations
 -------------------------------
@@ -1798,6 +1872,8 @@ specified to :meth:`.Select.correlate_except`.
 
     :meth:`.Select.lateral`
 
+
+.. _core_tutorial_ordering:
 
 Ordering, Grouping, Limiting, Offset...ing...
 ---------------------------------------------
