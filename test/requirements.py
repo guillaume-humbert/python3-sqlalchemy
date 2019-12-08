@@ -5,6 +5,7 @@
 
 import sys
 
+from sqlalchemy import exc
 from sqlalchemy import util
 from sqlalchemy.testing import exclusions
 from sqlalchemy.testing.exclusions import against
@@ -359,6 +360,10 @@ class DefaultRequirements(SuiteRequirements):
         return only_if([self.returning, self.sqlite])
 
     @property
+    def computed_columns_on_update_returning(self):
+        return self.computed_columns + skip_if("oracle")
+
+    @property
     def correlated_outer_joins(self):
         """Target must support an outer join to a subquery which
         correlates to the parent."""
@@ -609,7 +614,7 @@ class DefaultRequirements(SuiteRequirements):
     def sql_expression_limit_offset(self):
         return (
             fails_if(
-                ["mysql", "mssql"],
+                ["mysql"],
                 "Target backend can't accommodate full expressions in "
                 "OFFSET or LIMIT",
             )
@@ -760,7 +765,9 @@ class DefaultRequirements(SuiteRequirements):
     @property
     def nullsordering(self):
         """Target backends that support nulls ordering."""
-        return fails_on_everything_except("postgresql", "oracle", "firebird")
+        return fails_on_everything_except(
+            "postgresql", "oracle", "firebird", "sqlite >= 3.30.0"
+        )
 
     @property
     def reflects_pk_names(self):
@@ -775,7 +782,7 @@ class DefaultRequirements(SuiteRequirements):
         """target database can select an aggregate from a subquery that's
         also using an aggregate"""
 
-        return skip_if(["mssql"])
+        return skip_if(["mssql", "sqlite"])
 
     @property
     def array_type(self):
@@ -803,9 +810,36 @@ class DefaultRequirements(SuiteRequirements):
                     )
                 ),
                 "postgresql >= 9.3",
-                "sqlite >= 3.9",
+                self._sqlite_json,
             ]
         )
+
+    @property
+    def json_index_supplementary_unicode_element(self):
+        # for sqlite see https://bugs.python.org/issue38749
+        return skip_if(
+            [
+                lambda config: against(config, "mysql")
+                and config.db.dialect._is_mariadb,
+                "sqlite",
+            ]
+        )
+
+    def _sqlite_json(self, config):
+        if not against(config, "sqlite >= 3.9"):
+            return False
+        else:
+            with config.db.connect() as conn:
+                try:
+                    return (
+                        conn.scalar(
+                            """select json_extract('{"foo": "bar"}', """
+                            """'$."foo"')"""
+                        )
+                        == "bar"
+                    )
+                except exc.DBAPIError:
+                    return False
 
     @property
     def reflects_json_type(self):
@@ -1401,3 +1435,7 @@ class DefaultRequirements(SuiteRequirements):
             lambda config: against(config, "oracle+cx_oracle")
             and config.db.dialect.cx_oracle_ver < (6,)
         )
+
+    @property
+    def computed_columns(self):
+        return skip_if(["postgresql < 12", "sqlite", "mysql < 5.7"])
