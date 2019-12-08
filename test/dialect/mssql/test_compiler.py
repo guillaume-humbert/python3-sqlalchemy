@@ -1,5 +1,6 @@
 # -*- encoding: utf-8
 from sqlalchemy import Column
+from sqlalchemy import Computed
 from sqlalchemy import delete
 from sqlalchemy import extract
 from sqlalchemy import func
@@ -7,6 +8,7 @@ from sqlalchemy import Index
 from sqlalchemy import insert
 from sqlalchemy import Integer
 from sqlalchemy import literal
+from sqlalchemy import literal_column
 from sqlalchemy import MetaData
 from sqlalchemy import PrimaryKeyConstraint
 from sqlalchemy import schema
@@ -781,6 +783,28 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
             eq_(len(c._result_columns), 2)
             assert t.c.x in set(c._create_result_map()["x"][1])
 
+    def test_simple_limit_expression_offset_using_window(self):
+        t = table("t", column("x", Integer), column("y", Integer))
+
+        s = (
+            select([t])
+            .where(t.c.x == 5)
+            .order_by(t.c.y)
+            .limit(10)
+            .offset(literal_column("20"))
+        )
+
+        self.assert_compile(
+            s,
+            "SELECT anon_1.x, anon_1.y "
+            "FROM (SELECT t.x AS x, t.y AS y, "
+            "ROW_NUMBER() OVER (ORDER BY t.y) AS mssql_rn "
+            "FROM t "
+            "WHERE t.x = :x_1) AS anon_1 "
+            "WHERE mssql_rn > 20 AND mssql_rn <= :param_1 + 20",
+            checkparams={"param_1": 10, "x_1": 5},
+        )
+
     def test_limit_offset_using_window(self):
         t = table("t", column("x", Integer), column("y", Integer))
 
@@ -1120,7 +1144,7 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         idx = Index("test_idx_data_1", tbl.c.data, mssql_where=tbl.c.data > 1)
         self.assert_compile(
             schema.CreateIndex(idx),
-            "CREATE INDEX test_idx_data_1 ON test (data) WHERE data > 1"
+            "CREATE INDEX test_idx_data_1 ON test (data) WHERE data > 1",
         )
 
     def test_index_ordering(self):
@@ -1188,6 +1212,27 @@ class CompileTest(fixtures.TestBase, AssertsCompiledSQL):
         self.assert_compile(
             select([try_cast(t1.c.id, Integer)]),
             "SELECT TRY_CAST (t1.id AS INTEGER) AS anon_1 FROM t1",
+        )
+
+    @testing.combinations(
+        ("no_persisted", "", "ignore"),
+        ("persisted_none", "", None),
+        ("persisted_true", " PERSISTED", True),
+        ("persisted_false", "", False),
+        id_="iaa",
+    )
+    def test_column_computed(self, text, persisted):
+        m = MetaData()
+        kwargs = {"persisted": persisted} if persisted != "ignore" else {}
+        t = Table(
+            "t",
+            m,
+            Column("x", Integer),
+            Column("y", Integer, Computed("x + 2", **kwargs)),
+        )
+        self.assert_compile(
+            schema.CreateTable(t),
+            "CREATE TABLE t (x INTEGER NULL, y AS (x + 2)%s)" % text,
         )
 
 

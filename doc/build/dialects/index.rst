@@ -46,6 +46,7 @@ Currently maintained external dialect projects for SQLAlchemy include:
 
 * `ibm_db_sa <http://code.google.com/p/ibm-db/wiki/README>`_ - driver for IBM DB2 and Informix.
 * `PyHive <https://github.com/dropbox/PyHive#sqlalchemy>`_ - driver for `Apache Hive <https://hive.apache.org/>`_ and `Presto <https://prestodb.github.io/>`_.
+* `pybigquery <https://github.com/mxmzdlv/pybigquery/>`_ - driver for Google BigQuery.
 * `sqlalchemy-redshift <https://pypi.python.org/pypi/sqlalchemy-redshift>`_ - driver for Amazon Redshift, adapts
   the existing PostgreSQL/psycopg2 driver.
 * `sqlalchemy-drill <https://github.com/JohnOmernik/sqlalchemy-drill>`_ - driver for Apache Drill.
@@ -60,3 +61,6 @@ Currently maintained external dialect projects for SQLAlchemy include:
 * `crate <https://github.com/crate/crate-python>`_ - driver for `CrateDB <https://crate.io/>`_.
 * `sqlalchemy-access <https://pypi.org/project/sqlalchemy-access/>`_ - driver for Microsoft Access,
   on top of `pyodbc <https://pypi.org/project/pyodbc/>`_.
+* `elasticsearch-dbapi <https://github.com/preset-io/elasticsearch-dbapi/>`_ - readonly driver for Elasticsearch.
+* `pydruid <https://github.com/druid-io/pydruid>`_ - driver for Apache Druid.
+* `gsheets <https://github.com/betodealmeida/gsheets-db-api>`_ - driver for Google Sheets.
